@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018.
+  ~
+  ~ This file is part of MovieDB.
+  ~
+  ~ MovieDB is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ MovieDB is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.wirelessalien.android.moviedb.activity.FilterActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dip">
+
+        <TextView
+            android:id="@+id/sortText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dip"
+            android:text="@string/sort_by"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/sortSelection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sortText">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/most_popular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="most_popular"
+                android:text="@string/most_popular" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="best_rated"
+                android:text="@string/best_rated" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="release_date"
+                android:text="@string/release_date" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="alphabetic_order"
+                android:text="@string/alphabetic_order" />
+        </RadioGroup>
+
+        <View
+            android:id="@+id/sortViewSeparator"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/sortSelection"
+            android:layout_marginBottom="10dip"
+            android:layout_marginTop="10dip"
+            android:background="?android:attr/listDivider" />
+
+        <LinearLayout
+            android:id="@+id/categoriesLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sortViewSeparator"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dip"
+                android:text="@string/categories"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/categoryCheckBoxesLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/watchingCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="watching"
+                    android:text="@string/watching" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/plannedToWatchCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="plan_to_watch"
+                    android:text="@string/plan_to_watch" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/watchedCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="watched"
+                    android:text="@string/watched" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/onHoldCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="on_hold"
+                    android:text="@string/on_hold" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/droppedCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="dropped"
+                    android:text="@string/dropped" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="10dip"
+                android:layout_marginTop="10dip"
+                android:background="?android:attr/listDivider" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/dateViewLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/categoriesLayout">
+
+            <TextView
+                android:id="@+id/dateText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dip"
+                android:text="@string/dates"
+                android:textStyle="bold" />
+
+            <RelativeLayout
+                android:id="@+id/dateLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/dateText">
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/theaterCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="checkBoxSelected"
+                    android:tag="in_theater"
+                    android:text="@string/in_the_theater_right_now" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/twoDatesCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/theaterCheckBox"
+                    android:onClick="checkBoxSelected"
+                    android:tag="between_dates"
+                    android:text="@string/between_two_dates" />
+
+            </RelativeLayout>
+
+            <TableLayout
+                android:id="@+id/dateDetailsLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/dateLayout"
+                android:layout_marginLeft="30dip"
+                android:layout_marginStart="30dip"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TableRow
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/start_date" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/startDateButton"
+                        style="@style/ColoredButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableEnd="@drawable/ic_calendar"
+                        android:drawablePadding="5dip"
+                        app:cornerRadius="5dp"
+                        android:onClick="selectDate"
+                        android:tag="start_date" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/end_date" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/endDateButton"
+                        style="@style/ColoredButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableEnd="@drawable/ic_calendar"
+                        android:drawablePadding="5dip"
+                        app:cornerRadius="5dp"
+                        android:onClick="selectDate"
+                        android:tag="end_date" />
+
+                </TableRow>
+
+            </TableLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/dateDetailsLayout"
+                android:layout_marginBottom="10dip"
+                android:layout_marginTop="10dip"
+                android:background="?android:attr/listDivider" />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/genresText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/dateViewLayout"
+            android:layout_margin="5dip"
+            android:text="@string/genres"
+            android:textStyle="bold" />
+
+        <org.apmem.tools.layouts.FlowLayout
+            android:id="@+id/genreButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/genresText"
+            android:orientation="horizontal">
+
+        </org.apmem.tools.layouts.FlowLayout>
+
+        <View
+            android:id="@+id/genreViewSeparator"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/genreButtons"
+            android:layout_marginBottom="10dip"
+            android:layout_marginTop="10dip"
+            android:background="?android:attr/listDivider" />
+
+        <RelativeLayout
+            android:id="@+id/advancedTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/genreViewSeparator"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="collapseAdvanced">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dip"
+                android:text="@string/advanced"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/collapseIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:contentDescription="@string/collapse_icon_description"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:src="@drawable/ic_keyboard_arrow_down"
+                tools:ignore="RtlSymmetry" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/advancedView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/advancedTitle"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/keywordText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dip"
+                android:text="@string/keyword_text" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/withKeywords"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/keywordText"
+                android:layout_margin="10dip"
+                android:hint="@string/with_keywords_hint"
+                android:inputType="text" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/withoutKeywords"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/withKeywords"
+                android:layout_margin="10dip"
+                android:hint="@string/without_keywords_hint"
+                android:inputType="text" />
+
+        </RelativeLayout>
+    </RelativeLayout>
+</ScrollView>

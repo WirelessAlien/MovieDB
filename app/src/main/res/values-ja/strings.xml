@@ -1,0 +1,158 @@
+<!--
+  ~ Copyright (c) 2018.
+  ~
+  ~ This file is part of MovieDB.
+  ~
+  ~ MovieDB is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ MovieDB is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <!-- BaseAcitivty -->
+    <string name="no_permission_dialog_message">You need to allow write access to the external storage</string>
+    <string name="no_permission_dialog_ok">OK</string>
+    <string name="no_permission_dialog_cancel">キャンセル</string>
+    <string name="action_filter">Filter</string>
+
+    <!-- MainActivity -->
+    <string name="watched_upgrade_dialog_title">Rewatched field change</string>
+    <string name="watched_upgrade_dialog_message">The \'rewatched\' field for saved shows has changed to \'watched.\' That means that all (watched) shows need their watched value increased by one to retain the original meaning. Do you want to automatically increase the value by one?\n\nNote: if the show is not marked as \'watched\' and has a rewatch value of zero, it\'ll not be changed.</string>
+    <string name="watched_upgrade_dialog_positive">Yes</string>
+    <string name="watched_upgrade_dialog_negative">No</string>
+
+    <!-- CastActivity (quotes are to enforce the spaces) -->
+    <string name="place_of_birth">"誕生地: "</string>
+    <string name="birthday">"誕生日: "</string>
+    <string name="no_biography">"バイオグラフィーがありません "</string>
+    <string name="cast_movie_title">Part of the cast in</string>
+    <string name="crew_movie_title">Part of the crew in</string>
+
+    <!-- DetailActivity (quotes are to enforce the spaces) -->
+    <string name="movie_added">Movie added</string>
+    <string name="series_added">Series added</string>
+    <string name="show_added_error">An error occurred while adding the show to the database</string>
+    <string name="start_date">"開始日: "</string>
+    <string name="start_date_unknown">開始日はまだセットされていません。</string>
+    <string name="finish_date">"完了日: "</string>
+    <string name="finish_date_unknown">完了日はまだセットされていません。</string>
+    <string name="times_watched">"Times watched: "</string>
+    <string name="episodes_seen">"Episodes seen: "</string>
+    <string name="rating">"Rating: "</string>
+    <string name="change_start_date_2">"開始日: "</string>
+    <string name="change_finish_date_2">"完了日: "</string>
+    <string name="change_watched_times">"Times watched: "</string>
+    <string name="cast_title">Cast</string>
+    <string name="crew_title">Crew</string>
+    <string name="recommendations_title">Recommendations</string>
+    <string name="category_picker">Pick the appropriate category</string>
+    <string-array name="categories">
+        <item>@string/watching</item>
+        <item>@string/plan_to_watch</item>
+        <item>@string/watched</item>
+        <item>@string/on_hold</item>
+        <item>@string/dropped</item>
+    </string-array>
+    <string name="show_category">"Category: "</string>
+
+    <!-- FilterActivity -->
+    <string name="sort_by">Sort By</string>
+    <string name="default_sort">Default</string>
+    <string name="most_popular">Most Popular</string>
+    <string name="best_rated">Best Rated</string>
+    <string name="release_date">Release Date</string>
+    <string name="alphabetic_order">Alphabetic Order</string>
+    <string name="categories">Categories</string>
+    <string name="watching">Watching</string>
+    <string name="plan_to_watch">Plan to Watch</string>
+    <string name="watched">ウォッチ済</string>
+    <string name="on_hold">On Hold</string>
+    <string name="dropped">Dropped</string>
+    <string name="dates">Dates</string>
+    <string name="in_the_theater_right_now">In the theater right now</string>
+    <string name="between_two_dates">Between two dates</string>
+    <string name="end_date">"End date: "</string>
+    <string name="genres">Genres</string>
+    <string name="advanced">Advanced</string>
+    <string name="keyword_text">You can exclude and include keywords by putting their IDs in the respective text box below. Logic can be applied as following:\n * Use , (comma) to indicate that you mean both keywords.\n * Use | (pipe) to indicate that you are fine with either one or the other.</string>
+    <string name="with_keywords_hint">Include shows with the keywords…</string>
+    <string name="without_keywords_hint">Exclude shows with the keywords…</string>
+
+    <!-- SectionsPagerAdapter -->
+    <string name="movie_tab_title">MOVIES</string>
+    <string name="series_tab_title">SERIES</string>
+    <string name="saved_tab_title">SAVED</string>
+    <string name="person_tab_title">PEOPLE</string>
+
+    <!-- MovieDatabaseHelper -->
+    <string name="write_to_external_storage_as">"Saved as: "</string>
+    <string name="write_to_external_storage_failed">It\'s not possible to write to the external storage.</string>
+    <string name="choose_export_file">Choose export file format:</string>
+    <string-array name="export_import_formats">
+        <item>Database</item>
+        <item>JSON</item>
+    </string-array>
+    <string name="choose_file">Choose which file to import:</string>
+    <string name="import_cancel">Cancel</string>
+    <string name="file_not_found_exception">The file cannot be found!</string>
+
+    <!-- search_bar -->
+    <string name="hint_search">検索…</string>
+
+    <!-- database_menu -->
+    <string name="action_export">Export</string>
+    <string name="action_import">Import</string>
+
+    <!-- options_menu -->
+    <string name="action_search">Search</string>
+
+    <!-- save_menu -->
+    <string name="action_save">Save</string>
+
+    <!-- Preferences -->
+    <string name="title_general">General</string>
+    <string name="title_show_cast">Show cast</string>
+    <string name="title_show_crew">Show crew</string>
+    <string name="title_show_recommendations">Show recommendations</string>
+    <string name="title_show_save_dialog">Show save dialog</string>
+    <string name="title_persistent_filtering">Persistent filter</string>
+    <string name="summary_persistent_filtering">Automatically filter shows when starting the application</string>
+    <string name="title_show_representation">Show representation</string>
+    <string name="title_shows_in_grid">Show the shows in a grid</string>
+    <string name="title_grid_size">Grid size</string>
+    <string name="summary_grid_size">Amount of items in a row</string>
+    <string name="title_data_usage">Data usage</string>
+    <string name="title_live_search">Use live search</string>
+    <string name="title_hide_tabs">Hide tabs</string>
+    <string name="summary_hide_tabs">The application needs to be restarted before changes apply.</string>
+    <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
+    <string name="title_hide_series_tab">Hide the \'Series\' tab</string>
+    <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
+    <string name="title_hide_person_tab">Hide the \'People\' tab</string>
+    <string name="title_api_language">API Language</string>
+    <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
+    <string name="title_source_code">ソースコード</string>
+    <string name="text_tmdb_credits">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
+
+    <string name="action_settings">設定</string>
+
+    <!-- (General) Toasts -->
+    <string name="no_internet_connection">There is no Internet connection</string>
+    <string name="tmdb_server_unreachable">Could not connect with TMDb services</string>
+
+    <!-- Image content descriptions -->
+    <string name="collapse_icon_description">Collapses or expands the view</string>
+    <string name="image_description">Poster of the show</string>
+    <string name="person_image_description">Picture of the person</string>
+    <string name="movie_image_description">Image from the show</string>
+    <string name="edit_icon_description">Enables edit mode</string>
+</resources>

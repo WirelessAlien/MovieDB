@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018.
+  ~
+  ~ This file is part of MovieDB.
+  ~
+  ~ MovieDB is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ MovieDB is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/title_general">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="key_show_cast"
+            android:title="@string/title_show_cast" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="key_show_crew"
+            android:title="@string/title_show_crew" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="key_show_similar_movies"
+            android:title="@string/title_show_recommendations" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="key_show_save_dialog"
+            android:title="@string/title_show_save_dialog" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="key_persistent_filtering"
+            android:title="@string/title_persistent_filtering"
+            android:summary="@string/summary_persistent_filtering" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/title_show_representation">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="key_show_shows_grid"
+            android:title="@string/title_shows_in_grid" />
+
+        <com.wirelessalien.android.moviedb.NumberPickerPreference
+            android:defaultValue="3"
+            android:dependency="key_show_shows_grid"
+            android:key="key_grid_size_number"
+            android:summary="@string/summary_grid_size"
+            android:title="@string/title_grid_size" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/title_data_usage">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="key_live_search"
+            android:title="@string/title_live_search" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="@string/summary_hide_tabs"
+        android:title="@string/title_hide_tabs">
+
+        <Preference
+            android:selectable="false"
+            android:summary="@string/summary_hide_tabs" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="key_hide_movies_tab"
+            android:title="@string/title_hide_movies_tab" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="key_hide_series_tab"
+            android:title="@string/title_hide_series_tab" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="key_hide_saved_tab"
+            android:title="@string/title_hide_saved_tab" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="key_hide_person_tab"
+            android:title="@string/title_hide_person_tab" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/advanced" >
+
+        <EditTextPreference
+            android:key="key_api_language"
+            android:title="@string/title_api_language"
+            android:summary="@string/summary_api_language" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Other">
+
+        <Preference android:title="@string/title_source_code">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/WirelessAlien/MovieDB" />
+        </Preference>
+
+        <Preference
+            android:summary="@string/text_tmdb_credits"
+            android:title="TMDb" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,158 @@
+<!--
+  ~ Copyright (c) 2018.
+  ~
+  ~ This file is part of MovieDB.
+  ~
+  ~ MovieDB is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ MovieDB is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <!-- BaseActivity -->
+    <string name="no_permission_dialog_message">Je moet schrijftoegang naar de externe opslag toestaan</string>
+    <string name="no_permission_dialog_ok">OK</string>
+    <string name="no_permission_dialog_cancel">Annuleren</string>
+    <string name="action_filter">Filter</string>
+
+    <!-- MainActivity -->
+    <string name="watched_upgrade_dialog_title">Herkeken veld verandering</string>
+    <string name="watched_upgrade_dialog_message">Het \'herkeken\' veld voor opgeslagen shows is veranderd naar \'gekeken.\' Dat betekent dat bij alle shows (die gezien zijn) de gekeken waarde met één omhoog moet om de originele betekenis te behouden. Wil je de waarde automatisch met één verhogen?\n\nOpmerking: als een show niet als \'gezien\' ingedeeld is en een herkeken waarde van nul heeft, dan zal het niet van waarde veranderen.</string>
+    <string name="watched_upgrade_dialog_positive">Ja</string>
+    <string name="watched_upgrade_dialog_negative">Nee</string>
+
+    <!-- CastActivity (quotes zijn er om de spaties af te dwingen) -->
+    <string name="place_of_birth">"Geboorteplaats: "</string>
+    <string name="birthday">"Geboortedatum: "</string>
+    <string name="no_biography">"We hebben geen biografie voor "</string>
+    <string name="cast_movie_title">Onderdeel van de cast in</string>
+    <string name="crew_movie_title">Onderdeel van de crew in</string>
+
+    <!-- DetailActivity (quotes zijn er om de spaties af te dwingen) -->
+    <string name="movie_added">Film toegevoegd</string>
+    <string name="series_added">Serie toegevoegd</string>
+    <string name="show_added_error">Er is een fout opgetreden tijdens het toevoegen aan de database</string>
+    <string name="start_date">"Startdatum: "</string>
+    <string name="start_date_unknown">De startdatum is nog niet gespecificeerd.</string>
+    <string name="finish_date">"Beëindigingsdatum: "</string>
+    <string name="finish_date_unknown">De beëindigingsdatum is nog niet gespecificeerd.</string>
+    <string name="times_watched">"Aantal keer gezien: "</string>
+    <string name="episodes_seen">"Afleveringen gezien: "</string>
+    <string name="rating">"Cijfer: "</string>
+    <string name="change_start_date_2">"Startdatum: "</string>
+    <string name="change_finish_date_2">"Beëindigingsdatum: "</string>
+    <string name="change_watched_times">"Aantal keer gezien: "</string>
+    <string name="cast_title">Cast</string>
+    <string name="crew_title">Crew</string>
+    <string name="recommendations_title">Aanraders</string>
+    <string name="category_picker">Kies de geschikte categorie</string>
+    <string-array name="categories">
+        <item>@string/watching</item>
+        <item>@string/plan_to_watch</item>
+        <item>@string/watched</item>
+        <item>@string/on_hold</item>
+        <item>@string/dropped</item>
+    </string-array>
+    <string name="show_category">\"Categorie: \"</string>
+
+    <!-- FilterActivity -->
+    <string name="sort_by">Sorteren op</string>
+    <string name="default_sort">Standaard</string>
+    <string name="most_popular">Populairste</string>
+    <string name="best_rated">Beste score</string>
+    <string name="release_date">Verschijningsdatum</string>
+    <string name="alphabetic_order">Alfabetische volgorde</string>
+    <string name="categories">Categorieën</string>
+    <string name="watching">Nu aan het kijken</string>
+    <string name="plan_to_watch">Van plan om te kijken</string>
+    <string name="watched">Gezien</string>
+    <string name="dropped">Gestopt</string>
+    <string name="dates">Datums</string>
+    <string name="in_the_theater_right_now">Nu in the bioscoop</string>
+    <string name="between_two_dates">Tussen twee datums</string>
+    <string name="end_date">\"Einddatum: \"</string>
+    <string name="genres">Genres</string>
+    <string name="advanced">Geavanceerd</string>
+    <string name="keyword_text">Je kan sleutelwoorden toevoegen of uitsluiten door de bijhorende ids in het juiste tekstveld te zetten. logica wordt toegepast als volgt:\n* gebruik , (komma) om aan te geven dat je beide sleutelwoorden bedoelt.\n* gebruik | (pipe) om aan te geven dat de show maar één van beide hoeft te bevatten.</string>
+    <string name="with_keywords_hint">Shows met de volgende sleutelwoorden toevoegen…</string>
+    <string name="without_keywords_hint">Shows met de volgende sleutelwoorden uitsleten…</string>
+
+    <!-- SectionsPagerAdapter -->
+    <string name="movie_tab_title">FILMS</string>
+    <string name="series_tab_title">SERIES</string>
+    <string name="saved_tab_title">OPGESLAGEN</string>
+    <string name="person_tab_title">MENSEN</string>
+
+    <!-- MovieDatabaseHelper -->
+    <string name="write_to_external_storage_as">"Opgeslagen als: "</string>
+    <string name="write_to_external_storage_failed">Het is niet mogelijk om naar de externe opslag te schrijven.</string>
+    <string name="choose_export_file">Kies het bestandsformaat om in te exporteren:</string>
+    <string-array name="export_import_formats">
+        <item>Databank</item>
+        <item>JSON</item>
+    </string-array>
+    <string name="choose_file">Kies het te importeren bestand:</string>
+    <string name="import_cancel">Annuleren</string>
+    <string name="file_not_found_exception">Het bestand kan niet gevonden worden!</string>
+
+    <!-- search_bar -->
+    <string name="hint_search">Zoeken…</string>
+
+    <!-- database_menu -->
+    <string name="action_export">Exporteren</string>
+    <string name="action_import">Importeren</string>
+
+    <!-- options_menu -->
+    <string name="action_search">Search</string>
+
+    <!-- save_menu -->
+    <string name="action_save">Opslaan</string>
+
+    <!-- Preferences -->
+    <string name="title_general">Algemeen</string>
+    <string name="title_show_cast">Cast weergeven</string>
+    <string name="title_show_crew">Crew weergeven</string>
+    <string name="title_show_recommendations">Aanraders weergeven</string>
+    <string name="title_show_save_dialog">Opslaan dialoog weergeven</string>
+    <string name="title_persistent_filtering">Automatisch filteren</string>
+    <string name="summary_persistent_filtering">Filter de shows automatisch wanneer de applicatie wordt opgestart</string>
+    <string name="title_show_representation">Wijze waarop shows worden weergeven</string>
+    <string name="title_shows_in_grid">Geef de shows weer in een rooster</string>
+    <string name="title_grid_size">Rooster grootte</string>
+    <string name="summary_grid_size">Het aantal in een rij</string>
+    <string name="title_data_usage">Data gebruik</string>
+    <string name="title_live_search">Gebruik live zoeken</string>
+    <string name="title_hide_tabs">Tabbladen verbergen</string>
+    <string name="summary_hide_tabs">De applicatie moet herstart worden voordat de veranderingen zichtbaar zijn.</string>
+    <string name="title_hide_movies_tab">Verberg het \'Films\' tabblad</string>
+    <string name="title_hide_series_tab">Verberg het \'Series\' tabblad</string>
+    <string name="title_hide_saved_tab">Verberg het \'Opgeslagen\' tabblad</string>
+    <string name="title_hide_person_tab">Verberg het \'Mensen\' tabblad</string>
+    <string name="title_api_language">API Taal</string>
+    <string name="summary_api_language">Stel de taal van de API gegevens in (standaard taal wordt gebruikt indien leeg).</string>
+    <string name="title_source_code">Broncode</string>
+    <string name="text_tmdb_credits">Dit product gebruikt de TMDb API maar is niet goedgekeurd of gecertificeerd bij TMDb.</string>
+
+    <string name="action_settings">Instellingen</string>
+    <string name="on_hold">Tijdelijk stopgezet</string>
+
+    <!-- (General) Toasts -->
+    <string name="no_internet_connection">Er is geen internetverbinding</string>
+    <string name="tmdb_server_unreachable">De TMDb services zijn niet bereikbaar</string>
+
+    <!-- Image content descriptions -->
+    <string name="collapse_icon_description">Opent of sluit geavanceerd</string>
+    <string name="image_description">Poster van de show</string>
+    <string name="person_image_description">Afbeelding van het persoon</string>
+    <string name="movie_image_description">Afbeelding van de show</string>
+    <string name="edit_icon_description">Zet bewerken aan </string>
+</resources>

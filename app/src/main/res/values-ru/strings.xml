@@ -1,0 +1,158 @@
+<!--
+  ~ Copyright (c) 2018.
+  ~
+  ~ This file is part of MovieDB.
+  ~
+  ~ MovieDB is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ MovieDB is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <!-- BaseActivity -->
+    <string name="no_permission_dialog_message">Необходимо разрешить запись на внешнее хранилище.</string>
+    <string name="no_permission_dialog_ok">Хорошо</string>
+    <string name="no_permission_dialog_cancel">Отмена</string>
+    <string name="action_filter">Фильтровать</string>
+
+    <!-- MainActivity -->
+    <string name="watched_upgrade_dialog_title">Изменение перепросмотров</string>
+    <string name="watched_upgrade_dialog_message">Все \'перепросмотренные\' позиции теперь обозначаются как \'просмотренные.\' Сделовательно, все просмотры фильма или серии необходимо увеличить на единицу, чтобы сохранить прежний смысл. Хотите ли Вы автоматически сделать это?\n\nПримечание: если фильм не был добавлен в \'просмотренные\' и не был перепросмотрен, то изменений не произойдет.</string>
+    <string name="watched_upgrade_dialog_positive">Да</string>
+    <string name="watched_upgrade_dialog_negative">Нет</string>
+
+    <!-- CastActivity (quotes are to enforce the spaces) -->
+    <string name="place_of_birth">"Место рождения: "</string>
+    <string name="birthday">"Дата рождения: "</string>
+    <string name="no_biography">"Биография отсутствует: "</string>
+    <string name="cast_movie_title">Играл в</string>
+    <string name="crew_movie_title">Участвовал в создании</string>
+
+    <!-- DetailActivity (quotes are to enforce the spaces) -->
+    <string name="movie_added">Фильм добавлен</string>
+    <string name="series_added">Сериал добавлен</string>
+    <string name="show_added_error">Произошла ошибка при добавлении в базу данных.</string>
+    <string name="start_date">"Дата начала: "</string>
+    <string name="start_date_unknown">Дата начала неизвестна.</string>
+    <string name="finish_date">"Дата окончания: "</string>
+    <string name="finish_date_unknown">Дата окончания неизвестна.</string>
+    <string name="times_watched">"Число просмотров: "</string>
+    <string name="episodes_seen">"Просмотрено эпизодов: "</string>
+    <string name="rating">"Оценка: "</string>
+    <string name="change_start_date_2">"Дата начала: "</string>
+    <string name="change_finish_date_2">"Дата окончания: "</string>
+    <string name="change_watched_times">"Число просмотров: "</string>
+    <string name="cast_title">В ролях</string>
+    <string name="crew_title">Создатели</string>
+    <string name="recommendations_title">Рекомендации</string>
+    <string name="category_picker">Выберите подходящую категорию</string>
+    <string-array name="categories">
+        <item>@string/watching</item>
+        <item>@string/plan_to_watch</item>
+        <item>@string/watched</item>
+        <item>@string/on_hold</item>
+        <item>@string/dropped</item>
+    </string-array>
+    <string name="show_category">"Категория: "</string>
+
+    <!-- FilterActivity -->
+    <string name="sort_by">Сортировать по</string>
+    <string name="default_sort">Умолчанию</string>
+    <string name="most_popular">Популярности</string>
+    <string name="best_rated">Оценкам</string>
+    <string name="release_date">Дате выхода</string>
+    <string name="alphabetic_order">Алфавиту</string>
+    <string name="categories">Категории</string>
+    <string name="watching">Смотрю</string>
+    <string name="plan_to_watch">Собираюсь посмотреть</string>
+    <string name="watched">Просмотренные</string>
+    <string name="on_hold">Досмотреть позже</string>
+    <string name="dropped">Передумал смотреть</string>
+    <string name="dates">Даты</string>
+    <string name="in_the_theater_right_now">Сегодня в кино</string>
+    <string name="between_two_dates">В промежутке между</string>
+    <string name="end_date">"Дата окончания: "</string>
+    <string name="genres">Жанры</string>
+    <string name="advanced">Дополнительно</string>
+    <string name="keyword_text">Вы можете фильтровать по ключевым словам, вводя их ID в соотвествующее поле. Логика следующая:\n * Разделяйте их запятой, чтобы использовать оба слова.\n * Разделяйте слова знаком | (или), если хотите использовать любое из них.</string>
+    <string name="with_keywords_hint">Показывать фильмы с ключевыми словами…</string>
+    <string name="without_keywords_hint">Не показывать фильмы с ключевыми словами…</string>
+
+    <!-- SectionsPagerAdapter -->
+    <string name="movie_tab_title">ФИЛЬМЫ</string>
+    <string name="series_tab_title">СЕРИАЛЫ</string>
+    <string name="saved_tab_title">СПИСКИ</string>
+    <string name="person_tab_title">ЗВЕЗДЫ</string>
+
+    <!-- MovieDatabaseHelper -->
+    <string name="write_to_external_storage_as">"Сохранен как: "</string>
+    <string name="write_to_external_storage_failed">Запись на внешний накопитель невозможна.</string>
+    <string name="choose_export_file">Выберите формат экспорта:</string>
+    <string-array name="export_import_formats">
+        <item>Database</item>
+        <item>JSON</item>
+    </string-array>
+    <string name="choose_file">Выберите файл для импорта:</string>
+    <string name="import_cancel">Отмена</string>
+    <string name="file_not_found_exception">Файл не найден!</string>
+
+    <!-- search_bar -->
+    <string name="hint_search">Найти…</string>
+
+    <!-- database_menu -->
+    <string name="action_export">Экспорт</string>
+    <string name="action_import">Импорт</string>
+
+    <!-- options_menu -->
+    <string name="action_search">Поиск</string>
+
+    <!-- save_menu -->
+    <string name="action_save">Сохранить</string>
+
+    <!-- Preferences -->
+    <string name="title_general">Общие</string>
+    <string name="title_show_cast">Показывать актеров</string>
+    <string name="title_show_crew">Показывать создателей</string>
+    <string name="title_show_recommendations">Показывать рекомендации</string>
+    <string name="title_show_save_dialog">Показывать варианты добавления</string>
+    <string name="title_persistent_filtering">Постоянный фильтр</string>
+    <string name="summary_persistent_filtering">Автоматически фильтровать фильмы при запуске приложения</string>
+    <string name="title_show_representation">Отображение</string>
+    <string name="title_shows_in_grid">Показывать фильмы сеткой</string>
+    <string name="title_grid_size">Размер сетки</string>
+    <string name="summary_grid_size">Число позиций в ряду</string>
+    <string name="title_data_usage">Трафик</string>
+    <string name="title_live_search">Включить живой поиск</string>
+    <string name="title_hide_tabs">Отображение вкладок</string>
+    <string name="summary_hide_tabs">Чтобы изменения вступили в силу, необходимо перезапустить приложение.</string>
+    <string name="title_hide_movies_tab">Скрыть вкладку \'Фильмы\'</string>
+    <string name="title_hide_series_tab">Скрыть вкладку \'Сериалы\'</string>
+    <string name="title_hide_saved_tab">Скрыть вкладку \'Списки\'</string>
+    <string name="title_hide_person_tab">Скрыть вкладку \'Звезды\'</string>
+    <string name="title_api_language">Язык API</string>
+    <string name="summary_api_language">Выберите язык для полученных через API данных (по-умолчанию используется системная локаль).</string>
+    <string name="title_source_code">Исходный код</string>
+    <string name="text_tmdb_credits">Данный продукт использует TMDb API, но не одобрен или не сертифицирован TMDb.</string>
+
+    <string name="action_settings">Настройки</string>
+
+    <!-- (General) Toasts -->
+    <string name="no_internet_connection">Интернет-соединение отстутствует</string>
+    <string name="tmdb_server_unreachable">Невозможно подключиться к сервисам TMDb</string>
+
+    <!-- Image content descriptions -->
+    <string name="collapse_icon_description">Свернуть или развернуть</string>
+    <string name="image_description">Постер фильма</string>
+    <string name="person_image_description">Фотография звезды</string>
+    <string name="movie_image_description">Кадр из фильма</string>
+    <string name="edit_icon_description">Включить режим редактирования</string>
+</resources>

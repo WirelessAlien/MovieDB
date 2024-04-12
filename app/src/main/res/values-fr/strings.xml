@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018.
+  ~
+  ~ This file is part of MovieDB.
+  ~
+  ~ MovieDB is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ MovieDB is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+
+    <!-- MainActivity -->
+    <string name="watched_upgrade_dialog_title">Modification du champ revue</string>
+    <string name="watched_upgrade_dialog_message">Le champ « revue » des œuvres sauvegardées est devenu « vue ». Cela signifie qu\'il faut incrémenter la valeur de « vue » par un pour qu\'il garde son sens de départ pour toutes les œuvres (vues). Voulez-vous les augmenter automatiquement de un ?\n\nRemarque : si une œuvre n\'a pas été notée comme « vue » et que sa valeur de « revue » est zéro, elle ne sera pas modifiée.</string>
+    <string name="watched_upgrade_dialog_positive">Oui</string>
+    <string name="watched_upgrade_dialog_negative">Non</string>
+
+    <!-- BaseActivity -->
+    <string name="no_permission_dialog_message">Vous devez permettre l\'écriture sur le support externe</string>
+    <string name="no_permission_dialog_ok">OK</string>
+    <string name="no_permission_dialog_cancel">Annuler</string>
+    <string name="action_filter">Filtrer</string>
+
+    <!-- CastActivity (quotes are to enforce spaces) -->
+    <string name="place_of_birth">"Lieu de naissance : "</string>
+    <string name="birthday">"Date de naissance : "</string>
+    <string name="no_biography">"Nous n\'avons pas la biographie de "</string>
+    <string name="cast_movie_title">A joué dans</string>
+    <string name="crew_movie_title">Membre des équipes de</string>
+
+    <!-- DetailActivity (quotes are to enforce the spaces) -->
+    <string name="movie_added">Film ajouté</string>
+    <string name="series_added">Série ajoutée</string>
+    <string name="show_added_error">Erreur lors de l\'ajout à la base de donnée</string>
+    <string name="start_date">"Date de début : "</string>
+    <string name="start_date_unknown">La date de début n\'est pas encore indiquée.</string>
+    <string name="finish_date">"Date de fin : "</string>
+    <string name="finish_date_unknown">La date de fin n\'est pas encore indiquée.</string>
+    <string name="times_watched">"Nombre de visionnages : "</string>
+    <string name="episodes_seen">"Épisodes vus : "</string>
+    <string name="rating">"Note : "</string>
+    <string name="change_start_date_2">"Date de début : "</string>
+    <string name="change_finish_date_2">"Date de fin : "</string>
+    <string name="change_watched_times">"Nombre de visionnages : "</string>
+    <string name="cast_title">Distribution</string>
+    <string name="crew_title">Équipe</string>
+    <string name="recommendations_title">Recommendations</string>
+    <string name="category_picker">Choisissez la catégorie appropriée</string>
+    <string name="show_category">"Catégorie : "</string>
+
+    <!-- FilterActivity -->
+    <string name="sort_by">Trier par</string>
+    <string name="default_sort">Par défaut</string>
+    <string name="most_popular">Plus populaires</string>
+    <string name="best_rated">Meilleure note</string>
+    <string name="release_date">Date de publication</string>
+    <string name="alphabetic_order">Ordre alphabétique</string>
+    <string name="categories">Catégories</string>
+    <string name="watching">En cours</string>
+    <string name="plan_to_watch">Prévu</string>
+    <string name="watched">Vu</string>
+    <string name="on_hold">En attente</string>
+    <string name="dropped">Abandonné</string>
+    <string name="dates">Dates</string>
+    <string name="in_the_theater_right_now">À l\'affiche</string>
+    <string name="between_two_dates">Entre deux dates</string>
+    <string name="end_date">"Date de fin : "</string>
+    <string name="genres">Genres</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="advanced">Avancé</string>
+    <string name="keyword_text">Vous pouvez exclure ou inclure des mots-clefs en indiquant leur ID dans le champ texte correspondant ci-dessous. On peut utiliser les opérateurs logiques ainsi :\n * Utilisez « , » (virgule) pour indiquer que vous voulez les deux mots-clefs.\n * Utilisez « | » (barre verticale) pour indiquer que l\'un comme l\'autre vous conviennent.</string>
+    <string name="with_keywords_hint">Inclure les œuvres avec les mots-clefs…</string>
+    <string name="without_keywords_hint">Exclure les œuvres avec les mots-clefs…</string>
+
+    <!-- SectionsPagerAdapter -->
+    <string name="movie_tab_title">FILMS</string>
+    <string name="series_tab_title">SÉRIES</string>
+    <string name="saved_tab_title">ENREGISTRÉES</string>
+    <string name="person_tab_title">PERSONNES</string>
+
+    <!-- MovieDatabaseHelper -->
+    <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
+    <string name="write_to_external_storage_failed">Impossible d\'écrire sur le support externe.</string>
+    <string name="choose_export_file">Choisissez un format de fichier d\'export</string>
+    <string-array name="export_import_formats">
+        <item index="0">Base de données</item>
+        <item index="1">JSON</item>
+    </string-array>
+    <string name="choose_file">Choisissez le fichier à importer :</string>
+    <string name="import_cancel">Annuler</string>
+    <string name="file_not_found_exception">Le fichier est introuvable !</string>
+
+    <!-- search_bar -->
+    <string name="hint_search">Rechercher…</string>
+
+    <!-- database_menu -->
+    <string name="action_export">Exporter</string>
+    <string name="action_import">Importer</string>
+
+    <!-- options_menu -->
+    <string name="action_search">Rechercher</string>
+
+    <!-- save_menu -->
+    <string name="action_save">Sauvegarder</string>
+
+    <!-- Preferences -->
+    <string name="title_general">Général</string>
+    <string name="title_show_cast">Montrer la distribution</string>
+    <string name="title_show_crew">Montrer les membres</string>
+    <string name="title_show_recommendations">Show recommendations</string>
+    <string name="title_show_save_dialog">Montrer le dialogue de sauvegarde</string>
+    <string name="title_persistent_filtering">Persistent filter</string>
+    <string name="summary_persistent_filtering">Automatically filter shows when starting the application</string>
+    <string name="title_show_representation">Montrer la représentation</string>
+    <string name="title_shows_in_grid">Montrer les œuvres sur une grille</string>
+    <string name="title_grid_size">Taille de la grille</string>
+    <string name="summary_grid_size">Quantité d\'élément par ligne</string>
+    <string name="title_data_usage">Utilisation des données</string>
+    <string name="title_live_search">Utiliser la recherche en direct</string>
+    <string name="title_hide_tabs">Cacher les onglets</string>
+    <string name="summary_hide_tabs">L\'application doit redémarrer avant d\'appliquer les changements.</string>
+    <string name="title_hide_movies_tab">Cacher l\'onglet « Films »</string>
+    <string name="title_hide_series_tab">Cacher l\'onglet « Séries »</string>
+    <string name="title_hide_saved_tab">Cacher l\'onglet « Enregistrées »</string>
+    <string name="title_hide_person_tab">Cacher l\'onglet « Personnes »</string>
+    <string name="title_api_language">API Language</string>
+    <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
+    <string name="title_source_code">Code source</string>
+    <string name="text_tmdb_credits">Ce produit utilise l\'API TMDb mais n\'est pas reconnu ni certifié par TMDb.</string>
+
+    <!-- (General) Toasts -->
+    <string name="no_internet_connection">Pas de connexion internet</string>
+    <string name="tmdb_server_unreachable">Could not connect with TMDb services</string>
+
+    <!-- Image content descriptions -->
+    <string name="collapse_icon_description">Collapses or expands the view</string>
+    <string name="image_description">Poster of the show</string>
+    <string name="person_image_description">Picture of the person</string>
+    <string name="movie_image_description">Image from the show</string>
+    <string name="edit_icon_description">Enables edit mode</string>
+</resources>
