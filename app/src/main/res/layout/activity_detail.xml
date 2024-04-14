@@ -29,7 +29,8 @@
     <com.wirelessalien.android.moviedb.NotifyingScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -45,6 +46,19 @@
                 android:contentDescription="@string/movie_image_description"
                 android:scaleType="centerCrop" />
 
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="5dp">
+                <ImageView
+                    android:id="@+id/moviePoster"
+                    android:layout_width="125dp"
+                    android:layout_height="200dp"
+                    android:scaleType="fitXY"
+                    android:contentDescription="@string/image_description" />
+            </com.google.android.material.card.MaterialCardView>
+
             <RelativeLayout
                 android:id="@+id/movieDetails"
                 android:layout_width="match_parent"
@@ -58,20 +72,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:cardCornerRadius="5dp">
-                    <ImageView
-                        android:id="@+id/moviePoster"
-                        android:layout_width="125dp"
-                        android:layout_height="200dp"
-                        android:scaleType="fitXY"
-                        android:contentDescription="@string/image_description" />
-                    </com.google.android.material.card.MaterialCardView>
-                    <View
-                        android:layout_width="10dp"
-                        android:layout_height="wrap_content" />
+
 
                     <LinearLayout
                         android:id="@+id/showDetails"
@@ -320,15 +321,54 @@
                 android:layout_marginRight="16dp"
                 android:background="?android:attr/listDivider" />
 
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_below="@id/firstDivider">
+
+                <ImageButton
+                    android:id="@+id/watchListButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="WatchList"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:src="@drawable/ic_bookmark"
+                    android:layout_below="@id/movieDescription"/>
+                <ImageButton
+                    android:id="@+id/addToList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_list_add"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:text="Add to List" />
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/favouriteButton"
+                    android:text="Favorite"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:src="@drawable/ic_favorite"/>
+
+            </LinearLayout>
+            <TextView
+                android:id="@+id/overviewTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/linearLayout"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="Overview"
+                android:textSize="20sp"
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/movieDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/firstDivider"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_below="@id/overviewTitle"
+                android:layout_margin="16dp" />
 
             <TextView
                 android:id="@+id/castTitle"
@@ -338,7 +378,8 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/cast_title"
-                android:textSize="16sp" />
+                android:textStyle="bold"
+                android:textSize="20sp" />
 
             <View
                 android:id="@+id/secondDivider"
@@ -393,8 +434,9 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:layout_marginBottom="10dp"
+                android:textStyle="bold"
                 android:text="@string/recommendations_title"
-                android:textSize="16sp" />
+                android:textSize="20sp" />
 
             <View
                 android:id="@+id/fourthDivider"
@@ -417,6 +459,7 @@
     </com.wirelessalien.android.moviedb.NotifyingScrollView>
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 

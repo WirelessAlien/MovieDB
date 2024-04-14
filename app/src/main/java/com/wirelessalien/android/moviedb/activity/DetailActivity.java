@@ -51,6 +51,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
@@ -66,14 +67,24 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.squareup.picasso.Picasso;
+import com.wirelessalien.android.moviedb.AddToFavouritesThreadTMDb;
+import com.wirelessalien.android.moviedb.AddToWatchlistThreadTMDb;
+import com.wirelessalien.android.moviedb.CheckFavouritesThreadTMDb;
+import com.wirelessalien.android.moviedb.CheckWatchlistThreadTMDb;
 import com.wirelessalien.android.moviedb.ConfigHelper;
+import com.wirelessalien.android.moviedb.GetAccountIdThread;
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.NotifyingScrollView;
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.RemoveFromFavouriteThreadTMDb;
+import com.wirelessalien.android.moviedb.RemoveFromWatchlistThreadTMDb;
+import com.wirelessalien.android.moviedb.TMDbAuthThread;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
+import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 
 import org.json.JSONArray;
@@ -113,6 +124,9 @@ public class DetailActivity extends BaseActivity {
     private ArrayList<JSONObject> similarMovieArrayList;
     private Drawable mToolbarBackgroundDrawable;
     private MaterialToolbar toolbar;
+    private String sessionId;
+    private String accountId;
+
     private final Drawable.Callback drawableCallback = new Drawable.Callback() {
         @Override
         public void invalidateDrawable(@NonNull Drawable drawable) {
@@ -228,12 +242,11 @@ public class DetailActivity extends BaseActivity {
                 .getColor(getApplicationContext(), R.color.seed));
         mToolbarBackgroundDrawable.setAlpha(0);
 
-        toolbar = (MaterialToolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         toolbar.setBackgroundDrawable(mToolbarBackgroundDrawable);
 
         // Make the transparency dependent on how far the user scrolled down.
-        NotifyingScrollView notifyingScrollView = (NotifyingScrollView)
-                findViewById(R.id.scrollView);
+        NotifyingScrollView notifyingScrollView = findViewById(R.id.scrollView);
         notifyingScrollView.setOnScrollChangedListener(mOnScrollChangedListener);
 
         // Create a variable with the application context that can be used
@@ -241,7 +254,7 @@ public class DetailActivity extends BaseActivity {
         mActivity = this;
 
         // RecyclerView to display the cast of the show.
-        castView = (RecyclerView) findViewById(R.id.castRecyclerView);
+        castView = findViewById(R.id.castRecyclerView);
         castView.setHasFixedSize(true); // Improves performance (if size is static)
 
         LinearLayoutManager castLinearLayoutManager = new LinearLayoutManager(this,
@@ -249,7 +262,7 @@ public class DetailActivity extends BaseActivity {
         castView.setLayoutManager(castLinearLayoutManager);
 
         // RecyclerView to display the crew of the show.
-        crewView = (RecyclerView) findViewById(R.id.crewRecyclerView);
+        crewView = findViewById(R.id.crewRecyclerView);
         crewView.setHasFixedSize(true); // Improves performance (if size is static)
 
         LinearLayoutManager crewLinearLayoutManager = new LinearLayoutManager(this,
@@ -257,7 +270,7 @@ public class DetailActivity extends BaseActivity {
         crewView.setLayoutManager(crewLinearLayoutManager);
 
         // RecyclerView to display similar shows to this one.
-        similarMovieView = (RecyclerView) findViewById(R.id.movieRecyclerView);
+        similarMovieView = findViewById(R.id.movieRecyclerView);
         similarMovieView.setHasFixedSize(true); // Improves performance (if size is static)
         LinearLayoutManager movieLinearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.HORIZONTAL, false);
@@ -269,7 +282,7 @@ public class DetailActivity extends BaseActivity {
         if (!preferences.getBoolean(CAST_VIEW_PREFERENCE, false)) {
             castView.setVisibility(View.GONE);
 
-            TextView castTitle = (TextView) findViewById(R.id.castTitle);
+            TextView castTitle = findViewById(R.id.castTitle);
             castTitle.setVisibility(View.GONE);
 
             View castDivider = findViewById(R.id.secondDivider);
@@ -279,7 +292,7 @@ public class DetailActivity extends BaseActivity {
         if (!preferences.getBoolean(CREW_VIEW_PREFERENCE, false)) {
             crewView.setVisibility(View.GONE);
 
-            TextView crewTitle = (TextView) findViewById(R.id.crewTitle);
+            TextView crewTitle = findViewById(R.id.crewTitle);
             crewTitle.setVisibility(View.GONE);
 
             View crewDivider = findViewById(R.id.thirdDivider);
@@ -289,24 +302,127 @@ public class DetailActivity extends BaseActivity {
         if (!preferences.getBoolean(RECOMMENDATION_VIEW_PREFERENCE, false)) {
             similarMovieView.setVisibility(View.GONE);
 
-            TextView similarMovieTitle = (TextView) findViewById(R.id.similarMovieTitle);
+            TextView similarMovieTitle = findViewById(R.id.similarMovieTitle);
             similarMovieTitle.setVisibility(View.GONE);
 
             View similarMoviesDivider = findViewById(R.id.fourthDivider);
             similarMoviesDivider.setVisibility(View.GONE);
         }
 
+        SharedPreferences sharedPreferences = getSharedPreferences("SessionId", Context.MODE_PRIVATE);
+        sessionId = sharedPreferences.getString("session_id", null);
+
+        //get account id from shared preferences
+        SharedPreferences accountIdPref = getSharedPreferences("AccountIdPref", Context.MODE_PRIVATE);
+        accountId = String.valueOf(accountIdPref.getInt("accountId", 0));
+
+        ImageButton addToWatchlistButton = findViewById(R.id.watchListButton);
+
+        new Thread( () -> {
+            if (accountId != null && sessionId != null) {
+                int accountIdInt = Integer.parseInt(accountId);
+                String typeCheck = isMovie ? "movies" : "tv";
+                CheckWatchlistThreadTMDb checkWatchlistThread = new CheckWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                checkWatchlistThread.start();
+                try {
+                    checkWatchlistThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                final boolean isInWatchlist = checkWatchlistThread.isInWatchlist();
+                runOnUiThread( () -> {
+                    if (isInWatchlist) {
+                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
+                    } else {
+                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
+                    }
+                } );
+            } else {
+                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account details", Toast.LENGTH_SHORT).show() );
+            }
+
+        } ).start();
+
         // Get the views from the layout.
-        movieImage = (ImageView) findViewById(R.id.movieImage);
-        movieTitle = (TextView) findViewById(R.id.movieTitle);
-        moviePoster = (ImageView) findViewById(R.id.moviePoster);
-        movieGenres = (TextView) findViewById(R.id.movieGenres);
-        movieStartDate = (TextView) findViewById(R.id.movieStartDate);
-        movieFinishDate = (TextView) findViewById(R.id.movieFinishDate);
-        movieRewatched = (TextView) findViewById(R.id.movieRewatched);
-        movieEpisodes = (TextView) findViewById(R.id.movieEpisodes);
-        movieRating = (RatingBar) findViewById(R.id.movieRating);
-        movieDescription = (TextView) findViewById(R.id.movieDescription);
+        movieImage = findViewById(R.id.movieImage);
+        movieTitle = findViewById(R.id.movieTitle);
+        moviePoster = findViewById(R.id.moviePoster);
+        movieGenres = findViewById(R.id.movieGenres);
+        movieStartDate = findViewById(R.id.movieStartDate);
+        movieFinishDate = findViewById(R.id.movieFinishDate);
+        movieRewatched = findViewById(R.id.movieRewatched);
+        movieEpisodes = findViewById(R.id.movieEpisodes);
+        movieRating = findViewById(R.id.movieRating);
+        movieDescription = findViewById(R.id.movieDescription);
+
+        ImageButton addToListBtn = findViewById(R.id.addToList);
+
+        addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
+            if (accountId != null) {
+                int accountIdInt = Integer.parseInt(accountId);
+                String typeCheck = isMovie ? "movies" : "tv";
+                CheckWatchlistThreadTMDb checkWatchlistThread = new CheckWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                checkWatchlistThread.start();
+                try {
+                    checkWatchlistThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                final boolean isInWatchlist = checkWatchlistThread.isInWatchlist();
+                runOnUiThread( () -> {
+                    if (isInWatchlist) {
+                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
+                        String type = isMovie ? "movie" : "tv";
+                        new RemoveFromWatchlistThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Removed from watchlist", Toast.LENGTH_SHORT).show();
+                    } else {
+                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
+                        String type = isMovie ? "movie" : "tv";
+                        new AddToWatchlistThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Added to watchlist", Toast.LENGTH_SHORT).show();
+                    }
+                } );
+            } else {
+                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id", Toast.LENGTH_SHORT).show() );
+            }
+        } ).start() );
+
+        addToListBtn.setOnClickListener( v -> {
+            ListBottomSheetDialogFragment listBottomSheetDialogFragment = new ListBottomSheetDialogFragment(movieId, sessionId, mActivity);
+            listBottomSheetDialogFragment.show(getSupportFragmentManager(), listBottomSheetDialogFragment.getTag());
+        } );
+
+        ImageButton addToFavouritesButton = findViewById(R.id.favouriteButton);
+        addToFavouritesButton.setOnClickListener( v -> new Thread( () -> {
+            if (accountId != null) {
+                int accountIdInt = Integer.parseInt(accountId);
+                String typeCheck = isMovie ? "movies" : "tv";
+                CheckFavouritesThreadTMDb checkFavouritesThread = new CheckFavouritesThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                checkFavouritesThread.start();
+                try {
+                    checkFavouritesThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                final boolean isInFavourites = checkFavouritesThread.isInFavourites();
+                runOnUiThread( () -> {
+                    if (isInFavourites) {
+                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite_border );
+                        String type = isMovie ? "movie" : "tv";
+                        new RemoveFromFavouriteThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Removed from favourites", Toast.LENGTH_SHORT).show();
+                    } else {
+                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite );
+                        String type = isMovie ? "movie" : "tv";
+                        new AddToFavouritesThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Added to favourites", Toast.LENGTH_SHORT).show();
+                    }
+                } );
+
+            } else {
+                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id", Toast.LENGTH_SHORT).show() );
+            }
+        } ).start() );
 
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
@@ -484,15 +600,15 @@ public class DetailActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        LinearLayout editShowDetails = (LinearLayout) findViewById(R.id.editShowDetails);
+        LinearLayout editShowDetails = findViewById(R.id.editShowDetails);
 
         if (editShowDetails.getVisibility() != View.GONE) {
             // Clear the focus (in case it has the focus)
             // so the content will be saved when the user leaves.
-            Spinner categoriesView = (Spinner) findViewById(R.id.categories);
-            EditText timesWatched = (EditText) findViewById(R.id.timesWatched);
-            EditText episodesSeen = (EditText) findViewById(R.id.episodesSeen);
-            EditText showRating = (EditText) findViewById(R.id.showRating);
+            Spinner categoriesView = findViewById(R.id.categories);
+            EditText timesWatched = findViewById(R.id.timesWatched);
+            EditText episodesSeen = findViewById(R.id.episodesSeen);
+            EditText showRating = findViewById(R.id.showRating);
 
             categoriesView.clearFocus();
             timesWatched.clearFocus();
@@ -679,7 +795,7 @@ public class DetailActivity extends BaseActivity {
                 movieRewatched.setVisibility(View.VISIBLE);
 
                 // Make it possible to change the values.
-                ImageView editIcon = (ImageView) findViewById(R.id.editIcon);
+                ImageView editIcon = findViewById(R.id.editIcon);
                 editIcon.setVisibility(View.VISIBLE);
             } else if (movieObject.has("vote_average") &&
                     !movieObject.getString("vote_average").equals(voteAverage)) {
@@ -741,13 +857,13 @@ public class DetailActivity extends BaseActivity {
      */
     public void editDetails(View view) {
         final LinearLayout showDetails, editShowDetails;
-        showDetails = (LinearLayout) findViewById(R.id.showDetails);
-        editShowDetails = (LinearLayout) findViewById(R.id.editShowDetails);
-        ImageView editIcon = (ImageView) findViewById(R.id.editIcon);
+        showDetails = findViewById(R.id.showDetails);
+        editShowDetails = findViewById(R.id.editShowDetails);
+        ImageView editIcon = findViewById(R.id.editIcon);
 
-        final EditText episodesSeenView = (EditText) findViewById(R.id.episodesSeen);
-        final EditText timesWatchedView = (EditText) findViewById(R.id.timesWatched);
-        final EditText showRating = (EditText) findViewById(R.id.showRating);
+        final EditText episodesSeenView = findViewById(R.id.episodesSeen);
+        final EditText timesWatchedView = findViewById(R.id.timesWatched);
+        final EditText showRating = findViewById(R.id.showRating);
 
         if (editShowDetails.getVisibility() == View.GONE) {
             fadeOutAndHideAnimation(showDetails);
@@ -773,7 +889,7 @@ public class DetailActivity extends BaseActivity {
             editIcon.setImageResource(R.drawable.ic_check);
 
             // Listen for changes to the categories.
-            Spinner categoriesView = (Spinner) findViewById(R.id.categories);
+            Spinner categoriesView = findViewById(R.id.categories);
             categoriesView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -841,7 +957,7 @@ public class DetailActivity extends BaseActivity {
 
                         // Update the view
                         movieRewatched.setText(getString(R.string.change_watched_times) +
-                                Integer.toString(timesWatched));
+                                timesWatched );
                     }
                 }
             });
@@ -866,7 +982,7 @@ public class DetailActivity extends BaseActivity {
 
                         // Update the view
                         String movieEpisodesString = getString(R.string.episodes_seen)
-                                + Integer.toString(episodesSeen);
+                                + episodesSeen;
                         if (totalEpisodes != null) {
                             movieEpisodesString += "/" + totalEpisodes;
                         }
@@ -942,12 +1058,12 @@ public class DetailActivity extends BaseActivity {
         } else {
             cursor.moveToFirst();
 
-            Spinner categories = (Spinner) findViewById(R.id.categories);
-            Button startDateButton = (Button) findViewById(R.id.startDateButton);
-            Button endDateButton = (Button) findViewById(R.id.endDateButton);
-            EditText timesWatched = (EditText) findViewById(R.id.timesWatched);
-            EditText episodesSeen = (EditText) findViewById(R.id.episodesSeen);
-            EditText showRating = (EditText) findViewById(R.id.showRating);
+            Spinner categories = findViewById(R.id.categories);
+            Button startDateButton = findViewById(R.id.startDateButton);
+            Button endDateButton = findViewById(R.id.endDateButton);
+            EditText timesWatched = findViewById(R.id.timesWatched);
+            EditText episodesSeen = findViewById(R.id.episodesSeen);
+            EditText showRating = findViewById(R.id.showRating);
 
             // Set the right category.
             switch (cursor.getInt( cursor.getColumnIndexOrThrow(
@@ -1048,7 +1164,7 @@ public class DetailActivity extends BaseActivity {
         dateDialog.setView(dialogView);
         dateDialog.setTitle("Select a date:");
 
-        final DatePicker datePicker = (DatePicker) dialogView.findViewById(R.id.movieDatePicker);
+        final DatePicker datePicker = dialogView.findViewById(R.id.movieDatePicker);
 
         // Set the date in the date picker to the previous selected date.
         Date date = (view.getTag().equals("start_date")) ? startDate : finishDate;
@@ -1073,7 +1189,7 @@ public class DetailActivity extends BaseActivity {
                     movieValues.put(MovieDatabaseHelper
                             .COLUMN_PERSONAL_START_DATE, dateFormat);
 
-                    Button button = (Button) findViewById(R.id.startDateButton);
+                    Button button = findViewById(R.id.startDateButton);
                     button.setText(dateFormat);
                     movieStartDate.setText(getString(R.string.change_start_date_2) +
                             dateFormat);
@@ -1083,7 +1199,7 @@ public class DetailActivity extends BaseActivity {
                     movieValues.put(MovieDatabaseHelper
                             .COLUMN_PERSONAL_FINISH_DATE, dateFormat);
 
-                    Button button = (Button) findViewById(R.id.endDateButton);
+                    Button button = findViewById(R.id.endDateButton);
                     button.setText(dateFormat);
                     movieFinishDate.setText(getString(R.string.change_finish_date_2)
                             + dateFormat);
@@ -1242,8 +1358,7 @@ public class DetailActivity extends BaseActivity {
                     if (reader.getJSONArray("cast").length() <= 0) {
                         // This movie has no available cast,
                         // do not show the cast related views.
-                        TextView textView = (TextView)
-                                mActivity.findViewById(R.id.castTitle);
+                        TextView textView = mActivity.findViewById(R.id.castTitle);
                         View view = mActivity.findViewById(R.id.secondDivider);
 
                         textView.setVisibility(View.GONE);
@@ -1266,8 +1381,7 @@ public class DetailActivity extends BaseActivity {
                     if (reader.getJSONArray("crew").length() <= 0) {
                         // This movie has no available cast,
                         // do not show the cast related views.
-                        TextView textView = (TextView)
-                                mActivity.findViewById(R.id.crewTitle);
+                        TextView textView = mActivity.findViewById(R.id.crewTitle);
                         View view = mActivity.findViewById(R.id.thirdDivider);
 
                         textView.setVisibility(View.GONE);

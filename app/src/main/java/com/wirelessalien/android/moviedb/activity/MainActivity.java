@@ -45,12 +45,15 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.preference.PreferenceManager;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.tabs.TabLayout;
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.TMDbAuthThread;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
@@ -59,6 +62,8 @@ import com.wirelessalien.android.moviedb.fragment.ShowFragment;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 /*
@@ -93,6 +98,20 @@ public class MainActivity extends BaseActivity {
     ViewPager mViewPager;
 
     public AdapterDataChangedListener mAdapterDataChangedListener;
+
+    private SharedPreferences getEncryptedSharedPreferences(Context context) throws GeneralSecurityException, IOException {
+        MasterKey masterKey = new MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build();
+
+        return EncryptedSharedPreferences.create(
+                context,
+                "encrypted_preferences",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        );
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,6 +207,17 @@ public class MainActivity extends BaseActivity {
         if (versionNumber != -1) {
             preferences.edit().putInt(PREVIOUS_APPLICATION_VERSION_PREFERENCE, versionNumber).apply();
         }
+
+        try {
+            SharedPreferences sharedPreferences = getEncryptedSharedPreferences(MainActivity.this);
+            String username = sharedPreferences.getString("username", null);
+            String password = sharedPreferences.getString("password", null);
+
+            TMDbAuthThread tmDbAuthThread = new TMDbAuthThread(username, password, this);
+            tmDbAuthThread.start();
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -238,6 +268,12 @@ public class MainActivity extends BaseActivity {
         if (id == R.id.action_settings) {
             Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
             startActivityForResult(intent, SETTINGS_REQUEST_CODE);
+            return true;
+        }
+
+        if (id == R.id.action_login_test) {
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
             return true;
         }
 

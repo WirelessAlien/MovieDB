@@ -44,6 +44,7 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.recyclerview:recyclerview:1.3.1")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     implementation("androidx.preference:preference:1.2.0")
 

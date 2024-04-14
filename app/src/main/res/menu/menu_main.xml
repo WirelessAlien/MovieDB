@@ -26,4 +26,9 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_login_test"
+        android:icon="@drawable/ic_search"
+        android:title="Login Test"
+        app:showAsAction="always" />
 </menu>
