@@ -40,7 +40,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
-import androidx.preference.PreferenceManager;
+import android.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;

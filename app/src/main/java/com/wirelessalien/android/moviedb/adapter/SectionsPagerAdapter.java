@@ -25,7 +25,7 @@ import android.content.SharedPreferences;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.preference.PreferenceManager;
+import android.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;

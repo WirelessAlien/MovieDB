@@ -30,5 +30,11 @@
         android:id="@+id/action_login_test"
         android:icon="@drawable/ic_search"
         android:title="Login Test"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_account"
+        android:icon="@drawable/ic_search"
+        android:title="Account"
+        app:showAsAction="never" />
+
 </menu>

@@ -51,6 +51,7 @@
         <activity android:name=".activity.SettingsActivity" />
         <activity android:name=".activity.FilterActivity" />
         <activity android:name=".activity.LoginActivity" />
+        <activity android:name=".fragment.AccountFragment"/>
     </application>
 
 </manifest>

@@ -167,11 +167,12 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/start_date" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/startDateButton"
-                                    style="@style/ColoredButton"
+                                    style="@style/Widget.Material3.Button.TextButton"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    app:cornerRadius="5dp"
                                     android:drawableEnd="@drawable/ic_calendar"
                                     android:drawablePadding="5dip"
                                     android:onClick="selectDate"
@@ -189,11 +190,12 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/finish_date" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/endDateButton"
-                                    style="@style/ColoredButton"
+                                    style="@style/Widget.Material3.Button.TextButton"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    app:cornerRadius="5dp"
                                     android:drawableEnd="@drawable/ic_calendar"
                                     android:drawablePadding="5dip"
                                     android:onClick="selectDate"
@@ -351,6 +353,13 @@
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:src="@drawable/ic_favorite"/>
 
+                <ImageButton
+                    android:id="@+id/ratingBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_star"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:text="Rate" />
             </LinearLayout>
             <TextView
                 android:id="@+id/overviewTitle"
@@ -453,6 +462,13 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/fourthDivider"
                 android:scrollbars="none" />
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/progressBar"
+                android:layout_centerInParent="true"
+                android:visibility="gone"/>
 
         </RelativeLayout>
 

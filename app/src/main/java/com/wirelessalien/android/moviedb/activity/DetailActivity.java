@@ -23,16 +23,14 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcel;
 import android.preference.PreferenceManager;
 import android.text.Spannable;
@@ -62,25 +60,24 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.squareup.picasso.Picasso;
+import com.wirelessalien.android.moviedb.AddRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.AddToFavouritesThreadTMDb;
 import com.wirelessalien.android.moviedb.AddToWatchlistThreadTMDb;
 import com.wirelessalien.android.moviedb.CheckFavouritesThreadTMDb;
 import com.wirelessalien.android.moviedb.CheckWatchlistThreadTMDb;
 import com.wirelessalien.android.moviedb.ConfigHelper;
-import com.wirelessalien.android.moviedb.GetAccountIdThread;
+import com.wirelessalien.android.moviedb.DeleteRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.NotifyingScrollView;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.RemoveFromFavouriteThreadTMDb;
 import com.wirelessalien.android.moviedb.RemoveFromWatchlistThreadTMDb;
-import com.wirelessalien.android.moviedb.TMDbAuthThread;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
@@ -113,6 +110,7 @@ public class DetailActivity extends BaseActivity {
     private final static String CREW_VIEW_PREFERENCE = "key_show_crew";
     private final static String RECOMMENDATION_VIEW_PREFERENCE = "key_show_similar_movies";
     private final static String SHOW_SAVE_DIALOG_PREFERENCE = "key_show_save_dialog";
+    private String API_KEY;
     private RecyclerView castView;
     private RecyclerView crewView;
     private CastBaseAdapter castAdapter;
@@ -122,25 +120,9 @@ public class DetailActivity extends BaseActivity {
     private RecyclerView similarMovieView;
     private SimilarMovieBaseAdapter similarMovieAdapter;
     private ArrayList<JSONObject> similarMovieArrayList;
-    private Drawable mToolbarBackgroundDrawable;
     private MaterialToolbar toolbar;
     private String sessionId;
     private String accountId;
-
-    private final Drawable.Callback drawableCallback = new Drawable.Callback() {
-        @Override
-        public void invalidateDrawable(@NonNull Drawable drawable) {
-            toolbar.setBackgroundDrawable(drawable);
-        }
-
-        @Override
-        public void scheduleDrawable(@NonNull Drawable drawable, @NonNull Runnable runnable, long when) {
-        }
-
-        @Override
-        public void unscheduleDrawable(@NonNull Drawable drawable, @NonNull Runnable runnable) {
-        }
-    };
     private SQLiteDatabase database;
     private MovieDatabaseHelper databaseHelper;
     private int movieId;
@@ -174,7 +156,7 @@ public class DetailActivity extends BaseActivity {
             final float ratio = (float) Math.min(Math.max(t, 0),
                     headerHeight) / headerHeight;
             final int newAlpha = (int) (ratio * 255);
-            mToolbarBackgroundDrawable.setAlpha(newAlpha);
+            toolbar.setBackgroundColor(Color.argb(newAlpha, 0, 0, 0));
 
             // 256 because otherwise it'll become invisible when newAlpha is 255.
             alphaForegroundColorSpan.setAlpha(256 - newAlpha);
@@ -230,20 +212,13 @@ public class DetailActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        API_KEY = ConfigHelper.getConfigValue(getApplicationContext(), "api_key");
         // Set the proper layout.
         setContentView(R.layout.activity_detail);
         setNavigationDrawer();
         setBackButtons();
 
-        // Set a transparent background for the toolbar that
-        // becomes less transparent when scrolling down.
-        mToolbarBackgroundDrawable = new ColorDrawable( ContextCompat
-                .getColor(getApplicationContext(), R.color.seed));
-        mToolbarBackgroundDrawable.setAlpha(0);
-
         toolbar = findViewById(R.id.toolbar);
-        toolbar.setBackgroundDrawable(mToolbarBackgroundDrawable);
 
         // Make the transparency dependent on how far the user scrolled down.
         NotifyingScrollView notifyingScrollView = findViewById(R.id.scrollView);
@@ -424,6 +399,37 @@ public class DetailActivity extends BaseActivity {
             }
         } ).start() );
 
+        ImageButton rateButton = findViewById(R.id.ratingBtn);
+        rateButton.setOnClickListener( v -> {
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.rating_dialog, null);
+            builder.setView(dialogView);
+            final AlertDialog dialog = builder.create();
+            dialog.show();
+
+            RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
+            Button submitButton = dialogView.findViewById(R.id.btnSubmit);
+            Button cancelButton = dialogView.findViewById(R.id.btnCancel);
+            Button deleteButton = dialogView.findViewById(R.id.btnDelete);
+
+            submitButton.setOnClickListener( v1 -> {
+                String type = isMovie ? "movie" : "tv";
+
+                double rating = ratingBar.getRating() * 2;
+                new AddRatingThreadTMDb(sessionId, movieId, rating, type, mActivity).start();
+                dialog.dismiss();
+            } );
+
+            deleteButton.setOnClickListener( v12 -> {
+                String type = isMovie ? "movie" : "tv";
+                new DeleteRatingThreadTMDb(sessionId, movieId, type, mActivity).start();
+                dialog.dismiss();
+            } );
+
+            cancelButton.setOnClickListener( v12 -> dialog.dismiss() );
+        } );
+
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
         // Send the JSONObject to setMovieData() so all the data
@@ -460,16 +466,17 @@ public class DetailActivity extends BaseActivity {
     void doNetworkWork() {
         // Get the cast and crew for the CastListAdapter and get the movies for the MovieListAdapter.
         if (!mCastAndCrewLoaded) {
-            new CastList().execute();
+            new CastListThread().start();
         }
 
         if (!mSimilarMoviesLoaded) {
-            new SimilarMovieList().execute();
+            startSimilarMovieList();
         }
 
         // Load movie details.
         if (!mMovieDetailsLoaded) {
-            new MovieDetails().execute();
+            MovieDetailsThread movieDetailsThread = new MovieDetailsThread();
+            movieDetailsThread.start();
         }
     }
 
@@ -523,16 +530,13 @@ public class DetailActivity extends BaseActivity {
                 if (preferences.getBoolean(SHOW_SAVE_DIALOG_PREFERENCE, false)) {
 
                     // Ask in which category the show should be placed.
-                    final AlertDialog.Builder categoriesDialog = new AlertDialog.Builder(this);
+                    final MaterialAlertDialogBuilder categoriesDialog = new MaterialAlertDialogBuilder(this);
                     categoriesDialog.setTitle(getString(R.string.category_picker));
-                    categoriesDialog.setItems(R.array.categories, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(which));
+                    categoriesDialog.setItems(R.array.categories, (dialog, which) -> {
+                        showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(which));
 
-                            addMovieToDatabase(showValues, item);
-                        }
-                    });
+                        addMovieToDatabase(showValues, item);
+                    } );
 
                     categoriesDialog.show();
                 } else {
@@ -811,7 +815,8 @@ public class DetailActivity extends BaseActivity {
                     .equals("") && !movieObject.getString("overview").equals("null")) {
                 movieDescription.setText(movieObject.getString("overview"));
                 if (movieObject.getString("overview").equals("")) {
-                    new MovieDetails().execute("true");
+                    MovieDetailsThread movieDetailsThread = new MovieDetailsThread("true");
+                    movieDetailsThread.start();
                 }
             }
 
@@ -914,7 +919,7 @@ public class DetailActivity extends BaseActivity {
                         }
 
                         // If the user hasn't set their own watched value, automatically set it.
-                        Integer timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(
+                        int timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(
                                 MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED));
                         if (timesWatchedCount == 0) {
                             showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
@@ -937,89 +942,80 @@ public class DetailActivity extends BaseActivity {
             });
 
             // Listen to changes to the EditText.
-            timesWatchedView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus && !timesWatchedView.getText().toString().isEmpty()) {
-                        // Save the number to the database
-                        ContentValues showValues = new ContentValues();
-                        int timesWatched = Integer.parseInt(timesWatchedView.getText().toString());
+            timesWatchedView.setOnFocusChangeListener( (v, hasFocus) -> {
+                if (!hasFocus && !timesWatchedView.getText().toString().isEmpty()) {
+                    // Save the number to the database
+                    ContentValues showValues = new ContentValues();
+                    int timesWatched = Integer.parseInt(timesWatchedView.getText().toString());
 
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
-                                timesWatched);
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
+                            timesWatched);
 
-                        database = databaseHelper.getWritableDatabase();
-                        databaseHelper.onCreate(database);
-                        database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                                MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
+                    database = databaseHelper.getWritableDatabase();
+                    databaseHelper.onCreate(database);
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
+                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
 
-                        database.close();
+                    database.close();
 
-                        // Update the view
-                        movieRewatched.setText(getString(R.string.change_watched_times) +
-                                timesWatched );
-                    }
+                    // Update the view
+                    movieRewatched.setText(getString(R.string.change_watched_times) +
+                            timesWatched );
                 }
-            });
+            } );
 
             // Listen to changes to the EpisodesSeen EditText.
-            episodesSeenView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus && !episodesSeenView.getText().toString().isEmpty()) {
-                        // Save the number to the database
-                        ContentValues showValues = new ContentValues();
-                        int episodesSeen = Integer.parseInt(episodesSeenView.getText().toString());
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES,
-                                episodesSeen);
+            episodesSeenView.setOnFocusChangeListener( (v, hasFocus) -> {
+                if (!hasFocus && !episodesSeenView.getText().toString().isEmpty()) {
+                    // Save the number to the database
+                    ContentValues showValues = new ContentValues();
+                    int episodesSeen = Integer.parseInt(episodesSeenView.getText().toString());
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES,
+                            episodesSeen);
 
-                        database = databaseHelper.getWritableDatabase();
-                        databaseHelper.onCreate(database);
-                        database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                                MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
+                    database = databaseHelper.getWritableDatabase();
+                    databaseHelper.onCreate(database);
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
+                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
 
-                        database.close();
+                    database.close();
 
-                        // Update the view
-                        String movieEpisodesString = getString(R.string.episodes_seen)
-                                + episodesSeen;
-                        if (totalEpisodes != null) {
-                            movieEpisodesString += "/" + totalEpisodes;
-                        }
-                        movieEpisodes.setText(movieEpisodesString);
+                    // Update the view
+                    String movieEpisodesString = getString(R.string.episodes_seen)
+                            + episodesSeen;
+                    if (totalEpisodes != null) {
+                        movieEpisodesString += "/" + totalEpisodes;
                     }
+                    movieEpisodes.setText(movieEpisodesString);
                 }
-            });
+            } );
 
             // Listen to changes to the ShowRating EditText.
-            showRating.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus && !showRating.getText().toString().isEmpty()) {
-                        // Save the number to the database
-                        ContentValues showValues = new ContentValues();
-                        int rating = Integer.parseInt(showRating.getText().toString());
+            showRating.setOnFocusChangeListener( (v, hasFocus) -> {
+                if (!hasFocus && !showRating.getText().toString().isEmpty()) {
+                    // Save the number to the database
+                    ContentValues showValues = new ContentValues();
+                    int rating = Integer.parseInt(showRating.getText().toString());
 
-                        // Do not allow ratings outside of the range.
-                        if (rating > 10) {
-                            rating = 10;
-                        } else if (rating < 0) {
-                            rating = 0;
-                        }
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating);
-
-                        database = databaseHelper.getWritableDatabase();
-                        databaseHelper.onCreate(database);
-                        database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                                MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
-
-                        database.close();
-
-                        // Update the view
-                        movieRating.setRating((float) rating / 2);
+                    // Do not allow ratings outside of the range.
+                    if (rating > 10) {
+                        rating = 10;
+                    } else if (rating < 0) {
+                        rating = 0;
                     }
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating);
+
+                    database = databaseHelper.getWritableDatabase();
+                    databaseHelper.onCreate(database);
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
+                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
+
+                    database.close();
+
+                    // Update the view
+                    movieRating.setRating((float) rating / 2);
                 }
-            });
+            } );
         } else {
             fadeOutAndHideAnimation(editShowDetails);
             editShowDetails.getAnimation().setAnimationListener(new Animation.AnimationListener() {
@@ -1155,7 +1151,7 @@ public class DetailActivity extends BaseActivity {
     }
 
     public void selectDate(final View view) {
-        final AlertDialog.Builder dateDialog = new AlertDialog.Builder(this);
+        final MaterialAlertDialogBuilder dateDialog = new MaterialAlertDialogBuilder(this);
 
         LayoutInflater inflater = getLayoutInflater();
         // Suppress the warning because DialogView is supposed to have a null root view
@@ -1174,52 +1170,44 @@ public class DetailActivity extends BaseActivity {
             datePicker.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         }
 
-        dateDialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Get the date from the DatePicker.
-                Calendar calendar = Calendar.getInstance();
-                calendar.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-                String dateFormat = parseDateToString(calendar.getTime(), null, null);
+        dateDialog.setPositiveButton("Save", (dialog, which) -> {
+            // Get the date from the DatePicker.
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
+            String dateFormat = parseDateToString(calendar.getTime(), null, null);
 
-                // Save the date to the database and update the view
-                ContentValues movieValues = new ContentValues();
+            // Save the date to the database and update the view
+            ContentValues movieValues = new ContentValues();
 
-                if (view.getTag().equals("start_date")) {
-                    movieValues.put(MovieDatabaseHelper
-                            .COLUMN_PERSONAL_START_DATE, dateFormat);
+            if (view.getTag().equals("start_date")) {
+                movieValues.put(MovieDatabaseHelper
+                        .COLUMN_PERSONAL_START_DATE, dateFormat);
 
-                    Button button = findViewById(R.id.startDateButton);
-                    button.setText(dateFormat);
-                    movieStartDate.setText(getString(R.string.change_start_date_2) +
-                            dateFormat);
-                    startDate = calendar.getTime();
+                Button button = findViewById(R.id.startDateButton);
+                button.setText(dateFormat);
+                movieStartDate.setText(getString(R.string.change_start_date_2) +
+                        dateFormat);
+                startDate = calendar.getTime();
 
-                } else {
-                    movieValues.put(MovieDatabaseHelper
-                            .COLUMN_PERSONAL_FINISH_DATE, dateFormat);
+            } else {
+                movieValues.put(MovieDatabaseHelper
+                        .COLUMN_PERSONAL_FINISH_DATE, dateFormat);
 
-                    Button button = findViewById(R.id.endDateButton);
-                    button.setText(dateFormat);
-                    movieFinishDate.setText(getString(R.string.change_finish_date_2)
-                            + dateFormat);
-                    finishDate = calendar.getTime();
-                }
-
-                database = databaseHelper.getWritableDatabase();
-                databaseHelper.onCreate(database);
-                database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues,
-                        MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
-                dialog.dismiss();
+                Button button = findViewById(R.id.endDateButton);
+                button.setText(dateFormat);
+                movieFinishDate.setText(getString(R.string.change_finish_date_2)
+                        + dateFormat);
+                finishDate = calendar.getTime();
             }
-        });
 
-        dateDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+            database = databaseHelper.getWritableDatabase();
+            databaseHelper.onCreate(database);
+            database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues,
+                    MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
+            dialog.dismiss();
+        } );
+
+        dateDialog.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss() );
 
         dateDialog.show();
     }
@@ -1306,12 +1294,14 @@ public class DetailActivity extends BaseActivity {
     }
 
     // Load the list of actors.
-    private class CastList extends AsyncTask<String, Void, String> {
+    private class CastListThread extends Thread {
 
         private final String API_KEY = ConfigHelper.getConfigValue(
                 getApplicationContext(), "api_key");
+        private final Handler handler = new Handler(Looper.getMainLooper());
 
-        protected String doInBackground(String... params) {
+        @Override
+        public void run() {
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -1336,19 +1326,17 @@ public class DetailActivity extends BaseActivity {
 
                     // Close connection and return the data from the webpage.
                     bufferedReader.close();
-                    return stringBuilder.toString();
+                    String response = stringBuilder.toString();
+                    handler.post(() -> onPostExecute(response));
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // Loading the dataset failed, return null.
-            return null;
         }
 
-        protected void onPostExecute(String response) {
+        private void onPostExecute(String response) {
             if (response != null && !response.isEmpty()) {
                 // Set all the actors in a list and send that to the adapter.
                 try {
@@ -1419,80 +1407,88 @@ public class DetailActivity extends BaseActivity {
     }
 
     // Load a list with similar movies.
-    private class SimilarMovieList extends AsyncTask<String, Void, String> {
+    private final Handler handler = new Handler( Looper.getMainLooper());
 
-        private final String API_KEY = ConfigHelper.getConfigValue(
-                getApplicationContext(), "api_key");
+    public void startSimilarMovieList() {
+        new Thread( () -> {
+            String response = doInBackground();
+            handler.post( () -> onPostExecute(response) );
+        } ).start();
+    }
 
-        protected String doInBackground(String... params) {
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
+    private String doInBackground() {
+        String line;
+        StringBuilder stringBuilder = new StringBuilder();
 
-            String movie = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
+        String movie = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
 
-            // Load the webpage with the list of similar movies.
+        // Load the webpage with the list of similar movies.
+        try {
+            URL url = new URL("https://api.themoviedb.org/3/" + movie + "/" +
+                    movieId + "/recommendations?api_key=" +
+                    API_KEY + getLanguageParameter(getApplicationContext()));
+            URLConnection urlConnection = url.openConnection();
+
             try {
-                URL url = new URL("https://api.themoviedb.org/3/" + movie + "/" +
-                        movieId + "/recommendations?api_key=" +
-                        API_KEY + getLanguageParameter(getApplicationContext()));
-                URLConnection urlConnection = url.openConnection();
+                BufferedReader bufferedReader = new BufferedReader(
+                        new InputStreamReader(urlConnection.getInputStream()));
 
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(
-                            new InputStreamReader(
-                                    urlConnection.getInputStream()));
-
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    return stringBuilder.toString();
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                // Create one long string of the webpage.
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
                 }
+
+                // Close connection and return the data from the webpage.
+                bufferedReader.close();
+                return stringBuilder.toString();
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // Loading the dataset failed, return null.
-            return null;
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
 
-        protected void onPostExecute(String response) {
-            if (response != null && !response.isEmpty()) {
-                // Set all the similar movies in a list and send that to the adapter.
-                try {
-                    JSONObject reader = new JSONObject(response);
-                    JSONArray similarMovieArray = reader.getJSONArray("results");
-                    for (int i = 0; i < similarMovieArray.length(); i++) {
-                        JSONObject movieData = similarMovieArray.getJSONObject(i);
-                        similarMovieArrayList.add(movieData);
-                    }
-                    similarMovieAdapter = new SimilarMovieBaseAdapter(
-                            similarMovieArrayList, getApplicationContext());
+        // Loading the dataset failed, return null.
+        return null;
+    }
 
-                    similarMovieView.setAdapter(similarMovieAdapter);
-                    mSimilarMoviesLoaded = false;
-                } catch (JSONException je) {
-                    je.printStackTrace();
+    private void onPostExecute(String response) {
+        if (response != null && !response.isEmpty()) {
+            // Set all the similar movies in a list and send that to the adapter.
+            try {
+                JSONObject reader = new JSONObject(response);
+                JSONArray similarMovieArray = reader.getJSONArray("results");
+                for (int i = 0; i < similarMovieArray.length(); i++) {
+                    JSONObject movieData = similarMovieArray.getJSONObject(i);
+                    similarMovieArrayList.add(movieData);
                 }
-            }
+                similarMovieAdapter = new SimilarMovieBaseAdapter(
+                        similarMovieArrayList, getApplicationContext());
 
-            hideEmptyRecyclerView(similarMovieView, findViewById(R.id.similarMovieTitle));
+                similarMovieView.setAdapter(similarMovieAdapter);
+                mSimilarMoviesLoaded = false;
+            } catch (JSONException je) {
+                je.printStackTrace();
+            }
         }
+
+        hideEmptyRecyclerView(similarMovieView, findViewById(R.id.similarMovieTitle));
     }
 
     // Load the movie details.
-    private class MovieDetails extends AsyncTask<String, Void, String> {
-
+    public class MovieDetailsThread extends Thread {
         private final String API_KEY = ConfigHelper.getConfigValue(
                 getApplicationContext(), "api_key");
         private boolean missingOverview;
+        private final Handler handler = new Handler(Looper.getMainLooper());
+        private final String[] params;
 
-        protected String doInBackground(String... params) {
+        public MovieDetailsThread(String... params) {
+            this.params = params;
+        }
+
+        @Override
+        public void run() {
             if (params.length > 0) {
                 missingOverview = params[0].equalsIgnoreCase("true");
             }
@@ -1526,19 +1522,17 @@ public class DetailActivity extends BaseActivity {
 
                     // Close connection and return the data from the webpage.
                     bufferedReader.close();
-                    return stringBuilder.toString();
+                    String response = stringBuilder.toString();
+                    handler.post(() -> onPostExecute(response));
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // Loading the dataset failed, return null.
-            return null;
         }
 
-        protected void onPostExecute(String response) {
+        private void onPostExecute(String response) {
             if (response != null && !response.isEmpty()) {
                 // Send the dataset to setMovieData to change the data where needed.
                 try {
@@ -1568,7 +1562,7 @@ public class DetailActivity extends BaseActivity {
             super(0xffffffff);
         }
 
-        public void writeToParcel(Parcel dest, int flags) {
+        public void writeToParcel(@NonNull Parcel dest, int flags) {
             super.writeToParcel(dest, flags);
             dest.writeFloat(mAlpha);
         }

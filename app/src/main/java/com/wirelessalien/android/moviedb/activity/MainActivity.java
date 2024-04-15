@@ -44,7 +44,9 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.preference.PreferenceManager;
+import android.preference.PreferenceManager;
+
+import androidx.fragment.app.FragmentTransaction;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 import androidx.viewpager.widget.ViewPager;
@@ -55,6 +57,7 @@ import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.TMDbAuthThread;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
+import com.wirelessalien.android.moviedb.fragment.AccountFragment;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.fragment.PersonFragment;
@@ -277,6 +280,10 @@ public class MainActivity extends BaseActivity {
             return true;
         }
 
+        if (id == R.id.action_account) {
+            Intent intent = new Intent(getApplicationContext(), AccountFragment.class);
+            startActivity(intent);
+        }
         return super.onOptionsItemSelected(item);
     }
 
