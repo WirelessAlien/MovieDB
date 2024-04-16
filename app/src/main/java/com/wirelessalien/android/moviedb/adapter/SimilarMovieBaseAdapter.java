@@ -138,9 +138,9 @@ public class SimilarMovieBaseAdapter extends RecyclerView.Adapter<SimilarMovieBa
 
         MovieItemViewHolder(View itemView) {
             super(itemView);
-            cardView = (CardView) itemView.findViewById(R.id.cardView);
-            movieTitle = (TextView) itemView.findViewById(R.id.movieTitle);
-            movieImage = (ImageView) itemView.findViewById(R.id.movieImage);
+            cardView = itemView.findViewById(R.id.cardView);
+            movieTitle = itemView.findViewById(R.id.movieTitle);
+            movieImage = itemView.findViewById(R.id.movieImage);
         }
     }
 

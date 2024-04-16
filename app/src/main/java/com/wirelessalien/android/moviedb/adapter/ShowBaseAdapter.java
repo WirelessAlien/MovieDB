@@ -29,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -96,8 +97,9 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
         return mShowArrayList.size();
     }
 
+    @NonNull
     @Override
-    public ShowItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ShowItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Create a new CardItem when needed.
         View view;
         if (mGridView) {
@@ -239,16 +241,16 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
 
         ShowItemViewHolder(View itemView) {
             super(itemView);
-            showView = (CardView) itemView.findViewById(R.id.cardView);
-            showTitle = (TextView) itemView.findViewById(R.id.title);
-            showImage = (ImageView) itemView.findViewById(R.id.image);
+            showView = itemView.findViewById(R.id.cardView);
+            showTitle = itemView.findViewById(R.id.title);
+            showImage = itemView.findViewById(R.id.image);
             categoryColorView = itemView.findViewById(R.id.categoryColor);
 
             // Only used if presented in a list.
-            showDescription = (TextView) itemView.findViewById(R.id.description);
-            showGenre = (TextView) itemView.findViewById(R.id.genre);
-            showRating = (RatingBar) itemView.findViewById(R.id.rating);
-            showDate = (TextView) itemView.findViewById(R.id.date);
+            showDescription = itemView.findViewById(R.id.description);
+            showGenre = itemView.findViewById(R.id.genre);
+            showRating = itemView.findViewById(R.id.rating);
+            showDate = itemView.findViewById(R.id.date);
         }
     }
 }

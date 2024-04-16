@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -63,6 +64,7 @@ public class PersonBaseAdapter extends RecyclerView.Adapter<PersonBaseAdapter.Pe
         return mPersonList.size();
     }
 
+    @NonNull
     @Override
     public PersonItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // Create a new CardItem when needed.
@@ -92,14 +94,11 @@ public class PersonBaseAdapter extends RecyclerView.Adapter<PersonBaseAdapter.Pe
         }
 
         // Send the person data and the user to CastActivity when clicking on a card.
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(view.getContext(), CastActivity.class);
-                intent.putExtra("actorObject", personData.toString());
-                view.getContext().startActivity(intent);
-            }
-        });
+        holder.itemView.setOnClickListener( view -> {
+            Intent intent = new Intent(view.getContext(), CastActivity.class);
+            intent.putExtra("actorObject", personData.toString());
+            view.getContext().startActivity(intent);
+        } );
     }
 
     @Override
@@ -119,9 +118,9 @@ public class PersonBaseAdapter extends RecyclerView.Adapter<PersonBaseAdapter.Pe
 
         PersonItemViewHolder(View itemView) {
             super(itemView);
-            cardView = (CardView) itemView.findViewById(R.id.cardView);
-            personName = (TextView) itemView.findViewById(R.id.personName);
-            personImage = (ImageView) itemView.findViewById(R.id.personImage);
+            cardView = itemView.findViewById(R.id.cardView);
+            personName = itemView.findViewById(R.id.personName);
+            personImage = itemView.findViewById(R.id.personImage);
         }
     }
 

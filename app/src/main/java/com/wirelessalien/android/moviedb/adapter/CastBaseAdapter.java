@@ -29,6 +29,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -64,6 +65,7 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
         return castList.size();
     }
 
+    @NonNull
     @Override
     public CastItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // Create a new CardItem when needed.
@@ -99,14 +101,11 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
         }
 
         // Send the actor data and the user to CastActivity when clicking on a card.
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(view.getContext(), CastActivity.class);
-                intent.putExtra("actorObject", actorData.toString());
-                view.getContext().startActivity(intent);
-            }
-        });
+        holder.itemView.setOnClickListener( view -> {
+            Intent intent = new Intent(view.getContext(), CastActivity.class);
+            intent.putExtra("actorObject", actorData.toString());
+            view.getContext().startActivity(intent);
+        } );
     }
 
     @Override
@@ -125,10 +124,10 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
 
         CastItemViewHolder(View itemView) {
             super(itemView);
-            cardView = (CardView) itemView.findViewById(R.id.cardView);
-            castName = (TextView) itemView.findViewById(R.id.castName);
-            characterName = (TextView) itemView.findViewById(R.id.characterName);
-            castImage = (ImageView) itemView.findViewById(R.id.castImage);
+            cardView = itemView.findViewById(R.id.cardView);
+            castName = itemView.findViewById(R.id.castName);
+            characterName = itemView.findViewById(R.id.characterName);
+            castImage = itemView.findViewById(R.id.castImage);
         }
     }
 

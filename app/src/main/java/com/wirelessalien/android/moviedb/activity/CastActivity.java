@@ -23,16 +23,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -50,7 +48,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -69,7 +66,6 @@ public class CastActivity extends BaseActivity {
     private RecyclerView crewMovieView;
     private SimilarMovieBaseAdapter crewMovieAdapter;
     private ArrayList<JSONObject> crewMovieArrayList;
-    private Drawable mToolbarBackgroundDrawable;
     private MaterialToolbar toolbar;
     // Change transparency when scrolling.
     private final NotifyingScrollView.OnScrollChangedListener
@@ -80,24 +76,12 @@ public class CastActivity extends BaseActivity {
                     toolbar.getHeight();
             final float ratio = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
             final int newAlpha = (int) (ratio * 255);
-            mToolbarBackgroundDrawable.setAlpha(newAlpha);
+            toolbar.setBackgroundColor( Color.argb(newAlpha, 0, 0, 0));
+
+
         }
     };
-    // Old way to set the background.
-    private final Drawable.Callback drawableCallback = new Drawable.Callback() {
-        @Override
-        public void invalidateDrawable(@NonNull Drawable drawable) {
-            toolbar.setBackgroundDrawable(drawable);
-        }
 
-        @Override
-        public void scheduleDrawable(@NonNull Drawable drawable, @NonNull Runnable runnable, long when) {
-        }
-
-        @Override
-        public void unscheduleDrawable(@NonNull Drawable drawable, @NonNull Runnable runnable) {
-        }
-    };
     private int actorId;
     private TextView actorBiography;
 
@@ -122,14 +106,7 @@ public class CastActivity extends BaseActivity {
         setNavigationDrawer();
         setBackButtons();
 
-        // Set a transparent background for the toolbar that
-        // becomes less transparent when scrolling down.
-        mToolbarBackgroundDrawable = new ColorDrawable( ContextCompat
-                .getColor(getApplicationContext(), R.color.colorPrimary));
-        mToolbarBackgroundDrawable.setAlpha(0);
-
         toolbar = findViewById(R.id.toolbar);
-        toolbar.setBackgroundDrawable(mToolbarBackgroundDrawable);
 
         // Make the transparency dependent on how far the user scrolled down.
         NotifyingScrollView notifyingScrollView = findViewById(R.id.castScrollView);
@@ -207,12 +184,12 @@ public class CastActivity extends BaseActivity {
     void doNetworkWork() {
         // Get the shows the person was a part of.
         if (!mActorMoviesLoaded) {
-            new ActorMovieList().execute();
+            new ActorMovieList().start();
         }
 
         // Load person details
         if (!mActorDetailsLoaded) {
-            new ActorDetails().execute();
+            new ActorDetailsThread().start();
         }
     }
 
@@ -225,28 +202,25 @@ public class CastActivity extends BaseActivity {
      * @param preference the preferences that needs to be edited to remember the choice.
      */
     private void setTitleClickListener(final TextView title, final RecyclerView view, final String preference) {
-        title.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SharedPreferences.Editor collapseViewEditor = collapseViewPreferences.edit();
+        title.setOnClickListener( v -> {
+            SharedPreferences.Editor collapseViewEditor = collapseViewPreferences.edit();
 
-                if (collapseViewPreferences.getBoolean(preference, false)) {
-                    // The view needs to expand.
-                    view.setVisibility(View.VISIBLE);
+            if (collapseViewPreferences.getBoolean(preference, false)) {
+                // The view needs to expand.
+                view.setVisibility(View.VISIBLE);
 
-                    // The preference needs to change.
-                    collapseViewEditor.putBoolean(preference, false);
-                } else {
-                    // The view needs to collapse.
-                    view.setVisibility(View.GONE);
+                // The preference needs to change.
+                collapseViewEditor.putBoolean(preference, false);
+            } else {
+                // The view needs to collapse.
+                view.setVisibility(View.GONE);
 
-                    // The preference needs to change.
-                    collapseViewEditor.putBoolean(preference, true);
-                }
-                // Set the changes.
-                collapseViewEditor.apply();
+                // The preference needs to change.
+                collapseViewEditor.putBoolean(preference, true);
             }
-        });
+            // Set the changes.
+            collapseViewEditor.apply();
+        } );
     }
 
     /**
@@ -319,7 +293,7 @@ public class CastActivity extends BaseActivity {
                 actorBiography.setText(actorObject.getString("biography"));
             }
             if (actorObject.getString("biography").equals("")) {
-                new ActorDetails().execute("true");
+                new ActorDetailsThread("true").start();
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -330,11 +304,18 @@ public class CastActivity extends BaseActivity {
      * AsyncTask that retrieves the shows that the person is credited
      * for from the API.
      */
-    private class ActorMovieList extends AsyncTask<String, Void, String> {
+    private class ActorMovieList extends Thread {
 
         private final String API_KEY = ConfigHelper.getConfigValue(getApplicationContext(), "api_key");
+        private final Handler handler = new Handler(Looper.getMainLooper());
 
-        protected String doInBackground(String... params) {
+        @Override
+        public void run() {
+            String response = doInBackground();
+            handler.post(() -> onPostExecute(response));
+        }
+
+        private String doInBackground() {
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -368,7 +349,7 @@ public class CastActivity extends BaseActivity {
             return null;
         }
 
-        protected void onPostExecute(String response) {
+        private void onPostExecute(String response) {
             if (response != null && !response.isEmpty()) {
                 // Break the JSON dataset down and add the JSONObjects to the array.
                 try {
@@ -436,16 +417,28 @@ public class CastActivity extends BaseActivity {
     /**
      * AsyncTask that retrieves the details of the person from the API.
      */
-    private class ActorDetails extends AsyncTask<String, Void, String> {
+    private class ActorDetailsThread extends Thread {
 
         private final String API_KEY = ConfigHelper.getConfigValue(getApplicationContext(), "api_key");
         private boolean missingOverview;
+        private final Handler handler = new Handler( Looper.getMainLooper());
 
-        protected String doInBackground(String... params) {
-            if (params.length > 0) {
-                missingOverview = params[0].equalsIgnoreCase("true");
-            }
+        private final String param;
 
+        // Constructor accepting a parameter
+        public ActorDetailsThread(String param) {
+            this.param = param;
+        }
+        public ActorDetailsThread() {
+            this.param = null;
+        }
+        @Override
+        public void run() {
+            String response = doInBackground();
+            handler.post(() -> onPostExecute(response));
+        }
+
+        private String doInBackground() {
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -477,8 +470,6 @@ public class CastActivity extends BaseActivity {
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
-            } catch (MalformedURLException mue) {
-                mue.printStackTrace();
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -487,7 +478,7 @@ public class CastActivity extends BaseActivity {
             return null;
         }
 
-        protected void onPostExecute(String response) {
+        private void onPostExecute(String response) {
             if (response != null && !response.isEmpty()) {
                 // Send all the actor data to setActorData.
                 try {

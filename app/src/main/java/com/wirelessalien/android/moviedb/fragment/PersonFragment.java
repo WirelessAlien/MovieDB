@@ -20,16 +20,14 @@
 package com.wirelessalien.android.moviedb.fragment;
 
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,7 +44,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -60,7 +57,8 @@ public class PersonFragment extends Fragment {
     private ArrayList<JSONObject> mPersonArrayList;
     private ArrayList<JSONObject> mSearchPersonArrayList;
     private GridLayoutManager mGridLayoutManager;
-    private AsyncTask mSearchTask;
+    private Thread mSearchThread;
+    private String API_KEY;
     private String mSearchQuery;
     private boolean mSearchView;
     // Variables for scroll detection
@@ -89,6 +87,7 @@ public class PersonFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        API_KEY = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_key");
         createPersonList();
     }
 
@@ -115,7 +114,7 @@ public class PersonFragment extends Fragment {
         visibleThreshold *= preferences.getInt(GRID_SIZE_PREFERENCE, 3);
 
         // Get the persons
-        new PersonList().execute("1");
+        new PersonListThread("1").start();
     }
 
     /**
@@ -125,7 +124,7 @@ public class PersonFragment extends Fragment {
      */
     private void showPersonList(View fragmentView) {
         // RecyclerView to display all the popular persons in a grid.
-        mPersonGridView = (RecyclerView) fragmentView.findViewById(R.id.personRecyclerView);
+        mPersonGridView = fragmentView.findViewById(R.id.personRecyclerView);
 
         // Use a GridLayoutManager
         mGridLayoutManager = new GridLayoutManager(getActivity(), 3); // For now three items in a row seems good, might be changed later on.
@@ -137,7 +136,7 @@ public class PersonFragment extends Fragment {
 
         mPersonGridView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0) { // Check for scroll down.
                     visibleItemCount = mGridLayoutManager.getChildCount();
                     totalItemCount = mGridLayoutManager.getItemCount();
@@ -161,10 +160,9 @@ public class PersonFragment extends Fragment {
                     if (!loading && (visibleItemCount + pastVisibleItems + visibleThreshold) >= totalItemCount) {
                         // Load the next page of the content in the background.
                         if (mSearchView) {
-                            mSearchTask = new SearchList().execute
-                                    (Integer.toString(currentSearchPage + 1), mSearchQuery);
+                            mSearchThread = new SearchListThread(Integer.toString(currentSearchPage + 1), mSearchQuery);
                         } else {
-                            new PersonList().execute(Integer.toString(currentPage + 1));
+                            new PersonListThread( Integer.toString(currentPage + 1)).start();
                         }
                         loading = true;
                     }
@@ -187,10 +185,11 @@ public class PersonFragment extends Fragment {
 
         // Cancel old AsyncTask if exists.
         currentSearchPage = 1;
-        if (mSearchTask != null) {
-            mSearchTask.cancel(true);
+        if (mSearchThread != null) {
+            mSearchThread.interrupt();
         }
-        mSearchTask = new SearchList().execute("1", query);
+        mSearchThread = new SearchListThread("1", query);
+        mSearchThread.start();
     }
 
     /**
@@ -205,20 +204,20 @@ public class PersonFragment extends Fragment {
     /**
      * Uses AsyncTask to retrieve the list with popular people.
      */
-    private class PersonList extends AsyncTask<String, Void, String> {
+    private class PersonListThread extends Thread {
 
-        private int page;
-        private String API_KEY;
+        private final int page;
 
-        protected String doInBackground(String... params) {
-
-            getActivity().runOnUiThread( () -> {
-                ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.VISIBLE);
-            } );
-
+        public PersonListThread(String... params) {
             page = Integer.parseInt(params[0]);
-            API_KEY = ConfigHelper.getConfigValue(getActivity().getApplicationContext(), "api_key");
+        }
+
+        @Override
+        public void run() {
+            requireActivity().runOnUiThread(() -> {
+                ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.VISIBLE);
+            });
 
             String line;
             StringBuilder stringBuilder = new StringBuilder();
@@ -242,7 +241,6 @@ public class PersonFragment extends Fragment {
 
                     // Close the connection and return the data from the webpage.
                     bufferedReader.close();
-                    return stringBuilder.toString();
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
@@ -250,12 +248,9 @@ public class PersonFragment extends Fragment {
                 ioe.printStackTrace();
             }
 
-            // Loading the dataset failed, return null.
-            return null;
-        }
+            String response = stringBuilder.toString();
 
-        protected void onPostExecute(String response) {
-            if (response != null && !response.isEmpty()) {
+            if (!response.isEmpty()) {
                 // Convert the JSON data from the webpage into JSONObjects
                 try {
                     JSONObject reader = new JSONObject(response);
@@ -265,18 +260,22 @@ public class PersonFragment extends Fragment {
                         mPersonArrayList.add(websiteData);
                     }
 
-                    if (page == 1 && mPersonGridView != null) {
-                        mPersonGridView.setAdapter(mPersonAdapter);
-                    } else {
-                        // Reload the adapter (with the new page).
-                        mPersonAdapter.notifyDataSetChanged();
-                    }
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.GONE);
+                    requireActivity().runOnUiThread(() -> {
+                        if (page == 1 && mPersonGridView != null) {
+                            mPersonGridView.setAdapter(mPersonAdapter);
+                        } else {
+                            // Reload the adapter (with the new page).
+                            mPersonAdapter.notifyDataSetChanged();
+                        }
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    });
                 } catch (JSONException je) {
                     je.printStackTrace();
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.GONE);
+                    requireActivity().runOnUiThread(() -> {
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    });
                 }
             }
         }
@@ -285,17 +284,24 @@ public class PersonFragment extends Fragment {
     /**
      * Load a list of persons that fulfill the search query.
      */
-    private class SearchList extends AsyncTask<String, Void, String> {
+    public class SearchListThread extends Thread {
+        private final int page;
+        private final String query;
 
-        private final String API_KEY = ConfigHelper.getConfigValue
-                (getActivity().getApplicationContext(), "api_key");
-        private int page;
+        public SearchListThread(String page, String query) {
+            this.page = Integer.parseInt(page);
+            this.query = query;
+        }
 
-        protected String doInBackground(String... params) {
-            // Extra parameter for the search query.
-            page = Integer.parseInt(params[0]);
-            String query = params[1];
+        @Override
+        public void run() {
+            String response = doInBackground();
+            if (response != null) {
+                requireActivity().runOnUiThread(() -> onPostExecute(response));
+            }
+        }
 
+        private String doInBackground() {
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -311,19 +317,8 @@ public class PersonFragment extends Fragment {
                             new InputStreamReader(
                                     urlConnection.getInputStream()));
 
-                    // If the user changed the search query, stop loading.
-                    if (isCancelled()) {
-                        return null;
-                    }
-
                     // Create one long string of the webpage.
                     while ((line = bufferedReader.readLine()) != null) {
-                        // If the user changed the search query, stop loading.
-                        if (isCancelled()) {
-                            // There are two because I am not sure
-                            // what the best place is for this clause.
-                            break;
-                        }
                         stringBuilder.append(line).append("\n");
                     }
 
@@ -341,7 +336,7 @@ public class PersonFragment extends Fragment {
             return null;
         }
 
-        protected void onPostExecute(String response) {
+        private void onPostExecute(String response) {
             // Keep the user at the same position in the list.
             int position;
             try {
@@ -372,11 +367,11 @@ public class PersonFragment extends Fragment {
                     mSearchView = true;
                     mPersonGridView.setAdapter(mSearchPersonAdapter);
                     mPersonGridView.scrollToPosition(position);
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
                     progressBar.setVisibility(View.GONE);
                 } catch (JSONException je) {
                     je.printStackTrace();
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
                     progressBar.setVisibility(View.GONE);
                 }
             }

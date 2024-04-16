@@ -14,8 +14,8 @@ import com.wirelessalien.android.moviedb.R;
 import java.util.List;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
-    private List<ListData> listData;
-    private OnItemClickListener onItemClickListener;
+    private final List<ListData> listData;
+    private final OnItemClickListener onItemClickListener;
 
     public ListAdapter(List<ListData> listData, OnItemClickListener onItemClickListener) {
         this.listData = listData;
@@ -50,8 +50,8 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView listNameTextView;
-        private OnItemClickListener onItemClickListener;
+        private final TextView listNameTextView;
+        private final OnItemClickListener onItemClickListener;
 
         public ViewHolder(@NonNull View itemView, OnItemClickListener onItemClickListener) {
             super(itemView);

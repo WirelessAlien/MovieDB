@@ -30,6 +30,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -470,8 +472,9 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             mShowView.setAdapter(mShowAdapter);
         }
 
-        // Load the genres
-        new GenreList().execute("tv");
+        Handler handler = new Handler( Looper.getMainLooper());
+        GenreListThread genreListThread = new GenreListThread("tv", handler);
+        genreListThread.start();
     }
 
     /**

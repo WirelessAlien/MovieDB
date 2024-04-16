@@ -21,12 +21,11 @@ package com.wirelessalien.android.moviedb.fragment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -46,7 +45,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -63,6 +61,7 @@ public class BaseFragment extends Fragment {
     final static String PERSISTENT_FILTERING_PREFERENCE = "key_persistent_filtering";
     @SuppressWarnings("OctalInteger")
     final static int FILTER_REQUEST_CODE = 0002;
+    private String API_KEY;
     RecyclerView mShowView;
     ShowBaseAdapter mShowAdapter;
     ShowBaseAdapter mSearchShowAdapter;
@@ -78,6 +77,8 @@ public class BaseFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        API_KEY = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_key");
+
         setHasOptionsMenu(true);
     }
 
@@ -135,15 +136,21 @@ public class BaseFragment extends Fragment {
     /**
      * Uses AsyncTask to retrieve the id to genre mapping.
      */
-    class GenreList extends AsyncTask<String, Void, String> {
+    class GenreListThread extends Thread {
 
-        private String mGenreType;
+        private final String mGenreType;
+        private final Handler handler;
 
-        protected String doInBackground(String... params) {
-            mGenreType = params[0];
-            String API_KEY = ConfigHelper.getConfigValue(
-                    getActivity().getApplicationContext(), "api_key" );
+        public GenreListThread(String mGenreType, Handler handler) {
+            this.mGenreType = mGenreType;
+            this.handler = handler;
+        }
 
+        @Override
+        public void run() {
+            if (!isAdded()) {
+                return;
+            }
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -166,23 +173,23 @@ public class BaseFragment extends Fragment {
 
                     // Close connection and return the data from the webpage.
                     bufferedReader.close();
-                    return stringBuilder.toString();
+                    String response = stringBuilder.toString();
+
+                    // Use handler to post the result back to the main thread
+                    handler.post(() -> handleResponse(response));
+
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // Loading the dataset failed, return null.
-            return null;
         }
 
-        protected void onPostExecute(String response) {
-
+        private void handleResponse(String response) {
             if (response != null && !response.isEmpty()) {
                 // Save GenreList to sharedPreferences, this way it can be used anywhere.
-                SharedPreferences sharedPreferences = getActivity().getApplicationContext()
+                SharedPreferences sharedPreferences = requireContext().getApplicationContext()
                         .getSharedPreferences("GenreList", Context.MODE_PRIVATE);
                 SharedPreferences.Editor prefsEditor =
                         sharedPreferences.edit();

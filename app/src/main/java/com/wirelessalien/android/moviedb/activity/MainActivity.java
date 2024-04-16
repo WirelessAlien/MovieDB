@@ -27,6 +27,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -44,14 +45,12 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import android.preference.PreferenceManager;
-
-import androidx.fragment.app.FragmentTransaction;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
@@ -157,7 +156,7 @@ public class MainActivity extends BaseActivity {
 
             // If there is a database.
             if (dbFile.exists()) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
                 builder.setMessage(getString(R.string.watched_upgrade_dialog_message))
                         .setTitle(getString(R.string.watched_upgrade_dialog_title));
 
@@ -172,7 +171,6 @@ public class MainActivity extends BaseActivity {
 
                             Cursor cursor = database.rawQuery("SELECT * FROM " +
                                     MovieDatabaseHelper.TABLE_MOVIES, null);
-
                             // Go through all rows in the database.
                             cursor.moveToFirst();
                             while (!cursor.isAfterLast()) {

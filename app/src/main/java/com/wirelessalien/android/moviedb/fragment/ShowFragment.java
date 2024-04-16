@@ -25,15 +25,20 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
-import android.preference.PreferenceManager;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.wirelessalien.android.moviedb.ConfigHelper;
@@ -64,13 +69,13 @@ import java.util.Locale;
 public class ShowFragment extends BaseFragment {
 
     private static final String ARG_LIST_TYPE = "arg_list_type";
-    private AsyncTask mSearchTask;
+    private String API_KEY;
+    private Thread mSearchThread;
     private String mListType;
     private boolean mSearchView;
     private String mSearchQuery;
     private String filterParameter = "";
     private boolean filterChanged = false;
-    private String mMode;
     // Variables for scroll detection
     private int visibleThreshold = 3; // Three times the amount of items in a row
     private int currentPage = 0;
@@ -104,6 +109,8 @@ public class ShowFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        API_KEY = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_key");
+
         if (getArguments() != null) {
             mListType = getArguments().getString(ARG_LIST_TYPE);
         } else {
@@ -120,12 +127,13 @@ public class ShowFragment extends BaseFragment {
     @Override
     public void doNetworkWork() {
         if (!mGenreListLoaded) {
-            new GenreList().execute(mListType);
-
+            Handler handler = new Handler( Looper.getMainLooper());
+            GenreListThread genreListThread = new GenreListThread(mListType, handler);
+            genreListThread.start();
         }
 
         if (!mShowListLoaded) {
-            new ShowList().execute(mListType, "1");
+            new ShowListThread( new String[]{mListType, "1"}).start();
         }
     }
 
@@ -148,22 +156,34 @@ public class ShowFragment extends BaseFragment {
         // Filter action
         if (id == R.id.action_filter) {
             // Start the FilterActivity
-            Intent intent = new Intent(getActivity().getApplicationContext(), FilterActivity.class);
-            intent.putExtra("mode", mListType);
-            getActivity().startActivityForResult(intent, FILTER_REQUEST_CODE);
+            filterRequestLauncher.launch(new Intent());
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILTER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            filterShows();
+    ActivityResultContract<Intent, Boolean> filterRequestContract = new ActivityResultContract<>() {
+        @NonNull
+        @Override
+        public Intent createIntent(@NonNull Context context, Intent input) {
+            return new Intent( context, FilterActivity.class ).putExtra( "mode", mListType );
         }
-    }
+
+        @Override
+        public Boolean parseResult(int resultCode, @Nullable Intent intent) {
+            return resultCode == Activity.RESULT_OK;
+        }
+    };
+
+    ActivityResultLauncher<Intent> filterRequestLauncher = registerForActivityResult(
+            filterRequestContract,
+            result -> {
+                if (result) {
+                    filterShows();
+                }
+            }
+    );
 
 
 
@@ -172,7 +192,7 @@ public class ShowFragment extends BaseFragment {
      */
     private void filterShows() {
         // Get the parameters from the filter activity and reload the adapter
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences
                 (FilterActivity.FILTER_PREFERENCES, Context.MODE_PRIVATE);
 
         String sortPreference;
@@ -219,7 +239,7 @@ public class ShowFragment extends BaseFragment {
         }
 
         // Add the genres to be included as constraints to the API call.
-        ArrayList withGenres = FilterActivity.convertStringToArrayList
+        ArrayList<String> withGenres = FilterActivity.convertStringToArrayList
                 (sharedPreferences.getString
                         (FilterActivity.FILTER_WITH_GENRES, null), ", ");
         if (withGenres != null && !withGenres.isEmpty()) {
@@ -234,7 +254,7 @@ public class ShowFragment extends BaseFragment {
         }
 
         // Add the genres to be excluded as constraints to the API call.
-        ArrayList withoutGenres = FilterActivity.convertStringToArrayList
+        ArrayList<String> withoutGenres = FilterActivity.convertStringToArrayList
                 (sharedPreferences.getString
                         (FilterActivity.FILTER_WITHOUT_GENRES, null), ", ");
         if (withoutGenres != null && !withoutGenres.isEmpty()) {
@@ -262,7 +282,7 @@ public class ShowFragment extends BaseFragment {
         }
 
         filterChanged = true;
-        new ShowList().execute(mMode, "1");
+        new ShowListThread( new String[]{mListType, "1"}).start();
     }
 
     /**
@@ -271,7 +291,6 @@ public class ShowFragment extends BaseFragment {
      * @param mode determines if series or movies are retrieved.
      */
     private void createShowList(String mode) {
-        mMode = mode;
 
         // Create a MovieBaseAdapter and load the first page
         mShowArrayList = new ArrayList<>();
@@ -279,7 +298,7 @@ public class ShowFragment extends BaseFragment {
         mShowAdapter = new ShowBaseAdapter(mShowArrayList, mShowGenreList,
                 preferences.getBoolean(SHOWS_LIST_PREFERENCE, false));
 
-        ((BaseActivity) getActivity()).checkNetwork();
+        ((BaseActivity) requireActivity()).checkNetwork();
 
         // Use persistent filtering if it is enabled.
         if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
@@ -298,7 +317,7 @@ public class ShowFragment extends BaseFragment {
         // Dynamically load new pages when user scrolls down.
         mShowView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0) { // Check for scroll down.
                     visibleItemCount = mShowLinearLayoutManager.getChildCount();
                     totalItemCount = mShowLinearLayoutManager.getItemCount();
@@ -329,10 +348,10 @@ public class ShowFragment extends BaseFragment {
                     if (!loading && (visibleItemCount + pastVisibleItems + threshold) >= totalItemCount) {
                         // Load the next page of the content in the background.
                         if (mSearchView) {
-                            mSearchTask = new SearchList().execute
-                                    (mListType, Integer.toString(currentSearchPage + 1), mSearchQuery);
+                            mSearchThread = new SearchListThread( mListType, currentSearchPage, mSearchQuery, false);
+                            mSearchThread.start();
                         } else {
-                            new ShowList().execute(mListType, Integer.toString(currentPage + 1));
+                            new ShowListThread( new String[]{mListType, Integer.toString(currentPage)}).start();
                         }
                         loading = true;
                     }
@@ -356,10 +375,11 @@ public class ShowFragment extends BaseFragment {
 
         // Cancel old AsyncTask if it exists.
         currentSearchPage = 1;
-        if (mSearchTask != null) {
-            mSearchTask.cancel(true);
+        if (mSearchThread != null) {
+            mSearchThread.interrupt();
         }
-        mSearchTask = new SearchList().execute(mListType, "1", query);
+        mSearchThread = new SearchListThread(mListType, 1, query, false);
+        mSearchThread.start();
 
         mSearchQuery = query;
     }
@@ -375,26 +395,34 @@ public class ShowFragment extends BaseFragment {
     /**
      * Uses AsyncTask to retrieve the list with popular shows.
      */
-    private class ShowList extends AsyncTask<String, Void, String> {
+    private class ShowListThread extends Thread {
 
         private boolean missingOverview;
         private String listType;
         private int page;
-        private String API_KEY;
+        private final Handler handler;
+        private final String[] params;
 
-        protected String doInBackground(String... params) {
-            getActivity().runOnUiThread( () -> {
-                ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
+        public ShowListThread(String[] params) {
+            handler = new Handler(Looper.getMainLooper());
+            this.params = params;
+        }
+
+        @Override
+        public void run() {
+            if (!isAdded()) {
+                return;
+            }
+            handler.post(() -> {
+                ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
                 progressBar.setVisibility(View.VISIBLE);
-            } );
+            });
+
             listType = params[0];
             page = Integer.parseInt(params[1]);
             if (params.length > 2) {
                 missingOverview = params[2].equalsIgnoreCase("true");
             }
-
-            API_KEY = ConfigHelper.getConfigValue(
-                    getActivity().getApplicationContext(), "api_key");
 
             String line;
             StringBuilder stringBuilder = new StringBuilder();
@@ -425,90 +453,90 @@ public class ShowFragment extends BaseFragment {
 
                     // Close connection and return the data from the webpage.
                     bufferedReader.close();
-                    return stringBuilder.toString();
+                    String response = stringBuilder.toString();
+                    handleResponse(response);
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // Loading the dataset failed, return null.
-            return null;
         }
 
-        protected void onPostExecute(String response) {
-            if (response != null && !response.isEmpty()) {
-                // Keep the user at the same position in the list.
-                int position;
-                try {
-                    position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
-                } catch (NullPointerException npe) {
-                    position = 0;
-                }
-
-                // If the filter has changed, remove the old items
-                if (filterChanged) {
-                    mShowArrayList.clear();
-
-                    // Set the previous total back to zero.
-                    previousTotal = 0;
-
-                    // Set filterChanged back to false.
-                    filterChanged = false;
-                }
-
-                // Convert the JSON data from the webpage into JSONObjects
-                ArrayList<JSONObject> tempMovieArrayList = new ArrayList<>();
-                try {
-                    JSONObject reader = new JSONObject(response);
-                    JSONArray arrayData = reader.getJSONArray("results");
-                    for (int i = 0; i < arrayData.length(); i++) {
-                        JSONObject websiteData = arrayData.getJSONObject(i);
-                        if (missingOverview) {
-                            tempMovieArrayList.add(websiteData);
-                        } else {
-                            mShowArrayList.add(websiteData);
-                        }
+        private void handleResponse(String response) {
+            handler.post(() -> {
+                if (response != null && !response.isEmpty()) {
+                    // Keep the user at the same position in the list.
+                    int position;
+                    try {
+                        position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
+                    } catch (NullPointerException npe) {
+                        position = 0;
                     }
 
-                    // Some translations might be lacking and need to be filled in.
-                    // Therefore, load the same list but in English.
-                    // After that, iterate through the translated list
-                    // and fill in any missing parts.
-                    if (!Locale.getDefault().getLanguage().equals("en") &&
-                            !missingOverview) {
-                        new ShowList().execute(listType, Integer.toString(page), "true");
+                    // If the filter has changed, remove the old items
+                    if (filterChanged) {
+                        mShowArrayList.clear();
+
+                        // Set the previous total back to zero.
+                        previousTotal = 0;
+
+                        // Set filterChanged back to false.
+                        filterChanged = false;
                     }
 
-                    // If the overview is missing, add the overview from the English version.
-                    if (missingOverview) {
-                        for (int i = mShowArrayList.size() - tempMovieArrayList.size(); i < mShowArrayList.size(); i++) {
-                            JSONObject movieObject = mShowArrayList.get(i);
-                            if (movieObject.getString("overview").equals("")) {
-                                movieObject.put("overview", tempMovieArrayList.
-                                        get(i - (mShowArrayList.size() - tempMovieArrayList.size())).getString("overview"));
+                    // Convert the JSON data from the webpage into JSONObjects
+                    ArrayList<JSONObject> tempMovieArrayList = new ArrayList<>();
+                    try {
+                        JSONObject reader = new JSONObject(response);
+                        JSONArray arrayData = reader.getJSONArray("results");
+                        for (int i = 0; i < arrayData.length(); i++) {
+                            JSONObject websiteData = arrayData.getJSONObject(i);
+                            if (missingOverview) {
+                                tempMovieArrayList.add(websiteData);
+                            } else {
+                                mShowArrayList.add(websiteData);
                             }
                         }
-                    }
 
-                    // Reload the adapter (with the new page)
-                    // and set the user to his old position.
-                    if (mShowView != null) {
-                        mShowView.setAdapter(mShowAdapter);
-                        if (page != 1) {
-                            mShowView.scrollToPosition(position);
+                        // Some translations might be lacking and need to be filled in.
+                        // Therefore, load the same list but in English.
+                        // After that, iterate through the translated list
+                        // and fill in any missing parts.
+                        if (!Locale.getDefault().getLanguage().equals("en") &&
+                                !missingOverview) {
+                            new ShowListThread(new String[]{listType, Integer.toString(page), "true"}).start();
                         }
+
+                        // If the overview is missing, add the overview from the English version.
+                        if (missingOverview) {
+                            for (int i = mShowArrayList.size() - tempMovieArrayList.size(); i < mShowArrayList.size(); i++) {
+                                JSONObject movieObject = mShowArrayList.get(i);
+                                if (movieObject.getString("overview").equals("")) {
+                                    movieObject.put("overview", tempMovieArrayList.
+                                            get(i - (mShowArrayList.size() - tempMovieArrayList.size())).getString("overview"));
+                                }
+                            }
+                        }
+
+                        // Reload the adapter (with the new page)
+                        // and set the user to his old position.
+                        if (mShowView != null) {
+                            mShowView.setAdapter(mShowAdapter);
+                            if (page != 1) {
+                                mShowView.scrollToPosition(position);
+                            }
+                        }
+                        mShowListLoaded = true;
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    } catch (JSONException je) {
+                        je.printStackTrace();
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
                     }
-                    mShowListLoaded = true;
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.GONE);
-                } catch (JSONException je) {
-                    je.printStackTrace();
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.GONE);
                 }
-            }
+            });
         }
     }
 
@@ -517,24 +545,25 @@ public class ShowFragment extends BaseFragment {
      * (and are of the requested type which means that nothing will turn up if you
      * search for a series in the movies tab (and there are no movies with the same name).
      */
-    private class SearchList extends AsyncTask<String, Void, String> {
+    private class SearchListThread extends Thread {
+        private final boolean missingOverview;
+        private final int page;
+        private final String listType;
+        private final String query;
 
-        private final String API_KEY = ConfigHelper.getConfigValue(
-                getActivity().getApplicationContext(), "api_key");
-        private boolean missingOverview;
-        private int page;
+        public SearchListThread(String listType, int page, String query, boolean missingOverview) {
+            this.listType = listType;
+            this.page = page;
+            this.query = query;
+            this.missingOverview = missingOverview;
+        }
 
-        protected String doInBackground(String... params) {
-            getActivity().runOnUiThread( () -> {
-                ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
+        @Override
+        public void run() {
+            requireActivity().runOnUiThread(() -> {
+                ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
                 progressBar.setVisibility(View.VISIBLE);
-            } );
-            String listType = params[0];
-            page = Integer.parseInt(params[1]);
-            String query = params[2];
-            if (params.length > 3) {
-                missingOverview = params[3].equalsIgnoreCase("true");
-            }
+            });
 
             String line;
             StringBuilder stringBuilder = new StringBuilder();
@@ -558,101 +587,89 @@ public class ShowFragment extends BaseFragment {
                             new InputStreamReader(
                                     urlConnection.getInputStream()));
 
-                    // If the user changed the search query, stop loading.
-                    if (isCancelled()) {
-                        return null;
-                    }
-
                     // Create one long string of the webpage.
                     while ((line = bufferedReader.readLine()) != null) {
-                        // If the user changed the search query, stop loading.
-                        if (isCancelled()) {
-                            // There are two because I am not sure
-                            // what the best place is for this clause.
-                            break;
-                        }
                         stringBuilder.append(line).append("\n");
                     }
 
                     // Close connection and return the data from the webpage.
                     bufferedReader.close();
-                    return stringBuilder.toString();
+                    String response = stringBuilder.toString();
+                    handleResponse(response);
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // Loading the dataset failed, return null.
-            return null;
         }
 
-        protected void onPostExecute(String response) {
-            // Keep the user at the same position in the list.
-            int position;
-            try {
-                position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
-            } catch (NullPointerException npe) {
-                position = 0;
-            }
-
-            // Clear the array list before adding new movies to it.
-            if (currentSearchPage <= 0) {
-                // Only if the list doesn't already contain search results.
-                mSearchShowArrayList.clear();
-            }
-
-            // Convert the JSON webpage to JSONObjects
-            // Add the JSONObjects to the list with movies/series.
-            if (!(response == null || response.equals(""))) {
-                ArrayList<JSONObject> tempSearchMovieArrayList = new ArrayList<>();
+        private void handleResponse(String response) {
+            requireActivity().runOnUiThread(() -> {
+                // Keep the user at the same position in the list.
+                int position;
                 try {
-                    JSONObject reader = new JSONObject(response);
-                    JSONArray arrayData = reader.getJSONArray("results");
-                    for (int i = 0; i < arrayData.length(); i++) {
-                        JSONObject websiteData = arrayData.getJSONObject(i);
-                        if (missingOverview) {
-                            tempSearchMovieArrayList.add(websiteData);
-                        } else {
-                            mSearchShowArrayList.add(websiteData);
-                        }
-                    }
+                    position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
+                } catch (NullPointerException npe) {
+                    position = 0;
+                }
 
-                    // Some translations might be lacking and need to be filled in.
-                    // Therefore, load the same list but in English.
-                    // After that, iterate through the translated list
-                    // and fill in any missing parts.
-                    if (!Locale.getDefault().getLanguage().equals("en") && !missingOverview) {
-                        mSearchTask = new SearchList().execute(mListType,
-                                Integer.toString(page), mSearchQuery, "true");
-                    }
+                // Clear the array list before adding new movies to it.
+                if (currentSearchPage <= 0) {
+                    // Only if the list doesn't already contain search results.
+                    mSearchShowArrayList.clear();
+                }
 
-                    if (missingOverview) {
-                        for (int i = 0; i < mSearchShowArrayList.size(); i++) {
-                            JSONObject movieObject = mSearchShowArrayList.get(i);
-                            if (movieObject.getString("overview").equals("")) {
-                                movieObject.put("overview", tempSearchMovieArrayList.
-                                        get(i).getString("overview"));
+                // Convert the JSON webpage to JSONObjects
+                // Add the JSONObjects to the list with movies/series.
+                if (!(response == null || response.equals(""))) {
+                    ArrayList<JSONObject> tempSearchMovieArrayList = new ArrayList<>();
+                    try {
+                        JSONObject reader = new JSONObject(response);
+                        JSONArray arrayData = reader.getJSONArray("results");
+                        for (int i = 0; i < arrayData.length(); i++) {
+                            JSONObject websiteData = arrayData.getJSONObject(i);
+                            if (missingOverview) {
+                                tempSearchMovieArrayList.add(websiteData);
+                            } else {
+                                mSearchShowArrayList.add(websiteData);
                             }
                         }
-                    }
 
-                    // Reload the adapter (with the new page)
-                    // and set the user to his old position.
-                    mSearchView = true;
-                    if (mShowView != null) {
-                        mShowView.setAdapter(mSearchShowAdapter);
-                        mShowView.scrollToPosition(position);
+                        // Some translations might be lacking and need to be filled in.
+                        // Therefore, load the same list but in English.
+                        // After that, iterate through the translated list
+                        // and fill in any missing parts.
+                        if (!Locale.getDefault().getLanguage().equals("en") && !missingOverview) {
+                            new SearchListThread(listType, page, query, true).start();
+                        }
+
+                        if (missingOverview) {
+                            for (int i = 0; i < mSearchShowArrayList.size(); i++) {
+                                JSONObject movieObject = mSearchShowArrayList.get(i);
+                                if (movieObject.getString("overview").equals("")) {
+                                    movieObject.put("overview", tempSearchMovieArrayList.
+                                            get(i).getString("overview"));
+                                }
+                            }
+                        }
+
+                        // Reload the adapter (with the new page)
+                        // and set the user to his old position.
+                        mSearchView = true;
+                        if (mShowView != null) {
+                            mShowView.setAdapter(mSearchShowAdapter);
+                            mShowView.scrollToPosition(position);
+                        }
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    } catch (JSONException je) {
+                        je.printStackTrace();
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
                     }
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.GONE);
-                } catch (JSONException je) {
-                    je.printStackTrace();
-                    ProgressBar progressBar = getActivity().findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.GONE);
                 }
-            }
+            });
         }
     }
 }

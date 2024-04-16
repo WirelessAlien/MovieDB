@@ -48,6 +48,7 @@ import android.widget.TableLayout;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.wirelessalien.android.moviedb.R;
@@ -115,7 +116,7 @@ public class FilterActivity extends AppCompatActivity {
      * @return an ArrayList with strings.
      */
     public static ArrayList<String> convertStringToArrayList(String array, String splitArg) {
-        ArrayList arrayList = new ArrayList<String>();
+        ArrayList<String> arrayList = new ArrayList<>();
         if (array != null) {
             array = array.substring(1, array.length() - 1);
             if (!array.equals("")) {
@@ -188,41 +189,38 @@ public class FilterActivity extends AppCompatActivity {
                     Button button = new Button(this);
                     button.setText(genre.getString("name"));
                     button.setId(Integer.parseInt(genre.getString("id")));
-                    button.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Button genreButton = (Button) v;
-                            int buttonId = genreButton.getId();
+                    button.setOnClickListener( v -> {
+                        Button genreButton = (Button) v;
+                        int buttonId = genreButton.getId();
 
-                            // Check the state of the button.
-                            if (withGenres.contains(buttonId)) {
-                                // The genre needs to be moved over to the withoutGenres list.
-                                withGenres.remove((Integer) buttonId);
-                                withoutGenres.add(buttonId);
+                        // Check the state of the button.
+                        if (withGenres.contains(buttonId)) {
+                            // The genre needs to be moved over to the withoutGenres list.
+                            withGenres.remove((Integer) buttonId);
+                            withoutGenres.add(buttonId);
 
-                                // Change the color of the button.
-                                genreButton.getBackground().setColorFilter(getResources().getColor(R.color.colorRed), PorterDuff.Mode.SRC_ATOP);
-                                genreButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_close), null, null, null);
-                            } else if (withoutGenres.contains(buttonId)) {
-                                // The genre needs to be removed from the withoutGenres list.
-                                withoutGenres.remove((Integer) buttonId);
+                            // Change the color of the button.
+                            genreButton.getBackground().setColorFilter( ContextCompat.getColor(FilterActivity.this, R.color.colorRed), PorterDuff.Mode.SRC_ATOP);
+                            genreButton.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(FilterActivity.this, R.drawable.ic_close), null, null, null);
+                        } else if (withoutGenres.contains(buttonId)) {
+                            // The genre needs to be removed from the withoutGenres list.
+                            withoutGenres.remove((Integer) buttonId);
 
-                                // Remove the special button color.
-                                genreButton.getBackground().clearColorFilter();
-                                genreButton.setCompoundDrawablesWithIntrinsicBounds(null,
-                                        null, null, null);
-                                genreButton.setTextColor(Color.BLACK);
-                            } else {
-                                // The button is in it's default state, add it to the withGenres list.
-                                withGenres.add(buttonId);
+                            // Remove the special button color.
+                            genreButton.getBackground().clearColorFilter();
+                            genreButton.setCompoundDrawablesWithIntrinsicBounds(null,
+                                    null, null, null);
+                            genreButton.setTextColor(Color.BLACK);
+                        } else {
+                            // The button is in it's default state, add it to the withGenres list.
+                            withGenres.add(buttonId);
 
-                                // Change the color of the button
-                                genreButton.getBackground().setColorFilter(getResources().getColor(R.color.colorGreen), PorterDuff.Mode.SRC_ATOP);
-                                genreButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_check), null, null, null);
-                                genreButton.setTextColor(Color.WHITE);
-                            }
+                            // Change the color of the button
+                            genreButton.getBackground().setColorFilter( ContextCompat.getColor(FilterActivity.this, R.color.colorPrimary), PorterDuff.Mode.SRC_ATOP);
+                            genreButton.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(FilterActivity.this, R.drawable.ic_check), null, null, null);
+                            genreButton.setTextColor(Color.WHITE);
                         }
-                    });
+                    } );
                     flowLayout.addView(button);
                 }
             }
