@@ -40,10 +40,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
@@ -112,13 +112,13 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mDatabaseHelper = new MovieDatabaseHelper(getActivity().getApplicationContext());
+        mDatabaseHelper = new MovieDatabaseHelper(requireContext().getApplicationContext());
 
         // Get all entries from the database,
         // put them in JSONObjects and send them to the ShowBaseAdapter.
         mShowArrayList = new ArrayList<>();
 
-        preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
         createShowList();
     }
@@ -162,18 +162,18 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         int id = item.getItemId();
         if (id == R.id.action_export) {
             // Ask the user for writing to storage (and thus also automatically reading) permission.
-            int hasWriteExternalStoragePermission = getActivity()
+            int hasWriteExternalStoragePermission = requireActivity()
                     .checkSelfPermission( Manifest.permission.WRITE_EXTERNAL_STORAGE );
             if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
                 if (!shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    final Activity activity = getActivity();
-                    showMessageOKCancel(getActivity().getApplicationContext().getResources().getString(R.string.no_permission_dialog_message),
+                    final Activity activity = requireActivity();
+                    showMessageOKCancel(requireContext().getApplicationContext().getResources().getString(R.string.no_permission_dialog_message),
                             (dialog, which) -> ActivityCompat.requestPermissions(activity, new String[]
                                             {Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                     REQUEST_CODE_ASK_PERMISSIONS_EXPORT) );
                     return true;
                 }
-                ActivityCompat.requestPermissions(getActivity(), new String[]
+                ActivityCompat.requestPermissions(requireActivity(), new String[]
                                 {Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         REQUEST_CODE_ASK_PERMISSIONS_EXPORT);
 
@@ -182,7 +182,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
 
             // Export the database.
             MovieDatabaseHelper databaseHelper = new MovieDatabaseHelper
-                    (getActivity().getApplicationContext());
+                    (requireContext().getApplicationContext());
             databaseHelper.exportDatabase(getActivity());
             return true;
         }
@@ -191,19 +191,19 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         if (id == R.id.action_import) {
 
             // Ask the user for reading from storage (and thus also automatically writing) permission.
-            int hasWriteExternalStoragePermission = getActivity()
+            int hasWriteExternalStoragePermission = requireActivity()
                     .checkSelfPermission( Manifest.permission.WRITE_EXTERNAL_STORAGE );
             if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
                 if (!shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    final Activity activity = getActivity();
+                    final Activity activity = requireActivity();
                     ((MainActivity) activity).mAdapterDataChangedListener = this;
-                    showMessageOKCancel(getActivity().getApplicationContext().getResources().getString(R.string.no_permission_dialog_message),
+                    showMessageOKCancel(requireContext().getApplicationContext().getResources().getString(R.string.no_permission_dialog_message),
                             (dialog, which) -> ActivityCompat.requestPermissions(activity, new String[]
                                             {Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                     REQUEST_CODE_ASK_PERMISSIONS_IMPORT) );
                     return true;
                 }
-                ActivityCompat.requestPermissions(getActivity(), new String[]
+                ActivityCompat.requestPermissions(requireActivity(), new String[]
                                 {Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         REQUEST_CODE_ASK_PERMISSIONS_IMPORT);
 
@@ -211,7 +211,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             }
 
             // Import the database.
-            MovieDatabaseHelper databaseHelper = new MovieDatabaseHelper(getActivity().getApplicationContext());
+            MovieDatabaseHelper databaseHelper = new MovieDatabaseHelper(requireContext().getApplicationContext());
             databaseHelper.importDatabase(getActivity(), this);
             return true;
         }
@@ -219,7 +219,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         // Filter action
         if (id == R.id.action_filter) {
             // Start the FilterActivity
-            Intent intent = new Intent(getActivity().getApplicationContext(), FilterActivity.class);
+            Intent intent = new Intent(requireContext().getApplicationContext(), FilterActivity.class);
             intent.putExtra("categories", true);
             intent.putExtra("most_popular", false);
             intent.putExtra("dates", false);
@@ -227,7 +227,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             if (mShowBackupArrayList == null) {
                 mShowBackupArrayList = (ArrayList<JSONObject>) mShowArrayList.clone();
             }
-            getActivity().startActivityForResult(intent, FILTER_REQUEST_CODE);
+            requireActivity().startActivityForResult(intent, FILTER_REQUEST_CODE);
             return true;
         }
 
@@ -270,7 +270,6 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
     /**
      * Filters the shows based on the settings in the FilterActivity.
      */
-    @SuppressWarnings("SuspiciousMethodCalls")
     private void filterAdapter() {
         // Get the parameters from the filter activity and reload the adapter
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences
@@ -290,11 +289,11 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             switch (sortPreference) {
                 case "best_rated" -> {
                     if (mSearchView) {
-                        Collections.sort( mSearchShowArrayList, (firstObject, secondObject) -> Integer.compare( firstObject
+                        mSearchShowArrayList.sort( (firstObject, secondObject) -> Integer.compare( firstObject
                                 .optInt( ShowBaseAdapter.KEY_RATING ), secondObject
                                 .optInt( ShowBaseAdapter.KEY_RATING ) ) * -1 );
                     } else {
-                        Collections.sort( mShowArrayList, (firstObject, secondObject) -> {
+                        mShowArrayList.sort( (firstObject, secondObject) -> {
                             // * -1 is to make the order descending instead of ascending.
                             return Integer.compare( firstObject
                                     .optInt( ShowBaseAdapter.KEY_RATING ), secondObject
@@ -304,7 +303,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                 }
                 case "release_date" -> {
                     if (mSearchView) {
-                        Collections.sort( mSearchShowArrayList, (firstObject, secondObject) -> {
+                        mSearchShowArrayList.sort( (firstObject, secondObject) -> {
                             SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd", Locale.US );
                             Date firstDate, secondDate;
 
@@ -319,7 +318,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                             return (firstDate.getTime() > secondDate.getTime() ? -1 : 1);
                         } );
                     } else {
-                        Collections.sort( mShowArrayList, (firstObject, secondObject) -> {
+                        mShowArrayList.sort( (firstObject, secondObject) -> {
                             SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd", Locale.US );
                             Date firstDate, secondDate;
 
@@ -337,10 +336,10 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                 }
                 case "alphabetic_order" -> {
                     if (mSearchView) {
-                        Collections.sort( mSearchShowArrayList, (firstObject, secondObject) -> firstObject.optString( ShowBaseAdapter.KEY_TITLE )
+                        mSearchShowArrayList.sort( (firstObject, secondObject) -> firstObject.optString( ShowBaseAdapter.KEY_TITLE )
                                 .compareToIgnoreCase( secondObject.optString( ShowBaseAdapter.KEY_TITLE ) ) );
                     } else {
-                        Collections.sort( mShowArrayList, (firstObject, secondObject) -> firstObject.optString( ShowBaseAdapter.KEY_TITLE )
+                        mShowArrayList.sort( (firstObject, secondObject) -> firstObject.optString( ShowBaseAdapter.KEY_TITLE )
                                 .compareToIgnoreCase( secondObject.optString( ShowBaseAdapter.KEY_TITLE ) ) );
                     }
                 }
@@ -352,7 +351,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                 (sharedPreferences.getString(FilterActivity.FILTER_CATEGORIES, null), ", ");
         // Filter the search list if the user was searching, otherwise filter the normal list.
         if (mSearchView && selectedCategories != null) {
-            Iterator iterator = mSearchShowArrayList.iterator();
+            Iterator<JSONObject> iterator = mSearchShowArrayList.iterator();
             while (iterator.hasNext()) {
                 int columnWatched = ((JSONObject) iterator.next())
                         .optInt(MovieDatabaseHelper.COLUMN_CATEGORIES);
@@ -369,7 +368,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                 }
             }
         } else if (selectedCategories != null) {
-            Iterator iterator = mShowArrayList.iterator();
+            Iterator<JSONObject> iterator = mShowArrayList.iterator();
             while (iterator.hasNext()) {
                 int columnWatched = ((JSONObject) iterator.next())
                         .optInt(MovieDatabaseHelper.COLUMN_CATEGORIES);
@@ -388,7 +387,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         }
 
         // Remove shows that do not contain certain genres from the list.
-        ArrayList withGenres = FilterActivity.convertStringToIntegerArrayList
+        ArrayList<Integer> withGenres = FilterActivity.convertStringToIntegerArrayList
                 (sharedPreferences.getString
                         (FilterActivity.FILTER_WITH_GENRES, null), ", ");
 
@@ -419,7 +418,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         }
 
         // Remove shows that contain certain genres from the list.
-        ArrayList withoutGenres = FilterActivity.convertStringToIntegerArrayList
+        ArrayList<Integer> withoutGenres = FilterActivity.convertStringToIntegerArrayList
                 (sharedPreferences.getString
                         (FilterActivity.FILTER_WITHOUT_GENRES, null), ", ");
         if (withoutGenres != null && !withoutGenres.isEmpty()) {
@@ -613,10 +612,10 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
      *                   when the user presses the positive button.
      */
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(getActivity())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setMessage(message)
-                .setPositiveButton(getActivity().getApplicationContext().getResources().getString(R.string.no_permission_dialog_ok), okListener)
-                .setNegativeButton(getActivity().getApplicationContext().getResources().getString(R.string.no_permission_dialog_cancel), null)
+                .setPositiveButton(requireContext().getApplicationContext().getResources().getString(R.string.no_permission_dialog_ok), okListener)
+                .setNegativeButton(requireContext().getApplicationContext().getResources().getString(R.string.no_permission_dialog_cancel), null)
                 .create()
                 .show();
     }

@@ -2,7 +2,6 @@ package com.wirelessalien.android.moviedb;
 
 import android.util.Log;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -10,15 +9,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class CheckFavouritesThreadTMDb extends Thread {
+public class GetAccountStateThreadTMDb extends Thread {
 
     private final String sessionId;
     private final int movieId;
+    private boolean isInFavourites;
+    private boolean isInWatchlist;
+    private double rating;
     private final int accountId;
     private final String typeCheck;
-    private boolean isInFavourites;
 
-    public CheckFavouritesThreadTMDb(String sessionId, int movieId, int accountId, String typeCheck) {
+    public GetAccountStateThreadTMDb(String sessionId, int movieId, int accountId, String typeCheck) {
         this.sessionId = sessionId;
         this.movieId = movieId;
         this.accountId = accountId;
@@ -28,7 +29,7 @@ public class CheckFavouritesThreadTMDb extends Thread {
     @Override
     public void run() {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account/" + accountId + "/favorite/" + typeCheck + "?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
+            URL url = new URL("https://api.themoviedb.org/3/" + typeCheck + "/" + movieId + "/account_states?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -42,24 +43,37 @@ public class CheckFavouritesThreadTMDb extends Thread {
             }
 
             JSONObject response = new JSONObject(builder.toString());
-            JSONArray results = response.getJSONArray("results");
 
-            for (int i = 0; i < results.length(); i++) {
-                JSONObject movie = results.getJSONObject(i);
-                if (movie.getInt("id") == movieId) {
-                    isInFavourites = true;
-                    Log.d("CheckFavouritesThreadTMDb", "Movie is in favourites");
-                    break;
+            isInFavourites = response.getBoolean("favorite");
+            isInWatchlist = response.getBoolean("watchlist");
+            if (!response.isNull("rated")) {
+                Object rated = response.get("rated");
+                if (rated instanceof JSONObject) {
+                    rating = ((JSONObject) rated).getDouble("value");
+                } else if (rated instanceof Boolean && !(Boolean) rated) {
+                    rating = 0;
                 }
+            } else {
+                rating = 0;
             }
+
+
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("CheckFavouritesThreadTMDb", "Failed to check if movie is in favourites");
+            Log.e("GetAccountStateThreadTMDb", "Error while getting account state");
         }
     }
 
     public boolean isInFavourites() {
         return isInFavourites;
+    }
+
+    public boolean isInWatchlist() {
+        return isInWatchlist;
+    }
+
+    public double getRating() {
+        return rating;
     }
 }

@@ -40,18 +40,35 @@
                 android:layout_width="100dp"
                 android:layout_height="150dp"
                 app:layout_constraintDimensionRatio="H,1:1.4">
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-                <ImageView
-                    android:id="@+id/image"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:contentDescription="@string/image_description"
-                    android:scaleType="fitXY"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    <ImageView
+                        android:id="@+id/image"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/image_description"
+                        android:scaleType="fitXY"
+                        android:src="@color/colorPrimaryDark"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
+                    <TextView
+                        android:id="@+id/categoryColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Your Text Here"
+                        android:textColor="@android:color/white"
+                        android:background="#99000000"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:layout_gravity="top|center_horizontal"
+                        android:visibility="gone"
+                        android:padding="8dp"/>
+                </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
@@ -69,15 +86,6 @@
                 android:singleLine="true"
                 android:textStyle="bold" />
         </RelativeLayout>
-
-        <View
-            android:id="@+id/categoryColor"
-            android:layout_width="match_parent"
-            android:layout_height="3dip"
-            android:layout_gravity="bottom"
-            android:background="@color/colorGreen"
-            android:visibility="gone" />
-
     </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

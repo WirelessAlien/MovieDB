@@ -357,7 +357,7 @@
                     android:id="@+id/ratingBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_star"
+                    android:src="@drawable/ic_thumb_up"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:text="Rate" />
             </LinearLayout>

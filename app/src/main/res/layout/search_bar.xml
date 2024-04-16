@@ -23,7 +23,7 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-    <EditText
+    <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/editSearch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

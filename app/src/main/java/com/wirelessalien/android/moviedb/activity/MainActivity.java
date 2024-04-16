@@ -27,7 +27,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -40,18 +40,17 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.TMDbAuthThread;
@@ -83,22 +82,14 @@ public class MainActivity extends BaseActivity {
     private final static String LIVE_SEARCH_PREFERENCE = "key_live_search";
     private final static String REWATCHED_FIELD_CHANGE_PREFERENCE = "key_rewatched_field_change";
     private final static String PREVIOUS_APPLICATION_VERSION_PREFERENCE = "key_application_version";
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
+
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    private ViewPager2 mViewPager;
     // Variables used for searching
     private MenuItem mSearchAction;
     private boolean isSearchOpened = false;
     private EditText editSearch;
     private SharedPreferences preferences;
-    ViewPager mViewPager;
-
     public AdapterDataChangedListener mAdapterDataChangedListener;
 
     private SharedPreferences getEncryptedSharedPreferences(Context context) throws GeneralSecurityException, IOException {
@@ -126,19 +117,21 @@ public class MainActivity extends BaseActivity {
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Create the adapter that will return a fragment for each of the four
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this);
-
-        // Set up the ViewPager with the sections adapter.
-        /*
-      The {@link ViewPager} that will host the section contents.
-     */
         mViewPager = findViewById(R.id.container);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
+
+        ViewPager2 mViewPager = findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+        new TabLayoutMediator(tabLayout, mViewPager, (tab, position) -> {
+            switch (mSectionsPagerAdapter.getCorrectedPosition( position )) {
+                case 0 -> tab.setText( mSectionsPagerAdapter.movieTabTitle );
+                case 1 -> tab.setText( mSectionsPagerAdapter.seriesTabTitle );
+                case 2 -> tab.setText( mSectionsPagerAdapter.savedTabTitle );
+                case 3 -> tab.setText( mSectionsPagerAdapter.personTabTitle );
+            }
+        }).attach();
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int versionNumber;
@@ -293,17 +286,23 @@ public class MainActivity extends BaseActivity {
         // This is a hack
         Fragment mCurrentFragment = getSupportFragmentManager()
                 .findFragmentByTag("android:switcher:" + R.id.container + ":" + mViewPager.getCurrentItem());
-        mCurrentFragment.onActivityResult(requestCode, resultCode, data);
+
+        // Check if the fragment is not null before calling onActivityResult
+        if (mCurrentFragment != null) {
+            mCurrentFragment.onActivityResult(requestCode, resultCode, data);
+        } else {
+            // Handle the case when the fragment is null
+            super.onActivityResult(requestCode, resultCode, data);
+        }
 
         // Set the adapter again (in case the tabs setting changed).
         if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_SETTINGS_PAGER_CHANGED) {
-            mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), this);
+            mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
             mViewPager.setAdapter(mSectionsPagerAdapter);
         }
 
         super.onActivityResult(requestCode, resultCode, data);
     }
-
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         mSearchAction = menu.findItem(R.id.action_search);

@@ -32,11 +32,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcel;
-import android.preference.PreferenceManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextPaint;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -60,6 +60,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -69,10 +70,9 @@ import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.AddRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.AddToFavouritesThreadTMDb;
 import com.wirelessalien.android.moviedb.AddToWatchlistThreadTMDb;
-import com.wirelessalien.android.moviedb.CheckFavouritesThreadTMDb;
-import com.wirelessalien.android.moviedb.CheckWatchlistThreadTMDb;
 import com.wirelessalien.android.moviedb.ConfigHelper;
 import com.wirelessalien.android.moviedb.DeleteRatingThreadTMDb;
+import com.wirelessalien.android.moviedb.GetAccountStateThreadTMDb;
 import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.NotifyingScrollView;
 import com.wirelessalien.android.moviedb.R;
@@ -99,6 +99,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class provides all the details about the shows.
@@ -227,6 +228,7 @@ public class DetailActivity extends BaseActivity {
         // Create a variable with the application context that can be used
         // when data is retrieved.
         mActivity = this;
+        movieId = 0;
 
         // RecyclerView to display the cast of the show.
         castView = findViewById(R.id.castRecyclerView);
@@ -283,41 +285,6 @@ public class DetailActivity extends BaseActivity {
             View similarMoviesDivider = findViewById(R.id.fourthDivider);
             similarMoviesDivider.setVisibility(View.GONE);
         }
-
-        SharedPreferences sharedPreferences = getSharedPreferences("SessionId", Context.MODE_PRIVATE);
-        sessionId = sharedPreferences.getString("session_id", null);
-
-        //get account id from shared preferences
-        SharedPreferences accountIdPref = getSharedPreferences("AccountIdPref", Context.MODE_PRIVATE);
-        accountId = String.valueOf(accountIdPref.getInt("accountId", 0));
-
-        ImageButton addToWatchlistButton = findViewById(R.id.watchListButton);
-
-        new Thread( () -> {
-            if (accountId != null && sessionId != null) {
-                int accountIdInt = Integer.parseInt(accountId);
-                String typeCheck = isMovie ? "movies" : "tv";
-                CheckWatchlistThreadTMDb checkWatchlistThread = new CheckWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
-                checkWatchlistThread.start();
-                try {
-                    checkWatchlistThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                final boolean isInWatchlist = checkWatchlistThread.isInWatchlist();
-                runOnUiThread( () -> {
-                    if (isInWatchlist) {
-                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
-                    } else {
-                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
-                    }
-                } );
-            } else {
-                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account details", Toast.LENGTH_SHORT).show() );
-            }
-
-        } ).start();
-
         // Get the views from the layout.
         movieImage = findViewById(R.id.movieImage);
         movieTitle = findViewById(R.id.movieTitle);
@@ -331,104 +298,16 @@ public class DetailActivity extends BaseActivity {
         movieDescription = findViewById(R.id.movieDescription);
 
         ImageButton addToListBtn = findViewById(R.id.addToList);
-
-        addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
-            if (accountId != null) {
-                int accountIdInt = Integer.parseInt(accountId);
-                String typeCheck = isMovie ? "movies" : "tv";
-                CheckWatchlistThreadTMDb checkWatchlistThread = new CheckWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
-                checkWatchlistThread.start();
-                try {
-                    checkWatchlistThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                final boolean isInWatchlist = checkWatchlistThread.isInWatchlist();
-                runOnUiThread( () -> {
-                    if (isInWatchlist) {
-                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
-                        String type = isMovie ? "movie" : "tv";
-                        new RemoveFromWatchlistThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
-                        Toast.makeText(getApplicationContext(), "Removed from watchlist", Toast.LENGTH_SHORT).show();
-                    } else {
-                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
-                        String type = isMovie ? "movie" : "tv";
-                        new AddToWatchlistThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
-                        Toast.makeText(getApplicationContext(), "Added to watchlist", Toast.LENGTH_SHORT).show();
-                    }
-                } );
-            } else {
-                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id", Toast.LENGTH_SHORT).show() );
-            }
-        } ).start() );
-
-        addToListBtn.setOnClickListener( v -> {
-            ListBottomSheetDialogFragment listBottomSheetDialogFragment = new ListBottomSheetDialogFragment(movieId, sessionId, mActivity);
-            listBottomSheetDialogFragment.show(getSupportFragmentManager(), listBottomSheetDialogFragment.getTag());
-        } );
-
+        ImageButton addToWatchlistButton = findViewById(R.id.watchListButton);
         ImageButton addToFavouritesButton = findViewById(R.id.favouriteButton);
-        addToFavouritesButton.setOnClickListener( v -> new Thread( () -> {
-            if (accountId != null) {
-                int accountIdInt = Integer.parseInt(accountId);
-                String typeCheck = isMovie ? "movies" : "tv";
-                CheckFavouritesThreadTMDb checkFavouritesThread = new CheckFavouritesThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
-                checkFavouritesThread.start();
-                try {
-                    checkFavouritesThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                final boolean isInFavourites = checkFavouritesThread.isInFavourites();
-                runOnUiThread( () -> {
-                    if (isInFavourites) {
-                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite_border );
-                        String type = isMovie ? "movie" : "tv";
-                        new RemoveFromFavouriteThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
-                        Toast.makeText(getApplicationContext(), "Removed from favourites", Toast.LENGTH_SHORT).show();
-                    } else {
-                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite );
-                        String type = isMovie ? "movie" : "tv";
-                        new AddToFavouritesThreadTMDb(sessionId, movieId, accountIdInt, type, mActivity).start();
-                        Toast.makeText(getApplicationContext(), "Added to favourites", Toast.LENGTH_SHORT).show();
-                    }
-                } );
-
-            } else {
-                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id", Toast.LENGTH_SHORT).show() );
-            }
-        } ).start() );
-
         ImageButton rateButton = findViewById(R.id.ratingBtn);
-        rateButton.setOnClickListener( v -> {
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
-            LayoutInflater inflater = getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.rating_dialog, null);
-            builder.setView(dialogView);
-            final AlertDialog dialog = builder.create();
-            dialog.show();
 
-            RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
-            Button submitButton = dialogView.findViewById(R.id.btnSubmit);
-            Button cancelButton = dialogView.findViewById(R.id.btnCancel);
-            Button deleteButton = dialogView.findViewById(R.id.btnDelete);
+        SharedPreferences sharedPreferences = getSharedPreferences("SessionId", Context.MODE_PRIVATE);
+        sessionId = sharedPreferences.getString("session_id", null);
 
-            submitButton.setOnClickListener( v1 -> {
-                String type = isMovie ? "movie" : "tv";
-
-                double rating = ratingBar.getRating() * 2;
-                new AddRatingThreadTMDb(sessionId, movieId, rating, type, mActivity).start();
-                dialog.dismiss();
-            } );
-
-            deleteButton.setOnClickListener( v12 -> {
-                String type = isMovie ? "movie" : "tv";
-                new DeleteRatingThreadTMDb(sessionId, movieId, type, mActivity).start();
-                dialog.dismiss();
-            } );
-
-            cancelButton.setOnClickListener( v12 -> dialog.dismiss() );
-        } );
+        //get account id from shared preferences
+        SharedPreferences accountIdPref = getSharedPreferences("AccountIdPref", Context.MODE_PRIVATE);
+        accountId = String.valueOf(accountIdPref.getInt("accountId", 0));
 
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
@@ -458,6 +337,150 @@ public class DetailActivity extends BaseActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        CompletableFuture.runAsync(() -> {
+            if (accountId != null && sessionId != null) {
+                int accountIdInt = Integer.parseInt(accountId);
+                String typeCheck = isMovie ? "movie" : "tv";
+                GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                getAccountStateThread.start();
+                try {
+                    getAccountStateThread.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Thread interrupted", e);
+                }
+                final boolean isInWatchlist = getAccountStateThread.isInWatchlist();
+                final boolean isFavourite = getAccountStateThread.isInFavourites();
+                Double ratingValue = getAccountStateThread.getRating();
+                runOnUiThread(() -> {
+                    if (isInWatchlist) {
+                        addToWatchlistButton.setImageResource(R.drawable.ic_bookmark);
+                    } else {
+                        addToWatchlistButton.setImageResource(R.drawable.ic_bookmark_border);
+                    }
+                    if (isFavourite) {
+                        addToFavouritesButton.setImageResource(R.drawable.ic_favorite);
+                    } else {
+                        addToFavouritesButton.setImageResource(R.drawable.ic_favorite_border);
+                    }
+
+                    if (ratingValue != 0) {
+                        rateButton.setImageResource(R.drawable.ic_thumb_up);
+                    } else {
+                        rateButton.setImageResource(R.drawable.ic_thumb_up_border);
+                    }
+                });
+            } else {
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to retrieve account details", Toast.LENGTH_SHORT).show());
+            }
+        }).exceptionally(ex -> {
+            Log.e("DetailActivity", "Error in CompletableFuture", ex);
+            return null;
+        });
+
+        addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
+            if (accountId != null) {
+                int accountIdInt = Integer.parseInt(accountId);
+                String typeCheck = isMovie ? "movie" : "tv";
+                GetAccountStateThreadTMDb checkWatchlistThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                checkWatchlistThread.start();
+                try {
+                    checkWatchlistThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                final boolean isInWatchlist = checkWatchlistThread.isInWatchlist();
+                runOnUiThread( () -> {
+                    if (isInWatchlist) {
+                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
+                        new RemoveFromWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Removed from watchlist", Toast.LENGTH_SHORT).show();
+                    } else {
+                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
+                        new AddToWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Added to watchlist", Toast.LENGTH_SHORT).show();
+                    }
+                } );
+            } else {
+                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id", Toast.LENGTH_SHORT).show() );
+            }
+        } ).start() );
+
+        addToListBtn.setOnClickListener( v -> {
+            ListBottomSheetDialogFragment listBottomSheetDialogFragment = new ListBottomSheetDialogFragment(movieId, sessionId, mActivity);
+            listBottomSheetDialogFragment.show(getSupportFragmentManager(), listBottomSheetDialogFragment.getTag());
+        } );
+
+        addToFavouritesButton.setOnClickListener( v -> new Thread( () -> {
+            if (accountId != null) {
+                int accountIdInt = Integer.parseInt(accountId);
+                String typeCheck = isMovie ? "movie" : "tv";
+                GetAccountStateThreadTMDb checkFavouritesThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                checkFavouritesThread.start();
+                try {
+                    checkFavouritesThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                final boolean isInFavourites = checkFavouritesThread.isInFavourites();
+                runOnUiThread( () -> {
+                    if (isInFavourites) {
+                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite_border );
+                        new RemoveFromFavouriteThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Removed from favourites", Toast.LENGTH_SHORT).show();
+                    } else {
+                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite );
+                        new AddToFavouritesThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        Toast.makeText(getApplicationContext(), "Added to favourites", Toast.LENGTH_SHORT).show();
+                    }
+                } );
+
+            } else {
+                runOnUiThread( () -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id", Toast.LENGTH_SHORT).show() );
+            }
+        } ).start() );
+
+        rateButton.setOnClickListener( v -> {
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.rating_dialog, null);
+            builder.setView(dialogView);
+            final AlertDialog dialog = builder.create();
+            dialog.show();
+
+            RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
+            Button submitButton = dialogView.findViewById(R.id.btnSubmit);
+            Button cancelButton = dialogView.findViewById(R.id.btnCancel);
+            Button deleteButton = dialogView.findViewById(R.id.btnDelete);
+
+            // Create an instance of GetAccountStateThreadTMDb
+            GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(sessionId, movieId, Integer.parseInt(accountId), isMovie ? "movie" : "tv");
+            getAccountStateThread.start();
+            try {
+                getAccountStateThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // Get the previous rating and set it to the RatingBar
+            double previousRating = getAccountStateThread.getRating();
+            ratingBar.setRating((float) previousRating / 2);
+
+            submitButton.setOnClickListener( v1 -> {
+                String type = isMovie ? "movie" : "tv";
+
+                double rating = ratingBar.getRating() * 2;
+                new AddRatingThreadTMDb(sessionId, movieId, rating, type, mActivity).start();
+                dialog.dismiss();
+            } );
+
+            deleteButton.setOnClickListener( v12 -> {
+                String type = isMovie ? "movie" : "tv";
+                new DeleteRatingThreadTMDb(sessionId, movieId, type, mActivity).start();
+                dialog.dismiss();
+            } );
+
+            cancelButton.setOnClickListener( v12 -> dialog.dismiss() );
+        } );
 
         checkNetwork();
     }

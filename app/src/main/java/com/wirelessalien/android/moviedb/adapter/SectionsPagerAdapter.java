@@ -21,11 +21,12 @@ package com.wirelessalien.android.moviedb.adapter;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import androidx.preference.PreferenceManager;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
-import android.preference.PreferenceManager;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
@@ -33,7 +34,7 @@ import com.wirelessalien.android.moviedb.fragment.PersonFragment;
 import com.wirelessalien.android.moviedb.fragment.ShowFragment;
 
 
-public class SectionsPagerAdapter extends FragmentPagerAdapter {
+public class SectionsPagerAdapter extends FragmentStateAdapter {
     public final static String HIDE_MOVIES_PREFERENCE = "key_hide_movies_tab";
     public final static String HIDE_SERIES_PREFERENCE = "key_hide_series_tab";
     public final static String HIDE_SAVED_PREFERENCE = "key_hide_saved_tab";
@@ -44,19 +45,19 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
     private static int NUM_ITEMS = 4;
     private final SharedPreferences preferences;
-    private final String movieTabTitle;
-    private final String seriesTabTitle;
-    private final String savedTabTitle;
-    private final String personTabTitle;
+    public final String movieTabTitle;
+    public final String seriesTabTitle;
+    public final String savedTabTitle;
+    public final String personTabTitle;
 
     /**
      * Determines the (amount of) Pages to be shown.
      *
-     * @param fm      given to super.
+     * @param fa      given to super.
      * @param context context to retrieve the preferences.
      */
-    public SectionsPagerAdapter(FragmentManager fm, Context context) {
-        super(fm);
+    public SectionsPagerAdapter(FragmentActivity fa, Context context) {
+        super(fa);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
@@ -86,33 +87,21 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         personTabTitle = context.getResources().getString(R.string.person_tab_title);
     }
 
+    @NonNull
     @Override
-    public Fragment getItem(int position) {
-        // getItem is called to instantiate the fragment for the given page.
-        // Return a PlaceholderFragment (defined as a static inner class below).
+    public Fragment createFragment(int position) {
         return switch (getCorrectedPosition( position )) {
             case 0 -> ShowFragment.newInstance( MOVIE );
             case 1 -> ShowFragment.newInstance( TV );
             case 2 -> ListFragment.newInstance();
             case 3 -> PersonFragment.newInstance();
-            default -> null;
+            default -> ShowFragment.newInstance( MOVIE );
         };
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         return NUM_ITEMS;
-    }
-
-    @Override
-    public CharSequence getPageTitle(int position) {
-        return switch (getCorrectedPosition( position )) {
-            case 0 -> movieTabTitle;
-            case 1 -> seriesTabTitle;
-            case 2 -> savedTabTitle;
-            case 3 -> personTabTitle;
-            default -> null;
-        };
     }
 
     /**
@@ -121,7 +110,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
      * @param position the position in the tab list.
      * @return the position of the case that the switch goes to.
      */
-    private int getCorrectedPosition(int position) {
+    public int getCorrectedPosition(int position) {
         int index = 0;
         index += preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false) ? 8 : 0;
         index += preferences.getBoolean(HIDE_SERIES_PREFERENCE, false) ? 4 : 0;
