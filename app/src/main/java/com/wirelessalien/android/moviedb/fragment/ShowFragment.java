@@ -414,8 +414,10 @@ public class ShowFragment extends BaseFragment {
                 return;
             }
             handler.post(() -> {
-                ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.VISIBLE);
+                if (isAdded()) {
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                    progressBar.setVisibility(View.VISIBLE);
+                }
             });
 
             listType = params[0];
@@ -465,7 +467,7 @@ public class ShowFragment extends BaseFragment {
 
         private void handleResponse(String response) {
             handler.post(() -> {
-                if (response != null && !response.isEmpty()) {
+                if (isAdded() && response != null && !response.isEmpty()) {
                     // Keep the user at the same position in the list.
                     int position;
                     try {

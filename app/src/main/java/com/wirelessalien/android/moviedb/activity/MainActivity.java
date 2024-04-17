@@ -68,8 +68,8 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 
 /*
-* nnuuneoi's article was a great help by programming the permissions for API 23 and higher.
-* Article: https://inthecheesefactory.com/blog/things-you-need-to-know-about-android-m-permission-developer-edition
+ * nnuuneoi's article was a great help by programming the permissions for API 23 and higher.
+ * Article: https://inthecheesefactory.com/blog/things-you-need-to-know-about-android-m-permission-developer-edition
  */
 
 public class MainActivity extends BaseActivity {

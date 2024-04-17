@@ -187,7 +187,7 @@ public class BaseFragment extends Fragment {
         }
 
         private void handleResponse(String response) {
-            if (response != null && !response.isEmpty()) {
+            if (isAdded() && response != null && !response.isEmpty()) {
                 // Save GenreList to sharedPreferences, this way it can be used anywhere.
                 SharedPreferences sharedPreferences = requireContext().getApplicationContext()
                         .getSharedPreferences("GenreList", Context.MODE_PRIVATE);

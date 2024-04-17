@@ -21,14 +21,13 @@ package com.wirelessalien.android.moviedb.fragment;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import androidx.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -48,7 +47,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
-public class PersonFragment extends Fragment {
+public class PersonFragment extends BaseFragment {
 
     private final static String GRID_SIZE_PREFERENCE = "key_grid_size_number";
     private RecyclerView mPersonGridView;
