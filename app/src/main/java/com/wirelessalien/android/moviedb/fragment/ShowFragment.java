@@ -185,8 +185,6 @@ public class ShowFragment extends BaseFragment {
             }
     );
 
-
-
     /**
      * Filters the list of shows based on the preferences set in FilterActivity.
      */
@@ -201,10 +199,23 @@ public class ShowFragment extends BaseFragment {
                 case "best_rated" -> filterParameter = "sort_by=vote_average.desc";
                 case "release_date" -> filterParameter = "sort_by=release_date.desc";
                 case "alphabetic_order" -> filterParameter = "sort_by=original_title.desc";
+                case "favorite" -> {
+                    new FavoriteListThread( new String[]{mListType, "1"}).start();
+                    return;
+                }
+                case "watchlist" -> {
+                    new WatchListThread( new String[]{mListType, "1"}).start();
+                    return;
+                }
+                case "rated" -> {
+                    new RatedThread( new String[]{mListType, "1"}).start();
+                    return;
+                }
                 default ->
                     // This will also be selected when 'most_popular' is checked.
                         filterParameter = "sort_by=popularity.desc";
             }
+
 
         // Add the dates as constraints to the new API call.
         String datePreference;
@@ -542,8 +553,307 @@ public class ShowFragment extends BaseFragment {
         }
     }
 
+    //get users favorite movies when filter
+    private class FavoriteListThread extends Thread {
+        private String listType;
+        private int page;
+        private final Handler handler;
+        private final String[] params;
+
+        public FavoriteListThread(String[] params) {
+            handler = new Handler( Looper.getMainLooper() );
+            this.params = params;
+        }
+
+        @Override
+        public void run() {
+            if (!isAdded()) {
+                return;
+            }
+            handler.post( () -> {
+                if (isAdded()) {
+                    ProgressBar progressBar = requireActivity().findViewById( R.id.progressBar );
+                    progressBar.setVisibility( View.VISIBLE );
+                }
+            } );
+
+            listType = params[0];
+            page = Integer.parseInt( params[1] );
+
+            String line;
+            StringBuilder stringBuilder = new StringBuilder();
+
+            // Load the webpage with the list of favorite movies/series.
+            try {
+                if (listType.equals("movie")) {
+                    listType = "movies";
+                }
+                URL url = new URL( "https://api.themoviedb.org/3/account/" + preferences.getInt( "accountId", 0 ) + "/favorite/" + listType + "?api_key=" + API_KEY + "&session_id=" + preferences.getString( "session_id", "" ) + "&page=" + page );
+
+                URLConnection urlConnection = url.openConnection();
+                try {
+                    BufferedReader bufferedReader = new BufferedReader( new InputStreamReader( urlConnection.getInputStream() ) );
+
+                    // Create one long string of the webpage.
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append( line ).append( "\n" );
+                    }
+
+                    // Close connection and return the data from the webpage.
+                    bufferedReader.close();
+                    String response = stringBuilder.toString();
+                    handleResponse( response );
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        private void handleResponse(String response) {
+            handler.post( () -> {
+                if (isAdded() && response != null && !response.isEmpty()) {
+                    // Keep the user at the same position in the list.
+                    int position;
+                    try {
+                        position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
+                    } catch (NullPointerException npe) {
+                        position = 0;
+                    }
+
+                    // Clear the array list before adding new movies to it.
+                    mShowArrayList.clear();
+
+                    // Convert the JSON webpage to JSONObjects
+                    // Add the JSONObjects to the list with movies/series.
+                    try {
+                        JSONObject reader = new JSONObject( response );
+                        JSONArray arrayData = reader.getJSONArray( "results" );
+                        for (int i = 0; i < arrayData.length(); i++) {
+                            JSONObject websiteData = arrayData.getJSONObject( i );
+                            mShowArrayList.add( websiteData );
+                        }
+
+                        // Reload the adapter (with the new page)
+                        // and set the user to his old position.
+                        if (mShowView != null) {
+                            mShowView.setAdapter( mShowAdapter );
+                            mShowView.scrollToPosition( position );
+                        }
+                        ProgressBar progressBar = requireActivity().findViewById( R.id.progressBar );
+                        progressBar.setVisibility( View.GONE );
+                    } catch (JSONException je) {
+                        je.printStackTrace();
+                        ProgressBar progressBar = requireActivity().findViewById( R.id.progressBar );
+                        progressBar.setVisibility( View.GONE );
+                    }
+                }
+            } );
+        }
+    }
+
+    private class WatchListThread extends Thread {
+        private String listType;
+        private int page;
+        private final Handler handler;
+        private final String[] params;
+
+        public WatchListThread(String[] params) {
+            handler = new Handler(Looper.getMainLooper());
+            this.params = params;
+        }
+
+        @Override
+        public void run() {
+            if (!isAdded()) {
+                return;
+            }
+            handler.post(() -> {
+                if (isAdded()) {
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+            });
+
+            listType = params[0];
+            page = Integer.parseInt(params[1]);
+
+            String line;
+            StringBuilder stringBuilder = new StringBuilder();
+
+            // Load the webpage with the list of watchlist movies/series.
+            try {
+                if (listType.equals("movie")) {
+                    listType = "movies";
+                }
+                URL url = new URL("https://api.themoviedb.org/3/account/" + preferences.getInt("accountId", 0) + "/watchlist/" + listType + "?api_key=" + API_KEY + "&session_id=" + preferences.getString("session_id", "") + "&page=" + page);
+
+                URLConnection urlConnection = url.openConnection();
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                    // Create one long string of the webpage.
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+
+                    // Close connection and return the data from the webpage.
+                    bufferedReader.close();
+                    String response = stringBuilder.toString();
+                    handleResponse(response);
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        private void handleResponse(String response) {
+            handler.post(() -> {
+                if (isAdded() && response != null && !response.isEmpty()) {
+                    // Keep the user at the same position in the list.
+                    int position;
+                    try {
+                        position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
+                    } catch (NullPointerException npe) {
+                        position = 0;
+                    }
+
+                    // Clear the array list before adding new movies to it.
+                    mShowArrayList.clear();
+
+                    // Convert the JSON webpage to JSONObjects
+                    // Add the JSONObjects to the list with movies/series.
+                    try {
+                        JSONObject reader = new JSONObject(response);
+                        JSONArray arrayData = reader.getJSONArray("results");
+                        for (int i = 0; i < arrayData.length(); i++) {
+                            JSONObject websiteData = arrayData.getJSONObject(i);
+                            mShowArrayList.add(websiteData);
+                        }
+
+                        // Reload the adapter (with the new page)
+                        // and set the user to his old position.
+                        if (mShowView != null) {
+                            mShowView.setAdapter(mShowAdapter);
+                            mShowView.scrollToPosition(position);
+                        }
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    } catch (JSONException je) {
+                        je.printStackTrace();
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    }
+                }
+            });
+        }
+    }
+
+    private class RatedThread extends Thread {
+        private String listType;
+        private int page;
+        private final Handler handler;
+        private final String[] params;
+
+        public RatedThread(String[] params) {
+            handler = new Handler(Looper.getMainLooper());
+            this.params = params;
+        }
+
+        @Override
+        public void run() {
+            if (!isAdded()) {
+                return;
+            }
+            handler.post(() -> {
+                if (isAdded()) {
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+            });
+
+            listType = params[0];
+            page = Integer.parseInt(params[1]);
+
+            String line;
+            StringBuilder stringBuilder = new StringBuilder();
+
+            // Load the webpage with the list of rated movies/series.
+            try {
+                if (listType.equals("movie")) {
+                    listType = "movies";
+                }
+                URL url = new URL("https://api.themoviedb.org/3/account/" + preferences.getInt("accountId", 0) + "/rated/" + listType + "?api_key=" + API_KEY + "&session_id=" + preferences.getString("session_id", "") + "&page=" + page);
+
+                URLConnection urlConnection = url.openConnection();
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                    // Create one long string of the webpage.
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+
+                    // Close connection and return the data from the webpage.
+                    bufferedReader.close();
+                    String response = stringBuilder.toString();
+                    handleResponse(response);
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        private void handleResponse(String response) {
+            handler.post(() -> {
+                if (isAdded() && response != null && !response.isEmpty()) {
+                    // Keep the user at the same position in the list.
+                    int position;
+                    try {
+                        position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
+                    } catch (NullPointerException npe) {
+                        position = 0;
+                    }
+
+                    // Clear the array list before adding new movies to it.
+                    mShowArrayList.clear();
+
+                    // Convert the JSON webpage to JSONObjects
+                    // Add the JSONObjects to the list with movies/series.
+                    try {
+                        JSONObject reader = new JSONObject(response);
+                        JSONArray arrayData = reader.getJSONArray("results");
+                        for (int i = 0; i < arrayData.length(); i++) {
+                            JSONObject websiteData = arrayData.getJSONObject(i);
+                            mShowArrayList.add(websiteData);
+                        }
+
+                        // Reload the adapter (with the new page)
+                        // and set the user to his old position.
+                        if (mShowView != null) {
+                            mShowView.setAdapter(mShowAdapter);
+                            mShowView.scrollToPosition(position);
+                        }
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    } catch (JSONException je) {
+                        je.printStackTrace();
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    }
+                }
+            });
+        }
+    }
+
+
     /**
-     * Uses AsyncTask to retrieve the list with shows that fulfill the search query
+     * Uses Thread to retrieve the list with shows that fulfill the search query
      * (and are of the requested type which means that nothing will turn up if you
      * search for a series in the movies tab (and there are no movies with the same name).
      */

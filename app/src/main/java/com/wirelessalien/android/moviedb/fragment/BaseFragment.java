@@ -134,7 +134,7 @@ public class BaseFragment extends Fragment {
     }
 
     /**
-     * Uses AsyncTask to retrieve the id to genre mapping.
+     * Uses Thread to retrieve the id to genre mapping.
      */
     class GenreListThread extends Thread {
 

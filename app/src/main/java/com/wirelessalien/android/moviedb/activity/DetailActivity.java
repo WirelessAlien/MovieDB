@@ -123,7 +123,7 @@ public class DetailActivity extends BaseActivity {
     private ArrayList<JSONObject> similarMovieArrayList;
     private MaterialToolbar toolbar;
     private String sessionId;
-    private String accountId;
+    private int accountId;
     private SQLiteDatabase database;
     private MovieDatabaseHelper databaseHelper;
     private int movieId;
@@ -302,12 +302,8 @@ public class DetailActivity extends BaseActivity {
         ImageButton addToFavouritesButton = findViewById(R.id.favouriteButton);
         ImageButton rateButton = findViewById(R.id.ratingBtn);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("SessionId", Context.MODE_PRIVATE);
-        sessionId = sharedPreferences.getString("session_id", null);
-
-        //get account id from shared preferences
-        SharedPreferences accountIdPref = getSharedPreferences("AccountIdPref", Context.MODE_PRIVATE);
-        accountId = String.valueOf(accountIdPref.getInt("accountId", 0));
+        sessionId = preferences.getString("session_id", null);
+        accountId = preferences.getInt("accountId", 0);
 
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
@@ -339,10 +335,9 @@ public class DetailActivity extends BaseActivity {
         }
 
         CompletableFuture.runAsync(() -> {
-            if (accountId != null && sessionId != null) {
-                int accountIdInt = Integer.parseInt(accountId);
+            if (accountId != 0 && sessionId != null) {
                 String typeCheck = isMovie ? "movie" : "tv";
-                GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountId, typeCheck);
                 getAccountStateThread.start();
                 try {
                     getAccountStateThread.join();
@@ -379,10 +374,9 @@ public class DetailActivity extends BaseActivity {
         });
 
         addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
-            if (accountId != null) {
-                int accountIdInt = Integer.parseInt(accountId);
+            if (accountId != 0) {
                 String typeCheck = isMovie ? "movie" : "tv";
-                GetAccountStateThreadTMDb checkWatchlistThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                GetAccountStateThreadTMDb checkWatchlistThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountId, typeCheck);
                 checkWatchlistThread.start();
                 try {
                     checkWatchlistThread.join();
@@ -393,11 +387,11 @@ public class DetailActivity extends BaseActivity {
                 runOnUiThread( () -> {
                     if (isInWatchlist) {
                         addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
-                        new RemoveFromWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        new RemoveFromWatchlistThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
                         Toast.makeText(getApplicationContext(), "Removed from watchlist", Toast.LENGTH_SHORT).show();
                     } else {
                         addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
-                        new AddToWatchlistThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        new AddToWatchlistThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
                         Toast.makeText(getApplicationContext(), "Added to watchlist", Toast.LENGTH_SHORT).show();
                     }
                 } );
@@ -412,10 +406,9 @@ public class DetailActivity extends BaseActivity {
         } );
 
         addToFavouritesButton.setOnClickListener( v -> new Thread( () -> {
-            if (accountId != null) {
-                int accountIdInt = Integer.parseInt(accountId);
+            if (accountId != 0) {
                 String typeCheck = isMovie ? "movie" : "tv";
-                GetAccountStateThreadTMDb checkFavouritesThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountIdInt, typeCheck);
+                GetAccountStateThreadTMDb checkFavouritesThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountId, typeCheck);
                 checkFavouritesThread.start();
                 try {
                     checkFavouritesThread.join();
@@ -426,11 +419,11 @@ public class DetailActivity extends BaseActivity {
                 runOnUiThread( () -> {
                     if (isInFavourites) {
                         addToFavouritesButton.setImageResource( R.drawable.ic_favorite_border );
-                        new RemoveFromFavouriteThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        new RemoveFromFavouriteThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
                         Toast.makeText(getApplicationContext(), "Removed from favourites", Toast.LENGTH_SHORT).show();
                     } else {
                         addToFavouritesButton.setImageResource( R.drawable.ic_favorite );
-                        new AddToFavouritesThreadTMDb(sessionId, movieId, accountIdInt, typeCheck, mActivity).start();
+                        new AddToFavouritesThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
                         Toast.makeText(getApplicationContext(), "Added to favourites", Toast.LENGTH_SHORT).show();
                     }
                 } );
@@ -454,7 +447,7 @@ public class DetailActivity extends BaseActivity {
             Button deleteButton = dialogView.findViewById(R.id.btnDelete);
 
             // Create an instance of GetAccountStateThreadTMDb
-            GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(sessionId, movieId, Integer.parseInt(accountId), isMovie ? "movie" : "tv");
+            GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountId, isMovie ? "movie" : "tv");
             getAccountStateThread.start();
             try {
                 getAccountStateThread.join();
@@ -1319,8 +1312,6 @@ public class DetailActivity extends BaseActivity {
     // Load the list of actors.
     private class CastListThread extends Thread {
 
-        private final String API_KEY = ConfigHelper.getConfigValue(
-                getApplicationContext(), "api_key");
         private final Handler handler = new Handler(Looper.getMainLooper());
 
         @Override
@@ -1500,8 +1491,6 @@ public class DetailActivity extends BaseActivity {
 
     // Load the movie details.
     public class MovieDetailsThread extends Thread {
-        private final String API_KEY = ConfigHelper.getConfigValue(
-                getApplicationContext(), "api_key");
         private boolean missingOverview;
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final String[] params;

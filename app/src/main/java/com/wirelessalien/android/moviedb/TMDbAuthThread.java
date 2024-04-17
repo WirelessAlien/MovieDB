@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.preference.PreferenceManager;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -19,14 +21,14 @@ public class TMDbAuthThread extends Thread {
     private final String password;
     private String sessionId;
     private final Activity activity;
-    private final SharedPreferences sharedPreferences;
+    private final SharedPreferences preferences;
 
 
     public TMDbAuthThread(String username, String password, Activity activity) {
         this.username = username;
         this.password = password;
         this.activity = activity;
-        this.sharedPreferences = activity.getSharedPreferences("SessionId", MODE_PRIVATE);
+        this.preferences = PreferenceManager.getDefaultSharedPreferences(activity);
 
     }
 
@@ -35,7 +37,7 @@ public class TMDbAuthThread extends Thread {
     public void run() {
         sessionId = authenticate();
         if (sessionId != null) {
-            sharedPreferences.edit().putString("session_id", sessionId).apply();
+            preferences.edit().putString("session_id", sessionId).apply();
             GetAccountIdThread getAccountIdThread = new GetAccountIdThread(sessionId, activity);
             getAccountIdThread.start();
         }

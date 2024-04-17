@@ -280,22 +280,14 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Needs to be explicitly called otherwise
-        // onActivityResult won't trigger in the Fragment.
-
-        // This is a hack
         Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
 
-
-        // Check if the fragment is not null before calling onActivityResult
         if (mCurrentFragment != null) {
             mCurrentFragment.onActivityResult(requestCode, resultCode, data);
         } else {
-            // Handle the case when the fragment is null
             super.onActivityResult(requestCode, resultCode, data);
         }
 
-        // Set the adapter again (in case the tabs setting changed).
         if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_SETTINGS_PAGER_CHANGED) {
             mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
             mViewPager.setAdapter(mSectionsPagerAdapter);

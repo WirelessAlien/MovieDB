@@ -25,31 +25,27 @@
         android:title="@string/title_general"
         app:iconSpaceReserved="false">
 
-        <SwitchPreference
-            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
             android:key="key_show_cast"
             android:title="@string/title_show_cast"
             app:iconSpaceReserved="false"/>
 
-        <SwitchPreference
-            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
             android:key="key_show_crew"
             android:title="@string/title_show_crew"
             app:iconSpaceReserved="false"/>
 
-        <SwitchPreference
-            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
             android:key="key_show_similar_movies"
             android:title="@string/title_show_recommendations"
             app:iconSpaceReserved="false"/>
 
-        <SwitchPreference
-            android:defaultValue="false"
+        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="false"
             android:key="key_show_save_dialog"
             android:title="@string/title_show_save_dialog"
             app:iconSpaceReserved="false"/>
 
-        <SwitchPreference
+        <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_persistent_filtering"
             android:title="@string/title_persistent_filtering"
@@ -60,8 +56,11 @@
 
     <PreferenceCategory android:title="@string/title_show_representation"
         app:iconSpaceReserved="false">
-
-        <SwitchPreference
+        <Preference
+            android:selectable="false"
+            android:summary="@string/summary_hide_tabs"
+            app:iconSpaceReserved="false"/>
+        <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="key_show_shows_grid"
             android:title="@string/title_shows_in_grid"
@@ -80,8 +79,7 @@
     <PreferenceCategory android:title="@string/title_data_usage"
         app:iconSpaceReserved="false">
 
-        <SwitchPreference
-            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
             android:key="key_live_search"
             android:title="@string/title_live_search"
             app:iconSpaceReserved="false"/>
@@ -89,7 +87,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:summary="@string/summary_hide_tabs"
         android:title="@string/title_hide_tabs"
         app:iconSpaceReserved="false">
 

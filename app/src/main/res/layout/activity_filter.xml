@@ -69,6 +69,38 @@
                 android:layout_height="wrap_content"
                 android:tag="alphabetic_order"
                 android:text="@string/alphabetic_order" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Account"
+                android:textStyle="bold"
+                android:layout_margin="5dip"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Other filters don't work with this option"
+                android:layout_margin="5dip"/>
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/favorite"
+                android:layout_width="wrap_content"
+                android:tag="favorite"
+                android:text="Favorite"
+                android:layout_height="wrap_content"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/watchlist"
+                android:layout_width="wrap_content"
+                android:tag="watchlist"
+                android:text="Watchlist"
+                android:layout_height="wrap_content"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/rated"
+                android:layout_width="wrap_content"
+                android:tag="rated"
+                android:text="Rated"
+                android:layout_height="wrap_content"/>
         </RadioGroup>
 
         <View

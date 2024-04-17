@@ -51,6 +51,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.wirelessalien.android.moviedb.R;
 
 import org.apmem.tools.layouts.FlowLayout;
@@ -340,6 +341,15 @@ public class FilterActivity extends AppCompatActivity {
         prefsEditor.putString(FILTER_WITH_KEYWORDS, withKeywords.getText().toString());
         prefsEditor.putString(FILTER_WITHOUT_KEYWORDS, withoutKeywords.getText().toString());
 
+        MaterialRadioButton favoriteRadioButton = findViewById(R.id.favorite);
+        prefsEditor.putBoolean("favorite", favoriteRadioButton.isChecked());
+
+        MaterialRadioButton watchlistRadioButton = findViewById( R.id.watchlist );
+        prefsEditor.putBoolean("watchlist", watchlistRadioButton.isChecked());
+
+        MaterialRadioButton ratedRadioButton = findViewById( R.id.rated );
+        prefsEditor.putBoolean("rated", ratedRadioButton.isChecked());
+
         prefsEditor.apply();
     }
 
@@ -401,9 +411,11 @@ public class FilterActivity extends AppCompatActivity {
     private void selectRadioButtonByTag(String tag, RadioGroup radioGroup) {
         int count = radioGroup.getChildCount();
         for (int i = 0; i < count; i++) {
-            RadioButton radioButton = (RadioButton) radioGroup.getChildAt(i);
-            if (radioButton.getTag().toString().equals(tag)) {
-                radioGroup.check(radioButton.getId());
+            View view = radioGroup.getChildAt(i);
+            if (view instanceof RadioButton radioButton) {
+                if (radioButton.getTag().toString().equals(tag)) {
+                    radioGroup.check(radioButton.getId());
+                }
             }
         }
     }
@@ -521,6 +533,18 @@ public class FilterActivity extends AppCompatActivity {
             EditText withoutKeywordsView = findViewById(R.id.withoutKeywords);
             withoutKeywordsView.setText(withoutKeywords);
         }
+
+        boolean isFavoriteChecked = sharedPreferences.getBoolean("favorite", false);
+        MaterialRadioButton favoriteRadioButton = findViewById(R.id.favorite);
+        favoriteRadioButton.setChecked(isFavoriteChecked);
+
+        boolean isWatchlistChecked = sharedPreferences.getBoolean("watchlist", false);
+        MaterialRadioButton watchlistRadioButton = findViewById( R.id.watchlist );
+        watchlistRadioButton.setChecked( isWatchlistChecked );
+
+        boolean isRatedChecked = sharedPreferences.getBoolean("rated", false);
+        MaterialRadioButton ratedRadioButton = findViewById( R.id.rated );
+        ratedRadioButton.setChecked( isRatedChecked );
     }
 
     /**

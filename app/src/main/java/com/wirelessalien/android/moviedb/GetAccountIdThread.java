@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.preference.PreferenceManager;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -48,8 +50,8 @@ public class GetAccountIdThread extends Thread {
 
             activity.runOnUiThread( () -> {
                 if (accountId != null) {
-                    SharedPreferences sharedPreferences = activity.getSharedPreferences("AccountIdPref", MODE_PRIVATE);
-                    SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+                    SharedPreferences.Editor myEdit = preferences.edit();
                     myEdit.putInt("accountId", accountId);
                     myEdit.apply();
                 } else {
