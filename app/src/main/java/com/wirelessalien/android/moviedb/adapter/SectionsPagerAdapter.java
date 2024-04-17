@@ -21,6 +21,8 @@ package com.wirelessalien.android.moviedb.adapter;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.SparseArray;
+
 import androidx.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
@@ -49,6 +51,8 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
     public final String seriesTabTitle;
     public final String savedTabTitle;
     public final String personTabTitle;
+    private final SparseArray<Fragment> fragmentList = new SparseArray<>();
+
 
     /**
      * Determines the (amount of) Pages to be shown.
@@ -90,13 +94,19 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        return switch (getCorrectedPosition( position )) {
+        Fragment fragment = switch (getCorrectedPosition( position )) {
             case 0 -> ShowFragment.newInstance( MOVIE );
             case 1 -> ShowFragment.newInstance( TV );
             case 2 -> ListFragment.newInstance();
             case 3 -> PersonFragment.newInstance();
             default -> ShowFragment.newInstance( MOVIE );
         };
+        fragmentList.put(position, fragment);
+        return fragment;
+    }
+
+    public Fragment getFragment(int position) {
+        return fragmentList.get(position);
     }
 
     @Override

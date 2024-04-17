@@ -27,7 +27,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import androidx.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -43,6 +42,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 import androidx.viewpager2.widget.ViewPager2;
@@ -284,8 +284,8 @@ public class MainActivity extends BaseActivity {
         // onActivityResult won't trigger in the Fragment.
 
         // This is a hack
-        Fragment mCurrentFragment = getSupportFragmentManager()
-                .findFragmentByTag("android:switcher:" + R.id.container + ":" + mViewPager.getCurrentItem());
+        Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
+
 
         // Check if the fragment is not null before calling onActivityResult
         if (mCurrentFragment != null) {
@@ -336,24 +336,22 @@ public class MainActivity extends BaseActivity {
      * Handles input from the search bar and icon.
      */
     private void handleMenuSearch() {
-        // Searching will be done in the actionbar.
+        Log.d("MainActivity", "handleMenuSearch() called");
         ActionBar action = getSupportActionBar();
         if (action == null) {
-            Log.e("MainActivity.java", "getSupportActionBar returned null");
+            Log.e("MainActivity", "getSupportActionBar returned null");
             return;
         }
 
         final boolean liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, true);
+        Log.d("MainActivity", "liveSearch: " + liveSearch);
 
-        // Although the icon changes, the calls are the same,
-        // that's why there is a if-statement, to differ
-        // requests to start a search from requests to end a search.
         if (isSearchOpened) {
-            // Close the search or delete the search query.
+            Log.d("MainActivity", "isSearchOpened is true");
             if (editSearch.getText().toString().equals("")) {
+                Log.d("MainActivity", "editSearch is empty");
                 action.setDisplayShowCustomEnabled(true);
 
-                // Change the return key into a search key.
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 if (imm != null) {
                     imm.hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
@@ -363,38 +361,36 @@ public class MainActivity extends BaseActivity {
 
                 isSearchOpened = false;
 
-                // Remove the search view and display the title again.
                 action.setCustomView(null);
                 action.setDisplayShowTitleEnabled(true);
 
                 cancelSearchInFragment();
             } else {
-                // Delete the search query.
+                Log.d("MainActivity", "editSearch is not empty");
                 editSearch.setText("");
             }
         } else {
-            // Replace the title with a search bar.
+            Log.d("MainActivity", "isSearchOpened is false");
             action.setDisplayShowCustomEnabled(true);
             action.setCustomView(R.layout.search_bar);
             action.setDisplayShowTitleEnabled(false);
 
             editSearch = action.getCustomView().findViewById(R.id.editSearch);
 
-            // Execute searchInFragment(query) when the search key is pressed.
             editSearch.setOnEditorActionListener( (view, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    Log.d("MainActivity", "Search key pressed");
                     searchInFragment(editSearch.getText().toString());
                     return true;
                 }
                 return false;
             } );
 
-            // Call searchInFragment(query) every time that the search query is changed.
-            // (If this is not disabled in the settings.)
             editSearch.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
                     if (liveSearch) {
+                        Log.d("MainActivity", "Search query changed: " + s.toString());
                         searchInFragment(editSearch.getText().toString());
                     }
                 }
@@ -408,7 +404,6 @@ public class MainActivity extends BaseActivity {
                 }
             });
 
-            // When clicking on the search icon, focus on the search bar and display the soft keyboard.
             editSearch.requestFocus();
 
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -422,38 +417,36 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    /**
-     * Do the actual searching in the fragment (that is currently active).
-     *
-     * @param query the search query.
-     */
     private void searchInFragment(String query) {
         // This is a hack
-        Fragment mCurrentFragment = getSupportFragmentManager()
-                .findFragmentByTag("android:switcher:" + R.id.container + ":" + mViewPager.getCurrentItem());
+        Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
 
         if (mCurrentFragment != null) {
+            Log.d("MainActivity", "Current fragment is not null");
             if (mCurrentFragment instanceof ShowFragment) {
+                Log.d("MainActivity", "Current fragment is ShowFragment");
                 ((ShowFragment) mCurrentFragment).search(query);
             }
 
             if (mCurrentFragment instanceof ListFragment) {
+                Log.d("MainActivity", "Current fragment is ListFragment");
                 ((ListFragment) mCurrentFragment).search(query);
             }
 
             if (mCurrentFragment instanceof PersonFragment) {
+                Log.d("MainActivity", "Current fragment is PersonFragment");
                 ((PersonFragment) mCurrentFragment).search(query);
             }
+        } else {
+            Log.d("MainActivity", "Current fragment is null");
         }
     }
-
     /**
      * Cancel the searching process in the fragment.
      */
     private void cancelSearchInFragment() {
         // This is a hack
-        Fragment mCurrentFragment = getSupportFragmentManager()
-                .findFragmentByTag("android:switcher:" + R.id.container + ":" + mViewPager.getCurrentItem());
+        Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
 
         if (mCurrentFragment != null) {
             if (mCurrentFragment instanceof ShowFragment) {
