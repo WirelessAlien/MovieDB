@@ -1,6 +1,8 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.tmdb;
 
 import android.util.Log;
+
+import com.wirelessalien.android.moviedb.data.Episode;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

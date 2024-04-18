@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.Episode;
+import com.wirelessalien.android.moviedb.data.Episode;
 import com.wirelessalien.android.moviedb.R;
 
 import java.util.List;

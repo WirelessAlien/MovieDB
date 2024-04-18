@@ -12,7 +12,7 @@ import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.TMDbAuthThread;
+import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthThread;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;

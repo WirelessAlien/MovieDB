@@ -35,7 +35,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
 

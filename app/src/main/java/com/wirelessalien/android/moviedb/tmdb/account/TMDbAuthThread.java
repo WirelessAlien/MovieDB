@@ -1,12 +1,12 @@
-package com.wirelessalien.android.moviedb;
-
-import static android.content.Context.MODE_PRIVATE;
+package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.preference.PreferenceManager;
+
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountIdThread;
 
 import org.json.JSONObject;
 

@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.wirelessalien.android.moviedb.GetAccountDetailsThread;
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetailsThread;
 import com.wirelessalien.android.moviedb.R;
 
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
 

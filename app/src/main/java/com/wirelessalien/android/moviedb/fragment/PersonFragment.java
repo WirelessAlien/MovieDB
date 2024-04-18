@@ -31,7 +31,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.wirelessalien.android.moviedb.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.BaseActivity;
 import com.wirelessalien.android.moviedb.adapter.PersonBaseAdapter;

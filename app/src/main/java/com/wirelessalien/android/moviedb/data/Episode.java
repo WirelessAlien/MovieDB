@@ -1,4 +1,4 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.data;
 
 public class Episode {
 

@@ -44,7 +44,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
 import com.wirelessalien.android.moviedb.activity.FilterActivity;
@@ -58,7 +58,6 @@ import org.json.JSONObject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;

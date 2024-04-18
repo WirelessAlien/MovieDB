@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 card_view:cardCornerRadius="5dp">
 
-                <com.wirelessalien.android.moviedb.WideRatioImageView
+                <com.wirelessalien.android.moviedb.view.WideRatioImageView
                     android:id="@+id/image"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

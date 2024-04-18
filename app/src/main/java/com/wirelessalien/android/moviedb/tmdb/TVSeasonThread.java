@@ -1,11 +1,12 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.tmdb;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.preference.PreferenceManager;
+
+import com.wirelessalien.android.moviedb.data.TVSeason;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 

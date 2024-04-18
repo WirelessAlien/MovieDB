@@ -17,11 +17,13 @@
  * along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.helper;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
+
+import com.wirelessalien.android.moviedb.R;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +42,7 @@ public final class ConfigHelper {
 
         // Retrieve the config file.
         try {
-            InputStream rawResource = resources.openRawResource(R.raw.config);
+            InputStream rawResource = resources.openRawResource( R.raw.config);
             Properties properties = new Properties();
             properties.load(rawResource);
             return properties.getProperty(name);

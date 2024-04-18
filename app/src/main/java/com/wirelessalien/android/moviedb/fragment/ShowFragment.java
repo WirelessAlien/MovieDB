@@ -41,7 +41,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.wirelessalien.android.moviedb.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.BaseActivity;
 import com.wirelessalien.android.moviedb.activity.FilterActivity;

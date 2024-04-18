@@ -1,4 +1,4 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.preference;
 
 import android.content.Context;
 import android.util.AttributeSet;

@@ -68,19 +68,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.AddRatingThreadTMDb;
-import com.wirelessalien.android.moviedb.AddToFavouritesThreadTMDb;
-import com.wirelessalien.android.moviedb.AddToWatchlistThreadTMDb;
-import com.wirelessalien.android.moviedb.ConfigHelper;
-import com.wirelessalien.android.moviedb.DeleteRatingThreadTMDb;
-import com.wirelessalien.android.moviedb.GetAccountStateThreadTMDb;
-import com.wirelessalien.android.moviedb.MovieDatabaseHelper;
-import com.wirelessalien.android.moviedb.NotifyingScrollView;
+import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.AddToFavouritesThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlistThreadTMDb;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteRatingThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateThreadTMDb;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
+import com.wirelessalien.android.moviedb.view.NotifyingScrollView;
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.RemoveFromFavouriteThreadTMDb;
-import com.wirelessalien.android.moviedb.RemoveFromWatchlistThreadTMDb;
-import com.wirelessalien.android.moviedb.TVSeason;
-import com.wirelessalien.android.moviedb.TVSeasonThread;
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteFavouriteThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteWatchlistThreadTMDb;
+import com.wirelessalien.android.moviedb.data.TVSeason;
+import com.wirelessalien.android.moviedb.tmdb.TVSeasonThread;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
@@ -421,7 +421,7 @@ public class DetailActivity extends BaseActivity {
                 runOnUiThread( () -> {
                     if (isInWatchlist) {
                         addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
-                        new RemoveFromWatchlistThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
+                        new DeleteWatchlistThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
                         Toast.makeText(getApplicationContext(), "Removed from watchlist", Toast.LENGTH_SHORT).show();
                     } else {
                         addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
@@ -453,7 +453,7 @@ public class DetailActivity extends BaseActivity {
                 runOnUiThread( () -> {
                     if (isInFavourites) {
                         addToFavouritesButton.setImageResource( R.drawable.ic_favorite_border );
-                        new RemoveFromFavouriteThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
+                        new DeleteFavouriteThreadTMDb(sessionId, movieId, accountId, typeCheck, mActivity).start();
                         Toast.makeText(getApplicationContext(), "Removed from favourites", Toast.LENGTH_SHORT).show();
                     } else {
                         addToFavouritesButton.setImageResource( R.drawable.ic_favorite );

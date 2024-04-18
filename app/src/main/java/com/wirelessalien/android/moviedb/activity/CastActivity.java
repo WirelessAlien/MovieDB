@@ -36,8 +36,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.ConfigHelper;
-import com.wirelessalien.android.moviedb.NotifyingScrollView;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.view.NotifyingScrollView;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
 

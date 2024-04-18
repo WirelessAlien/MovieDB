@@ -17,7 +17,7 @@
  * along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.helper;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
 
 import org.json.JSONArray;
@@ -206,7 +207,7 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
      */
     public void exportDatabase(final Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(context.getResources().getString(R.string.choose_export_file))
+        builder.setTitle(context.getResources().getString( R.string.choose_export_file))
                 .setItems(context.getResources().getStringArray(R.array.export_import_formats),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {

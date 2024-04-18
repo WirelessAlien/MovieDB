@@ -26,8 +26,8 @@ import androidx.annotation.NonNull;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.wirelessalien.android.moviedb.NPPDialogFragmentCompat;
-import com.wirelessalien.android.moviedb.NumberPickerPreference;
+import com.wirelessalien.android.moviedb.preference.NPPDialogFragmentCompat;
+import com.wirelessalien.android.moviedb.preference.NumberPickerPreference;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.SettingsActivity;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;

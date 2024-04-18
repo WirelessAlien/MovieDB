@@ -1,4 +1,4 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
 
@@ -11,18 +11,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public class RemoveFromWatchlistThreadTMDb extends Thread {
+public class AddRatingThreadTMDb extends Thread {
 
     private final String sessionId;
     private final int movieId;
-    private final int accountId;
+    private final double rating;
     private final String type;
     private final Activity activity;
 
-    public RemoveFromWatchlistThreadTMDb(String sessionId, int movieId, int accountId, String type,  Activity activity) {
+    public AddRatingThreadTMDb(String sessionId, int movieId, double rating, String type, Activity activity) {
         this.sessionId = sessionId;
         this.movieId = movieId;
-        this.accountId = accountId;
+        this.rating = rating;
         this.type = type;
         this.activity = activity;
     }
@@ -31,15 +31,13 @@ public class RemoveFromWatchlistThreadTMDb extends Thread {
     public void run() {
         boolean success = false;
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account/" + accountId + "/watchlist?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
+            URL url = new URL("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
 
             JSONObject jsonParam = new JSONObject();
-            jsonParam.put("media_type", type);
-            jsonParam.put("media_id", movieId);
-            jsonParam.put("watchlist", false);
+            jsonParam.put("value", rating);
 
             OutputStream os = connection.getOutputStream();
             os.write(jsonParam.toString().getBytes(StandardCharsets.UTF_8));
@@ -63,9 +61,9 @@ public class RemoveFromWatchlistThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                // Movie was successfully removed from the watchlist.
+                // Rating was successfully added.
             } else {
-                // Failed to remove the movie from the watchlist.
+                // Failed to add the rating.
             }
         });
     }

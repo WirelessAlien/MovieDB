@@ -1,12 +1,7 @@
-package com.wirelessalien.android.moviedb;
-
-import static android.content.Context.MODE_PRIVATE;
+package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.util.Log;
-
-import androidx.preference.PreferenceManager;
 
 import org.json.JSONObject;
 
@@ -14,23 +9,26 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
-public class GetAccountIdThread extends Thread {
+public class GetAccountDetailsThread extends Thread {
 
     private final String sessionId;
-
-    private Integer accountId;
     private final Activity activity;
+    private Map<String, String> details = new HashMap<>();
 
-    public GetAccountIdThread(String sessionId, Activity activity) {
+    public GetAccountDetailsThread(String sessionId, Activity activity) {
         this.sessionId = sessionId;
-
         this.activity = activity;
     }
 
-
     @Override
     public void run() {
+        getAccountDetails();
+    }
+
+    private void getAccountDetails() {
         try {
             URL url = new URL("https://api.themoviedb.org/3/account?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -46,21 +44,22 @@ public class GetAccountIdThread extends Thread {
             }
 
             JSONObject response = new JSONObject(builder.toString());
-            accountId = response.getInt("id");
+            String username = response.getString("username");
+            String name = response.getString("name");
+            String avatarPath = response.getJSONObject("avatar").getJSONObject("tmdb").getString("avatar_path");
 
-            activity.runOnUiThread( () -> {
-                if (accountId != null) {
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
-                    SharedPreferences.Editor myEdit = preferences.edit();
-                    myEdit.putInt("accountId", accountId);
-                    myEdit.apply();
-                } else {
-                    Log.e("GetAccountIdThread", "Failed to get account id");
-                }
-            } );
+            details.put("username", username);
+            details.put("name", name);
+            details.put("avatar_path", avatarPath);
 
         } catch (Exception e) {
             e.printStackTrace();
+            Log.e("GetAccountDetailsThread", "Error getting account details");
+            Log.e("GetAccountDetailsThread", e.getMessage());
         }
+    }
+
+    public Map<String, String> getDetails() {
+        return details;
     }
 }

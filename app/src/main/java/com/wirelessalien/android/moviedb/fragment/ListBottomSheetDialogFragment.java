@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.wirelessalien.android.moviedb.AddToListThreadTMDb;
-import com.wirelessalien.android.moviedb.CreateListThreadTMDb;
-import com.wirelessalien.android.moviedb.FetchListThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.AddToListThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.CreateListThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.ListAdapter;
 

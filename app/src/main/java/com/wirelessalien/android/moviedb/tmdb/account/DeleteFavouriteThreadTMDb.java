@@ -1,4 +1,4 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
 
@@ -11,18 +11,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public class AddRatingThreadTMDb extends Thread {
+public class DeleteFavouriteThreadTMDb extends Thread {
 
     private final String sessionId;
     private final int movieId;
-    private final double rating;
+    private final int accountId;
     private final String type;
     private final Activity activity;
 
-    public AddRatingThreadTMDb(String sessionId, int movieId, double rating, String type, Activity activity) {
+    public DeleteFavouriteThreadTMDb(String sessionId, int movieId, int accountId, String type, Activity activity) {
         this.sessionId = sessionId;
         this.movieId = movieId;
-        this.rating = rating;
+        this.accountId = accountId;
         this.type = type;
         this.activity = activity;
     }
@@ -31,16 +31,18 @@ public class AddRatingThreadTMDb extends Thread {
     public void run() {
         boolean success = false;
         try {
-            URL url = new URL("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
+            URL url = new URL("https://api.themoviedb.org/3/account/" + accountId + "/favorite?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
 
             JSONObject jsonParam = new JSONObject();
-            jsonParam.put("value", rating);
+            jsonParam.put("media_type", type);
+            jsonParam.put("media_id", movieId);
+            jsonParam.put("favorite", false);
 
             OutputStream os = connection.getOutputStream();
-            os.write(jsonParam.toString().getBytes(StandardCharsets.UTF_8));
+            os.write(jsonParam.toString().getBytes( StandardCharsets.UTF_8 ));
             os.close();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -59,12 +61,12 @@ public class AddRatingThreadTMDb extends Thread {
         }
 
         final boolean finalSuccess = success;
-        activity.runOnUiThread(() -> {
+        activity.runOnUiThread( () -> {
             if (finalSuccess) {
-                // Rating was successfully added.
+                // Movie was successfully removed from the favourites.
             } else {
-                // Failed to add the rating.
+                // Failed to remove the movie from the favourites.
             }
-        });
+        } );
     }
 }

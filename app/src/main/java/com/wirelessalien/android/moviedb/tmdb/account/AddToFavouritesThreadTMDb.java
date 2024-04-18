@@ -1,6 +1,7 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -11,7 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public class RemoveFromFavouriteThreadTMDb extends Thread {
+public class AddToFavouritesThreadTMDb extends Thread {
 
     private final String sessionId;
     private final int movieId;
@@ -19,12 +20,13 @@ public class RemoveFromFavouriteThreadTMDb extends Thread {
     private final String type;
     private final Activity activity;
 
-    public RemoveFromFavouriteThreadTMDb(String sessionId, int movieId, int accountId, String type, Activity activity) {
+    public AddToFavouritesThreadTMDb(String sessionId, int movieId, int accountId, String type, Activity activity) {
         this.sessionId = sessionId;
         this.movieId = movieId;
         this.accountId = accountId;
         this.type = type;
         this.activity = activity;
+
     }
 
     @Override
@@ -39,7 +41,7 @@ public class RemoveFromFavouriteThreadTMDb extends Thread {
             JSONObject jsonParam = new JSONObject();
             jsonParam.put("media_type", type);
             jsonParam.put("media_id", movieId);
-            jsonParam.put("favorite", false);
+            jsonParam.put("favorite", true);
 
             OutputStream os = connection.getOutputStream();
             os.write(jsonParam.toString().getBytes( StandardCharsets.UTF_8 ));
@@ -58,14 +60,16 @@ public class RemoveFromFavouriteThreadTMDb extends Thread {
 
         } catch (Exception e) {
             e.printStackTrace();
+            Log.e("AddToFavouritesThreadTMDb", "Failed to add movie to favourites");
+            Log.e("AddToFavouritesThreadTMDb", e.getMessage());
         }
 
         final boolean finalSuccess = success;
         activity.runOnUiThread( () -> {
             if (finalSuccess) {
-                // Movie was successfully removed from the favourites.
+                Log.d("AddToFavouritesThreadTMDb", "Movie added to favourites");
             } else {
-                // Failed to remove the movie from the favourites.
+                // Failed to add the movie to the favourites.
             }
         } );
     }

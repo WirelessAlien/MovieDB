@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.wirelessalien.android.moviedb.ListData;
+import com.wirelessalien.android.moviedb.data.ListData;
 import com.wirelessalien.android.moviedb.R;
 
 import java.util.List;

@@ -1,7 +1,9 @@
-package com.wirelessalien.android.moviedb;
+package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
 import android.util.Log;
+
+import com.wirelessalien.android.moviedb.data.ListData;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
