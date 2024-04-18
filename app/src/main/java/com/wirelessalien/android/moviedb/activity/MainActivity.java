@@ -328,20 +328,15 @@ public class MainActivity extends BaseActivity {
      * Handles input from the search bar and icon.
      */
     private void handleMenuSearch() {
-        Log.d("MainActivity", "handleMenuSearch() called");
         ActionBar action = getSupportActionBar();
         if (action == null) {
-            Log.e("MainActivity", "getSupportActionBar returned null");
             return;
         }
 
         final boolean liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, true);
-        Log.d("MainActivity", "liveSearch: " + liveSearch);
 
         if (isSearchOpened) {
-            Log.d("MainActivity", "isSearchOpened is true");
             if (editSearch.getText().toString().equals("")) {
-                Log.d("MainActivity", "editSearch is empty");
                 action.setDisplayShowCustomEnabled(true);
 
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -358,11 +353,9 @@ public class MainActivity extends BaseActivity {
 
                 cancelSearchInFragment();
             } else {
-                Log.d("MainActivity", "editSearch is not empty");
                 editSearch.setText("");
             }
         } else {
-            Log.d("MainActivity", "isSearchOpened is false");
             action.setDisplayShowCustomEnabled(true);
             action.setCustomView(R.layout.search_bar);
             action.setDisplayShowTitleEnabled(false);
@@ -371,7 +364,6 @@ public class MainActivity extends BaseActivity {
 
             editSearch.setOnEditorActionListener( (view, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    Log.d("MainActivity", "Search key pressed");
                     searchInFragment(editSearch.getText().toString());
                     return true;
                 }
@@ -382,7 +374,6 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void afterTextChanged(Editable s) {
                     if (liveSearch) {
-                        Log.d("MainActivity", "Search query changed: " + s.toString());
                         searchInFragment(editSearch.getText().toString());
                     }
                 }
@@ -414,19 +405,15 @@ public class MainActivity extends BaseActivity {
         Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
 
         if (mCurrentFragment != null) {
-            Log.d("MainActivity", "Current fragment is not null");
             if (mCurrentFragment instanceof ShowFragment) {
-                Log.d("MainActivity", "Current fragment is ShowFragment");
                 ((ShowFragment) mCurrentFragment).search(query);
             }
 
             if (mCurrentFragment instanceof ListFragment) {
-                Log.d("MainActivity", "Current fragment is ListFragment");
                 ((ListFragment) mCurrentFragment).search(query);
             }
 
             if (mCurrentFragment instanceof PersonFragment) {
-                Log.d("MainActivity", "Current fragment is PersonFragment");
                 ((PersonFragment) mCurrentFragment).search(query);
             }
         } else {

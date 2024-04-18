@@ -52,6 +52,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.TableRow;
@@ -78,9 +79,12 @@ import com.wirelessalien.android.moviedb.NotifyingScrollView;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.RemoveFromFavouriteThreadTMDb;
 import com.wirelessalien.android.moviedb.RemoveFromWatchlistThreadTMDb;
+import com.wirelessalien.android.moviedb.TVSeason;
+import com.wirelessalien.android.moviedb.TVSeasonThread;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
+import com.wirelessalien.android.moviedb.adapter.TVSeasonAdapter;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 
@@ -98,6 +102,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -334,7 +339,10 @@ public class DetailActivity extends BaseActivity {
             e.printStackTrace();
         }
 
-        CompletableFuture.runAsync(() -> {
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+
+        CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> {
             if (accountId != 0 && sessionId != null) {
                 String typeCheck = isMovie ? "movie" : "tv";
                 GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(sessionId, movieId, accountId, typeCheck);
@@ -346,7 +354,7 @@ public class DetailActivity extends BaseActivity {
                 }
                 final boolean isInWatchlist = getAccountStateThread.isInWatchlist();
                 final boolean isFavourite = getAccountStateThread.isInFavourites();
-                Double ratingValue = getAccountStateThread.getRating();
+                double ratingValue = getAccountStateThread.getRating();
                 runOnUiThread(() -> {
                     if (isInWatchlist) {
                         addToWatchlistButton.setImageResource(R.drawable.ic_bookmark);
@@ -371,7 +379,33 @@ public class DetailActivity extends BaseActivity {
         }).exceptionally(ex -> {
             Log.e("DetailActivity", "Error in CompletableFuture", ex);
             return null;
-        });
+        }).thenRun(() -> runOnUiThread(() -> progressBar.setVisibility(View.GONE)));
+
+        CompletableFuture<List<TVSeason>> future2 = null;
+
+        if (!isMovie) {
+            future2 = CompletableFuture.supplyAsync(() -> {
+                TVSeasonThread tvSeasonThread = new TVSeasonThread(movieId, getApplicationContext());
+                tvSeasonThread.start();
+                try {
+                    tvSeasonThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return tvSeasonThread.getSeasons();
+            });
+        }
+
+        if (future2 != null) {
+            future2.thenAcceptBoth(future1, (seasons, voidResult) -> {
+                runOnUiThread(() -> {
+                    RecyclerView recyclerView = findViewById(R.id.seasonRecyclerview);
+                    TVSeasonAdapter adapter = new TVSeasonAdapter(DetailActivity.this, seasons);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(DetailActivity.this, LinearLayoutManager.HORIZONTAL, false));
+                    recyclerView.setAdapter(adapter);
+                });
+            });
+        }
 
         addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
             if (accountId != 0) {

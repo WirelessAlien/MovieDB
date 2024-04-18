@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Previous Lists"
+        android:textSize="20sp"
+        android:layout_marginStart="5dip"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dip"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
@@ -12,15 +22,25 @@
         android:id="@+id/recyclerView"
         tools:listitem="@layout/list_item"/>
 
-    <EditText
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Create New List"
+      android:textSize="20sp"
+      android:layout_marginStart="5dip"
+      android:textStyle="bold"
+      android:layout_marginTop="16dp"
+      android:layout_marginBottom="16dip"/>
+    <com.google.android.material.textfield.TextInputEditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/newListName"
         android:hint="Enter List Name"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:cornerRadius="5dp"
         android:text="Create List"
         android:id="@+id/createListBtn"/>
 </LinearLayout>
