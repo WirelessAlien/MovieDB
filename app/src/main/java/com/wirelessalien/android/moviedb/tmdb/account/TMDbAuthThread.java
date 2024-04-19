@@ -1,6 +1,7 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -20,15 +21,15 @@ public class TMDbAuthThread extends Thread {
     private final String username;
     private final String password;
     private String sessionId;
-    private final Activity activity;
+    private final Context context;
     private final SharedPreferences preferences;
 
 
-    public TMDbAuthThread(String username, String password, Activity activity) {
+    public TMDbAuthThread(String username, String password, Context context) {
         this.username = username;
         this.password = password;
-        this.activity = activity;
-        this.preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.context = context;
+        this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
     }
 
@@ -38,13 +39,13 @@ public class TMDbAuthThread extends Thread {
         sessionId = authenticate();
         if (sessionId != null) {
             preferences.edit().putString("session_id", sessionId).apply();
-            GetAccountIdThread getAccountIdThread = new GetAccountIdThread(sessionId, activity);
+            GetAccountIdThread getAccountIdThread = new GetAccountIdThread(sessionId, context);
             getAccountIdThread.start();
         }
     }
 
 
-    private String authenticate() {
+    protected String authenticate() {
         try {
             URL url = new URL("https://api.themoviedb.org/3/authentication/token/new?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();

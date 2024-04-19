@@ -51,6 +51,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.wirelessalien.android.moviedb.fragment.LoginFragment;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthThread;
@@ -266,9 +267,8 @@ public class MainActivity extends BaseActivity {
         }
 
         if (id == R.id.action_login_test) {
-            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-            startActivity(intent);
-            return true;
+            LoginFragment loginFragment = new LoginFragment();
+            loginFragment.show(getSupportFragmentManager(), "login");
         }
 
         if (id == R.id.action_account) {

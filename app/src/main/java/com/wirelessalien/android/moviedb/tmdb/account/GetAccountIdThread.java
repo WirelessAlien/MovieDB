@@ -3,6 +3,7 @@ package com.wirelessalien.android.moviedb.tmdb.account;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -20,12 +21,12 @@ public class GetAccountIdThread extends Thread {
     private final String sessionId;
 
     private Integer accountId;
-    private final Activity activity;
+    private final Context context;
 
-    public GetAccountIdThread(String sessionId, Activity activity) {
+    public GetAccountIdThread(String sessionId, Context context) {
         this.sessionId = sessionId;
 
-        this.activity = activity;
+        this.context = context;
     }
 
 
@@ -48,9 +49,9 @@ public class GetAccountIdThread extends Thread {
             JSONObject response = new JSONObject(builder.toString());
             accountId = response.getInt("id");
 
-            activity.runOnUiThread( () -> {
+            ((Activity) context).runOnUiThread(() -> {
                 if (accountId != null) {
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
                     SharedPreferences.Editor myEdit = preferences.edit();
                     myEdit.putInt("accountId", accountId);
                     myEdit.apply();

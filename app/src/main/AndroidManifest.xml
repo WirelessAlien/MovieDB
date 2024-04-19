@@ -50,7 +50,6 @@
             android:name=".activity.CastActivity"/>
         <activity android:name=".activity.SettingsActivity" />
         <activity android:name=".activity.FilterActivity" />
-        <activity android:name=".activity.LoginActivity" />
         <activity android:name=".fragment.AccountFragment"/>
         <activity android:name=".activity.TVSeasonDetailsActivity"/>
     </application>

@@ -85,7 +85,7 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
 
             // Load the image of the person (or an icon showing that it is not available).
             if (actorData.getString("profile_path").equals("null")) {
-                holder.castImage.setImageDrawable( ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
+                holder.castImage.setImageDrawable( ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_profile_photo), null));
             } else {
                 Picasso.get().load("https://image.tmdb.org/t/p/w154" +
                         actorData.getString("profile_path"))

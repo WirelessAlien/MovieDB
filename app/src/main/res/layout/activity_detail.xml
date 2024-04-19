@@ -367,6 +367,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/linearLayout"
                 android:orientation="horizontal"
+                android:paddingStart="10dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/tv_season_item"/>
 
@@ -469,6 +470,7 @@
                 android:id="@+id/movieRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingStart="6dp"
                 android:layout_below="@id/fourthDivider"
                 android:scrollbars="none" />
 

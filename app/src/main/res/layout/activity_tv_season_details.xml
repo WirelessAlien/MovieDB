@@ -19,93 +19,63 @@
   -->
 
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardView"
-        android:layout_width="wrap_content"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+  <androidx.core.widget.NestedScrollView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+  <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        card_view:cardCornerRadius="5dip"
-        card_view:cardElevation="0.5dip"
-        android:layout_margin="5dip"
-        card_view:cardUseCompatPadding="true">
+        android:orientation="vertical">
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="165dp"
-        android:gravity="center_horizontal"
-        android:padding="6dip">
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="100dp"
-            android:layout_height="150dp"
-            android:layout_gravity="center_vertical"
-            card_view:cardCornerRadius="5dip">
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:adjustViewBounds="true"
-                    android:layout_gravity="center_vertical"
-                    android:contentDescription="@string/image_description"
-                    android:scaleType="fitXY" />
-
-                <TextView
-                    android:id="@+id/categoryColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Your Text Here"
-                    android:textColor="@android:color/white"
-                    android:background="#99000000"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:visibility="gone"
-                    android:padding="8dp"/>
-            </FrameLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-
-        <View
-            android:layout_width="6dp"
-            android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal">
 
         <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:layout_gravity="center_vertical">
 
             <TextView
-                android:id="@+id/title"
+                android:id="@+id/descriptionLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_marginBottom="8dip"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
+                android:text="Overview"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="5dip"/>
             <TextView
                 android:id="@+id/description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignWithParentIfMissing="true"
-                android:layout_below="@id/title"
-                android:layout_alignParentEnd="true"
+                android:layout_below="@id/descriptionLabel"
                 android:layout_marginBottom="5dip"
-                android:textSize="12sp"
-                android:ellipsize="end"
-                android:maxWidth="250dp"
-                android:maxLines="4" />
+                android:textSize="14sp"
+                android:ellipsize="end"/>
 
 
             <RelativeLayout
@@ -120,7 +90,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="12"
-                    android:textSize="12sp"/>
+                    android:textSize="14sp"/>
                 <TextView
                     android:id="@+id/date"
                     android:layout_width="wrap_content"
@@ -130,7 +100,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_centerVertical="true"
                     android:layout_marginEnd="5dp"
-                    android:textSize="11sp"/>
+                    android:textSize="14sp"/>
             </RelativeLayout>
 
             <RatingBar
@@ -144,7 +114,7 @@
                 android:rating="3.5" />
         </RelativeLayout>
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -155,9 +125,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dip"
-        android:layout_marginStart="10dip"
-        android:layout_marginBottom="5dip"
+        android:padding="16dp"
         android:text="Episodes"
         android:textSize="18sp"
         android:textStyle="bold" />
@@ -166,7 +134,8 @@
         android:id="@+id/episodeRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dip"
+        android:padding="10dp"
         tools:listitem="@layout/episode_item"/>
-
-</LinearLayout>
+    </LinearLayout>
+  </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

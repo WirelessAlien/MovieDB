@@ -1,0 +1,23 @@
+<!-- Credit: https://www.iconfinder.com/moudesain
+License: https://creativecommons.org/licenses/by/4.0/-->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120"
+    >
+
+<path
+      android:pathData="M60,60m-47.6,0a47.6,47.6 0,1 1,95.2 0a47.6,47.6 0,1 1,-95.2 0"
+      android:fillColor="@android:color/transparent"/>
+  <path
+      android:pathData="M107.6,58c-1.1,0 -2,0.9 -2,2c0,25.1 -20.5,45.6 -45.6,45.6c-25.1,0 -45.6,-20.5 -45.6,-45.6c0,-25.1 20.5,-45.6 45.6,-45.6c18.8,0 35.4,11.3 42.4,28.7c0.4,1 1.6,1.5 2.6,1.1c1,-0.4 1.5,-1.6 1.1,-2.6C98.5,22.6 80.4,10.4 60,10.4c-27.3,0 -49.6,22.2 -49.6,49.6s22.2,49.6 49.6,49.6s49.6,-22.2 49.6,-49.6C109.6,58.9 108.7,58 107.6,58z"
+      android:fillColor="#00629E"/>
+  <path
+      android:pathData="M59.9,46.2m-13.3,0a13.3,13.3 0,1 1,26.6 0a13.3,13.3 0,1 1,-26.6 0"
+      android:fillColor="#00629E"/>
+  <path
+      android:pathData="M29.5,82v1.1c0,2.2 1.8,4 4,4h52.9c2.2,0 4,-1.8 4,-4V82c-5.5,-11.2 -17.1,-19.1 -30.5,-19.1C46.5,62.9 34.9,70.6 29.5,82z"
+      android:fillColor="#00629E"/>
+</vector>

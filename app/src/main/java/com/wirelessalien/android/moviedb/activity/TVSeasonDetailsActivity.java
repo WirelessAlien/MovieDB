@@ -12,32 +12,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.squareup.picasso.Picasso;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetailsThread;
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter;
+import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetailsThread;
 
 import java.util.concurrent.CompletableFuture;
 
 public class TVSeasonDetailsActivity extends AppCompatActivity {
 
-    private TextView tvSeasonName;
     private TextView tvSeasonOverview;
     private ImageView ivSeasonPoster;
     private TextView episodeNumber;
     private TextView airDate;
-
+    private MaterialToolbar toolbar;
     private RatingBar voteAverage;
     private RecyclerView rvEpisodes;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tv_season_details);
 
-        tvSeasonName = findViewById(R.id.title);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar( toolbar);
         tvSeasonOverview = findViewById(R.id.description);
-        ivSeasonPoster = findViewById(R.id.image);
+//        ivSeasonPoster = findViewById(R.id.image);
         episodeNumber = findViewById(R.id.episodeCount);
         airDate = findViewById(R.id.date);
         voteAverage = findViewById(R.id.rating);
@@ -61,13 +62,13 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
         }).thenAccept(thread -> runOnUiThread(() -> {
             progressBar.setVisibility(View.GONE); // Hide the ProgressBar
 
-            tvSeasonName.setText(thread.getSeasonName());
+            toolbar.setTitle(thread.getSeasonName());
             tvSeasonOverview.setText(thread.getSeasonOverview());
 
-            Picasso.get()
-                    .load("https://image.tmdb.org/t/p/w500" + thread.getSeasonPosterPath())
-                    .placeholder(R.drawable.ic_broken_image)
-                    .into(ivSeasonPoster);
+//            Picasso.get()
+//                    .load("https://image.tmdb.org/t/p/w500" + thread.getSeasonPosterPath())
+//                    .placeholder(R.drawable.ic_broken_image)
+//                    .into(ivSeasonPoster);
 
             voteAverage.setRating((float) thread.getSeasonVoteAverage() / 2);
             episodeNumber.setText("Episodes: " + thread.getEpisodes().size());
