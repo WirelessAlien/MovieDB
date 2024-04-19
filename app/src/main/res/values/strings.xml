@@ -161,4 +161,5 @@
     <string name="person_image_description">Picture of the person</string>
     <string name="movie_image_description">Image from the show</string>
     <string name="edit_icon_description">Enables edit mode</string>
+    <string name="file_picked_success">File picked successfully</string>
 </resources>

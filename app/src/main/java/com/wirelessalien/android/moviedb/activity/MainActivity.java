@@ -310,7 +310,7 @@ public class MainActivity extends BaseActivity {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission Granted
                     MovieDatabaseHelper databaseHelper = new MovieDatabaseHelper( this );
-                    databaseHelper.exportDatabase( this );
+                    databaseHelper.exportDatabase( this, null );
                 } // else: permission denied
             }
             case REQUEST_CODE_ASK_PERMISSIONS_IMPORT -> {

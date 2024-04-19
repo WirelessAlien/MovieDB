@@ -44,6 +44,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.wirelessalien.android.moviedb.activity.ExportActivity;
+import com.wirelessalien.android.moviedb.activity.ImportActivity;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
@@ -160,58 +162,16 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_export) {
-            // Ask the user for writing to storage (and thus also automatically reading) permission.
-            int hasWriteExternalStoragePermission = requireActivity()
-                    .checkSelfPermission( Manifest.permission.WRITE_EXTERNAL_STORAGE );
-            if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
-                if (!shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    final Activity activity = requireActivity();
-                    showMessageOKCancel(requireContext().getApplicationContext().getResources().getString(R.string.no_permission_dialog_message),
-                            (dialog, which) -> ActivityCompat.requestPermissions(activity, new String[]
-                                            {Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                    REQUEST_CODE_ASK_PERMISSIONS_EXPORT) );
-                    return true;
-                }
-                ActivityCompat.requestPermissions(requireActivity(), new String[]
-                                {Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        REQUEST_CODE_ASK_PERMISSIONS_EXPORT);
-
-                return true;
-            }
-
-            // Export the database.
-            MovieDatabaseHelper databaseHelper = new MovieDatabaseHelper
-                    (requireContext().getApplicationContext());
-            databaseHelper.exportDatabase(getActivity());
+            Intent intent = new Intent(requireContext().getApplicationContext(), ExportActivity.class);
+            startActivity(intent);
             return true;
         }
 
         // Import action
         if (id == R.id.action_import) {
 
-            // Ask the user for reading from storage (and thus also automatically writing) permission.
-            int hasWriteExternalStoragePermission = requireActivity()
-                    .checkSelfPermission( Manifest.permission.WRITE_EXTERNAL_STORAGE );
-            if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
-                if (!shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    final Activity activity = requireActivity();
-                    ((MainActivity) activity).mAdapterDataChangedListener = this;
-                    showMessageOKCancel(requireContext().getApplicationContext().getResources().getString(R.string.no_permission_dialog_message),
-                            (dialog, which) -> ActivityCompat.requestPermissions(activity, new String[]
-                                            {Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                    REQUEST_CODE_ASK_PERMISSIONS_IMPORT) );
-                    return true;
-                }
-                ActivityCompat.requestPermissions(requireActivity(), new String[]
-                                {Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        REQUEST_CODE_ASK_PERMISSIONS_IMPORT);
-
-                return true;
-            }
-
-            // Import the database.
-            MovieDatabaseHelper databaseHelper = new MovieDatabaseHelper(requireContext().getApplicationContext());
-            databaseHelper.importDatabase(getActivity(), this);
+            Intent intent = new Intent( requireContext().getApplicationContext(), ImportActivity.class );
+            startActivity( intent );
             return true;
         }
 

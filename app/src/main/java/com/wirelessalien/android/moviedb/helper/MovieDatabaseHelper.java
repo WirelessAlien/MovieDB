@@ -21,18 +21,22 @@ package com.wirelessalien.android.moviedb.helper;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
-
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.documentfile.provider.DocumentFile;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
 
@@ -40,13 +44,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -84,6 +89,8 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_FILE_NAME = "movies";
     private static final String DATABASE_FILE_EXT = ".db";
     private static final int DATABASE_VERSION = 8;
+    private static final int REQUEST_CODE_SELECT_DIRECTORY = 123;
+
 
     // Initialize the database object.
 
@@ -200,71 +207,85 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+
     /**
      * Writes the database in the chosen format to the downloads directory.
      *
      * @param context the context needed for the dialogs and toasts.
      */
-    public void exportDatabase(final Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(context.getResources().getString( R.string.choose_export_file))
-                .setItems(context.getResources().getStringArray(R.array.export_import_formats),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                File path = Environment.getExternalStoragePublicDirectory(
-                                        Environment.DIRECTORY_DOWNLOADS);
-                                File data = Environment.getDataDirectory();
+    public void exportDatabase(final Context context, final DocumentFile outputDirectory) {
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
 
-                                String currentDBPath = "/data/" + context.getPackageName()
-                                        + "/databases/" + DATABASE_NAME;
-                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US);
+        // Inflate the custom layout
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View customView = inflater.inflate(R.layout.export_dialog, null);
 
-                                if (path.canWrite()) {
-                                    if (which != 0) {
-                                        // Convert databaseSet to string and put in file
-                                        String fileContent = getJSONExportString(getReadableDatabase());
-                                        String fileExtension = ".json";
+        final RadioButton jsonRadioButton = customView.findViewById(R.id.radio_json);
+        final RadioButton dbRadioButton = customView.findViewById(R.id.radio_db);
 
-                                        // Write to file
-                                        FileOutputStream stream;
-                                        String fileName = DATABASE_FILE_NAME + simpleDateFormat.format
-                                                (new Date()) + fileExtension;
-                                        try {
-                                            File exportFile = new File(path, fileName);
-                                            stream = new FileOutputStream(exportFile);
-                                            stream.write(fileContent.getBytes());
-                                            stream.close();
-                                        } catch (IOException ioe) {
-                                            ioe.printStackTrace();
-                                        }
+        builder.setView(customView); // Set the custom layout
+        builder.setTitle(context.getResources().getString(R.string.choose_export_file))
+                .setPositiveButton("Export", (dialogInterface, i) -> {
+                    if (outputDirectory != null) {
+                        File data = Environment.getDataDirectory();
+                        String currentDBPath = "/data/" + context.getPackageName() + "/databases/" + DATABASE_NAME;
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US);
 
-                                        Toast.makeText(context, context.getResources().getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        // Write the .db file to Downloads
-                                        String exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(new Date()) + DATABASE_FILE_EXT;
-                                        try {
-                                            File currentDB = new File(data, currentDBPath);
-                                            File exportDB = new File(path, exportDBPath);
+                        if (jsonRadioButton.isChecked()) {
+                            // Convert databaseSet to string and put in file
+                            String fileContent = getJSONExportString(getReadableDatabase());
+                            String fileExtension = ".json";
 
-                                            FileChannel src = new FileInputStream(currentDB).getChannel();
-                                            FileChannel dst = new FileOutputStream(exportDB).getChannel();
-                                            dst.transferFrom(src, 0, src.size());
-                                            src.close();
-                                            dst.close();
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-
-                                        Toast.makeText(context, context.getResources().getString(R.string.write_to_external_storage_as) + exportDBPath, Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    Toast.makeText(context, R.string.write_to_external_storage_failed, Toast.LENGTH_SHORT).show();
-                                }
+                            // Write to file
+                            String fileName = DATABASE_FILE_NAME + simpleDateFormat.format(new Date()) + fileExtension;
+                            try {
+                                DocumentFile file = outputDirectory.createFile("application/json", fileName);
+                                ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(file.getUri(), "w");
+                                BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(pfd.getFileDescriptor()));
+                                bufferedOutputStream.write(fileContent.getBytes());
+                                bufferedOutputStream.flush();
+                                bufferedOutputStream.close();
+                                Toast.makeText(context, context.getResources().getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
-                        });
+                        } else if (dbRadioButton.isChecked()) {
+                            // Write the .db file to selected directory
+                            String fileExtension = ".db";
+                            String exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(new Date()) + fileExtension;
+                            try {
+                                File currentDB = new File(data, currentDBPath);
+                                DocumentFile exportDB = outputDirectory.createFile("application/octet-stream", exportDBPath);
+                                ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(exportDB.getUri(), "w");
+                                BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(pfd.getFileDescriptor()));
 
-        builder.show();
+                                FileChannel fileChannel = new FileInputStream(currentDB).getChannel();
+                                ByteBuffer buffer = ByteBuffer.allocate((int) fileChannel.size());
+                                fileChannel.read(buffer);
+                                buffer.flip();
+                                byte[] byteArray = new byte[buffer.remaining()];
+                                buffer.get(byteArray);
+                                bufferedOutputStream.write(byteArray);
+
+                                bufferedOutputStream.flush();
+                                bufferedOutputStream.close();
+                                Toast.makeText(context, context.getResources().getString(R.string.write_to_external_storage_as) + exportDBPath, Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else {
+                        // Show error message if no directory is selected
+                        Toast.makeText(context, "Please select a directory", Toast.LENGTH_SHORT).show();
+                    }
+                } )
+                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel() );
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
+
+
 
     /**
      * Displays a dialog with possible files to import and imports the chosen file.
@@ -274,16 +295,13 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
      */
     public void importDatabase(final Context context, final AdapterDataChangedListener listener) {
         // Ask the user which file to import
-        String downloadPath = Environment.getExternalStorageDirectory().toString() + "/Download";
+        String downloadPath = context.getCacheDir().getPath();
         File directory = new File(downloadPath);
-        File[] files = directory.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                // Only show database or json files
-                String name = pathname.getName();
-                return name.endsWith(".db") || name.endsWith(".json");
-            }
-        });
+        File[] files = directory.listFiles( pathname -> {
+            // Only show database or json files
+            String name = pathname.getName();
+            return name.endsWith(".db") || name.endsWith(".json");
+        } );
 
         // Creates an adapter with files for the dialog.
         final ArrayAdapter<String> fileAdapter = new ArrayAdapter<>
@@ -296,86 +314,77 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
         AlertDialog.Builder fileDialog = new AlertDialog.Builder(context);
         fileDialog.setTitle(R.string.choose_file);
 
-        fileDialog.setNegativeButton(R.string.import_cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        fileDialog.setNegativeButton(R.string.import_cancel, (dialog, which) -> dialog.dismiss() );
 
         final SQLiteDatabase database = getWritableDatabase();
 
         // Show the files that can be imported.
-        fileDialog.setAdapter(fileAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                File path = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS);
+        fileDialog.setAdapter(fileAdapter, (dialog, which) -> {
+            File path = new File( context.getCacheDir().getPath() );
 
-                // Check the file type and use the associated import method.
-                try {
-                    String exportDBPath = fileAdapter.getItem(which);
-                    if (exportDBPath == null) {
-                        throw new NullPointerException();
-                    } else if (fileAdapter.getItem(which).endsWith(".db")) {
+            // Check the file type and use the associated import method.
+            try {
+                String exportDBPath = fileAdapter.getItem(which);
+                if (exportDBPath == null) {
+                    throw new NullPointerException();
+                } else if (fileAdapter.getItem(which).endsWith(".db")) {
 
-                        // Import the file selected in the dialog.
-                        try {
-                            File data = Environment.getDataDirectory();
+                    // Import the file selected in the dialog.
+                    try {
+                        File data = Environment.getDataDirectory();
 
-                            String currentDBPath = "/data/" + context.getPackageName() +
-                                    "/databases/" + DATABASE_NAME;
-                            File currentDB = new File(data, currentDBPath);
-                            assert exportDBPath != null;
-                            File importDB = new File(path, exportDBPath);
+                        String currentDBPath = "/data/" + context.getPackageName() +
+                                "/databases/" + DATABASE_NAME;
+                        File currentDB = new File(data, currentDBPath);
+                        assert exportDBPath != null;
+                        File importDB = new File(path, exportDBPath);
 
-                            FileChannel src = new FileInputStream(importDB).getChannel();
-                            FileChannel dst = new FileOutputStream(currentDB).getChannel();
-                            dst.transferFrom(src, 0, src.size());
-                            src.close();
-                            dst.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        // Retrieve the file
-                        File file = new File(path, exportDBPath);
-
-                        StringBuilder fileContent = new StringBuilder();
-
-                        try {
-                            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-                            String line;
-
-                            while ((line = bufferedReader.readLine()) != null) {
-                                fileContent.append(line);
-                                fileContent.append("\n");
-                            }
-
-                            bufferedReader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        // Drop the current table
-                        database.execSQL("DROP TABLE IF EXISTS " + TABLE_MOVIES);
-
-                        // Create a new table
-                        onCreate(database);
-
-                        // Fill the new database with the JSON data.
-                        importJSON(fileContent.toString(), database);
+                        FileChannel src = new FileInputStream(importDB).getChannel();
+                        FileChannel dst = new FileOutputStream(currentDB).getChannel();
+                        dst.transferFrom(src, 0, src.size());
+                        src.close();
+                        dst.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (NullPointerException npe) {
-                    npe.printStackTrace();
-                    Toast.makeText(context, context.getResources().getString
-                            (R.string.file_not_found_exception), Toast.LENGTH_SHORT).show();
-                }
+                } else {
+                    // Retrieve the file
+                    File file = new File(path, exportDBPath);
 
-                // Reload the data in the adapter.
-                listener.onAdapterDataChangedListener();
+                    StringBuilder fileContent = new StringBuilder();
+
+                    try {
+                        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                        String line;
+
+                        while ((line = bufferedReader.readLine()) != null) {
+                            fileContent.append(line);
+                            fileContent.append("\n");
+                        }
+
+                        bufferedReader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Drop the current table
+                    database.execSQL("DROP TABLE IF EXISTS " + TABLE_MOVIES);
+
+                    // Create a new table
+                    onCreate(database);
+
+                    // Fill the new database with the JSON data.
+                    importJSON(fileContent.toString(), database);
+                }
+            } catch (NullPointerException npe) {
+                npe.printStackTrace();
+                Toast.makeText(context, context.getResources().getString
+                        (R.string.file_not_found_exception), Toast.LENGTH_SHORT).show();
             }
-        });
+
+            // Reload the data in the adapter.
+            listener.onAdapterDataChangedListener();
+        } );
 
         fileDialog.show();
     }
