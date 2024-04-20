@@ -3,6 +3,8 @@ package com.wirelessalien.android.moviedb.tmdb.account;
 import android.app.Activity;
 import android.util.Log;
 
+import androidx.preference.PreferenceManager;
+
 import com.wirelessalien.android.moviedb.data.ListData;
 
 import org.json.JSONArray;
@@ -30,7 +32,8 @@ public class FetchListThreadTMDb extends Thread {
     @Override
     public void run() {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account/{account_id}/lists?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
+            String accountId = String.valueOf( PreferenceManager.getDefaultSharedPreferences( activity ).getInt( "accountId", 0 ) );
+            URL url = new URL("https://api.themoviedb.org/3/account/" + accountId + "/lists?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 

@@ -28,11 +28,13 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
     private final int movieId;
     private final String sessionId;
     private final Activity activity;
+    private final String mediaType;
     private ListAdapter listAdapter;
 
-    public ListBottomSheetDialogFragment(int movieId, String sessionId, Activity activity) {
+    public ListBottomSheetDialogFragment(int movieId, String sessionId, String mediaType, Activity activity) {
         this.movieId = movieId;
         this.sessionId = sessionId;
+        this.mediaType = mediaType;
         this.activity = activity;
     }
 
@@ -51,7 +53,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         Button createListButton = view.findViewById( R.id.createListBtn );
 
         listAdapter = new ListAdapter(new ArrayList<>(), listData -> {
-            new AddToListThreadTMDb(sessionId, movieId, listData.getId(), activity).start();
+            new AddToListThreadTMDb(sessionId, movieId, listData.getId(), mediaType, activity).start();
             dismiss();
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

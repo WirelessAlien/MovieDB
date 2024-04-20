@@ -281,7 +281,7 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                 } )
                 .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel() );
 
-        AlertDialog dialog = builder.create();
+        MaterialAlertDialogBuilder dialog = builder;
         dialog.show();
     }
 

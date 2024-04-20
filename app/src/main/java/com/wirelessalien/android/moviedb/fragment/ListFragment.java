@@ -29,6 +29,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -44,14 +45,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.wirelessalien.android.moviedb.activity.ExportActivity;
-import com.wirelessalien.android.moviedb.activity.ImportActivity;
-import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
+import com.wirelessalien.android.moviedb.activity.ExportActivity;
 import com.wirelessalien.android.moviedb.activity.FilterActivity;
-import com.wirelessalien.android.moviedb.activity.MainActivity;
+import com.wirelessalien.android.moviedb.activity.ImportActivity;
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
 
 import org.json.JSONException;
@@ -162,17 +162,34 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_export) {
-            Intent intent = new Intent(requireContext().getApplicationContext(), ExportActivity.class);
-            startActivity(intent);
-            return true;
+            //if api less then 30 then check of permission
+            if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_ASK_PERMISSIONS_EXPORT);
+                } else {
+                    Intent intent = new Intent(requireContext().getApplicationContext(), ExportActivity.class);
+                    startActivity(intent);
+                }
+            } else {
+                Intent intent = new Intent(requireContext().getApplicationContext(), ExportActivity.class);
+                startActivity(intent);
+            }
         }
 
         // Import action
         if (id == R.id.action_import) {
-
-            Intent intent = new Intent( requireContext().getApplicationContext(), ImportActivity.class );
-            startActivity( intent );
-            return true;
+            //if api less then 30 then check of permission
+            if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_ASK_PERMISSIONS_IMPORT);
+                } else {
+                    Intent intent = new Intent(requireContext().getApplicationContext(), ImportActivity.class);
+                    startActivity(intent);
+                }
+            } else {
+                Intent intent = new Intent(requireContext().getApplicationContext(), ImportActivity.class);
+                startActivity(intent);
+            }
         }
 
         // Filter action

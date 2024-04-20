@@ -46,11 +46,11 @@ import android.widget.ScrollView;
 import android.widget.TableLayout;
 
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.wirelessalien.android.moviedb.R;
 
@@ -587,7 +587,7 @@ public class FilterActivity extends AppCompatActivity {
      * @param view the button that is being pressed.
      */
     public void selectDate(final View view) {
-        final AlertDialog.Builder dateDialog = new AlertDialog.Builder(this);
+        final MaterialAlertDialogBuilder dateDialog = new MaterialAlertDialogBuilder(this);
 
         // Create a DatePicker dialog.
         LayoutInflater inflater = getLayoutInflater();

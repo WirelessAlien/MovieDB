@@ -435,7 +435,8 @@ public class DetailActivity extends BaseActivity {
         } ).start() );
 
         addToListBtn.setOnClickListener( v -> {
-            ListBottomSheetDialogFragment listBottomSheetDialogFragment = new ListBottomSheetDialogFragment(movieId, sessionId, mActivity);
+            String typeCheck = isMovie ? "movie" : "tv";
+            ListBottomSheetDialogFragment listBottomSheetDialogFragment = new ListBottomSheetDialogFragment(movieId, sessionId, typeCheck, mActivity);
             listBottomSheetDialogFragment.show(getSupportFragmentManager(), listBottomSheetDialogFragment.getTag());
         } );
 

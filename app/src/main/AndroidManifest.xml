@@ -54,6 +54,8 @@
         <activity android:name=".fragment.AccountFragment"/>
         <activity android:name=".activity.ImportActivity" />
         <activity android:name=".activity.TVSeasonDetailsActivity"/>
+        <activity android:name=".activity.MyListsActivity"/>
+        <activity android:name=".activity.MyListDetailsActivity"/>
     </application>
 
 </manifest>

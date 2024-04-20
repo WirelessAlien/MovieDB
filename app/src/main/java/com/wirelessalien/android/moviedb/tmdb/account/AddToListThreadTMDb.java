@@ -1,6 +1,7 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -14,14 +15,16 @@ import java.nio.charset.StandardCharsets;
 public class AddToListThreadTMDb extends Thread {
 
     private final String sessionId;
-    private final int movieId;
+    private final int mediaId;
     private final int listId;
     private final Activity activity;
+    private final String mediaType; // "movie" or "tv"
 
-    public AddToListThreadTMDb(String sessionId, int movieId, int listId, Activity activity) {
+    public AddToListThreadTMDb(String sessionId, int mediaId, int listId, String mediaType, Activity activity) {
         this.sessionId = sessionId;
-        this.movieId = movieId;
+        this.mediaId = mediaId;
         this.listId = listId;
+        this.mediaType = mediaType;
         this.activity = activity;
     }
 
@@ -49,7 +52,8 @@ public class AddToListThreadTMDb extends Thread {
             connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
 
             JSONObject jsonParam = new JSONObject();
-            jsonParam.put("media_id", movieId);
+            jsonParam.put("media_id", mediaId);
+            jsonParam.put("media_type", mediaType); // Add media type
 
             OutputStream os = connection.getOutputStream();
             os.write(jsonParam.toString().getBytes(StandardCharsets.UTF_8));
@@ -65,6 +69,7 @@ public class AddToListThreadTMDb extends Thread {
 
             JSONObject response = new JSONObject(builder.toString());
             success = response.getBoolean("success");
+            Log.d("AddToListThreadTMDb", mediaType + " added to list: " + success);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,9 +78,9 @@ public class AddToListThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                // Movie was successfully added to the list.
+                // Media was successfully added to the list.
             } else {
-                // Failed to add the movie to the list.
+                // Failed to add the media to the list.
             }
         });
     }

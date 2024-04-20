@@ -272,7 +272,7 @@ public class MainActivity extends BaseActivity {
         }
 
         if (id == R.id.action_account) {
-            Intent intent = new Intent(getApplicationContext(), AccountFragment.class);
+            Intent intent = new Intent(getApplicationContext(), MyListsActivity.class);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

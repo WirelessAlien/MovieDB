@@ -427,7 +427,9 @@ public class ShowFragment extends BaseFragment {
             handler.post(() -> {
                 if (isAdded()) {
                     ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.VISIBLE);
+                    if (progressBar != null) {
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
                 }
             });
 
