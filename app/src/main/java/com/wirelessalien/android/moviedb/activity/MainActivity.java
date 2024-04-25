@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -43,25 +44,23 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
-import androidx.security.crypto.EncryptedSharedPreferences;
-import androidx.security.crypto.MasterKey;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.wirelessalien.android.moviedb.fragment.LoginFragment;
-import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthThread;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
-import com.wirelessalien.android.moviedb.fragment.AccountFragment;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
+import com.wirelessalien.android.moviedb.fragment.LoginFragment;
 import com.wirelessalien.android.moviedb.fragment.PersonFragment;
 import com.wirelessalien.android.moviedb.fragment.ShowFragment;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,20 +91,7 @@ public class MainActivity extends BaseActivity {
     private EditText editSearch;
     private SharedPreferences preferences;
     public AdapterDataChangedListener mAdapterDataChangedListener;
-
-    private SharedPreferences getEncryptedSharedPreferences(Context context) throws GeneralSecurityException, IOException {
-        MasterKey masterKey = new MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build();
-
-        return EncryptedSharedPreferences.create(
-                context,
-                "encrypted_preferences",
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        );
-    }
+    private String api_read_access_token;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +103,8 @@ public class MainActivity extends BaseActivity {
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        api_read_access_token = ConfigHelper.getConfigValue(this, "api_read_access_token");
 
         mViewPager = findViewById(R.id.container);
         mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
@@ -202,16 +190,25 @@ public class MainActivity extends BaseActivity {
         if (versionNumber != -1) {
             preferences.edit().putInt(PREVIOUS_APPLICATION_VERSION_PREFERENCE, versionNumber).apply();
         }
+    }
 
-        try {
-            SharedPreferences sharedPreferences = getEncryptedSharedPreferences(MainActivity.this);
-            String username = sharedPreferences.getString("username", null);
-            String password = sharedPreferences.getString("password", null);
-
-            TMDbAuthThread tmDbAuthThread = new TMDbAuthThread(username, password, this);
-            tmDbAuthThread.start();
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Uri uri = intent.getData();
+        if (uri != null) {
+            Log.d("MainActivity", "Callback URL: " + uri );
+            if (uri.toString().startsWith("com.wirelessalien.android.moviedb://callback")) {
+                String requestToken = preferences.getString("request_token", null);
+                Log.d("MainActivity", "Request token: " + requestToken);
+                if (requestToken != null) {
+                    // The request token has been approved by the user
+                    // Now you can proceed with generating the access token
+                    GetAccessToken getAccessToken = new GetAccessToken(api_read_access_token, requestToken, this);
+                    getAccessToken.start();
+                    Log.d("MainActivity", "Request token: " + requestToken);
+                }
+            }
         }
     }
 

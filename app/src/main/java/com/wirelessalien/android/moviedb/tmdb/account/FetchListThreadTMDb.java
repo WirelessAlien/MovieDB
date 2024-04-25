@@ -1,30 +1,36 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.data.ListData;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class FetchListThreadTMDb extends Thread {
 
-    private final String sessionId;
+    private final String accessToken;
+    private final String accountId;
     private final Activity activity;
     private final OnFetchListsListener listener;
 
-    public FetchListThreadTMDb(String sessionId, Activity activity, OnFetchListsListener listener) {
-        this.sessionId = sessionId;
+    public FetchListThreadTMDb(Activity activity, OnFetchListsListener listener) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.accessToken = preferences.getString("access_token", "");
+        this.accountId = preferences.getString("account_id", "");
         this.activity = activity;
         this.listener = listener;
     }
@@ -32,21 +38,18 @@ public class FetchListThreadTMDb extends Thread {
     @Override
     public void run() {
         try {
-            String accountId = String.valueOf( PreferenceManager.getDefaultSharedPreferences( activity ).getInt( "accountId", 0 ) );
-            URL url = new URL("https://api.themoviedb.org/3/account/" + accountId + "/lists?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
+            OkHttpClient client = new OkHttpClient();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
+            Request request = new Request.Builder()
+                    .url("https://api.themoviedb.org/4/account/" + accountId + "/lists?page=1")
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
 
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-
-            JSONObject response = new JSONObject(builder.toString());
-            JSONArray results = response.getJSONArray("results");
+            Response response = client.newCall(request).execute();
+            JSONObject jsonResponse = new JSONObject(response.body().string());
+            JSONArray results = jsonResponse.getJSONArray("results");
 
             List<ListData> listData = new ArrayList<>();
             for (int i = 0; i < results.length(); i++) {

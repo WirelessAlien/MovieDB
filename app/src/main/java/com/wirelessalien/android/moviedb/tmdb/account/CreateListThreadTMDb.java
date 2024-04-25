@@ -1,25 +1,37 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.widget.Toast;
+
+import androidx.preference.PreferenceManager;
+
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class CreateListThreadTMDb extends Thread {
 
-    private final String sessionId;
     private final String listName;
+    private final String accessToken;
+    private final boolean isPublic;
+    private final String description;
     private final Activity activity;
 
-    public CreateListThreadTMDb(String sessionId, String listName, Activity activity) {
-        this.sessionId = sessionId;
+    public CreateListThreadTMDb(String listName, String description, boolean isPublic, Activity activity) {
         this.listName = listName;
+        this.description = description;
+        this.isPublic = isPublic;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.accessToken = preferences.getString("access_token", "");
         this.activity = activity;
     }
 
@@ -27,29 +39,28 @@ public class CreateListThreadTMDb extends Thread {
     public void run() {
         boolean success = false;
         try {
-            URL url = new URL("https://api.themoviedb.org/3/list?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+            OkHttpClient client = new OkHttpClient();
 
+            MediaType mediaType = MediaType.parse("application/json");
             JSONObject jsonParam = new JSONObject();
             jsonParam.put("name", listName);
-            jsonParam.put("description", "This is a list created by user.");
+            jsonParam.put("description", description);
+            jsonParam.put("iso_3166_1", "US");
+            jsonParam.put("iso_639_1", "en");
+            jsonParam.put("public", isPublic);
 
-            OutputStream os = connection.getOutputStream();
-            os.write(jsonParam.toString().getBytes(StandardCharsets.UTF_8));
-            os.close();
+            RequestBody body = RequestBody.create(mediaType, jsonParam.toString());
+            Request request = new Request.Builder()
+                    .url("https://api.themoviedb.org/4/list")
+                    .post(body)
+                    .addHeader("accept", "application/json")
+                    .addHeader("content-type", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
-
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-
-            JSONObject response = new JSONObject(builder.toString());
-            success = response.getBoolean("success");
+            Response response = client.newCall(request).execute();
+            JSONObject jsonResponse = new JSONObject(response.body().string());
+            success = jsonResponse.getBoolean("success");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,9 +69,9 @@ public class CreateListThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                // List was successfully created.
+                Toast.makeText(activity, "List created successfully", Toast.LENGTH_SHORT).show();
             } else {
-                // Failed to create the list.
+                Toast.makeText(activity, "Failed to create list", Toast.LENGTH_SHORT).show();
             }
         });
     }

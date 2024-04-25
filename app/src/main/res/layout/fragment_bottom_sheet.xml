@@ -19,8 +19,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/recyclerView"
-        tools:listitem="@layout/list_item"/>
+        android:id="@+id/recyclerView" />
 
   <TextView
       android:layout_width="wrap_content"
@@ -32,10 +31,23 @@
       android:layout_marginTop="16dp"
       android:layout_marginBottom="16dip"/>
     <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/newListName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/newListName"
         android:hint="Enter List Name"/>
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/listDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="List Description"/>
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/privateRadioBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Private"/>
+
 
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"

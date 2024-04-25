@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToListThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.CreateListThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb;
@@ -24,7 +25,8 @@ import java.util.ArrayList;
 
 public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
-    private EditText newListName;
+    private EditText newListName, listDescription;
+    private MaterialRadioButton privateList;
     private final int movieId;
     private final String sessionId;
     private final Activity activity;
@@ -50,10 +52,13 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         RecyclerView recyclerView = view.findViewById( R.id.recyclerView );
         newListName = view.findViewById(R.id.newListName);
+        listDescription = view.findViewById(R.id.listDescription);
         Button createListButton = view.findViewById( R.id.createListBtn );
+        privateList = view.findViewById(R.id.privateRadioBtn);
+
 
         listAdapter = new ListAdapter(new ArrayList<>(), listData -> {
-            new AddToListThreadTMDb(sessionId, movieId, listData.getId(), mediaType, activity).start();
+            new AddToListThreadTMDb(movieId, listData.getId(), mediaType, activity).start();
             dismiss();
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -61,11 +66,14 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         createListButton.setOnClickListener( v -> {
             String listName = newListName.getText().toString();
-            new CreateListThreadTMDb(sessionId, listName, activity).start();
+            String description = listDescription.getText().toString();
+            boolean isPublic = !privateList.isChecked(); // when checked private radio button, the value is false else true
+
+            new CreateListThreadTMDb(listName, description, isPublic, activity).start();
             dismiss();
         });
 
         // Fetch the list data from the server and update the RecyclerView
-        new FetchListThreadTMDb(sessionId, activity, listData -> listAdapter.updateData(listData) ).start();
+        new FetchListThreadTMDb(activity, listData -> listAdapter.updateData(listData) ).start();
     }
 }

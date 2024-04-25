@@ -1,75 +1,69 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.preference.PreferenceManager;
+
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class AddToListThreadTMDb extends Thread {
 
-    private final String sessionId;
+    private final String accessToken;
     private final int mediaId;
     private final int listId;
     private final Activity activity;
-    private final String mediaType; // "movie" or "tv"
+    private final String type; // "movie" or "tv"
 
-    public AddToListThreadTMDb(String sessionId, int mediaId, int listId, String mediaType, Activity activity) {
-        this.sessionId = sessionId;
+    public AddToListThreadTMDb(int mediaId, int listId, String type, Activity activity) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.accessToken = preferences.getString("access_token", "");
         this.mediaId = mediaId;
         this.listId = listId;
-        this.mediaType = mediaType;
+        this.type = type;
         this.activity = activity;
-    }
-
-    private boolean checkListExists() throws Exception {
-        URL url = new URL("https://api.themoviedb.org/3/list/" + listId + "?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-
-        int responseCode = connection.getResponseCode();
-        return responseCode == HttpURLConnection.HTTP_OK;
     }
 
     @Override
     public void run() {
         boolean success = false;
         try {
-            if (!checkListExists()) {
-                System.err.println("List with ID " + listId + " does not exist.");
-                return;
-            }
+            OkHttpClient client = new OkHttpClient();
 
-            URL url = new URL("https://api.themoviedb.org/3/list/" + listId + "/add_item?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-
+            MediaType mediaType = MediaType.parse("application/json");
             JSONObject jsonParam = new JSONObject();
-            jsonParam.put("media_id", mediaId);
-            jsonParam.put("media_type", mediaType); // Add media type
+            JSONArray itemsArray = new JSONArray();
+            JSONObject itemObject = new JSONObject();
+            itemObject.put("media_type", type);
+            itemObject.put("media_id", mediaId);
+            itemsArray.put(itemObject);
+            jsonParam.put("items", itemsArray);
 
-            OutputStream os = connection.getOutputStream();
-            os.write(jsonParam.toString().getBytes(StandardCharsets.UTF_8));
-            os.close();
+            RequestBody body = RequestBody.create(mediaType, jsonParam.toString());
+            Request request = new Request.Builder()
+                    .url("https://api.themoviedb.org/4/list/" + listId + "/items")
+                    .post(body)
+                    .addHeader("accept", "application/json")
+                    .addHeader("content-type", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
-
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-
-            JSONObject response = new JSONObject(builder.toString());
-            success = response.getBoolean("success");
-            Log.d("AddToListThreadTMDb", mediaType + " added to list: " + success);
+            Response response = client.newCall(request).execute();
+            JSONObject jsonResponse = new JSONObject(response.body().string());
+            success = jsonResponse.getBoolean("success");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,9 +72,9 @@ public class AddToListThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                // Media was successfully added to the list.
+                Toast.makeText(activity, "Media added to list", Toast.LENGTH_SHORT).show();
             } else {
-                // Failed to add the media to the list.
+                Toast.makeText(activity, "Failed to add media to list", Toast.LENGTH_SHORT).show();
             }
         });
     }

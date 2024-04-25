@@ -1,58 +1,59 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.widget.Toast;
+
+import androidx.preference.PreferenceManager;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class AddRatingThreadTMDb extends Thread {
 
-    private final String sessionId;
     private final int movieId;
     private final double rating;
     private final String type;
     private final Activity activity;
+    private final String accessToken;
 
-    public AddRatingThreadTMDb(String sessionId, int movieId, double rating, String type, Activity activity) {
-        this.sessionId = sessionId;
+    public AddRatingThreadTMDb(int movieId, double rating, String type, Activity activity) {
         this.movieId = movieId;
         this.rating = rating;
         this.type = type;
         this.activity = activity;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.accessToken = preferences.getString("access_token", "");
     }
 
     @Override
     public void run() {
         boolean success = false;
         try {
-            URL url = new URL("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-
+            OkHttpClient client = new OkHttpClient();
+            MediaType mediaType = MediaType.parse("application/json;charset=utf-8");
             JSONObject jsonParam = new JSONObject();
             jsonParam.put("value", rating);
+            RequestBody body = RequestBody.create(mediaType, jsonParam.toString());
 
-            OutputStream os = connection.getOutputStream();
-            os.write(jsonParam.toString().getBytes(StandardCharsets.UTF_8));
-            os.close();
+            Request request = new Request.Builder()
+                    .url("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating?api_key=" + accessToken)
+                    .post(body)
+                    .addHeader("accept", "application/json")
+                    .addHeader("content-type", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
-
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-
-            JSONObject response = new JSONObject(builder.toString());
-            success = response.getBoolean("success");
+            Response response = client.newCall(request).execute();
+            String responseBody = response.body().string();
+            JSONObject jsonResponse = new JSONObject(responseBody);
+            String statusMessage = jsonResponse.getString("status_message");
+            success = statusMessage.equals("Success.");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,9 +62,9 @@ public class AddRatingThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                // Rating was successfully added.
+                Toast.makeText(activity, "Rating added successfully.", Toast.LENGTH_SHORT).show();
             } else {
-                // Failed to add the rating.
+                Toast.makeText(activity, "Failed to add rating.", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -1,59 +1,66 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.widget.Toast;
 
+import androidx.preference.PreferenceManager;
+
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.IOException;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class DeleteRatingThreadTMDb extends Thread {
 
-    private final String sessionId;
     private final int movieId;
     private final String type;
+    private final String accessToken;
     private final Activity activity;
 
-    public DeleteRatingThreadTMDb(String sessionId, int movieId, String type, Activity activity) {
-        this.sessionId = sessionId;
+    public DeleteRatingThreadTMDb(int movieId, String type, Activity activity) {
         this.movieId = movieId;
         this.type = type;
         this.activity = activity;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences( activity );
+        this.accessToken = preferences.getString( "access_token", "" );
+
     }
 
     @Override
     public void run() {
         boolean success = false;
-        try {
-            URL url = new URL("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("DELETE");
-            connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating")
+                .delete()
+                .addHeader("accept", "application/json")
+                .addHeader("Content-Type", "application/json;charset=utf-8")
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .build();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
+        try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body().string();
+            JSONObject jsonResponse = new JSONObject(responseBody);
+            String statusMessage = jsonResponse.getString("status_message");
+            success = statusMessage.equals("The item/record was deleted successfully.");
 
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-
-            JSONObject response = new JSONObject(builder.toString());
-            success = response.getBoolean("success");
-
-        } catch (Exception e) {
+            final boolean finalSuccess = success;
+            activity.runOnUiThread(() -> {
+                if (finalSuccess) {
+                    Toast.makeText(activity, "Rating deleted successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(activity, "Failed to delete rating", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
-
-        final boolean finalSuccess = success;
-        activity.runOnUiThread(() -> {
-            if (finalSuccess) {
-                // Rating was successfully deleted.
-            } else {
-                // Failed to delete the rating.
-            }
-        });
     }
 }

@@ -1,53 +1,53 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
-import android.util.Log;
+import android.app.Activity;
+import android.content.SharedPreferences;
+
+import androidx.preference.PreferenceManager;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class GetAccountStateThreadTMDb extends Thread {
 
-    private final String sessionId;
     private final int movieId;
     private boolean isInFavourites;
     private boolean isInWatchlist;
     private double rating;
-    private final int accountId;
     private final String typeCheck;
+    private final String accessToken;
 
-    public GetAccountStateThreadTMDb(String sessionId, int movieId, int accountId, String typeCheck) {
-        this.sessionId = sessionId;
+    public GetAccountStateThreadTMDb(int movieId, String typeCheck, Activity activity ) {
         this.movieId = movieId;
-        this.accountId = accountId;
         this.typeCheck = typeCheck;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences( activity );
+        this.accessToken = preferences.getString( "access_token", "" );
     }
 
     @Override
     public void run() {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/" + typeCheck + "/" + movieId + "/account_states?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
+            OkHttpClient client = new OkHttpClient();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
+            Request request = new Request.Builder()
+                    .url("https://api.themoviedb.org/3/" + typeCheck + "/" + movieId + "/account_states")
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
 
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
+            Response response = client.newCall(request).execute();
+            String responseBody = response.body().string();
 
-            JSONObject response = new JSONObject(builder.toString());
+            JSONObject jsonResponse = new JSONObject(responseBody);
 
-            isInFavourites = response.getBoolean("favorite");
-            isInWatchlist = response.getBoolean("watchlist");
-            if (!response.isNull("rated")) {
-                Object rated = response.get("rated");
+            isInFavourites = jsonResponse.getBoolean("favorite");
+            isInWatchlist = jsonResponse.getBoolean("watchlist");
+            if (!jsonResponse.isNull("rated")) {
+                Object rated = jsonResponse.get("rated");
                 if (rated instanceof JSONObject) {
                     rating = ((JSONObject) rated).getDouble("value");
                 } else if (rated instanceof Boolean && !(Boolean) rated) {
@@ -57,11 +57,8 @@ public class GetAccountStateThreadTMDb extends Thread {
                 rating = 0;
             }
 
-
-
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("GetAccountStateThreadTMDb", "Error while getting account state");
         }
     }
 

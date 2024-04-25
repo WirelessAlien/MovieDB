@@ -1,72 +1,83 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.preference.PreferenceManager;
+
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class AddToWatchlistThreadTMDb extends Thread {
 
-    private final String sessionId;
     private final int movieId;
-    private final int accountId;
+    private final String accountId;
     private final String type;
+    private final String accessToken;
+    private final boolean trueOrFalse;
     private final Activity activity;
+    private final OkHttpClient client;
 
-    public AddToWatchlistThreadTMDb(String sessionId, int movieId, int accountId, String type, Activity activity) {
-        this.sessionId = sessionId;
+    public AddToWatchlistThreadTMDb(int movieId, String type, boolean trueOrFalse, Activity activity) {
         this.movieId = movieId;
-        this.accountId = accountId;
         this.type = type;
+        this.trueOrFalse = trueOrFalse;
         this.activity = activity;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.accountId = preferences.getString("account_id", "");
+        this.accessToken = preferences.getString("access_token", "");
+        this.client = new OkHttpClient();
     }
 
     @Override
     public void run() {
         boolean success = false;
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account/" + accountId + "/watchlist?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-
+            MediaType mediaType = MediaType.parse("application/json;charset=utf-8");
             JSONObject jsonParam = new JSONObject();
             jsonParam.put("media_type", type);
             jsonParam.put("media_id", movieId);
-            jsonParam.put("watchlist", true);
+            jsonParam.put("watchlist", trueOrFalse);
+            RequestBody body = RequestBody.create(mediaType, jsonParam.toString());
 
-            OutputStream os = connection.getOutputStream();
-            os.write(jsonParam.toString().getBytes( StandardCharsets.UTF_8 ));
-            os.close();
+            Request request = new Request.Builder()
+                    .url("https://api.themoviedb.org/3/account/" + accountId + "/watchlist?api_key=" + accessToken)
+                    .post(body)
+                    .addHeader("accept", "application/json")
+                    .addHeader("content-type", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
-
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-
-            JSONObject response = new JSONObject(builder.toString());
-            success = response.getBoolean("success");
+            Response response = client.newCall(request).execute();
+            String responseBody = response.body().string();
+            JSONObject jsonResponse = new JSONObject(responseBody);
+            String statusMessage = jsonResponse.getString("status_message");
+            success = statusMessage.equals("Success.");
 
         } catch (Exception e) {
             e.printStackTrace();
+            Log.e("AddToWatchlistThreadTMDb", "Failed to add movie to watchlist");
+            Log.e("AddToWatchlistThreadTMDb", e.getMessage());
         }
 
         final boolean finalSuccess = success;
-        activity.runOnUiThread( () -> {
+        activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                // Movie was successfully added to the watchlist.
+                Toast.makeText(activity, "Added to watchlist", Toast.LENGTH_SHORT).show();
             } else {
-                // Failed to add the movie to the watchlist.
+                Toast.makeText(activity, "Removed from watchlist", Toast.LENGTH_SHORT).show();
             }
-        } );
+        });
     }
 }

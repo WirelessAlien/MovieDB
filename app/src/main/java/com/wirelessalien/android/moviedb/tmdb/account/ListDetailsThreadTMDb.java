@@ -1,29 +1,34 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
-import android.util.Log;
+import android.content.SharedPreferences;
+
+import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.data.ListDetails;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class ListDetailsThreadTMDb extends Thread {
 
     private final int listId;
+    private final String accessToken;
     private final Activity activity;
     private final OnFetchListDetailsListener listener;
 
     public ListDetailsThreadTMDb(int listId, Activity activity, OnFetchListDetailsListener listener) {
         this.listId = listId;
         this.activity = activity;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.accessToken = preferences.getString("access_token", "");
         this.listener = listener;
     }
 
@@ -34,20 +39,19 @@ public class ListDetailsThreadTMDb extends Thread {
 
         while (hasMorePages) {
             try {
-                URL url = new URL("https://api.themoviedb.org/3/list/" + listId + "?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&page=" + currentPage);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
+                OkHttpClient client = new OkHttpClient();
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String line;
-                StringBuilder builder = new StringBuilder();
+                Request request = new Request.Builder()
+                        .url("https://api.themoviedb.org/4/list/" + listId + "?page=" + currentPage)
+                        .get()
+                        .addHeader("accept", "application/json")
+                        .addHeader("Authorization", "Bearer " + accessToken) // assuming accessToken is defined and initialized
+                        .build();
 
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                }
-
-                JSONObject response = new JSONObject(builder.toString());
-                JSONArray items = response.getJSONArray("items");
+                Response response = client.newCall(request).execute();
+                String responseBody = response.body().string();
+                JSONObject jsonResponse = new JSONObject(responseBody);
+                JSONArray items = jsonResponse.getJSONArray("results");
 
                 List<ListDetails> listDetailsData = new ArrayList<>();
                 for (int i = 0; i < items.length(); i++) {
@@ -72,7 +76,7 @@ public class ListDetailsThreadTMDb extends Thread {
                 activity.runOnUiThread(() -> listener.onFetchListDetails(listDetailsData));
 
                 // Check if there are more pages
-                int totalPages = response.getInt("total_pages");
+                int totalPages = jsonResponse.getInt("total_pages");
                 if (currentPage >= totalPages) {
                     hasMorePages = false;
                 } else {

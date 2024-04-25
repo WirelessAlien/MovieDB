@@ -55,6 +55,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
@@ -557,8 +558,6 @@ public class ShowFragment extends BaseFragment {
 
     //get users favorite movies when filter
     private class FavoriteListThread extends Thread {
-        private String listType;
-        private int page;
         private final Handler handler;
         private final String[] params;
 
@@ -579,20 +578,21 @@ public class ShowFragment extends BaseFragment {
                 }
             } );
 
-            listType = params[0];
-            page = Integer.parseInt( params[1] );
+            String listType = params[0];
+            int page = Integer.parseInt( params[1] );
 
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
-            // Load the webpage with the list of favorite movies/series.
             try {
-                if (listType.equals("movie")) {
-                    listType = "movies";
-                }
-                URL url = new URL( "https://api.themoviedb.org/3/account/" + preferences.getInt( "accountId", 0 ) + "/favorite/" + listType + "?api_key=" + API_KEY + "&session_id=" + preferences.getString( "session_id", "" ) + "&page=" + page );
 
-                URLConnection urlConnection = url.openConnection();
+                String access_token = preferences.getString( "access_token", "" );
+                URL url = new URL( "https://api.themoviedb.org/4/account/" + preferences.getString( "account_id", "" ) + "/" + listType + "/favorites?page=" + page );
+
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
                 try {
                     BufferedReader bufferedReader = new BufferedReader( new InputStreamReader( urlConnection.getInputStream() ) );
 
@@ -656,8 +656,6 @@ public class ShowFragment extends BaseFragment {
     }
 
     private class WatchListThread extends Thread {
-        private String listType;
-        private int page;
         private final Handler handler;
         private final String[] params;
 
@@ -678,20 +676,21 @@ public class ShowFragment extends BaseFragment {
                 }
             });
 
-            listType = params[0];
-            page = Integer.parseInt(params[1]);
+            String listType = params[0];
+            int page = Integer.parseInt( params[1] );
 
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
             // Load the webpage with the list of watchlist movies/series.
             try {
-                if (listType.equals("movie")) {
-                    listType = "movies";
-                }
-                URL url = new URL("https://api.themoviedb.org/3/account/" + preferences.getInt("accountId", 0) + "/watchlist/" + listType + "?api_key=" + API_KEY + "&session_id=" + preferences.getString("session_id", "") + "&page=" + page);
+                String access_token = preferences.getString("access_token", "");
+                URL url = new URL("https://api.themoviedb.org/4/account/" + preferences.getString("account_id", "") + "/" + listType + "/watchlist?page=" + page );
 
-                URLConnection urlConnection = url.openConnection();
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
                 try {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
 
@@ -755,8 +754,6 @@ public class ShowFragment extends BaseFragment {
     }
 
     private class RatedThread extends Thread {
-        private String listType;
-        private int page;
         private final Handler handler;
         private final String[] params;
 
@@ -777,20 +774,21 @@ public class ShowFragment extends BaseFragment {
                 }
             });
 
-            listType = params[0];
-            page = Integer.parseInt(params[1]);
+            String listType = params[0];
+            int page = Integer.parseInt( params[1] );
 
             String line;
             StringBuilder stringBuilder = new StringBuilder();
 
             // Load the webpage with the list of rated movies/series.
             try {
-                if (listType.equals("movie")) {
-                    listType = "movies";
-                }
-                URL url = new URL("https://api.themoviedb.org/3/account/" + preferences.getInt("accountId", 0) + "/rated/" + listType + "?api_key=" + API_KEY + "&session_id=" + preferences.getString("session_id", "") + "&page=" + page);
+                String access_token = preferences.getString("access_token", "");
+                URL url = new URL("https://api.themoviedb.org/4/account/" + preferences.getString("account_id", "") + "/" + listType + "/rated?page" + page );
 
-                URLConnection urlConnection = url.openConnection();
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
                 try {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
 
