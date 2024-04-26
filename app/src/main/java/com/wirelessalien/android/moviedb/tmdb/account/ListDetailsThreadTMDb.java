@@ -5,13 +5,10 @@ import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
 
-import com.wirelessalien.android.moviedb.data.ListDetails;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -53,24 +50,10 @@ public class ListDetailsThreadTMDb extends Thread {
                 JSONObject jsonResponse = new JSONObject(responseBody);
                 JSONArray items = jsonResponse.getJSONArray("results");
 
-                List<ListDetails> listDetailsData = new ArrayList<>();
+                ArrayList<JSONObject> listDetailsData = new ArrayList<>();
                 for (int i = 0; i < items.length(); i++) {
                     JSONObject item = items.getJSONObject(i);
-                    String mediaType = item.has("media_type") ? item.getString("media_type") : null;
-                    String titleKey = "title";
-                    if ("tv".equals(mediaType)) {
-                        titleKey = "name";
-                    }
-                    String title = item.has(titleKey) ? item.getString(titleKey) : null;
-                    String posterPath = item.has("poster_path") ? item.getString("poster_path") : null;
-                    String overview = item.has("overview") ? item.getString("overview") : null;
-                    String releaseDate = item.has("release_date") ? item.getString("release_date") : null;
-                    Double voteAverage = item.has("vote_average") ? item.getDouble("vote_average") : null;
-                    Integer voteCount = item.has("vote_count") ? item.getInt("vote_count") : null;
-                    Integer id = item.has("id") ? item.getInt("id") : null;
-                    String backdropPath = item.has("backdrop_path") ? item.getString("backdrop_path") : null;
-
-                    listDetailsData.add(new ListDetails(mediaType, title, posterPath, overview, releaseDate, voteAverage, voteCount, id, backdropPath));
+                    listDetailsData.add(item);
                 }
 
                 activity.runOnUiThread(() -> listener.onFetchListDetails(listDetailsData));
@@ -90,6 +73,6 @@ public class ListDetailsThreadTMDb extends Thread {
     }
 
     public interface OnFetchListDetailsListener {
-        void onFetchListDetails(List<ListDetails> listDetailsData);
+        void onFetchListDetails(ArrayList<JSONObject> listDetailsData);
     }
 }

@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.ListAdapter;
 import com.wirelessalien.android.moviedb.data.ListData;
@@ -19,13 +20,15 @@ import java.util.List;
 public class MyListsActivity extends AppCompatActivity {
 
     private ListAdapter listAdapter;
+    private MaterialToolbar toolbar;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_lists);
-
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar( toolbar);
         RecyclerView recyclerView = findViewById( R.id.recyclerView );
 
         listAdapter = new ListAdapter(new ArrayList<>(), new ListAdapter.OnItemClickListener() {

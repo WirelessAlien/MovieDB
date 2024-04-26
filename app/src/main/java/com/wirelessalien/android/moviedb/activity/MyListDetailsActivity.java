@@ -1,36 +1,44 @@
 package com.wirelessalien.android.moviedb.activity;
 
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.adapter.ListDetailsAdapter;
-import com.wirelessalien.android.moviedb.data.ListDetails;
+import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter;
 import com.wirelessalien.android.moviedb.tmdb.account.ListDetailsThreadTMDb;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 public class MyListDetailsActivity extends AppCompatActivity implements ListDetailsThreadTMDb.OnFetchListDetailsListener {
 
     private RecyclerView recyclerView;
-    private ListDetailsAdapter adapter;
+    private ShowBaseAdapter adapter; // Change to ShowBaseAdapter
     private int listId = 0;
+    HashMap<String, String> mShowGenreList;
+    final static String SHOWS_LIST_PREFERENCE = "key_show_shows_grid";
+    SharedPreferences preferences;
+    private MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView( R.layout.activity_my_lists);
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar( toolbar);
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mShowGenreList = new HashMap<>();
 
         // Get the list ID from the intent
         listId = getIntent().getIntExtra("listId", 0);
@@ -38,50 +46,13 @@ public class MyListDetailsActivity extends AppCompatActivity implements ListDeta
         ListDetailsThreadTMDb thread = new ListDetailsThreadTMDb(listId, this, this);
         thread.start();
 
-        adapter = new ListDetailsAdapter(new ArrayList<>(), new ListDetailsAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(ListDetails listData) {
-                ListDetails listDetails = new ListDetails(listData.getMediaType(), listData.getTitle(), listData.getPosterPath(), listData.getOverview(), listData.getReleaseDate(), listData.getVoteAverage(), listData.getVoteCount(), listData.getId(), listData.getBackdropPath());
-                Intent intent = new Intent(MyListDetailsActivity.this, DetailActivity.class);
-                intent.putExtra("movieObject", listDetails);
-                intent.putExtra("isMovie", listDetails.getMediaType().equals("movie"));
-                startActivity(intent);
-            }
-        });
-
+        adapter = new ShowBaseAdapter(new ArrayList<>(), null, false);
     }
 
     @Override
-    public void onFetchListDetails(List<ListDetails> listDetailsData) {
-        adapter = new ListDetailsAdapter(listDetailsData, new ListDetailsAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(ListDetails listData) {
-                try {
-                    // Convert ListDetails object to JSONObject
-                    JSONObject movieObject = new JSONObject();
-                    movieObject.put("mediaType", listData.getMediaType());
-                    movieObject.put("title", listData.getTitle());
-                    movieObject.put("posterPath", listData.getPosterPath());
-                    movieObject.put("overview", listData.getOverview());
-                    movieObject.put("releaseDate", listData.getReleaseDate());
-                    movieObject.put("voteAverage", listData.getVoteAverage());
-                    movieObject.put("voteCount", listData.getVoteCount());
-                    movieObject.put("id", listData.getId());
-                    movieObject.put("backdropPath", listData.getBackdropPath());
-
-                    // Convert JSONObject to String
-                    String movieObjectString = movieObject.toString();
-
-                    // Put the string in the intent as an extra
-                    Intent intent = new Intent(MyListDetailsActivity.this, DetailActivity.class);
-                    intent.putExtra("movieObject", movieObjectString);
-                    intent.putExtra("isMovie", listData.getMediaType().equals("movie"));
-                    startActivity(intent);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    public void onFetchListDetails(ArrayList<JSONObject> listDetailsData) {
+        adapter = new ShowBaseAdapter(listDetailsData,mShowGenreList,
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false));
         recyclerView.setAdapter(adapter);
     }
 }

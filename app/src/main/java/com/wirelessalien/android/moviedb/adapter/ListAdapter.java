@@ -3,6 +3,7 @@ package com.wirelessalien.android.moviedb.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,7 +26,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_list_item, parent, false);
         return new ViewHolder(view, onItemClickListener);
     }
 
@@ -50,17 +51,31 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final TextView listNameTextView;
+        private final TextView listNameTextView, descriptionTextView, itemCountTextView;
+        private final RatingBar ratingBar;
         private final OnItemClickListener onItemClickListener;
 
         public ViewHolder(@NonNull View itemView, OnItemClickListener onItemClickListener) {
             super(itemView);
             listNameTextView = itemView.findViewById(R.id.listNameTextView);
+            descriptionTextView = itemView.findViewById(R.id.description);
+            itemCountTextView = itemView.findViewById(R.id.itemCount);
+            ratingBar = itemView.findViewById(R.id.ratingBar);
             this.onItemClickListener = onItemClickListener;
         }
 
         public void bind(ListData listData) {
             listNameTextView.setText(listData.getName());
+
+            // Check if description is null or empty
+            if (listData.getDescription() == null || listData.getDescription().isEmpty()) {
+                descriptionTextView.setText("No description");
+            } else {
+                descriptionTextView.setText(listData.getDescription());
+            }
+
+            itemCountTextView.setText("Items: " + (listData.getItemCount()));
+            ratingBar.setRating((float) listData.getAverageRating()/2);
             itemView.setTag(listData);
             itemView.setOnClickListener(v -> onItemClickListener.onItemClick((ListData) itemView.getTag()));
         }

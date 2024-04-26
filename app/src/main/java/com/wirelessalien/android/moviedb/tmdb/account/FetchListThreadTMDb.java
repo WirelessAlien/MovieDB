@@ -54,7 +54,7 @@ public class FetchListThreadTMDb extends Thread {
             List<ListData> listData = new ArrayList<>();
             for (int i = 0; i < results.length(); i++) {
                 JSONObject result = results.getJSONObject(i);
-                listData.add(new ListData(result.getInt("id"), result.getString("name")));
+                listData.add(new ListData(result.getInt("id"), result.getString("name"), result.getString("description"), result.getInt("number_of_items"), result.getDouble("average_rating")));
                 Log.d("FetchListThreadTMDb", "Fetched list name: " + result.getString("name"));
             }
 
