@@ -63,7 +63,6 @@
         <activity android:name=".activity.SettingsActivity" />
         <activity android:name=".activity.FilterActivity" />
         <activity android:name=".activity.ExportActivity" />
-        <activity android:name=".fragment.AccountFragment"/>
         <activity android:name=".activity.ImportActivity" />
         <activity android:name=".activity.TVSeasonDetailsActivity"/>
         <activity android:name=".activity.MyListsActivity"/>

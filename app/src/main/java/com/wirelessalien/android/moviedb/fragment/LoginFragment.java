@@ -15,9 +15,13 @@ import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetailsThread;
 import com.wirelessalien.android.moviedb.tmdb.account.LogoutThread;
 import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthThreadV4;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class LoginFragment extends BottomSheetDialogFragment {
 
@@ -40,6 +44,8 @@ public class LoginFragment extends BottomSheetDialogFragment {
         Button logoutButton = view.findViewById(R.id.logout);
         TextView loginStatus = view.findViewById(R.id.login_status);
         Button signUpButton = view.findViewById(R.id.signup);
+        TextView nameTextView = view.findViewById(R.id.name);
+        CircleImageView avatar = view.findViewById(R.id.avatar);
 
         signUpButton.setOnClickListener(v -> {
             String url = "https://www.themoviedb.org/signup";
@@ -49,7 +55,7 @@ public class LoginFragment extends BottomSheetDialogFragment {
         });
 
 
-        if (preferences.getInt("accountId", -1) != -1 && preferences.getString("access_token", null) != null){
+        if (preferences.getString("account_id", null) != null && preferences.getString("access_token", null) != null){
             loginButton.setVisibility(View.GONE);
             logoutButton.setVisibility(View.VISIBLE);
             loginStatus.setText("You are logged in");
@@ -57,15 +63,8 @@ public class LoginFragment extends BottomSheetDialogFragment {
         }
 
         logoutButton.setOnClickListener(v -> {
-
-            LogoutThread logoutThread = new LogoutThread(requireContext()) {
-                @Override
-                public void run() {
-                    logout();
-                }
-            };
-
-
+            LogoutThread logoutThread = new LogoutThread(requireContext());
+            logoutThread.start();
 
             loginButton.setVisibility(View.VISIBLE);
             logoutButton.setVisibility(View.GONE);
@@ -85,6 +84,31 @@ public class LoginFragment extends BottomSheetDialogFragment {
             };
             authTask.start();
         });
+
+        //if access token is not null, then the user is logged in
+        if (preferences.getString("access_token", null) != null){
+            GetAccountDetailsThread getAccountIdThread = new GetAccountDetailsThread(getContext(), new GetAccountDetailsThread.AccountDataCallback() {
+                @Override
+                public void onAccountDataReceived(int accountId, String name, String username, String avatarPath, String gravatar) {
+                    requireActivity().runOnUiThread( () -> {
+                        // If both username and name are available, display name. Otherwise, display whichever is available.
+                        if (name != null && !name.isEmpty()) {
+                            nameTextView.setText(name);
+                        } else if (username != null && !username.isEmpty()) {
+                            nameTextView.setText(username);
+                        }
+
+                        // If both avatarPath and gravatar are available, display avatarPath. Otherwise, display whichever is available.
+                        if (avatarPath != null && !avatarPath.isEmpty()) {
+                            Picasso.get().load("https://image.tmdb.org/t/p/w200" + avatarPath).into(avatar);
+                        } else if (gravatar != null && !gravatar.isEmpty()) {
+                            Picasso.get().load("https://secure.gravatar.com/avatar/" + gravatar + ".jpg?s=200").into(avatar);
+                        }
+                    } );
+                }
+            });
+            getAccountIdThread.start();
+        }
 
         return view;
     }

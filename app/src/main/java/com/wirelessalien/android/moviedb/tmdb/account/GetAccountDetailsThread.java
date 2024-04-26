@@ -1,65 +1,89 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.preference.PreferenceManager;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class GetAccountDetailsThread extends Thread {
 
-    private final String sessionId;
-    private final Activity activity;
-    private Map<String, String> details = new HashMap<>();
+    private String accountId;
+    private int accountIdInt;
+    private final String accessToken;
+    private final Context context;
+    private final OkHttpClient client;
 
-    public GetAccountDetailsThread(String sessionId, Activity activity) {
-        this.sessionId = sessionId;
-        this.activity = activity;
+    private AccountDataCallback callback;
+
+    public interface AccountDataCallback {
+        void onAccountDataReceived(int accountId, String name, String username, String avatarPath, String gravatar);
     }
+
+    public GetAccountDetailsThread(Context context, AccountDataCallback callback) {
+        this.context = context;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.accountId = preferences.getString( "account_id", "" );
+        this.accessToken = preferences.getString( "access_token", "" );
+        this.client = new OkHttpClient();
+        this.callback = callback;
+    }
+
 
     @Override
     public void run() {
-        getAccountDetails();
-    }
-
-    private void getAccountDetails() {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/account?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5&session_id=" + sessionId);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
+            Request request = new Request.Builder()
+                    .url("https://api.themoviedb.org/3/account/" + accountId)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder builder = new StringBuilder();
+            Response response = client.newCall(request).execute();
 
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
+            if (response.isSuccessful()) {
+                JSONObject jsonResponse = new JSONObject(response.body().string());
+                accountIdInt = jsonResponse.getInt("id");
+                String name = jsonResponse.getString("name");
+                String username = jsonResponse.getString("username");
+
+                //avatar path - object tmdb
+                JSONObject avatar = jsonResponse.getJSONObject("avatar");
+                JSONObject tmdb = avatar.getJSONObject("tmdb");
+                String avatarPath = tmdb.getString("avatar_path");
+                String gravatar = avatar.getJSONObject( "gravatar" ).getString( "hash" );
+
+                if (callback != null) {
+                    callback.onAccountDataReceived(accountIdInt, name, username, avatarPath, gravatar);
+                }
+
+                ((Activity) context).runOnUiThread(() -> {
+                    if (accountId != null) {
+                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                        SharedPreferences.Editor myEdit = preferences.edit();
+                        myEdit.putInt("accountIdInt", accountIdInt);
+                        myEdit.apply();
+                    } else {
+                        Log.e("GetAccountDetailsThread", "Failed to get account id");
+                    }
+                });
+            } else {
+                Log.e("GetAccountDetailsThread", "Failed to get account id");
             }
 
-            JSONObject response = new JSONObject(builder.toString());
-            String username = response.getString("username");
-            String name = response.getString("name");
-            String avatarPath = response.getJSONObject("avatar").getJSONObject("tmdb").getString("avatar_path");
-
-            details.put("username", username);
-            details.put("name", name);
-            details.put("avatar_path", avatarPath);
-
-        } catch (Exception e) {
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
-            Log.e("GetAccountDetailsThread", "Error getting account details");
-            Log.e("GetAccountDetailsThread", e.getMessage());
         }
-    }
-
-    public Map<String, String> getDetails() {
-        return details;
     }
 }

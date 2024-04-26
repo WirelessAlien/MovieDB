@@ -466,7 +466,7 @@ public class DetailActivity extends BaseActivity {
             }
         } ).start() );
 
-        rateButton.setOnClickListener( v -> {
+        rateButton.setOnClickListener(v -> {
             MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
             LayoutInflater inflater = getLayoutInflater();
             View dialogView = inflater.inflate(R.layout.rating_dialog, null);
@@ -479,34 +479,39 @@ public class DetailActivity extends BaseActivity {
             Button cancelButton = dialogView.findViewById(R.id.btnCancel);
             Button deleteButton = dialogView.findViewById(R.id.btnDelete);
 
-            // Create an instance of GetAccountStateThreadTMDb
-            GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(movieId, isMovie ? "movie" : "tv", mActivity);
-            getAccountStateThread.start();
-            try {
-                getAccountStateThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            // Get the previous rating and set it to the RatingBar
-            double previousRating = getAccountStateThread.getRating();
-            ratingBar.setRating((float) previousRating / 2);
+            progressBar.setVisibility(View.VISIBLE);
 
-            submitButton.setOnClickListener( v1 -> {
-                String type = isMovie ? "movie" : "tv";
+            CompletableFuture.runAsync(() -> {
+                GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(movieId, isMovie ? "movie" : "tv", mActivity);
+                getAccountStateThread.start();
+                try {
+                    getAccountStateThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                double previousRating = getAccountStateThread.getRating();
+                runOnUiThread(() -> ratingBar.setRating((float) previousRating / 2));
+            }).thenRun(() -> {
+                submitButton.setOnClickListener(v1 -> {
+                    CompletableFuture.runAsync(() -> {
+                        String type = isMovie ? "movie" : "tv";
+                        double rating = ratingBar.getRating() * 2;
+                        new AddRatingThreadTMDb(movieId, rating, type, mActivity).start();
+                        runOnUiThread(() -> dialog.dismiss());
+                    });
+                });
 
-                double rating = ratingBar.getRating() * 2;
-                new AddRatingThreadTMDb(movieId, rating, type, mActivity).start();
-                dialog.dismiss();
-            } );
+                deleteButton.setOnClickListener(v12 -> {
+                    CompletableFuture.runAsync(() -> {
+                        String type = isMovie ? "movie" : "tv";
+                        new DeleteRatingThreadTMDb(movieId, type, mActivity).start();
+                        runOnUiThread(() -> dialog.dismiss());
+                    });
+                });
 
-            deleteButton.setOnClickListener( v12 -> {
-                String type = isMovie ? "movie" : "tv";
-                new DeleteRatingThreadTMDb(movieId, type, mActivity).start();
-                dialog.dismiss();
-            } );
-
-            cancelButton.setOnClickListener( v12 -> dialog.dismiss() );
-        } );
+                cancelButton.setOnClickListener(v12 -> dialog.dismiss());
+            }).thenRun(() -> progressBar.setVisibility(View.GONE));
+        });
 
         checkNetwork();
     }

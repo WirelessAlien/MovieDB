@@ -5,6 +5,24 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/avatar"
+        android:layout_width="100dip"
+        android:layout_height="100dip"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:text="User Name"
+        android:textStyle="bold" />
+
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/login"
         android:layout_width="wrap_content"
