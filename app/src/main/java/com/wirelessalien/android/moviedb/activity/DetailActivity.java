@@ -28,6 +28,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -54,6 +55,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -61,6 +63,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -93,6 +96,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
@@ -126,7 +130,7 @@ public class DetailActivity extends BaseActivity {
     private ArrayList<JSONObject> similarMovieArrayList;
     private MaterialToolbar toolbar;
     private String sessionId;
-    private int accountId;
+    private String accountId;
     private SQLiteDatabase database;
     private MovieDatabaseHelper databaseHelper;
     private int movieId;
@@ -141,8 +145,11 @@ public class DetailActivity extends BaseActivity {
     private TextView movieFinishDate;
     private TextView movieRewatched;
     private TextView movieEpisodes;
+    private TextView imdbLink;
     private RatingBar movieRating;
     private TextView movieDescription;
+    private String imdbId;
+    private Context context = this;
     private JSONObject jMovieObject;
     private String genres;
     private Date startDate;
@@ -176,6 +183,7 @@ public class DetailActivity extends BaseActivity {
     private boolean mMovieDetailsLoaded = false;
     private boolean mSimilarMoviesLoaded = false;
     private boolean mCastAndCrewLoaded = false;
+    private boolean mExternalDataLoaded = false;
 
     /**
      * Returns the category number when supplied with
@@ -232,6 +240,7 @@ public class DetailActivity extends BaseActivity {
         // when data is retrieved.
         mActivity = this;
         movieId = 0;
+        context = this;
 
         // RecyclerView to display the cast of the show.
         castView = findViewById(R.id.castRecyclerView);
@@ -299,14 +308,15 @@ public class DetailActivity extends BaseActivity {
         movieEpisodes = findViewById(R.id.movieEpisodes);
         movieRating = findViewById(R.id.movieRating);
         movieDescription = findViewById(R.id.movieDescription);
+        imdbLink = findViewById(R.id.imdbLink);
 
         ImageButton addToListBtn = findViewById(R.id.addToList);
         ImageButton addToWatchlistButton = findViewById(R.id.watchListButton);
         ImageButton addToFavouritesButton = findViewById(R.id.favouriteButton);
         ImageButton rateButton = findViewById(R.id.ratingBtn);
 
-        sessionId = preferences.getString("session_id", null);
-        accountId = 21152971;
+        sessionId = preferences.getString("access_token", null);
+        accountId = preferences.getString("account_id", null);
 
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
@@ -341,7 +351,7 @@ public class DetailActivity extends BaseActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> {
-            if (accountId != 0 && sessionId != null) {
+            if (accountId != null && sessionId != null) {
                 String typeCheck = isMovie ? "movie" : "tv";
                 GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(movieId, typeCheck, mActivity);
                 getAccountStateThread.start();
@@ -406,7 +416,7 @@ public class DetailActivity extends BaseActivity {
         }
 
         addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
-            if (accountId != 0) {
+            if (accountId != null) {
                 boolean add = true;
                 boolean remove = false;
                 String typeCheck = isMovie ? "movie" : "tv";
@@ -439,7 +449,7 @@ public class DetailActivity extends BaseActivity {
         } );
 
         addToFavouritesButton.setOnClickListener( v -> new Thread( () -> {
-            if (accountId != 0) {
+            if (accountId != null) {
                 boolean add = true;
                 boolean remove = false;
                 String typeCheck = isMovie ? "movie" : "tv";
@@ -531,6 +541,11 @@ public class DetailActivity extends BaseActivity {
         if (!mMovieDetailsLoaded) {
             MovieDetailsThread movieDetailsThread = new MovieDetailsThread();
             movieDetailsThread.start();
+        }
+
+        if (!mExternalDataLoaded) {
+            GetExternalIdsThread externalDataThread = new GetExternalIdsThread(context);
+            externalDataThread.start();
         }
     }
 
@@ -909,6 +924,77 @@ public class DetailActivity extends BaseActivity {
             e.printStackTrace();
         }
     }
+
+    // Add this method in your DetailActivity class
+    private void openGoogleSearch(String title, String releaseYear) {
+        String query = title + " " + releaseYear;
+        String url = "https://www.google.com/search?q=" + Uri.encode(query);
+
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        CustomTabsIntent customTabsIntent = builder.build();
+        customTabsIntent.launchUrl(this, Uri.parse(url));
+    }
+    public class GetExternalIdsThread extends Thread {
+
+        private final Handler handler;
+        private final Context context;
+
+        public GetExternalIdsThread(Context context) {
+
+            this.context = context;
+            this.handler = new Handler(Looper.getMainLooper());
+        }
+
+        @Override
+        public void run() {
+            try {
+                String movie = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
+                URL url = new URL("https://api.themoviedb.org/3/" + movie + "/" + movieId + "/external_ids?api_key=" + API_KEY);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.connect();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    stringBuilder.append(line);
+                }
+                reader.close();
+                String response = stringBuilder.toString();
+
+                handler.post(() -> onPostExecute(response));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void onPostExecute(String response) {
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                String imdbId = jsonObject.getString("imdb_id");
+                TextView imdbLink = findViewById(R.id.imdbLink);
+                RelativeLayout imdbLayout = findViewById(R.id.imdbLayout);
+                //if imdbId is not available, set the text to "IMDB (not available)"
+                if (imdbId.equals("null")) {
+                    imdbLink.setText("IMDB (not available)");
+                } else {
+                    //if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
+                    imdbLink.setText("IMDB");
+                    imdbLayout.setOnClickListener(v -> {
+                        String url = "https://www.imdb.com/title/" + imdbId;
+                        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                        CustomTabsIntent customTabsIntent = builder.build();
+                        customTabsIntent.launchUrl(context, Uri.parse(url));
+                    });
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 
     /**
      * Makes the showDetails layout invisible and the editShowDetails visible

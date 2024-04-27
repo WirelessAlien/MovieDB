@@ -23,7 +23,7 @@ public class TVSeasonThread extends Thread {
     private final int tvShowId;
     private List<TVSeason> seasons;
 
-    private SharedPreferences preferences;
+    private final SharedPreferences preferences;
 
     public TVSeasonThread(int tvShowId, Context context) {
         this.tvShowId = tvShowId;

@@ -24,11 +24,9 @@ import java.util.List;
 public class TVSeasonAdapter extends RecyclerView.Adapter<TVSeasonAdapter.SeasonViewHolder> {
 
     private final List<TVSeason> seasons;
-    private final Context context;
     int tvShowId;
     SharedPreferences preferences;
     public TVSeasonAdapter(Context context, List<TVSeason> seasons) {
-        this.context = context;
         this.seasons = seasons;
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.tvShowId = preferences.getInt("tvShowId", -1);
