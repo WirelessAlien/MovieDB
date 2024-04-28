@@ -133,7 +133,6 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="3dp"
-                android:textStyle="italic"
                 android:textSize="11sp"/>
 
         </RelativeLayout>

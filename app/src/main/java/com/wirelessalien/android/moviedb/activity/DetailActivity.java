@@ -71,6 +71,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.squareup.picasso.Picasso;
+import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
 import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToFavouritesThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlistThreadTMDb;
@@ -148,7 +149,6 @@ public class DetailActivity extends BaseActivity {
     private TextView imdbLink;
     private RatingBar movieRating;
     private TextView movieDescription;
-    private String imdbId;
     private Context context = this;
     private JSONObject jMovieObject;
     private String genres;
@@ -158,11 +158,12 @@ public class DetailActivity extends BaseActivity {
     private boolean added = false;
     private SpannableString showTitle;
     private AlphaForegroundColorSpan alphaForegroundColorSpan;
+    private ActivityDetailBinding binding;
     private final NotifyingScrollView.OnScrollChangedListener
             mOnScrollChangedListener = new NotifyingScrollView
             .OnScrollChangedListener() {
         public void onScrollChanged(int t) {
-            final int headerHeight = findViewById( R.id.movieImage).getHeight() -
+            final int headerHeight = binding.movieImage.getHeight() -
                     toolbar.getHeight();
             final float ratio = (float) Math.min(Math.max(t, 0),
                     headerHeight) / headerHeight;
@@ -183,7 +184,7 @@ public class DetailActivity extends BaseActivity {
     private boolean mMovieDetailsLoaded = false;
     private boolean mSimilarMoviesLoaded = false;
     private boolean mCastAndCrewLoaded = false;
-    private boolean mExternalDataLoaded = false;
+    private final boolean mExternalDataLoaded = false;
 
     /**
      * Returns the category number when supplied with
@@ -224,16 +225,19 @@ public class DetailActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        binding = ActivityDetailBinding.inflate(getLayoutInflater());
+
         API_KEY = ConfigHelper.getConfigValue(getApplicationContext(), "api_key");
-        // Set the proper layout.
-        setContentView(R.layout.activity_detail);
+
+        setContentView(binding.getRoot());
+
         setNavigationDrawer();
         setBackButtons();
 
-        toolbar = findViewById(R.id.toolbar);
+        toolbar = binding.toolbar;
 
         // Make the transparency dependent on how far the user scrolled down.
-        NotifyingScrollView notifyingScrollView = findViewById(R.id.scrollView);
+        NotifyingScrollView notifyingScrollView = binding.scrollView;
         notifyingScrollView.setOnScrollChangedListener(mOnScrollChangedListener);
 
         // Create a variable with the application context that can be used
@@ -243,7 +247,7 @@ public class DetailActivity extends BaseActivity {
         context = this;
 
         // RecyclerView to display the cast of the show.
-        castView = findViewById(R.id.castRecyclerView);
+        castView = binding.castRecyclerView;
         castView.setHasFixedSize(true); // Improves performance (if size is static)
 
         LinearLayoutManager castLinearLayoutManager = new LinearLayoutManager(this,
@@ -251,7 +255,7 @@ public class DetailActivity extends BaseActivity {
         castView.setLayoutManager(castLinearLayoutManager);
 
         // RecyclerView to display the crew of the show.
-        crewView = findViewById(R.id.crewRecyclerView);
+        crewView = binding.crewRecyclerView;
         crewView.setHasFixedSize(true); // Improves performance (if size is static)
 
         LinearLayoutManager crewLinearLayoutManager = new LinearLayoutManager(this,
@@ -259,7 +263,7 @@ public class DetailActivity extends BaseActivity {
         crewView.setLayoutManager(crewLinearLayoutManager);
 
         // RecyclerView to display similar shows to this one.
-        similarMovieView = findViewById(R.id.movieRecyclerView);
+        similarMovieView = binding.movieRecyclerView;
         similarMovieView.setHasFixedSize(true); // Improves performance (if size is static)
         LinearLayoutManager movieLinearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.HORIZONTAL, false);
@@ -271,49 +275,49 @@ public class DetailActivity extends BaseActivity {
         if (!preferences.getBoolean(CAST_VIEW_PREFERENCE, false)) {
             castView.setVisibility(View.GONE);
 
-            TextView castTitle = findViewById(R.id.castTitle);
+            TextView castTitle = binding.castTitle;
             castTitle.setVisibility(View.GONE);
 
-            View castDivider = findViewById(R.id.secondDivider);
+            View castDivider = binding.secondDivider;
             castDivider.setVisibility(View.GONE);
         }
 
         if (!preferences.getBoolean(CREW_VIEW_PREFERENCE, false)) {
             crewView.setVisibility(View.GONE);
 
-            TextView crewTitle = findViewById(R.id.crewTitle);
+            TextView crewTitle = binding.crewTitle;
             crewTitle.setVisibility(View.GONE);
 
-            View crewDivider = findViewById(R.id.thirdDivider);
+            View crewDivider = binding.thirdDivider;
             crewDivider.setVisibility(View.GONE);
         }
 
         if (!preferences.getBoolean(RECOMMENDATION_VIEW_PREFERENCE, false)) {
             similarMovieView.setVisibility(View.GONE);
 
-            TextView similarMovieTitle = findViewById(R.id.similarMovieTitle);
+            TextView similarMovieTitle = binding.similarMovieTitle;
             similarMovieTitle.setVisibility(View.GONE);
 
-            View similarMoviesDivider = findViewById(R.id.fourthDivider);
+            View similarMoviesDivider = binding.fourthDivider;
             similarMoviesDivider.setVisibility(View.GONE);
         }
         // Get the views from the layout.
-        movieImage = findViewById(R.id.movieImage);
-        movieTitle = findViewById(R.id.movieTitle);
-        moviePoster = findViewById(R.id.moviePoster);
-        movieGenres = findViewById(R.id.movieGenres);
-        movieStartDate = findViewById(R.id.movieStartDate);
-        movieFinishDate = findViewById(R.id.movieFinishDate);
-        movieRewatched = findViewById(R.id.movieRewatched);
-        movieEpisodes = findViewById(R.id.movieEpisodes);
-        movieRating = findViewById(R.id.movieRating);
-        movieDescription = findViewById(R.id.movieDescription);
-        imdbLink = findViewById(R.id.imdbLink);
+        movieImage = binding.movieImage;
+        movieTitle = binding.movieTitle;
+        moviePoster = binding.moviePoster;
+        movieGenres = binding.movieGenres;
+        movieStartDate = binding.movieStartDate;
+        movieFinishDate = binding.movieFinishDate;
+        movieRewatched = binding.movieRewatched;
+        movieEpisodes = binding.movieEpisodes;
+        movieRating = binding.movieRating;
+        movieDescription = binding.movieDescription;
+        imdbLink = binding.imdbLink;
 
-        ImageButton addToListBtn = findViewById(R.id.addToList);
-        ImageButton addToWatchlistButton = findViewById(R.id.watchListButton);
-        ImageButton addToFavouritesButton = findViewById(R.id.favouriteButton);
-        ImageButton rateButton = findViewById(R.id.ratingBtn);
+        ImageButton addToListBtn = binding.addToList;
+        ImageButton addToWatchlistButton = binding.watchListButton;
+        ImageButton addToFavouritesButton = binding.favouriteButton;
+        ImageButton rateButton = binding.ratingBtn;
 
         sessionId = preferences.getString("access_token", null);
         accountId = preferences.getString("account_id", null);
@@ -347,7 +351,7 @@ public class DetailActivity extends BaseActivity {
             e.printStackTrace();
         }
 
-        ProgressBar progressBar = findViewById(R.id.progressBar);
+        ProgressBar progressBar = binding.progressBar;
         progressBar.setVisibility(View.VISIBLE);
 
         CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> {
@@ -407,7 +411,7 @@ public class DetailActivity extends BaseActivity {
         if (future2 != null) {
             future2.thenAcceptBoth(future1, (seasons, voidResult) -> {
                 runOnUiThread(() -> {
-                    RecyclerView recyclerView = findViewById(R.id.seasonRecyclerview);
+                    RecyclerView recyclerView = binding.seasonRecyclerview;
                     TVSeasonAdapter adapter = new TVSeasonAdapter(DetailActivity.this, seasons);
                     recyclerView.setLayoutManager(new LinearLayoutManager(DetailActivity.this, LinearLayoutManager.HORIZONTAL, false));
                     recyclerView.setAdapter(adapter);
@@ -673,15 +677,15 @@ public class DetailActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        LinearLayout editShowDetails = findViewById(R.id.editShowDetails);
+        LinearLayout editShowDetails = binding.editShowDetails;
 
         if (editShowDetails.getVisibility() != View.GONE) {
             // Clear the focus (in case it has the focus)
             // so the content will be saved when the user leaves.
-            Spinner categoriesView = findViewById(R.id.categories);
-            EditText timesWatched = findViewById(R.id.timesWatched);
-            EditText episodesSeen = findViewById(R.id.episodesSeen);
-            EditText showRating = findViewById(R.id.showRating);
+            Spinner categoriesView = binding.categories;
+            EditText timesWatched = binding.timesWatched;
+            EditText episodesSeen = binding.episodesSeen;
+            EditText showRating = binding.showRating;
 
             categoriesView.clearFocus();
             timesWatched.clearFocus();
@@ -857,7 +861,7 @@ public class DetailActivity extends BaseActivity {
                             + totalEpisodes);
 
                     // Make the row visible once the correct values are set.
-                    TableRow episodesSeenRow = (TableRow) findViewById(R.id.episodesSeen).getParent();
+                    TableRow episodesSeenRow = (TableRow) binding.episodesSeen.getParent();
                     episodesSeenRow.setVisibility(View.VISIBLE);
                     movieEpisodes.setVisibility(View.VISIBLE);
                 }
@@ -868,7 +872,7 @@ public class DetailActivity extends BaseActivity {
                 movieRewatched.setVisibility(View.VISIBLE);
 
                 // Make it possible to change the values.
-                ImageView editIcon = findViewById(R.id.editIcon);
+                ImageView editIcon = binding.editIcon;
                 editIcon.setVisibility(View.VISIBLE);
             } else if (movieObject.has("vote_average") &&
                     !movieObject.getString("vote_average").equals(voteAverage)) {
@@ -973,7 +977,7 @@ public class DetailActivity extends BaseActivity {
             try {
                 JSONObject jsonObject = new JSONObject(response);
                 String imdbId = jsonObject.getString("imdb_id");
-                TextView imdbLink = findViewById(R.id.imdbLink);
+                imdbLink = binding.imdbLink;
                 RelativeLayout imdbLayout = findViewById(R.id.imdbLayout);
                 //if imdbId is not available, set the text to "IMDB (not available)"
                 if (imdbId.equals("null")) {
@@ -1002,13 +1006,13 @@ public class DetailActivity extends BaseActivity {
      */
     public void editDetails(View view) {
         final LinearLayout showDetails, editShowDetails;
-        showDetails = findViewById(R.id.showDetails);
-        editShowDetails = findViewById(R.id.editShowDetails);
-        ImageView editIcon = findViewById(R.id.editIcon);
+        showDetails = binding.showDetails;
+        editShowDetails = binding.editShowDetails;
+        ImageView editIcon = binding.editIcon;
 
-        final EditText episodesSeenView = findViewById(R.id.episodesSeen);
-        final EditText timesWatchedView = findViewById(R.id.timesWatched);
-        final EditText showRating = findViewById(R.id.showRating);
+        final EditText episodesSeenView = binding.episodesSeen;
+        final EditText timesWatchedView = binding.timesWatched;
+        final EditText showRating = binding.showRating;
 
         if (editShowDetails.getVisibility() == View.GONE) {
             fadeOutAndHideAnimation(showDetails);
@@ -1034,7 +1038,7 @@ public class DetailActivity extends BaseActivity {
             editIcon.setImageResource(R.drawable.ic_check);
 
             // Listen for changes to the categories.
-            Spinner categoriesView = findViewById(R.id.categories);
+            Spinner categoriesView = binding.categories;
             categoriesView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -1194,12 +1198,12 @@ public class DetailActivity extends BaseActivity {
         } else {
             cursor.moveToFirst();
 
-            Spinner categories = findViewById(R.id.categories);
-            Button startDateButton = findViewById(R.id.startDateButton);
-            Button endDateButton = findViewById(R.id.endDateButton);
-            EditText timesWatched = findViewById(R.id.timesWatched);
-            EditText episodesSeen = findViewById(R.id.episodesSeen);
-            EditText showRating = findViewById(R.id.showRating);
+            Spinner categories = binding.categories;
+            Button startDateButton = binding.startDateButton;
+            Button endDateButton = binding.endDateButton;
+            EditText timesWatched = binding.timesWatched;
+            EditText episodesSeen = binding.episodesSeen;
+            EditText showRating = binding.showRating;
 
             // Set the right category.
             switch (cursor.getInt( cursor.getColumnIndexOrThrow(
@@ -1539,8 +1543,8 @@ public class DetailActivity extends BaseActivity {
                 }
             }
 
-            hideEmptyRecyclerView(castView, findViewById(R.id.castTitle));
-            hideEmptyRecyclerView(crewView, findViewById(R.id.crewTitle));
+            hideEmptyRecyclerView(castView, binding.castTitle);
+            hideEmptyRecyclerView(crewView, binding.crewTitle);
         }
     }
 
@@ -1610,7 +1614,7 @@ public class DetailActivity extends BaseActivity {
             }
         }
 
-        hideEmptyRecyclerView(similarMovieView, findViewById(R.id.similarMovieTitle));
+        hideEmptyRecyclerView(similarMovieView, binding.similarMovieTitle);
     }
 
     // Load the movie details.

@@ -52,7 +52,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView listNameTextView, descriptionTextView, itemCountTextView;
-        private final RatingBar ratingBar;
+//        private final RatingBar ratingBar;
         private final OnItemClickListener onItemClickListener;
 
         public ViewHolder(@NonNull View itemView, OnItemClickListener onItemClickListener) {
@@ -60,7 +60,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             listNameTextView = itemView.findViewById(R.id.listNameTextView);
             descriptionTextView = itemView.findViewById(R.id.description);
             itemCountTextView = itemView.findViewById(R.id.itemCount);
-            ratingBar = itemView.findViewById(R.id.ratingBar);
+//            ratingBar = itemView.findViewById(R.id.ratingBar);
             this.onItemClickListener = onItemClickListener;
         }
 
@@ -75,7 +75,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             }
 
             itemCountTextView.setText("Items: " + (listData.getItemCount()));
-            ratingBar.setRating((float) listData.getAverageRating()/2);
+//            ratingBar.setRating((float) listData.getAverageRating()/2);
             itemView.setTag(listData);
             itemView.setOnClickListener(v -> onItemClickListener.onItemClick((ListData) itemView.getTag()));
         }
