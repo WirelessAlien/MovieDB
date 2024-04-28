@@ -103,7 +103,7 @@ public class BaseFragment extends Fragment {
             // If the user changed from a list layout to a grid layout, reload the ShowBaseAdapter.
             if (!(mShowView.getLayoutManager() instanceof GridLayoutManager)) {
                 mShowAdapter = new ShowBaseAdapter(mShowArrayList, mShowGenreList,
-                        preferences.getBoolean(SHOWS_LIST_PREFERENCE, true));
+                        preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false);
             }
             GridLayoutManager mShowGridView = new GridLayoutManager(getActivity(),
                     preferences.getInt(GRID_SIZE_PREFERENCE, 3));
@@ -113,7 +113,7 @@ public class BaseFragment extends Fragment {
             // If the user changed from a list layout to a grid layout, reload the ShowBaseAdapter.
             if (!(mShowView.getLayoutManager() instanceof LinearLayoutManager)) {
                 mShowAdapter = new ShowBaseAdapter(mShowArrayList, mShowGenreList,
-                        preferences.getBoolean(SHOWS_LIST_PREFERENCE, true));
+                        preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false);
             }
             mShowLinearLayoutManager = new LinearLayoutManager(getActivity(),
                     LinearLayoutManager.VERTICAL, false);

@@ -42,17 +42,16 @@ public class MyListDetailsActivity extends AppCompatActivity implements ListDeta
 
         // Get the list ID from the intent
         listId = getIntent().getIntExtra("listId", 0);
-        // Fetch the data
+        preferences.edit().putInt("listId", listId).apply();
         ListDetailsThreadTMDb thread = new ListDetailsThreadTMDb(listId, this, this);
         thread.start();
 
-        adapter = new ShowBaseAdapter(new ArrayList<>(), null, false);
+        adapter = new ShowBaseAdapter(new ArrayList<>(), null, false, true);
     }
 
     @Override
     public void onFetchListDetails(ArrayList<JSONObject> listDetailsData) {
-        adapter = new ShowBaseAdapter(listDetailsData,mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false));
+        adapter = new ShowBaseAdapter(listDetailsData, mShowGenreList, false, true);
         recyclerView.setAdapter(adapter);
     }
 }

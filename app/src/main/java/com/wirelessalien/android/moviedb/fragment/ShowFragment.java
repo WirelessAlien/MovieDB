@@ -308,7 +308,7 @@ public class ShowFragment extends BaseFragment {
         mShowArrayList = new ArrayList<>();
         mShowGenreList = new HashMap<>();
         mShowAdapter = new ShowBaseAdapter(mShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false));
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false);
 
         ((BaseActivity) requireActivity()).checkNetwork();
 
@@ -383,7 +383,7 @@ public class ShowFragment extends BaseFragment {
         // Create a separate adapter for the search results.
         mSearchShowArrayList = new ArrayList<>();
         mSearchShowAdapter = new ShowBaseAdapter(mSearchShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false));
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false);
 
         // Cancel old AsyncTask if it exists.
         currentSearchPage = 1;

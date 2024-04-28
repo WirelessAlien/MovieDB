@@ -19,25 +19,30 @@
 
 package com.wirelessalien.android.moviedb.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromListThreadTMDb;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -65,6 +70,7 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
     private final ArrayList<JSONObject> mShowArrayList;
     private final HashMap<String, String> mGenreHashMap;
     private final boolean mGridView;
+    private boolean showDeleteButton;
     private String genreType;
 
     /**
@@ -75,7 +81,9 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
      * @param gridView  if the user wants the shows displayed in a grid or a list.
      */
     public ShowBaseAdapter(ArrayList<JSONObject> showList,
-                           HashMap<String, String> genreList, boolean gridView) {
+                           HashMap<String, String> genreList, boolean gridView, boolean showDeleteButton) {
+
+        this.showDeleteButton = showDeleteButton;
         // Get the right "type" of genres.
         if (genreType == null || genreType.equals("2")) {
             this.genreType = null;
@@ -217,6 +225,27 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             }
             view.getContext().startActivity(intent);
         } );
+
+        if (showDeleteButton) {
+            holder.deleteButton.setVisibility(View.VISIBLE);
+            holder.deleteButton.setOnClickListener(v -> {
+                int mediaId;
+                String type;
+                try {
+                    mediaId = showData.getInt(KEY_ID);
+                    type = showData.has(KEY_TITLE) ? "movie" : "tv";
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                int listId = PreferenceManager.getDefaultSharedPreferences(context).getInt("listId", 0);
+                Activity activity = (Activity) context;
+                DeleteFromListThreadTMDb deleteThread = new DeleteFromListThreadTMDb(mediaId, listId, type, activity, position, mShowArrayList, this);
+                deleteThread.start();
+            });
+        } else {
+            holder.deleteButton.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -238,6 +267,7 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
         final RatingBar showRating;
         final View categoryColorView;
         final TextView showDate;
+        final Button deleteButton;
 
         ShowItemViewHolder(View itemView) {
             super(itemView);
@@ -251,6 +281,7 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             showGenre = itemView.findViewById(R.id.genre);
             showRating = itemView.findViewById(R.id.rating);
             showDate = itemView.findViewById(R.id.date);
+            deleteButton = itemView.findViewById(R.id.deleteButton);
         }
     }
 }

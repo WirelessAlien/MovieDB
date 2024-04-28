@@ -68,6 +68,15 @@
                         android:layout_gravity="top|center_horizontal"
                         android:visibility="gone"
                         android:padding="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/deleteButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        app:icon="@drawable/ic_close"
+                        android:visibility="gone"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
                 </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -86,6 +95,7 @@
                 android:singleLine="true"
                 android:textStyle="bold" />
         </RelativeLayout>
+
     </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

@@ -27,12 +27,20 @@
     card_view:cardElevation="0.5dip"
     card_view:cardUseCompatPadding="true">
 
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        card_view:icon="@drawable/ic_close"
+        android:visibility="gone"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="165dip"
         android:gravity="center_horizontal"
         android:padding="6dip">
-
         <com.google.android.material.card.MaterialCardView
             android:layout_width="100dp"
             android:layout_height="150dp"
