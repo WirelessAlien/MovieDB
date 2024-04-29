@@ -1,16 +1,18 @@
 package com.wirelessalien.android.moviedb.adapter;
 
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RatingBar;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.wirelessalien.android.moviedb.data.ListData;
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.data.ListData;
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteListThreadTMDb;
 
 import java.util.List;
 
@@ -49,10 +51,10 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         void onItemClick(ListData listData);
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView listNameTextView, descriptionTextView, itemCountTextView;
-//        private final RatingBar ratingBar;
+        private final Button deleteButton; // Add this line
         private final OnItemClickListener onItemClickListener;
 
         public ViewHolder(@NonNull View itemView, OnItemClickListener onItemClickListener) {
@@ -60,7 +62,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             listNameTextView = itemView.findViewById(R.id.listNameTextView);
             descriptionTextView = itemView.findViewById(R.id.description);
             itemCountTextView = itemView.findViewById(R.id.itemCount);
-//            ratingBar = itemView.findViewById(R.id.ratingBar);
+            deleteButton = itemView.findViewById(R.id.deleteButton); // Add this line
             this.onItemClickListener = onItemClickListener;
         }
 
@@ -75,9 +77,17 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             }
 
             itemCountTextView.setText("Items: " + (listData.getItemCount()));
-//            ratingBar.setRating((float) listData.getAverageRating()/2);
             itemView.setTag(listData);
             itemView.setOnClickListener(v -> onItemClickListener.onItemClick((ListData) itemView.getTag()));
+
+            // Add this block
+            deleteButton.setOnClickListener(v -> {
+                DeleteListThreadTMDb deleteListThread = new DeleteListThreadTMDb(listData.getId(), (Activity) itemView.getContext(), () -> {
+                    ListAdapter.this.listData.remove(listData);
+                    notifyDataSetChanged();
+                });
+                deleteListThread.start();
+            });
         }
     }
 }

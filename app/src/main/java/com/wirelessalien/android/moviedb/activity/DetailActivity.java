@@ -184,7 +184,7 @@ public class DetailActivity extends BaseActivity {
     private boolean mMovieDetailsLoaded = false;
     private boolean mSimilarMoviesLoaded = false;
     private boolean mCastAndCrewLoaded = false;
-    private final boolean mExternalDataLoaded = false;
+    private boolean mExternalDataLoaded = false;
 
     /**
      * Returns the category number when supplied with
@@ -409,14 +409,12 @@ public class DetailActivity extends BaseActivity {
         }
 
         if (future2 != null) {
-            future2.thenAcceptBoth(future1, (seasons, voidResult) -> {
-                runOnUiThread(() -> {
-                    RecyclerView recyclerView = binding.seasonRecyclerview;
-                    TVSeasonAdapter adapter = new TVSeasonAdapter(DetailActivity.this, seasons);
-                    recyclerView.setLayoutManager(new LinearLayoutManager(DetailActivity.this, LinearLayoutManager.HORIZONTAL, false));
-                    recyclerView.setAdapter(adapter);
-                });
-            });
+            future2.thenAcceptBoth(future1, (seasons, voidResult) -> runOnUiThread(() -> {
+                RecyclerView recyclerView = binding.seasonRecyclerview;
+                TVSeasonAdapter adapter = new TVSeasonAdapter(DetailActivity.this, seasons);
+                recyclerView.setLayoutManager(new LinearLayoutManager(DetailActivity.this, LinearLayoutManager.HORIZONTAL, false));
+                recyclerView.setAdapter(adapter);
+            }) );
         }
 
         addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
@@ -506,22 +504,18 @@ public class DetailActivity extends BaseActivity {
                 double previousRating = getAccountStateThread.getRating();
                 runOnUiThread(() -> ratingBar.setRating((float) previousRating / 2));
             }).thenRun(() -> {
-                submitButton.setOnClickListener(v1 -> {
-                    CompletableFuture.runAsync(() -> {
-                        String type = isMovie ? "movie" : "tv";
-                        double rating = ratingBar.getRating() * 2;
-                        new AddRatingThreadTMDb(movieId, rating, type, mActivity).start();
-                        runOnUiThread(() -> dialog.dismiss());
-                    });
-                });
+                submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
+                    String type = isMovie ? "movie" : "tv";
+                    double rating = ratingBar.getRating() * 2;
+                    new AddRatingThreadTMDb(movieId, rating, type, mActivity).start();
+                    runOnUiThread( dialog::dismiss );
+                }) );
 
-                deleteButton.setOnClickListener(v12 -> {
-                    CompletableFuture.runAsync(() -> {
-                        String type = isMovie ? "movie" : "tv";
-                        new DeleteRatingThreadTMDb(movieId, type, mActivity).start();
-                        runOnUiThread(() -> dialog.dismiss());
-                    });
-                });
+                deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
+                    String type = isMovie ? "movie" : "tv";
+                    new DeleteRatingThreadTMDb(movieId, type, mActivity).start();
+                    runOnUiThread( dialog::dismiss );
+                }) );
 
                 cancelButton.setOnClickListener(v12 -> dialog.dismiss());
             }).thenRun(() -> progressBar.setVisibility(View.GONE));
@@ -929,15 +923,6 @@ public class DetailActivity extends BaseActivity {
         }
     }
 
-    // Add this method in your DetailActivity class
-    private void openGoogleSearch(String title, String releaseYear) {
-        String query = title + " " + releaseYear;
-        String url = "https://www.google.com/search?q=" + Uri.encode(query);
-
-        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-        CustomTabsIntent customTabsIntent = builder.build();
-        customTabsIntent.launchUrl(this, Uri.parse(url));
-    }
     public class GetExternalIdsThread extends Thread {
 
         private final Handler handler;
@@ -992,6 +977,8 @@ public class DetailActivity extends BaseActivity {
                         customTabsIntent.launchUrl(context, Uri.parse(url));
                     });
                 }
+                mExternalDataLoaded = true;
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -1103,8 +1090,7 @@ public class DetailActivity extends BaseActivity {
                     database.close();
 
                     // Update the view
-                    movieRewatched.setText(getString(R.string.change_watched_times) +
-                            timesWatched );
+                    movieRewatched.setText(getString(R.string.change_watched_times) + timesWatched );
                 }
             } );
 
