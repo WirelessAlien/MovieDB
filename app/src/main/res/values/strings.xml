@@ -1,20 +1,21 @@
 <!--
-  ~ Copyright (c) 2018.
+  ~     This file is part of Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
-  ~ This file is part of MovieDB.
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
   ~
-  ~ MovieDB is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
+  ~     Movie DB is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
   ~
-  ~ MovieDB is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
+  ~     Movie DB is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
   ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with MovieDB.  If not, see <http://www.gnu.org/licenses/>.
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
 <resources>
@@ -162,4 +163,18 @@
     <string name="movie_image_description">Image from the show</string>
     <string name="edit_icon_description">Enables edit mode</string>
     <string name="file_picked_success">File picked successfully</string>
+    <string name="login">Login</string>
+    <string name="lists">Lists</string>
+    <string name="episodes">Episodes:</string>
+    <string name="delete">Delete</string>
+    <string name="submit">Submit</string>
+    <string name="cancel">Cancel</string>
+    <string name="description">Description</string>
+    <string name="list_name">List Name</string>
+    <string name="create_list">Create List</string>
+    <string name="previous_lists">Previous Lists</string>
+    <string name="create_new_list">Create New List</string>
+    <string name="enter_list_name">Enter List Name</string>
+    <string name="select_directory">Select Directory</string>
+    <string name="export">Export</string>
 </resources>
