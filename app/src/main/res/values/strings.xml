@@ -177,4 +177,5 @@
     <string name="enter_list_name">Enter List Name</string>
     <string name="select_directory">Select Directory</string>
     <string name="export">Export</string>
+    <string name="external_link">External Link</string>
 </resources>

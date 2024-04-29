@@ -427,7 +427,8 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/crew_title"
-                android:textSize="16sp" />
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <View
                 android:id="@+id/thirdDivider"
@@ -466,14 +467,32 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:background="?android:attr/listDivider" />
-
+            <TextView
+                android:id="@+id/externalLinkTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/fourthDivider"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="@string/external_link"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+            <View
+                android:id="@+id/fifthDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/externalLinkTitle"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="?android:attr/listDivider" />
            <RelativeLayout
                android:id="@+id/imdbLayout"
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
                android:layout_marginTop="16dp"
                android:layout_marginBottom="16dp"
-               android:layout_below="@id/fourthDivider">
+               android:layout_below="@id/fifthDivider">
 
            <ImageView
                android:id="@+id/imdbIcon"
