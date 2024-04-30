@@ -218,7 +218,7 @@ public class FilterActivity extends AppCompatActivity {
                             withGenres.add(buttonId);
 
                             // Change the color of the button
-                            genreButton.getBackground().setColorFilter( ContextCompat.getColor(FilterActivity.this, R.color.colorPrimary), PorterDuff.Mode.SRC_ATOP);
+                            genreButton.getBackground().setColorFilter( ContextCompat.getColor(FilterActivity.this, R.color.md_theme_primary), PorterDuff.Mode.SRC_ATOP);
                             genreButton.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(FilterActivity.this, R.drawable.ic_check), null, null, null);
                             genreButton.setTextColor(Color.WHITE);
                         }

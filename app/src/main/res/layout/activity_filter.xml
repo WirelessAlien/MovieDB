@@ -239,7 +239,6 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/startDateButton"
-                        style="@style/ColoredButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:drawableEnd="@drawable/ic_calendar"
@@ -262,7 +261,6 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/endDateButton"
-                        style="@style/ColoredButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:drawableEnd="@drawable/ic_calendar"

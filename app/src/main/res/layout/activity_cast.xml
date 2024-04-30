@@ -40,7 +40,7 @@
                 android:id="@+id/actorImage"
                 android:layout_width="match_parent"
                 android:layout_height="400dp"
-                android:background="@color/colorPrimary"
+                android:background="@color/md_theme_primary"
                 android:contentDescription="@string/person_image_description"
                 android:scaleType="centerCrop" />
 
@@ -50,7 +50,7 @@
                 android:layout_height="150dip"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="75dp"
-                android:background="@color/colorPrimary"
+                android:background="@color/md_theme_primary"
                 android:scaleType="centerCrop"
                 android:visibility="gone" />
 
@@ -125,7 +125,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/castMovieRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_below="@id/secondDivider"
                 android:scrollbars="none" />
 
@@ -151,7 +151,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/crewMovieRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_below="@id/thirdDivider"
                 android:scrollbars="none" />
         </RelativeLayout>
@@ -162,7 +162,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        android:theme="@style/AppTheme.AppBarOverlay"
+        android:theme="@style/ThemeOverlay.AppTheme.MediumContrast"
         app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
