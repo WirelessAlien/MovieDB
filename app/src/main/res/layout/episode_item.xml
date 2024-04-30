@@ -32,7 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         card_view:cardCornerRadius="5dip"
-        card_view:cardElevation="0.5dip"
+        style="@style/Widget.Material3.CardView.Elevated"
         card_view:cardUseCompatPadding="true">
 
         <LinearLayout
@@ -45,6 +45,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                style="@style/Widget.Material3.CardView.Elevated"
                 card_view:cardCornerRadius="5dp">
 
                 <com.wirelessalien.android.moviedb.view.WideRatioImageView

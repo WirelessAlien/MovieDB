@@ -22,7 +22,9 @@ package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
@@ -38,10 +40,12 @@ public class LogoutThread extends Thread {
 
     private final Context context;
     private final SharedPreferences preferences;
+    private final Handler handler;
 
-    public LogoutThread(Context context) {
+    public LogoutThread(Context context, Handler handler) {
         this.context = context;
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.handler = handler;
     }
 
     @Override
@@ -73,6 +77,8 @@ public class LogoutThread extends Thread {
                 if (response.isSuccessful()) {
                     preferences.edit().remove("access_token").apply();
                     Log.d("TMDbLogoutThread", "Logged out successfully");
+
+                    handler.post(() -> Toast.makeText(context, "Logged out successfully", Toast.LENGTH_SHORT).show());
                 } else {
                     Log.e("TMDbLogoutThread", "Error logging out");
                 }

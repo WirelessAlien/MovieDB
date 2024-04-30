@@ -24,6 +24,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,7 +85,8 @@ public class LoginFragment extends BottomSheetDialogFragment {
         }
 
         logoutButton.setOnClickListener(v -> {
-            LogoutThread logoutThread = new LogoutThread(requireContext());
+            Handler handler = new Handler( Looper.getMainLooper());
+            LogoutThread logoutThread = new LogoutThread(requireContext(), handler);
             logoutThread.start();
 
             loginButton.setVisibility(View.VISIBLE);

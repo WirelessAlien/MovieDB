@@ -29,6 +29,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -65,11 +67,6 @@ import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken;
 
 import java.io.File;
 import java.util.List;
-
-/*
- * nnuuneoi's article was a great help by programming the permissions for API 23 and higher.
- * Article: https://inthecheesefactory.com/blog/things-you-need-to-know-about-android-m-permission-developer-edition
- */
 
 public class MainActivity extends BaseActivity {
 
@@ -196,16 +193,12 @@ public class MainActivity extends BaseActivity {
         super.onNewIntent(intent);
         Uri uri = intent.getData();
         if (uri != null) {
-            Log.d("MainActivity", "Callback URL: " + uri );
             if (uri.toString().startsWith("com.wirelessalien.android.moviedb://callback")) {
                 String requestToken = preferences.getString("request_token", null);
-                Log.d("MainActivity", "Request token: " + requestToken);
                 if (requestToken != null) {
-                    // The request token has been approved by the user
-                    // Now you can proceed with generating the access token
-                    GetAccessToken getAccessToken = new GetAccessToken(api_read_access_token, requestToken, this);
+                    Handler handler = new Handler( Looper.getMainLooper());
+                    GetAccessToken getAccessToken = new GetAccessToken(api_read_access_token, requestToken, this, handler);
                     getAccessToken.start();
-                    Log.d("MainActivity", "Request token: " + requestToken);
                 }
             }
         }

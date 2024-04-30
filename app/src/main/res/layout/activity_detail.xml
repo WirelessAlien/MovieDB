@@ -43,7 +43,7 @@
                 android:id="@+id/movieImage"
                 android:layout_width="match_parent"
                 android:layout_height="240dp"
-                android:background="@color/seed"
+                android:background="@color/md_theme_primary"
                 android:contentDescription="@string/movie_image_description"
                 android:scaleType="centerCrop" />
 
@@ -537,7 +537,8 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"

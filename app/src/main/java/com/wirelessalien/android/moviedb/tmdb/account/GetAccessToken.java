@@ -22,7 +22,9 @@ package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
@@ -39,10 +41,14 @@ public class GetAccessToken extends Thread {
     private final String apiKey;
     private final String requestToken;
     private final SharedPreferences preferences;
+    private final Context context;
+    private final Handler handler;
 
-    public GetAccessToken(String apiKey, String requestToken, Context context) {
+    public GetAccessToken(String apiKey, String requestToken, Context context, Handler handler) {
         this.apiKey = apiKey;
         this.requestToken = requestToken;
+        this.context = context;
+        this.handler = handler;
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
@@ -68,13 +74,12 @@ public class GetAccessToken extends Thread {
             Response sessionResponse = client.newCall(sessionRequest).execute();
             String sessionResponseBody = sessionResponse.body().string();
 
-            // Check if the request was successful
-            if (!sessionResponse.isSuccessful()) {
-                Log.e("GetAccessToken", "Error creating session: " + sessionResponseBody);
-                return;
+            if (sessionResponse.isSuccessful()) {
+                handler.post(() -> Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show());
+            } else {
+                handler.post(() -> Toast.makeText(context, "Something went wrong, please login again", Toast.LENGTH_SHORT).show());
             }
 
-            // Parse the JSON response body
             JSONObject sessionResponseObject = new JSONObject(sessionResponseBody);
 
             String accessToken = sessionResponseObject.getString("access_token");

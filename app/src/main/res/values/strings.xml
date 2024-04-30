@@ -178,4 +178,5 @@
     <string name="select_directory">Select Directory</string>
     <string name="export">Export</string>
     <string name="external_link">External Link</string>
+    <string name="login_successful">Login successful</string>
 </resources>
