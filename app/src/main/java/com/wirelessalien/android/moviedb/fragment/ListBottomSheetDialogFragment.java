@@ -48,14 +48,12 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
     private EditText newListName, listDescription;
     private MaterialRadioButton privateList;
     private final int movieId;
-    private final String sessionId;
     private final Activity activity;
     private final String mediaType;
     private ListAdapter listAdapter;
 
-    public ListBottomSheetDialogFragment(int movieId, String sessionId, String mediaType, Activity activity) {
+    public ListBottomSheetDialogFragment(int movieId, String mediaType, Activity activity) {
         this.movieId = movieId;
-        this.sessionId = sessionId;
         this.mediaType = mediaType;
         this.activity = activity;
     }
@@ -80,7 +78,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         listAdapter = new ListAdapter(new ArrayList<>(), listData -> {
             new AddToListThreadTMDb(movieId, listData.getId(), mediaType, activity).start();
             dismiss();
-        });
+        }, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(listAdapter);
 
@@ -94,6 +92,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         });
 
         // Fetch the list data from the server and update the RecyclerView
-        new FetchListThreadTMDb(activity, listData -> listAdapter.updateData(listData) ).start();
+        FetchListThreadTMDb fetcher = new FetchListThreadTMDb(activity);
+        fetcher.fetchLists().thenAccept(listData -> activity.runOnUiThread(() -> listAdapter.updateData(listData)) );
     }
 }

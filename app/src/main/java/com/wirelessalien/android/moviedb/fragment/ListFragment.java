@@ -40,6 +40,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -136,6 +137,10 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
 
     @Override
     public void onResume() {
+        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+        if (progressBar != null) {
+            progressBar.setVisibility(View.GONE);
+        }
         if (mDatabaseUpdate) {
             // The database is updated, load the changes into the array list.
             updateShowViewAdapter();
@@ -347,7 +352,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         } else if (selectedCategories != null) {
             Iterator<JSONObject> iterator = mShowArrayList.iterator();
             while (iterator.hasNext()) {
-                int columnWatched = ((JSONObject) iterator.next())
+                int columnWatched = iterator.next()
                         .optInt(MovieDatabaseHelper.COLUMN_CATEGORIES);
                 boolean shouldKeep = false;
                 for (int i = 0; i < selectedCategories.size(); i++) {

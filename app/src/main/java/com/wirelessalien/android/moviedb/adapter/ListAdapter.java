@@ -39,10 +39,12 @@ import java.util.List;
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private final List<ListData> listData;
     private final OnItemClickListener onItemClickListener;
+    private final boolean showDeleteButton; // Add this line
 
-    public ListAdapter(List<ListData> listData, OnItemClickListener onItemClickListener) {
+    public ListAdapter(List<ListData> listData, OnItemClickListener onItemClickListener, boolean showDeleteButton) { // Modify this line
         this.listData = listData;
         this.onItemClickListener = onItemClickListener;
+        this.showDeleteButton = showDeleteButton; // Add this line
     }
 
     @NonNull
@@ -74,7 +76,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView listNameTextView, descriptionTextView, itemCountTextView;
-        private final Button deleteButton; // Add this line
+        private final Button deleteButton;
         private final OnItemClickListener onItemClickListener;
 
         public ViewHolder(@NonNull View itemView, OnItemClickListener onItemClickListener) {
@@ -100,14 +102,18 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             itemView.setTag(listData);
             itemView.setOnClickListener(v -> onItemClickListener.onItemClick((ListData) itemView.getTag()));
 
-            // Add this block
-            deleteButton.setOnClickListener(v -> {
-                DeleteListThreadTMDb deleteListThread = new DeleteListThreadTMDb(listData.getId(), (Activity) itemView.getContext(), () -> {
-                    ListAdapter.this.listData.remove(listData);
-                    notifyDataSetChanged();
+            if (showDeleteButton) {
+                deleteButton.setVisibility(View.VISIBLE);
+                deleteButton.setOnClickListener(v -> {
+                    DeleteListThreadTMDb deleteListThread = new DeleteListThreadTMDb(listData.getId(), (Activity) itemView.getContext(), () -> {
+                        ListAdapter.this.listData.remove(listData);
+                        notifyDataSetChanged();
+                    });
+                    deleteListThread.start();
                 });
-                deleteListThread.start();
-            });
+            } else {
+                deleteButton.setVisibility(View.GONE);
+            }
         }
     }
 }

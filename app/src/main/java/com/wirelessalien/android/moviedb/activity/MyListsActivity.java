@@ -22,6 +22,8 @@ package com.wirelessalien.android.moviedb.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,22 +44,29 @@ public class MyListsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityMyListsBinding binding = ActivityMyListsBinding.inflate( getLayoutInflater() );
-        setContentView( binding.getRoot());
+        ActivityMyListsBinding binding = ActivityMyListsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         MaterialToolbar toolbar = binding.toolbar;
-        setSupportActionBar( toolbar );
+        setSupportActionBar(toolbar);
         RecyclerView recyclerView = binding.recyclerView;
+        ProgressBar progressBar = binding.progressBar;
 
         listAdapter = new ListAdapter(new ArrayList<>(), listData -> {
             Intent intent = new Intent(MyListsActivity.this, MyListDetailsActivity.class);
             intent.putExtra("listId", listData.getId());
             startActivity(intent);
-        } );
+        }, true);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(listAdapter);
 
-        new FetchListThreadTMDb(this, listData -> listAdapter.updateData(listData) ).start();
+        progressBar.setVisibility( View.VISIBLE);
+
+        FetchListThreadTMDb fetcher = new FetchListThreadTMDb(this);
+        fetcher.fetchLists().thenAccept(listData -> runOnUiThread(() -> {
+            listAdapter.updateData(listData);
+            progressBar.setVisibility(View.GONE);
+        }) );
     }
 }

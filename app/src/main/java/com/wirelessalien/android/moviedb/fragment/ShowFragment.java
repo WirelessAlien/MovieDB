@@ -341,7 +341,6 @@ public class ShowFragment extends BaseFragment {
                             loading = false;
                             previousTotal = totalItemCount;
 
-
                             if (mSearchView) {
                                 currentSearchPage++;
                             } else {
@@ -364,7 +363,10 @@ public class ShowFragment extends BaseFragment {
                             mSearchThread = new SearchListThread( mListType, currentSearchPage, mSearchQuery, false);
                             mSearchThread.start();
                         } else {
-                            new ShowListThread( new String[]{mListType, Integer.toString(currentPage)}).start();
+                            // Check if the previous request returned any data
+                            if (mShowArrayList.size() > 0) {
+                                new ShowListThread( new String[]{mListType, Integer.toString(currentPage)}).start();
+                            }
                         }
                         loading = true;
                     }
@@ -406,7 +408,7 @@ public class ShowFragment extends BaseFragment {
     }
 
     /**
-     * Uses AsyncTask to retrieve the list with popular shows.
+     * Uses Thread to retrieve the list with popular shows.
      */
     private class ShowListThread extends Thread {
 
@@ -423,17 +425,19 @@ public class ShowFragment extends BaseFragment {
 
         @Override
         public void run() {
-            if (!isAdded()) {
-                return;
-            }
-            handler.post(() -> {
-                if (isAdded()) {
-                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
-                    if (progressBar != null) {
-                        progressBar.setVisibility(View.VISIBLE);
-                    }
+            final ProgressBar[] progressBar = new ProgressBar[1];
+            try {
+                if (!isAdded()) {
+                    return;
                 }
-            });
+                handler.post(() -> {
+                    if (isAdded()) {
+                        progressBar[0] = requireActivity().findViewById(R.id.progressBar);
+                        if (progressBar[0] != null) {
+                            progressBar[0].setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
 
             listType = params[0];
             page = Integer.parseInt(params[1]);
@@ -475,8 +479,19 @@ public class ShowFragment extends BaseFragment {
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
+
             } catch (IOException ioe) {
                 ioe.printStackTrace();
+            } finally {
+                // Ensure the ProgressBar is hidden in the UI thread
+                handler.post( () -> {
+                    if (isAdded()) {
+                        progressBar[0].setVisibility( View.GONE );
+                    }
+                } );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
             }
         }
 
@@ -863,6 +878,8 @@ public class ShowFragment extends BaseFragment {
         private final int page;
         private final String listType;
         private final String query;
+        private static final int MAX_ATTEMPTS = 5;
+        private int attemptCount = 0;
 
         public SearchListThread(String listType, int page, String query, boolean missingOverview) {
             this.listType = listType;
@@ -914,6 +931,11 @@ public class ShowFragment extends BaseFragment {
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
+            }
+
+            if (!Locale.getDefault().getLanguage().equals("en") && !missingOverview && attemptCount < MAX_ATTEMPTS) {
+                attemptCount++;
+                new SearchListThread(listType, page, query, true).start();
             }
         }
 
