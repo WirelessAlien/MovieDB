@@ -86,10 +86,19 @@ public class TMDbAuthThreadV4 extends Thread {
             String requestToken = jsonObject.getString("request_token");
             preferences.edit().putString("request_token", requestToken).apply();
 
-            // Send the user to TMDB asking the user to approve the token
             CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
             CustomTabsIntent customTabsIntent = builder.build();
-            customTabsIntent.launchUrl(context, Uri.parse("https://www.themoviedb.org/auth/access?request_token=" + requestToken));
+
+            Uri uri = Uri.parse("https://www.themoviedb.org/auth/access?request_token=" + requestToken);
+
+            if (customTabsIntent.intent.resolveActivity(context.getPackageManager()) != null) {
+                // If available, launch the URL in a Chrome Custom Tab
+                customTabsIntent.launchUrl(context, uri);
+            } else {
+                // If not available, launch the URL in the default browser
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, uri);
+                context.startActivity(browserIntent);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

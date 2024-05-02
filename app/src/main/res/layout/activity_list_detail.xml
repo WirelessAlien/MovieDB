@@ -38,13 +38,12 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/appBarLayout"
-        tools:listitem="@layout/list_details_item"/>
+        tools:listitem="@layout/show_card"/>
 
     <ProgressBar
         android:id="@+id/progressBar"

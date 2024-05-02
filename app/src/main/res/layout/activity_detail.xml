@@ -383,11 +383,19 @@
                 android:text="Overview"
                 android:textSize="20sp"
                 android:textStyle="bold" />
+            <View
+                android:id="@+id/forthDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/overviewTitle"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="?android:attr/listDivider" />
             <TextView
                 android:id="@+id/movieDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/overviewTitle"
+                android:layout_below="@id/forthDivider"
                 android:layout_margin="16dp" />
 
             <TextView
@@ -459,19 +467,11 @@
                 android:text="@string/recommendations_title"
                 android:textSize="20sp" />
 
-            <View
-                android:id="@+id/fourthDivider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_below="@id/crewRecyclerView"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
             <TextView
                 android:id="@+id/externalLinkTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/fourthDivider"
+                android:layout_below="@id/crewRecyclerView"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"

@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.activity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -64,7 +65,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -298,9 +301,6 @@ public class DetailActivity extends BaseActivity {
 
             TextView similarMovieTitle = binding.similarMovieTitle;
             similarMovieTitle.setVisibility(View.GONE);
-
-            View similarMoviesDivider = binding.fourthDivider;
-            similarMoviesDivider.setVisibility(View.GONE);
         }
         // Get the views from the layout.
         movieImage = binding.movieImage;
@@ -520,6 +520,18 @@ public class DetailActivity extends BaseActivity {
 
                 cancelButton.setOnClickListener(v12 -> dialog.dismiss());
             }).thenRun(() -> progressBar.setVisibility(View.GONE));
+        });
+
+        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
+        customTabsIntent.intent.setPackage("com.android.chrome");
+        CustomTabsClient.bindCustomTabsService(mActivity, "com.android.chrome", new CustomTabsServiceConnection() {
+            @Override
+            public void onCustomTabsServiceConnected(@NonNull ComponentName componentName, @NonNull CustomTabsClient customTabsClient) {
+                customTabsClient.warmup(0L);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {}
         });
 
         checkNetwork();
@@ -975,7 +987,18 @@ public class DetailActivity extends BaseActivity {
                         String url = "https://www.imdb.com/title/" + imdbId;
                         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                         CustomTabsIntent customTabsIntent = builder.build();
-                        customTabsIntent.launchUrl(context, Uri.parse(url));
+                        // Check if there is any package available to handle the CustomTabsIntent
+                        if (customTabsIntent.intent.resolveActivity(getPackageManager()) != null) {
+                            customTabsIntent.launchUrl(context, Uri.parse(url));
+                        } else {
+                            // If no package is available to handle the CustomTabsIntent, launch the URL in a web browser
+                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            if (browserIntent.resolveActivity(getPackageManager()) != null) {
+                                startActivity(browserIntent);
+                            } else {
+                                Toast.makeText(context, "No application can handle this request. Please install a web browser.", Toast.LENGTH_LONG).show();
+                            }
+                        }
                     });
                 }
                 mExternalDataLoaded = true;

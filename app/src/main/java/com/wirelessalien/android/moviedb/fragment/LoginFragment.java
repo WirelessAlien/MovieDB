@@ -20,6 +20,7 @@
 
 package com.wirelessalien.android.moviedb.fragment;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -34,6 +35,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.browser.customtabs.CustomTabsClient;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -61,6 +65,18 @@ public class LoginFragment extends BottomSheetDialogFragment {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+
+        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
+        customTabsIntent.intent.setPackage("com.android.chrome");
+        CustomTabsClient.bindCustomTabsService(requireContext(), "com.android.chrome", new CustomTabsServiceConnection() {
+            @Override
+            public void onCustomTabsServiceConnected(@NonNull ComponentName componentName, @NonNull CustomTabsClient customTabsClient) {
+                customTabsClient.warmup(0L);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {}
+        });
 
         Button loginButton = view.findViewById(R.id.login);
         Button logoutButton = view.findViewById(R.id.logout);
@@ -110,26 +126,21 @@ public class LoginFragment extends BottomSheetDialogFragment {
 
         //if access token is not null, then the user is logged in
         if (preferences.getString("access_token", null) != null){
-            GetAccountDetailsThread getAccountIdThread = new GetAccountDetailsThread(getContext(), new GetAccountDetailsThread.AccountDataCallback() {
-                @Override
-                public void onAccountDataReceived(int accountId, String name, String username, String avatarPath, String gravatar) {
-                    requireActivity().runOnUiThread( () -> {
-                        // If both username and name are available, display name. Otherwise, display whichever is available.
-                        if (name != null && !name.isEmpty()) {
-                            nameTextView.setText(name);
-                        } else if (username != null && !username.isEmpty()) {
-                            nameTextView.setText(username);
-                        }
-
-                        // If both avatarPath and gravatar are available, display avatarPath. Otherwise, display whichever is available.
-                        if (avatarPath != null && !avatarPath.isEmpty()) {
-                            Picasso.get().load("https://image.tmdb.org/t/p/w200" + avatarPath).into(avatar);
-                        } else if (gravatar != null && !gravatar.isEmpty()) {
-                            Picasso.get().load("https://secure.gravatar.com/avatar/" + gravatar + ".jpg?s=200").into(avatar);
-                        }
-                    } );
+            GetAccountDetailsThread getAccountIdThread = new GetAccountDetailsThread(getContext(), (accountId, name, username, avatarPath, gravatar) -> requireActivity().runOnUiThread( () -> {
+                // If both username and name are available, display name. Otherwise, display whichever is available.
+                if (name != null && !name.isEmpty()) {
+                    nameTextView.setText(name);
+                } else if (username != null && !username.isEmpty()) {
+                    nameTextView.setText(username);
                 }
-            });
+
+                // If both avatarPath and gravatar are available, display avatarPath. Otherwise, display whichever is available.
+                if (avatarPath != null && !avatarPath.isEmpty()) {
+                    Picasso.get().load("https://image.tmdb.org/t/p/w200" + avatarPath).into(avatar);
+                } else if (gravatar != null && !gravatar.isEmpty()) {
+                    Picasso.get().load("https://secure.gravatar.com/avatar/" + gravatar + ".jpg?s=200").into(avatar);
+                }
+            } ) );
             getAccountIdThread.start();
         }
 

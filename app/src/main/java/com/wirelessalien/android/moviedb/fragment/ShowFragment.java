@@ -331,7 +331,7 @@ public class ShowFragment extends BaseFragment {
         mShowView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0) { // Check for scroll down.
+                if (dy > 0 && recyclerView.getScrollState() != RecyclerView.SCROLL_STATE_IDLE) { // Check for scroll down and if user is actively scrolling.
                     visibleItemCount = mShowLinearLayoutManager.getChildCount();
                     totalItemCount = mShowLinearLayoutManager.getItemCount();
                     pastVisibleItems = mShowLinearLayoutManager.findFirstVisibleItemPosition();

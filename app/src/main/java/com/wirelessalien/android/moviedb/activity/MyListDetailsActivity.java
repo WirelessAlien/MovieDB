@@ -22,6 +22,8 @@ package com.wirelessalien.android.moviedb.activity;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
@@ -37,25 +39,24 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 public class MyListDetailsActivity extends AppCompatActivity implements ListDetailsThreadTMDb.OnFetchListDetailsListener {
 
     private RecyclerView recyclerView;
-    private ShowBaseAdapter adapter; // Change to ShowBaseAdapter
+    private ShowBaseAdapter adapter;
     private int listId = 0;
     HashMap<String, String> mShowGenreList;
-    final static String SHOWS_LIST_PREFERENCE = "key_show_shows_grid";
     SharedPreferences preferences;
-    private MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView( R.layout.activity_my_lists);
+        setContentView(R.layout.activity_list_detail);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar( toolbar);
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mShowGenreList = new HashMap<>();
@@ -63,8 +64,14 @@ public class MyListDetailsActivity extends AppCompatActivity implements ListDeta
         // Get the list ID from the intent
         listId = getIntent().getIntExtra("listId", 0);
         preferences.edit().putInt("listId", listId).apply();
-        ListDetailsThreadTMDb thread = new ListDetailsThreadTMDb(listId, this, this);
-        thread.start();
+
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility( View.VISIBLE);
+
+        CompletableFuture.runAsync(() -> {
+            ListDetailsThreadTMDb thread = new ListDetailsThreadTMDb(listId, this, this);
+            thread.start();
+        }).thenRun(() -> runOnUiThread(() -> progressBar.setVisibility(View.GONE) ));
 
         adapter = new ShowBaseAdapter(new ArrayList<>(), null, false, true);
     }
