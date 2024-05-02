@@ -50,6 +50,7 @@ import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -107,16 +108,6 @@ public class MainActivity extends BaseActivity {
 
         ViewPager2 mViewPager = findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        TabLayout tabLayout = findViewById(R.id.tabs);
-        new TabLayoutMediator(tabLayout, mViewPager, (tab, position) -> {
-            switch (mSectionsPagerAdapter.getCorrectedPosition( position )) {
-                case 0 -> tab.setText( mSectionsPagerAdapter.movieTabTitle );
-                case 1 -> tab.setText( mSectionsPagerAdapter.seriesTabTitle );
-                case 2 -> tab.setText( mSectionsPagerAdapter.savedTabTitle );
-                case 3 -> tab.setText( mSectionsPagerAdapter.personTabTitle );
-            }
-        }).attach();
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int versionNumber;
@@ -186,6 +177,46 @@ public class MainActivity extends BaseActivity {
         if (versionNumber != -1) {
             preferences.edit().putInt(PREVIOUS_APPLICATION_VERSION_PREFERENCE, versionNumber).apply();
         }
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.nav_movie:
+                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(0));
+                    return true;
+                case R.id.nav_series:
+                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(1));
+                    return true;
+                case R.id.nav_saved:
+                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(2));
+                    return true;
+                case R.id.nav_person:
+                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(3));
+                    return true;
+            }
+            return false;
+        });
+
+        mViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                switch (mSectionsPagerAdapter.getCorrectedPosition(position)) {
+                    case 0:
+                        bottomNavigationView.setSelectedItemId(R.id.nav_movie);
+                        break;
+                    case 1:
+                        bottomNavigationView.setSelectedItemId(R.id.nav_series);
+                        break;
+                    case 2:
+                        bottomNavigationView.setSelectedItemId(R.id.nav_saved);
+                        break;
+                    case 3:
+                        bottomNavigationView.setSelectedItemId(R.id.nav_person);
+                        break;
+                }
+            }
+        });
     }
 
     @Override

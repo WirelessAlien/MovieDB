@@ -1,0 +1,31 @@
+<!--
+  ~     This file is part of Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     Movie DB is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     Movie DB is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960"
+    android:tint="?attr/colorControlNormal">
+
+<path
+      android:fillColor="#FF000000"
+      android:pathData="M200,840q-33,0 -56.5,-23.5T120,760v-560q0,-33 23.5,-56.5T200,120h560q33,0 56.5,23.5T840,200v560q0,33 -23.5,56.5T760,840L200,840ZM200,760h560v-560L200,200v560ZM200,200v560,-560ZM320,400v200q0,17 11.5,28.5T360,640q17,0 28.5,-11.5T400,600v-200h70l81,216q4,11 13.5,17.5T586,640h28q12,0 21.5,-6.5T649,616l88,-234q8,-23 -5.5,-42.5T694,320q-15,0 -27.5,9T649,352l-49,148 -51,-153q-4,-12 -14.5,-19.5T511,320L240,320q-17,0 -28.5,11.5T200,360q0,17 11.5,28.5T240,400h80Z"/>
+</vector>
