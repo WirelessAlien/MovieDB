@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -50,12 +51,14 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
     private final int movieId;
     private final Activity activity;
     private final String mediaType;
+    private final boolean fetchList;
     private ListAdapter listAdapter;
 
-    public ListBottomSheetDialogFragment(int movieId, String mediaType, Activity activity) {
+    public ListBottomSheetDialogFragment(int movieId, String mediaType, Activity activity, boolean fetchList) {
         this.movieId = movieId;
         this.mediaType = mediaType;
         this.activity = activity;
+        this.fetchList = fetchList;
     }
 
     @Nullable
@@ -73,6 +76,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         listDescription = view.findViewById(R.id.listDescription);
         Button createListButton = view.findViewById( R.id.createListBtn );
         privateList = view.findViewById(R.id.privateRadioBtn);
+        TextView previousLists = view.findViewById(R.id.previousListText);
 
 
         listAdapter = new ListAdapter(new ArrayList<>(), listData -> {
@@ -91,8 +95,13 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
             dismiss();
         });
 
-        // Fetch the list data from the server and update the RecyclerView
-        FetchListThreadTMDb fetcher = new FetchListThreadTMDb(activity);
-        fetcher.fetchLists().thenAccept(listData -> activity.runOnUiThread(() -> listAdapter.updateData(listData)) );
+        if (!fetchList) {
+            previousLists.setVisibility(View.GONE);
+        }
+
+        if (fetchList) {
+            FetchListThreadTMDb fetcher = new FetchListThreadTMDb(activity);
+            fetcher.fetchLists().thenAccept(listData -> activity.runOnUiThread(() -> listAdapter.updateData(listData)));
+        }
     }
 }

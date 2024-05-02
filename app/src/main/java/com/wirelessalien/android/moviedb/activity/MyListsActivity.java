@@ -31,8 +31,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wirelessalien.android.moviedb.adapter.ListAdapter;
 import com.wirelessalien.android.moviedb.databinding.ActivityMyListsBinding;
+import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb;
 
 import java.util.ArrayList;
@@ -51,6 +53,7 @@ public class MyListsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         RecyclerView recyclerView = binding.recyclerView;
         ProgressBar progressBar = binding.progressBar;
+        FloatingActionButton fab = binding.fab;
 
         listAdapter = new ListAdapter(new ArrayList<>(), listData -> {
             Intent intent = new Intent(MyListsActivity.this, MyListDetailsActivity.class);
@@ -68,5 +71,10 @@ public class MyListsActivity extends AppCompatActivity {
             listAdapter.updateData(listData);
             progressBar.setVisibility(View.GONE);
         }) );
+
+        fab.setOnClickListener(v -> {
+            ListBottomSheetDialogFragment listBottomSheetDialogFragment = new ListBottomSheetDialogFragment(0 , null, this, false);
+            listBottomSheetDialogFragment.show(getSupportFragmentManager(), listBottomSheetDialogFragment.getTag());
+        });
     }
 }
