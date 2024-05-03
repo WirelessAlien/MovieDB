@@ -151,6 +151,9 @@ public class DetailActivity extends BaseActivity {
     private TextView movieRewatched;
     private TextView movieEpisodes;
     private TextView imdbLink;
+    private TextView releaseDate;
+    private TextView runtime;
+    private TextView status;
     private RatingBar movieRating;
     private TextView movieDescription;
     private Context context = this;
@@ -314,6 +317,9 @@ public class DetailActivity extends BaseActivity {
         movieRating = binding.movieRating;
         movieDescription = binding.movieDescription;
         imdbLink = binding.imdbLink;
+        releaseDate = binding.releaseDateDataText;
+        runtime = binding.runtimeDataText;
+        status = binding.statusDataText;
 
         ImageButton addToListBtn = binding.addToList;
         ImageButton addToWatchlistButton = binding.watchListButton;
@@ -930,6 +936,26 @@ public class DetailActivity extends BaseActivity {
                 genres = genreNames.substring(2);
             }
 
+            // Set the release date
+            if (movieObject.has("release_date") && !movieObject.getString("release_date").equals(releaseDate.getText().toString())) {
+                releaseDate.setText(movieObject.getString("release_date"));
+            }
+
+            if (isMovie) {
+                if (movieObject.has("runtime") && !movieObject.getString("runtime").equals(runtime.getText().toString())) {
+                    int totalMinutes = Integer.parseInt(movieObject.getString("runtime"));
+                    int hours = totalMinutes / 60;
+                    int minutes = totalMinutes % 60;
+                    runtime.setText(hours + "h " + minutes + "m");
+                }
+            } else {
+                runtime.setText("Unknown");
+            }
+
+            if (movieObject.has("status") && !movieObject.getString("status").equals(status.getText().toString())) {
+                status.setText(movieObject.getString("status"));
+            }
+
             cursor.close();
         } catch (JSONException | ParseException e) {
             e.printStackTrace();
@@ -976,7 +1002,7 @@ public class DetailActivity extends BaseActivity {
                 JSONObject jsonObject = new JSONObject(response);
                 String imdbId = jsonObject.getString("imdb_id");
                 imdbLink = binding.imdbLink;
-                RelativeLayout imdbLayout = findViewById(R.id.imdbLayout);
+                TextView imdbLayout = findViewById(R.id.imdbLink);
                 //if imdbId is not available, set the text to "IMDB (not available)"
                 if (imdbId.equals("null")) {
                     imdbLink.setText("IMDB (not available)");

@@ -459,70 +459,131 @@
                 android:id="@+id/similarMovieTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/imdbLayout"
-                android:layout_marginLeft="16dp"
+                android:layout_below="@id/crewRecyclerView"
                 android:layout_marginRight="16dp"
-                android:layout_marginBottom="10dp"
+                android:paddingTop="16dp"
+                android:paddingStart="16dp"
                 android:textStyle="bold"
                 android:text="@string/recommendations_title"
                 android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/externalLinkTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/crewRecyclerView"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:text="@string/external_link"
-                android:textSize="20sp"
-                android:textStyle="bold" />
             <View
-                android:id="@+id/fifthDivider"
+                android:id="@+id/seventhDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_below="@id/externalLinkTitle"
+                android:layout_height="2dp"
+                android:layout_below="@id/similarMovieTitle"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:background="?android:attr/listDivider" />
-           <RelativeLayout
-               android:id="@+id/imdbLayout"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="16dp"
-               android:layout_marginBottom="16dp"
-               android:layout_below="@id/fifthDivider">
-
-           <ImageView
-               android:id="@+id/imdbIcon"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@drawable/ic_explore"
-               android:layout_marginLeft="16dp"
-               android:layout_marginRight="16dp"
-               android:layout_centerVertical="true"
-               android:layout_marginTop="10dp"/>
-            <TextView
-                android:id="@+id/imdbLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/imdbIcon"
-                android:layout_centerVertical="true"
-                android:text="IMDB"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-
-           </RelativeLayout>
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/movieRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingStart="6dp"
-                android:layout_below="@id/similarMovieTitle"
+                android:layout_below="@id/seventhDivider"
                 android:scrollbars="none" />
 
+            <TextView
+                android:id="@+id/otherText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Other Details"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:layout_below="@id/movieRecyclerView"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+            <View
+                android:id="@+id/sixthDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/otherText"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="?android:attr/listDivider" />
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/sixthDivider"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/statusDataText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:paddingStart="16dp"
+                android:layout_below="@id/statusText"
+                android:textSize="15sp" />
+            <TextView
+                android:id="@+id/externalLinkTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/statusDataText"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:text="@string/external_link"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/imdbLink"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/externalLinkTitle"
+                android:layout_centerVertical="true"
+                android:paddingStart="16dp"
+                android:text="IMDB"
+                android:linksClickable="true"
+                android:autoLink="web"
+                android:textSize="15sp"/>
+
+            <TextView
+                android:id="@+id/releaseDateText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Release Date"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/imdbLink"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/releaseDateDataText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="23.04.2012"
+                android:paddingStart="16dp"
+                android:layout_below="@id/releaseDateText"
+                android:textSize="15sp"/>
+
+            <TextView
+                android:id="@+id/runtimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Runtime"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/releaseDateDataText"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/runtimeDataText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1h 23m"
+                android:paddingStart="16dp"
+                android:paddingBottom="16dp"
+                android:layout_below="@id/runtimeText"
+                android:textSize="15sp"/>
             <ProgressBar
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
