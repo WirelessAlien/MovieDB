@@ -581,9 +581,32 @@
                 android:layout_height="wrap_content"
                 android:text="1h 23m"
                 android:paddingStart="16dp"
-                android:paddingBottom="16dp"
+                android:paddingBottom="10dp"
                 android:layout_below="@id/runtimeText"
                 android:textSize="15sp"/>
+
+            <TextView
+                android:id="@+id/counrtyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Country"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/runtimeDataText"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/countryDataText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="USA"
+                android:paddingStart="16dp"
+                android:paddingBottom="16dp"
+                android:layout_below="@id/counrtyText"
+                android:textSize="15sp"/>
+
             <ProgressBar
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -594,6 +617,15 @@
         </RelativeLayout>
 
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_share"
+        app:layout_behavior="com.google.android.material.floatingactionbutton.FloatingActionButton$Behavior"/>
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"

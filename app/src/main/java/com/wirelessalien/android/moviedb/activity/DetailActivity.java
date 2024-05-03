@@ -74,6 +74,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
 import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
@@ -143,19 +144,10 @@ public class DetailActivity extends BaseActivity {
     private Integer totalEpisodes;
     private boolean isMovie = true;
     private ImageView movieImage;
-    private TextView movieTitle;
     private ImageView moviePoster;
-    private TextView movieGenres;
-    private TextView movieStartDate;
-    private TextView movieFinishDate;
-    private TextView movieRewatched;
-    private TextView movieEpisodes;
-    private TextView imdbLink;
-    private TextView releaseDate;
-    private TextView runtime;
-    private TextView status;
+    private TextView movieTitle, movieGenres, movieStartDate, movieFinishDate, movieRewatched, movieEpisodes, imdbLink, releaseDate, runtime,
+            status, movieDescription, country;
     private RatingBar movieRating;
-    private TextView movieDescription;
     private Context context = this;
     private JSONObject jMovieObject;
     private String genres;
@@ -164,24 +156,27 @@ public class DetailActivity extends BaseActivity {
     private Activity mActivity;
     private boolean added = false;
     private SpannableString showTitle;
-    private AlphaForegroundColorSpan alphaForegroundColorSpan;
     private ActivityDetailBinding binding;
     private final NotifyingScrollView.OnScrollChangedListener
             mOnScrollChangedListener = new NotifyingScrollView
             .OnScrollChangedListener() {
+        int lastScrollY = 0;
+        final int scrollThreshold = 50;
         public void onScrollChanged(int t) {
-            final int headerHeight = binding.movieImage.getHeight() -
-                    toolbar.getHeight();
-            final float ratio = (float) Math.min(Math.max(t, 0),
-                    headerHeight) / headerHeight;
-            final int newAlpha = (int) (ratio * 255);
-            toolbar.setBackgroundColor(Color.argb(newAlpha, 0, 0, 0));
-
-            // 256 because otherwise it'll become invisible when newAlpha is 255.
-            alphaForegroundColorSpan.setAlpha(256 - newAlpha);
-            showTitle.setSpan(alphaForegroundColorSpan, 0, showTitle.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            if (showTitle != null) {
-                getSupportActionBar().setTitle(showTitle);
+            if (t == 0) {
+                getSupportActionBar().setTitle(R.string.app_name);
+            } else {
+                if (showTitle != null) {
+                    getSupportActionBar().setTitle(showTitle);
+                }
+            }
+            if (Math.abs(t - lastScrollY) > scrollThreshold) {
+                if (t > lastScrollY) {
+                    binding.fab.hide();
+                } else if (t < lastScrollY) {
+                    binding.fab.show();
+                }
+                lastScrollY = t;
             }
         }
     };
@@ -320,6 +315,9 @@ public class DetailActivity extends BaseActivity {
         releaseDate = binding.releaseDateDataText;
         runtime = binding.runtimeDataText;
         status = binding.statusDataText;
+        country = binding.countryDataText;
+
+        FloatingActionButton fab = findViewById(R.id.fab);
 
         ImageButton addToListBtn = binding.addToList;
         ImageButton addToWatchlistButton = binding.watchListButton;
@@ -538,6 +536,18 @@ public class DetailActivity extends BaseActivity {
 
             @Override
             public void onServiceDisconnected(ComponentName name) {}
+        });
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            final String typeCheck = isMovie ? "movie" : "tv";
+            @Override
+            public void onClick(View view) {
+                String tmdbLink = "https://www.themoviedb.org/" + typeCheck + "/" + movieId;
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, tmdbLink);
+                startActivity(Intent.createChooser(shareIntent, "Share link using"));
+            }
         });
 
         checkNetwork();
@@ -760,7 +770,6 @@ public class DetailActivity extends BaseActivity {
 
                 // Initialise global variables (will become visible when scrolling down).
                 showTitle = new SpannableString(movieObject.getString(title));
-                alphaForegroundColorSpan = new AlphaForegroundColorSpan();
             }
 
             // The rating also uses a class variable for the same reason
@@ -954,6 +963,19 @@ public class DetailActivity extends BaseActivity {
 
             if (movieObject.has("status") && !movieObject.getString("status").equals(status.getText().toString())) {
                 status.setText(movieObject.getString("status"));
+            }
+
+            if (movieObject.has("production_countries")) {
+                JSONArray productionCountries = movieObject.getJSONArray("production_countries");
+                StringBuilder countries = new StringBuilder();
+                for (int i = 0; i < productionCountries.length(); i++) {
+                    JSONObject country = productionCountries.getJSONObject(i);
+                    countries.append(country.getString("name"));
+                    if (i < productionCountries.length() - 1) {
+                        countries.append(", ");
+                    }
+                }
+                country.setText(countries.toString());
             }
 
             cursor.close();
