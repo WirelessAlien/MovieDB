@@ -66,18 +66,21 @@ public class MyListDetailsActivity extends AppCompatActivity implements ListDeta
         preferences.edit().putInt("listId", listId).apply();
 
         ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility( View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
 
         CompletableFuture.runAsync(() -> {
             ListDetailsThreadTMDb thread = new ListDetailsThreadTMDb(listId, this, this);
             thread.start();
-        }).thenRun(() -> runOnUiThread(() -> progressBar.setVisibility(View.GONE) ));
+        });
 
         adapter = new ShowBaseAdapter(new ArrayList<>(), null, false, true);
     }
 
     @Override
     public void onFetchListDetails(ArrayList<JSONObject> listDetailsData) {
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
+
         adapter = new ShowBaseAdapter(listDetailsData, mShowGenreList, false, true);
         recyclerView.setAdapter(adapter);
     }

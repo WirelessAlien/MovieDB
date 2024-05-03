@@ -19,38 +19,55 @@
   ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:padding="16dp"
-    android:orientation="vertical">
 
-    <de.hdodenhof.circleimageview.CircleImageView
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dip"
+    android:layout_height="175dip"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="5dip"
+    style="@style/Widget.Material3.CardView.Elevated"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/castCard"
+            android:layout_width="100dip"
+            android:layout_height="100dip"
+            app:cardCornerRadius="5dip">
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/castImage"
                 android:layout_width="100dip"
                 android:layout_height="100dip"
                 android:layout_centerHorizontal="true"
                 android:scaleType="centerCrop" />
+        </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/characterName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/castImage"
-                android:layout_centerHorizontal="true"
-                android:textAlignment="center"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/characterName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/castCard"
+            android:layout_centerHorizontal="true"
+            android:textAlignment="center"
+            android:textStyle="bold"
+            android:padding="2dip"
+            android:maxLines="2"
+            android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/castName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/characterName"
-                android:layout_centerHorizontal="true"
-                android:textStyle="italic" />
-
-
-
-
-</RelativeLayout>
+        <TextView
+            android:id="@+id/castName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/characterName"
+            android:layout_centerHorizontal="true"
+            android:textAlignment="center"
+            android:padding="2dip"
+            android:maxLines="2"
+            android:ellipsize="end" />
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>
 

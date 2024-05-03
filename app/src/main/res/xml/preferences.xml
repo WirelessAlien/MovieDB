@@ -26,22 +26,26 @@
         android:title="@string/title_general"
         app:iconSpaceReserved="false">
 
-        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
             android:key="key_show_cast"
             android:title="@string/title_show_cast"
             app:iconSpaceReserved="false"/>
 
-        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
             android:key="key_show_crew"
             android:title="@string/title_show_crew"
             app:iconSpaceReserved="false"/>
 
-        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
             android:key="key_show_similar_movies"
             android:title="@string/title_show_recommendations"
             app:iconSpaceReserved="false"/>
 
-        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="false"
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
             android:key="key_show_save_dialog"
             android:title="@string/title_show_save_dialog"
             app:iconSpaceReserved="false"/>
