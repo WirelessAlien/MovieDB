@@ -35,7 +35,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcel;
-import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextPaint;
 import android.text.style.ForegroundColorSpan;
@@ -57,7 +56,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -76,24 +74,24 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
-import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
-import com.wirelessalien.android.moviedb.tmdb.account.AddToFavouritesThreadTMDb;
-import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlistThreadTMDb;
-import com.wirelessalien.android.moviedb.helper.ConfigHelper;
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteRatingThreadTMDb;
-import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateThreadTMDb;
-import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
-import com.wirelessalien.android.moviedb.view.NotifyingScrollView;
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.data.TVSeason;
-import com.wirelessalien.android.moviedb.tmdb.TVSeasonThread;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.TVSeasonAdapter;
+import com.wirelessalien.android.moviedb.data.TVSeason;
+import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
+import com.wirelessalien.android.moviedb.tmdb.TVSeasonThread;
+import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.AddToFavouritesThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlistThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteRatingThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateThreadTMDb;
+import com.wirelessalien.android.moviedb.view.NotifyingScrollView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -134,7 +132,6 @@ public class DetailActivity extends BaseActivity {
     private RecyclerView similarMovieView;
     private SimilarMovieBaseAdapter similarMovieAdapter;
     private ArrayList<JSONObject> similarMovieArrayList;
-    private MaterialToolbar toolbar;
     private String sessionId;
     private String accountId;
     private SQLiteDatabase database;
@@ -146,7 +143,7 @@ public class DetailActivity extends BaseActivity {
     private ImageView movieImage;
     private ImageView moviePoster;
     private TextView movieTitle, movieGenres, movieStartDate, movieFinishDate, movieRewatched, movieEpisodes, imdbLink, releaseDate, runtime,
-            status, movieDescription, country;
+            status, movieDescription, country, revenueView;
     private RatingBar movieRating;
     private Context context = this;
     private JSONObject jMovieObject;
@@ -236,7 +233,7 @@ public class DetailActivity extends BaseActivity {
         setNavigationDrawer();
         setBackButtons();
 
-        toolbar = binding.toolbar;
+        MaterialToolbar toolbar = binding.toolbar;
 
         // Make the transparency dependent on how far the user scrolled down.
         NotifyingScrollView notifyingScrollView = binding.scrollView;
@@ -316,6 +313,7 @@ public class DetailActivity extends BaseActivity {
         runtime = binding.runtimeDataText;
         status = binding.statusDataText;
         country = binding.countryDataText;
+        revenueView = binding.revenueDataText;
 
         FloatingActionButton fab = findViewById(R.id.fab);
 
@@ -976,6 +974,18 @@ public class DetailActivity extends BaseActivity {
                     }
                 }
                 country.setText(countries.toString());
+            }
+
+            if (movieObject.has( "revenue" )) {
+                String revenue = movieObject.getString( "revenue" );
+                if ( revenue.equals( "0" ) ) {
+                    revenue = "Unknown";
+                } else {
+                    revenue = "$" + revenue;
+                }
+                revenueView.setText( revenue );
+            } else {
+                revenueView.setText( "Unknown" );
             }
 
             cursor.close();

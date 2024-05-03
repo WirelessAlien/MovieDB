@@ -501,29 +501,31 @@
                 android:layout_marginRight="16dp"
                 android:background="?android:attr/listDivider" />
             <TextView
-                android:id="@+id/statusText"
+                android:id="@+id/counrtyText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status"
+                android:text="Country"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
                 android:layout_below="@id/sixthDivider"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
+
             <TextView
-                android:id="@+id/statusDataText"
+                android:id="@+id/countryDataText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status"
+                android:text="USA"
                 android:paddingStart="16dp"
-                android:layout_below="@id/statusText"
-                android:textSize="15sp" />
+                android:layout_below="@id/counrtyText"
+                android:textSize="15sp"/>
+
             <TextView
                 android:id="@+id/externalLinkTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/statusDataText"
+                android:layout_below="@id/countryDataText"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
@@ -581,31 +583,47 @@
                 android:layout_height="wrap_content"
                 android:text="1h 23m"
                 android:paddingStart="16dp"
-                android:paddingBottom="10dp"
                 android:layout_below="@id/runtimeText"
                 android:textSize="15sp"/>
-
             <TextView
-                android:id="@+id/counrtyText"
+                android:id="@+id/revenueText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Country"
+                android:text="Revenue"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
                 android:layout_below="@id/runtimeDataText"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
-
             <TextView
-                android:id="@+id/countryDataText"
+                android:id="@+id/revenueDataText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="USA"
+                android:text="Revinue"
+                android:paddingStart="16dp"
+                android:layout_below="@id/revenueText"
+                android:textSize="15sp" />
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/revenueDataText"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/statusDataText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status"
                 android:paddingStart="16dp"
                 android:paddingBottom="16dp"
-                android:layout_below="@id/counrtyText"
-                android:textSize="15sp"/>
+                android:layout_below="@id/statusText"
+                android:textSize="15sp" />
 
             <ProgressBar
                 android:layout_width="wrap_content"
@@ -624,6 +642,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
+        android:contentDescription="Share link button"
         android:src="@drawable/ic_share"
         app:layout_behavior="com.google.android.material.floatingactionbutton.FloatingActionButton$Behavior"/>
 
