@@ -29,6 +29,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -61,6 +65,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.core.content.ContextCompat;
+import androidx.palette.graphics.Palette;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -68,6 +74,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
@@ -116,6 +123,7 @@ public class DetailActivity extends BaseActivity {
     private final static String CREW_VIEW_PREFERENCE = "key_show_crew";
     private final static String RECOMMENDATION_VIEW_PREFERENCE = "key_show_similar_movies";
     private final static String SHOW_SAVE_DIALOG_PREFERENCE = "key_show_save_dialog";
+    private final static String DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity";
     private String API_KEY;
     private CastBaseAdapter castAdapter;
     private CastBaseAdapter crewAdapter;
@@ -136,6 +144,7 @@ public class DetailActivity extends BaseActivity {
     private String genres;
     private Date startDate;
     private Date finishDate;
+    private Target target;
     private Activity mActivity;
     private boolean added = false;
     private SpannableString showTitle;
@@ -306,6 +315,8 @@ public class DetailActivity extends BaseActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        checkNetwork();
 
         ProgressBar progressBar = binding.progressBar;
         progressBar.setVisibility(View.VISIBLE);
@@ -508,7 +519,52 @@ public class DetailActivity extends BaseActivity {
             binding.revenueDataText.setVisibility( View.GONE );
         }
 
-        checkNetwork();
+        if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
+            if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
+                String imageUrl = null;
+                try {
+                    imageUrl = "https://image.tmdb.org/t/p/w780" + jMovieObject.getString( "backdrop_path" );
+                } catch (JSONException e) {
+                    throw new RuntimeException( e );
+                }
+                target = new Target() {
+                    @Override
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        // Set the loaded bitmap to your ImageView before generating the Palette
+                        binding.movieImage.setImageBitmap( bitmap );
+
+                        Palette.from( bitmap ).generate( new Palette.PaletteAsyncListener() {
+                            public void onGenerated(Palette palette) {
+
+                                int mutedColor = palette.getMutedColor( Color.BLACK );
+                                GradientDrawable gradientDrawable = new GradientDrawable(
+                                        GradientDrawable.Orientation.TOP_BOTTOM,
+                                        new int[]{mutedColor, Color.TRANSPARENT} );
+
+                                binding.getRoot().setBackground( gradientDrawable );
+
+                                binding.toolbar.setBackgroundColor( Color.TRANSPARENT );
+                            }
+                        } );
+
+                        Animation animation = AnimationUtils.loadAnimation(
+                                getApplicationContext(), R.anim.fade_in );
+                        binding.movieImage.startAnimation( animation );
+                    }
+
+                    @Override
+                    public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                        binding.movieImage.setBackgroundColor( ContextCompat.getColor( context, R.color.md_theme_surface ) );
+                    }
+
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+                        binding.movieImage.setBackgroundColor( ContextCompat.getColor( context, R.color.md_theme_surface ) );
+                    }
+                };
+                Picasso.get().load( imageUrl ).into( target );
+            }
+        }
     }
 
     @Override
@@ -695,27 +751,14 @@ public class DetailActivity extends BaseActivity {
             // Due to the difficulty of comparing images (or rather,
             // this can be a really slow process) the id of the image is
             // saved as class variable for easy comparison.
-            if (movieObject.has("backdrop_path") && binding.movieImage.getDrawable() == null) {
-                Picasso.get().load("https://image.tmdb.org/t/p/w780" +
-                        movieObject.getString("backdrop_path"))
-                        .into(binding.movieImage);
 
-                Animation animation = AnimationUtils.loadAnimation(
-                        getApplicationContext(), R.anim.fade_in);
-                binding.movieImage.startAnimation(animation);
-
-                // Set the old imageId to the new one.
-                String movieImageId = movieObject.getString( "backdrop_path" );
-            }
-
-            // Same goes for the movie poster of course.
             if (movieObject.has("poster_path") && binding.moviePoster.getDrawable() == null) {
                 Picasso.get().load("https://image.tmdb.org/t/p/w500" +
                         movieObject.getString("poster_path"))
                         .into(binding.moviePoster);
 
                 // Set the old posterId to the new one.
-                String moviePosterId = movieObject.getString( "poster_path" );
+                movieObject.getString( "poster_path" );
             }
 
             // Check if it is a movie or a TV series.
