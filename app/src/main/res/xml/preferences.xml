@@ -137,13 +137,14 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Experimental"
+    <PreferenceCategory android:title="@string/experimental"
         app:iconSpaceReserved="false">
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="dynamic_color_details_activity"
-            android:title="Dynamic color in details page"
+            android:title="@string/dynamic_color_preference_title"
+            android:summary="@string/dynamic_color_preference_summary"
             app:iconSpaceReserved="false"/>
 
     </PreferenceCategory>

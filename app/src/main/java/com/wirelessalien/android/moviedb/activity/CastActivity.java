@@ -24,23 +24,30 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.widget.ImageView;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+import androidx.palette.graphics.Palette;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.appbar.MaterialToolbar;
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.helper.ConfigHelper;
-import com.wirelessalien.android.moviedb.view.NotifyingScrollView;
+import com.squareup.picasso.Target;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
+import com.wirelessalien.android.moviedb.databinding.ActivityCastBinding;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,30 +68,16 @@ public class CastActivity extends BaseActivity {
     private final static String COLLAPSE_VIEW = "collapseView";
     private final static String CAST_MOVIE_VIEW_PREFERENCE = "CastActivity.castMovieView";
     private final static String CREW_MOVIE_VIEW_PREFERENCE = "CastActivity.crewMovieView";
-    private RecyclerView castMovieView;
+    private final static String DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity";
+    private Context context;
+    private JSONObject actorObject;
     private SimilarMovieBaseAdapter castMovieAdapter;
     private ArrayList<JSONObject> castMovieArrayList;
-    private RecyclerView crewMovieView;
     private SimilarMovieBaseAdapter crewMovieAdapter;
     private ArrayList<JSONObject> crewMovieArrayList;
-    private MaterialToolbar toolbar;
-    // Change transparency when scrolling.
-    private final NotifyingScrollView.OnScrollChangedListener
-            mOnScrollChangedListener = new NotifyingScrollView
-            .OnScrollChangedListener() {
-        public void onScrollChanged(int t) {
-            final int headerHeight = findViewById( R.id.actorImage).getHeight() -
-                    toolbar.getHeight();
-            final float ratio = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
-            final int newAlpha = (int) (ratio * 255);
-            toolbar.setBackgroundColor( Color.argb(newAlpha, 0, 0, 0));
-
-
-        }
-    };
-
+    private ActivityCastBinding binding;
     private int actorId;
-    private TextView actorBiography;
+    private Target target;
 
 	/*
     * This class provides an overview for actors.
@@ -101,50 +94,44 @@ public class CastActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        binding = ActivityCastBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        // Set the proper layout.
-        setContentView(R.layout.activity_cast);
         setNavigationDrawer();
         setBackButtons();
 
-        toolbar = findViewById(R.id.toolbar);
-
-        // Make the transparency dependent on how far the user scrolled down.
-        NotifyingScrollView notifyingScrollView = findViewById(R.id.castScrollView);
-        notifyingScrollView.setOnScrollChangedListener(mOnScrollChangedListener);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences( this );
+        context = this;
 
         // Create a variable with the application context that can be used
         // when data is retrieved.
         mActivity = this;
 
         // RecyclerView to display the shows that the person was part of the cast in.
-        castMovieView = findViewById(R.id.castMovieRecyclerView);
-        castMovieView.setHasFixedSize(true); // Improves performance (if size is static)
+        binding.castMovieRecyclerView.setHasFixedSize(true); // Improves performance (if size is static)
 
         // RecyclerView to display the movies that the person was part of the crew in.
-        crewMovieView = findViewById(R.id.crewMovieRecyclerView);
-        crewMovieView.setHasFixedSize(true);
+        binding.crewMovieRecyclerView.setHasFixedSize(true);
 
         LinearLayoutManager castLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        castMovieView.setLayoutManager(castLinearLayoutManager);
+        binding.castMovieRecyclerView.setLayoutManager(castLinearLayoutManager);
 
-        // RecyclerView to display the shows that the person was part of the crew in.
-        crewMovieView = findViewById(R.id.crewMovieRecyclerView);
-        crewMovieView.setHasFixedSize(true); // Improves performance (if size is static)
+        // RecyclerView to display the shows that the person was part of the crew in.;
+        binding.crewMovieRecyclerView.setHasFixedSize(true); // Improves performance (if size is static)
 
         LinearLayoutManager crewLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        crewMovieView.setLayoutManager(crewLinearLayoutManager);
+        binding.crewMovieRecyclerView.setLayoutManager(crewLinearLayoutManager);
 
         // Make the views invisible if the user collapsed the view.
         collapseViewPreferences = getApplicationContext()
                 .getSharedPreferences(COLLAPSE_VIEW, Context.MODE_PRIVATE);
 
         if (collapseViewPreferences.getBoolean(CAST_MOVIE_VIEW_PREFERENCE, false)) {
-            castMovieView.setVisibility(View.GONE);
+            binding.castMovieRecyclerView.setVisibility(View.GONE);
         }
 
         if (collapseViewPreferences.getBoolean(CREW_MOVIE_VIEW_PREFERENCE, false)) {
-            crewMovieView.setVisibility(View.GONE);
+            binding.crewMovieRecyclerView.setVisibility(View.GONE);
         }
 
         // Get the actorObject from the intent that contains the necessary
@@ -154,31 +141,78 @@ public class CastActivity extends BaseActivity {
         Intent intent = getIntent();
         try {
             setActorData(new JSONObject(intent.getStringExtra(("actorObject"))));
+            actorObject = new JSONObject(intent.getStringExtra("actorObject"));
 
             // Set the adapter with the (still) empty ArrayList.
             castMovieArrayList = new ArrayList<>();
             castMovieAdapter = new SimilarMovieBaseAdapter(castMovieArrayList,
                     getApplicationContext());
-            castMovieView.setAdapter(castMovieAdapter);
+            binding.castMovieRecyclerView.setAdapter(castMovieAdapter);
 
             // Set the adapter with the (still) empty ArrayList.
             crewMovieArrayList = new ArrayList<>();
             crewMovieAdapter = new SimilarMovieBaseAdapter(crewMovieArrayList,
                     getApplicationContext());
-            crewMovieView.setAdapter(crewMovieAdapter);
+            binding.crewMovieRecyclerView.setAdapter(crewMovieAdapter);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         checkNetwork();
 
-        // Check for clicks to collapse/expand the views.
-        TextView castMovieTitle = findViewById(R.id.castMovieTitle);
-        TextView crewMovieTitle = findViewById(R.id.crewMovieTitle);
+
 
         // Set a listener to change the visibility when the TextView is clicked.
-        setTitleClickListener(castMovieTitle, castMovieView, CAST_MOVIE_VIEW_PREFERENCE);
-        setTitleClickListener(crewMovieTitle, crewMovieView, CREW_MOVIE_VIEW_PREFERENCE);
+        setTitleClickListener(binding.castMovieTitle, binding.castMovieRecyclerView, CAST_MOVIE_VIEW_PREFERENCE);
+        setTitleClickListener(binding.crewMovieTitle, binding.crewMovieRecyclerView, CREW_MOVIE_VIEW_PREFERENCE);
+
+        if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
+            if (actorObject.has("profile_path") && binding.actorImage.getDrawable() == null) {
+                String imageUrl;
+                try {
+                    imageUrl = "https://image.tmdb.org/t/p/h632" + actorObject.getString( "profile_path" );
+                } catch (JSONException e) {
+                    throw new RuntimeException( e );
+                }
+                // Set the loaded bitmap to your ImageView before generating the Palette
+                target = new Target() {
+                    @Override
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        // Set the loaded bitmap to your ImageView before generating the Palette
+                        binding.actorImage.setImageBitmap( bitmap );
+
+                        Palette.from( bitmap ).generate( new Palette.PaletteAsyncListener() {
+                            public void onGenerated(Palette palette) {
+
+                                int mutedColor = palette.getMutedColor( Color.BLACK );
+                                GradientDrawable gradientDrawable = new GradientDrawable(
+                                        GradientDrawable.Orientation.TOP_BOTTOM,
+                                        new int[]{mutedColor, Color.TRANSPARENT} );
+
+                                binding.getRoot().setBackground( gradientDrawable );
+
+                                binding.toolbar.setBackgroundColor( Color.TRANSPARENT );
+                            }
+                        } );
+
+                        Animation animation = AnimationUtils.loadAnimation(
+                                getApplicationContext(), R.anim.fade_in );
+                        binding.actorImage.startAnimation( animation );
+                    }
+
+                    @Override
+                    public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                        binding.actorImage.setBackgroundColor( ContextCompat.getColor( context, R.color.md_theme_surface ) );
+                    }
+
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+                        binding.actorImage.setBackgroundColor( ContextCompat.getColor( context, R.color.md_theme_surface ) );
+                    }
+                };
+                Picasso.get().load( imageUrl ).into( target );
+            }
+        }
     }
 
     @Override
@@ -231,14 +265,6 @@ public class CastActivity extends BaseActivity {
      */
     private void setActorData(JSONObject actorObject) {
 
-        // Get the views from the layout
-        ImageView actorImage = findViewById(R.id.actorImage);
-        TextView actorName = findViewById(R.id.actorName);
-        ImageView actorIcon = findViewById(R.id.actorIcon);
-        TextView actorPlaceOfBirth = findViewById(R.id.actorPlaceOfBirth);
-        TextView actorBirthday = findViewById(R.id.actorBirthday);
-        actorBiography = findViewById(R.id.actorBiography);
-
         // Check if actorObject values differ from the current values,
         // if they do, use the actorObject values (as they are probably
         // more recent).
@@ -253,45 +279,38 @@ public class CastActivity extends BaseActivity {
             // saved as class variable for easy comparison.
             if (actorObject.has("profile_path")) {
 
-                // Load the images into the appropriate view.
-                if (actorImage.getDrawable() == null) {
-                    Picasso.get().load("https://image.tmdb.org/t/p/h632" +
-                            actorObject.getString("profile_path"))
-                            .into(actorImage);
-                }
-
-                if (actorIcon.getDrawable() == null) {
+                if (binding.actorIcon.getDrawable() == null) {
                     Picasso.get().load("https://image.tmdb.org/t/p/w154" +
                             actorObject.getString("profile_path"))
-                            .into(actorIcon);
+                            .into(binding.actorIcon);
                 }
 
                 // Set the old imageId to the new one.
-                String actorImageId = actorObject.getString( "profile_path" );
+                actorObject.getString( "profile_path" );
             }
 
             // If the name is different in the new dataset, change it.
-            if (actorObject.has("name") && !actorObject.getString("name").equals(actorName.getText().toString())) {
-                actorName.setText(actorObject.getString("name"));
+            if (actorObject.has("name") && !actorObject.getString("name").equals(binding.actorName.getText().toString())) {
+                binding.actorName.setText(actorObject.getString("name"));
             }
 
             // If the place of birth is different in the new dataset, change it.
-            if (actorObject.has("place_of_birth") && !actorObject.getString("place_of_birth").equals(actorPlaceOfBirth
+            if (actorObject.has("place_of_birth") && !actorObject.getString("place_of_birth").equals(binding.actorPlaceOfBirth
                     .getText().toString())) {
-                actorPlaceOfBirth.setText(getString(R.string.place_of_birth) + actorObject.getString("place_of_birth"));
+                binding.actorPlaceOfBirth.setText(getString(R.string.place_of_birth) + actorObject.getString("place_of_birth"));
             }
 
             // If the birthday is different in the new dataset, change it.
-            if (actorObject.has("birthday") && !actorObject.getString("birthday").equals(actorBirthday
+            if (actorObject.has("birthday") && !actorObject.getString("birthday").equals(binding.actorBirthday
                     .getText().toString())) {
-                actorBirthday.setText(getString(R.string.birthday) + actorObject.getString("birthday"));
+                binding.actorBirthday.setText(getString(R.string.birthday) + actorObject.getString("birthday"));
             }
 
             // If the biography is different in the new dataset, change it.
             if (actorObject.has("biography") &&
                     !actorObject.getString("biography").equals(
-                            actorBiography.getText().toString())) {
-                actorBiography.setText(actorObject.getString("biography"));
+                            binding.actorBiography.getText().toString())) {
+                binding.actorBiography.setText(actorObject.getString("biography"));
             }
             if (actorObject.getString("biography").equals("")) {
                 new ActorDetailsThread("true").start();
@@ -365,7 +384,7 @@ public class CastActivity extends BaseActivity {
 
                         textView.setVisibility(View.GONE);
                         view.setVisibility(View.GONE);
-                        castMovieView.setVisibility(View.GONE);
+                        binding.castMovieRecyclerView.setVisibility(View.GONE);
                     } else {
                         JSONArray castMovieArray = reader.getJSONArray("cast");
                         for (int i = 0; i < castMovieArray.length(); i++) {
@@ -377,7 +396,7 @@ public class CastActivity extends BaseActivity {
                         // shows the new items.
                         castMovieAdapter = new SimilarMovieBaseAdapter(
                                 castMovieArrayList, getApplicationContext());
-                        castMovieView.setAdapter(castMovieAdapter);
+                        binding.castMovieRecyclerView.setAdapter(castMovieAdapter);
                     }
 
                     // Add the crew roles to the crewMovieView
@@ -389,7 +408,7 @@ public class CastActivity extends BaseActivity {
 
                         textView.setVisibility(View.GONE);
                         view.setVisibility(View.GONE);
-                        crewMovieView.setVisibility(View.GONE);
+                        binding.crewMovieRecyclerView.setVisibility(View.GONE);
                     } else {
                         JSONArray crewMovieArray = reader.getJSONArray("crew");
                         for (int i = 0; i < crewMovieArray.length(); i++) {
@@ -405,7 +424,7 @@ public class CastActivity extends BaseActivity {
                         // shows the new items.
                         crewMovieAdapter = new SimilarMovieBaseAdapter(
                                 crewMovieArrayList, getApplicationContext());
-                        crewMovieView.setAdapter(crewMovieAdapter);
+                        binding.crewMovieRecyclerView.setAdapter(crewMovieAdapter);
                         mActorMoviesLoaded = true;
                     }
                 } catch (JSONException je) {
@@ -485,10 +504,10 @@ public class CastActivity extends BaseActivity {
                 try {
                     JSONObject actorData = new JSONObject(response);
                     if (missingOverview && actorData.has("biography") && !actorData.getString("biography").equals("")) {
-                        actorBiography.setText(actorData.getString("biography"));
+                        binding.actorBiography.setText(actorData.getString("biography"));
                     } else if (missingOverview && (actorData.optString("biography") == null
                             || (actorData.has("biography") && actorData.get("biography").equals("")))) {
-                        actorBiography.setText(getString(R.string.no_biography)
+                        binding.actorBiography.setText(getString(R.string.no_biography)
                                 + actorData.getString("name") + ".");
                     } else {
                         setActorData(actorData);

@@ -136,6 +136,7 @@ public class DetailActivity extends BaseActivity {
     private SQLiteDatabase database;
     private MovieDatabaseHelper databaseHelper;
     private int movieId;
+    private Target target;
     private String voteAverage;
     private Integer totalEpisodes;
     private boolean isMovie = true;
@@ -144,8 +145,9 @@ public class DetailActivity extends BaseActivity {
     private String genres;
     private Date startDate;
     private Date finishDate;
-    private Target target;
     private Activity mActivity;
+    private final int MAX_RETRY_COUNT = 2;
+    private int retryCount = 0;
     private boolean added = false;
     private SpannableString showTitle;
     private ActivityDetailBinding binding;
@@ -519,6 +521,7 @@ public class DetailActivity extends BaseActivity {
             binding.revenueDataText.setVisibility( View.GONE );
         }
 
+
         if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
             if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
                 String imageUrl = null;
@@ -527,6 +530,8 @@ public class DetailActivity extends BaseActivity {
                 } catch (JSONException e) {
                     throw new RuntimeException( e );
                 }
+                // Set the loaded bitmap to your ImageView before generating the Palette
+                String finalImageUrl = imageUrl;
                 target = new Target() {
                     @Override
                     public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
@@ -537,6 +542,7 @@ public class DetailActivity extends BaseActivity {
                             public void onGenerated(Palette palette) {
 
                                 int mutedColor = palette.getMutedColor( Color.BLACK );
+                                Log.d("ColorInfo", "Muted color: " + mutedColor);
                                 GradientDrawable gradientDrawable = new GradientDrawable(
                                         GradientDrawable.Orientation.TOP_BOTTOM,
                                         new int[]{mutedColor, Color.TRANSPARENT} );
@@ -554,7 +560,12 @@ public class DetailActivity extends BaseActivity {
 
                     @Override
                     public void onBitmapFailed(Exception e, Drawable errorDrawable) {
-                        binding.movieImage.setBackgroundColor( ContextCompat.getColor( context, R.color.md_theme_surface ) );
+                        if (retryCount < MAX_RETRY_COUNT) {
+                            Picasso.get().load( finalImageUrl ).into(this);
+                            retryCount++;
+                        } else {
+                            binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface));
+                        }
                     }
 
                     @Override
