@@ -29,15 +29,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Parcel;
 import android.text.SpannableString;
-import android.text.TextPaint;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,7 +47,6 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -72,7 +67,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
@@ -123,13 +117,10 @@ public class DetailActivity extends BaseActivity {
     private final static String RECOMMENDATION_VIEW_PREFERENCE = "key_show_similar_movies";
     private final static String SHOW_SAVE_DIALOG_PREFERENCE = "key_show_save_dialog";
     private String API_KEY;
-    private RecyclerView castView;
-    private RecyclerView crewView;
     private CastBaseAdapter castAdapter;
     private CastBaseAdapter crewAdapter;
     private ArrayList<JSONObject> castArrayList;
     private ArrayList<JSONObject> crewArrayList;
-    private RecyclerView similarMovieView;
     private SimilarMovieBaseAdapter similarMovieAdapter;
     private ArrayList<JSONObject> similarMovieArrayList;
     private String sessionId;
@@ -140,11 +131,6 @@ public class DetailActivity extends BaseActivity {
     private String voteAverage;
     private Integer totalEpisodes;
     private boolean isMovie = true;
-    private ImageView movieImage;
-    private ImageView moviePoster;
-    private TextView movieTitle, movieGenres, movieStartDate, movieFinishDate, movieRewatched, movieEpisodes, imdbLink, releaseDate, runtime,
-            status, movieDescription, country, revenueView;
-    private RatingBar movieRating;
     private Context context = this;
     private JSONObject jMovieObject;
     private String genres;
@@ -246,81 +232,48 @@ public class DetailActivity extends BaseActivity {
         context = this;
 
         // RecyclerView to display the cast of the show.
-        castView = binding.castRecyclerView;
-        castView.setHasFixedSize(true); // Improves performance (if size is static)
+        binding.castRecyclerView.setHasFixedSize(true); // Improves performance (if size is static)
 
         LinearLayoutManager castLinearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.HORIZONTAL, false);
-        castView.setLayoutManager(castLinearLayoutManager);
+        binding.castRecyclerView.setLayoutManager(castLinearLayoutManager);
 
         // RecyclerView to display the crew of the show.
-        crewView = binding.crewRecyclerView;
-        crewView.setHasFixedSize(true); // Improves performance (if size is static)
+        binding.crewRecyclerView.setHasFixedSize(true); // Improves performance (if size is static)
 
         LinearLayoutManager crewLinearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.HORIZONTAL, false);
-        crewView.setLayoutManager(crewLinearLayoutManager);
+        binding.crewRecyclerView.setLayoutManager(crewLinearLayoutManager);
 
         // RecyclerView to display similar shows to this one.
-        similarMovieView = binding.movieRecyclerView;
-        similarMovieView.setHasFixedSize(true); // Improves performance (if size is static)
+        binding.movieRecyclerView.setHasFixedSize(true); // Improves performance (if size is static)
         LinearLayoutManager movieLinearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.HORIZONTAL, false);
-        similarMovieView.setLayoutManager(movieLinearLayoutManager);
+        binding.movieRecyclerView.setLayoutManager(movieLinearLayoutManager);
 
         // Make the views invisible if the user collapsed the view.
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         if (!preferences.getBoolean(CAST_VIEW_PREFERENCE, false)) {
-            castView.setVisibility(View.GONE);
+            binding.castRecyclerView.setVisibility(View.GONE);
 
-            TextView castTitle = binding.castTitle;
-            castTitle.setVisibility(View.GONE);
-
-            View castDivider = binding.secondDivider;
-            castDivider.setVisibility(View.GONE);
+            binding.castTitle.setVisibility(View.GONE);
+            binding.secondDivider.setVisibility(View.GONE);
         }
 
         if (!preferences.getBoolean(CREW_VIEW_PREFERENCE, false)) {
-            crewView.setVisibility(View.GONE);
+            binding.crewRecyclerView.setVisibility(View.GONE);
 
-            TextView crewTitle = binding.crewTitle;
-            crewTitle.setVisibility(View.GONE);
-
-            View crewDivider = binding.thirdDivider;
-            crewDivider.setVisibility(View.GONE);
+            binding.crewTitle.setVisibility(View.GONE);
+            binding.thirdDivider.setVisibility(View.GONE);
         }
 
         if (!preferences.getBoolean(RECOMMENDATION_VIEW_PREFERENCE, false)) {
-            similarMovieView.setVisibility(View.GONE);
+            binding.movieRecyclerView.setVisibility(View.GONE);
 
             TextView similarMovieTitle = binding.similarMovieTitle;
             similarMovieTitle.setVisibility(View.GONE);
         }
-        // Get the views from the layout.
-        movieImage = binding.movieImage;
-        movieTitle = binding.movieTitle;
-        moviePoster = binding.moviePoster;
-        movieGenres = binding.movieGenres;
-        movieStartDate = binding.movieStartDate;
-        movieFinishDate = binding.movieFinishDate;
-        movieRewatched = binding.movieRewatched;
-        movieEpisodes = binding.movieEpisodes;
-        movieRating = binding.movieRating;
-        movieDescription = binding.movieDescription;
-        imdbLink = binding.imdbLink;
-        releaseDate = binding.releaseDateDataText;
-        runtime = binding.runtimeDataText;
-        status = binding.statusDataText;
-        country = binding.countryDataText;
-        revenueView = binding.revenueDataText;
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-
-        ImageButton addToListBtn = binding.addToList;
-        ImageButton addToWatchlistButton = binding.watchListButton;
-        ImageButton addToFavouritesButton = binding.favouriteButton;
-        ImageButton rateButton = binding.ratingBtn;
 
         sessionId = preferences.getString("access_token", null);
         accountId = preferences.getString("account_id", null);
@@ -338,18 +291,18 @@ public class DetailActivity extends BaseActivity {
             // Set the adapter with the (still) empty ArrayList.
             castArrayList = new ArrayList<>();
             castAdapter = new CastBaseAdapter(castArrayList, getApplicationContext());
-            castView.setAdapter(castAdapter);
+            binding.castRecyclerView.setAdapter(castAdapter);
 
             // Set the adapter with the (still) empty ArrayList.
             crewArrayList = new ArrayList<>();
             crewAdapter = new CastBaseAdapter(crewArrayList, getApplicationContext());
-            crewView.setAdapter(crewAdapter);
+            binding.crewRecyclerView.setAdapter(crewAdapter);
 
             // Set the adapter with the (still) empty ArrayList.
             similarMovieArrayList = new ArrayList<>();
             similarMovieAdapter = new SimilarMovieBaseAdapter(similarMovieArrayList,
                     getApplicationContext());
-            similarMovieView.setAdapter(similarMovieAdapter);
+            binding.movieRecyclerView.setAdapter(similarMovieAdapter);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -372,20 +325,20 @@ public class DetailActivity extends BaseActivity {
                 double ratingValue = getAccountStateThread.getRating();
                 runOnUiThread(() -> {
                     if (isInWatchlist) {
-                        addToWatchlistButton.setImageResource(R.drawable.ic_bookmark);
+                        binding.watchListButton.setImageResource(R.drawable.ic_bookmark);
                     } else {
-                        addToWatchlistButton.setImageResource(R.drawable.ic_bookmark_border);
+                        binding.watchListButton.setImageResource(R.drawable.ic_bookmark_border);
                     }
                     if (isFavourite) {
-                        addToFavouritesButton.setImageResource(R.drawable.ic_favorite);
+                        binding.favouriteButton.setImageResource(R.drawable.ic_favorite);
                     } else {
-                        addToFavouritesButton.setImageResource(R.drawable.ic_favorite_border);
+                        binding.favouriteButton.setImageResource(R.drawable.ic_favorite_border);
                     }
 
                     if (ratingValue != 0) {
-                        rateButton.setImageResource(R.drawable.ic_thumb_up);
+                        binding.ratingBtn.setImageResource(R.drawable.ic_thumb_up);
                     } else {
-                        rateButton.setImageResource(R.drawable.ic_thumb_up_border);
+                        binding.ratingBtn.setImageResource(R.drawable.ic_thumb_up_border);
                     }
                 });
             } else {
@@ -420,7 +373,7 @@ public class DetailActivity extends BaseActivity {
             }) );
         }
 
-        addToWatchlistButton.setOnClickListener( v -> new Thread( () -> {
+        binding.watchListButton.setOnClickListener( v -> new Thread( () -> {
             if (accountId != null) {
                 boolean add = true;
                 boolean remove = false;
@@ -435,10 +388,10 @@ public class DetailActivity extends BaseActivity {
                 final boolean isInWatchlist = checkWatchlistThread.isInWatchlist();
                 runOnUiThread( () -> {
                     if (isInWatchlist) {
-                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark_border );
+                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark_border );
                         new AddToWatchlistThreadTMDb(movieId, typeCheck, remove, mActivity).start();
                     } else {
-                        addToWatchlistButton.setImageResource( R.drawable.ic_bookmark );
+                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark );
                         new AddToWatchlistThreadTMDb(movieId, typeCheck, add, mActivity).start();
                     }
                 } );
@@ -447,13 +400,13 @@ public class DetailActivity extends BaseActivity {
             }
         } ).start() );
 
-        addToListBtn.setOnClickListener( v -> {
+        binding.addToList.setOnClickListener( v -> {
             String typeCheck = isMovie ? "movie" : "tv";
             ListBottomSheetDialogFragment listBottomSheetDialogFragment = new ListBottomSheetDialogFragment(movieId , typeCheck, mActivity, true);
             listBottomSheetDialogFragment.show(getSupportFragmentManager(), listBottomSheetDialogFragment.getTag());
         } );
 
-        addToFavouritesButton.setOnClickListener( v -> new Thread( () -> {
+        binding.favouriteButton.setOnClickListener( v -> new Thread( () -> {
             if (accountId != null) {
                 boolean add = true;
                 boolean remove = false;
@@ -468,10 +421,10 @@ public class DetailActivity extends BaseActivity {
                 final boolean isInFavourites = checkFavouritesThread.isInFavourites();
                 runOnUiThread( () -> {
                     if (isInFavourites) {
-                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite_border );
+                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite_border );
                         new AddToFavouritesThreadTMDb(movieId, typeCheck, remove, mActivity).start();
                     } else {
-                        addToFavouritesButton.setImageResource( R.drawable.ic_favorite );
+                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite );
                         new AddToFavouritesThreadTMDb(movieId, typeCheck, add, mActivity).start();
                     }
                 } );
@@ -481,7 +434,7 @@ public class DetailActivity extends BaseActivity {
             }
         } ).start() );
 
-        rateButton.setOnClickListener(v -> {
+        binding.ratingBtn.setOnClickListener(v -> {
             MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
             LayoutInflater inflater = getLayoutInflater();
             View dialogView = inflater.inflate(R.layout.rating_dialog, null);
@@ -536,7 +489,7 @@ public class DetailActivity extends BaseActivity {
             public void onServiceDisconnected(ComponentName name) {}
         });
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        binding.fab.setOnClickListener(new View.OnClickListener() {
             final String typeCheck = isMovie ? "movie" : "tv";
             @Override
             public void onClick(View view) {
@@ -547,6 +500,13 @@ public class DetailActivity extends BaseActivity {
                 startActivity(Intent.createChooser(shareIntent, "Share link using"));
             }
         });
+
+        if (!isMovie) {
+            binding.runtimeText.setVisibility( View.GONE );
+            binding.runtimeDataText.setVisibility( View.GONE );
+            binding.revenueText.setVisibility( View.GONE );
+            binding.revenueDataText.setVisibility( View.GONE );
+        }
 
         checkNetwork();
     }
@@ -735,24 +695,24 @@ public class DetailActivity extends BaseActivity {
             // Due to the difficulty of comparing images (or rather,
             // this can be a really slow process) the id of the image is
             // saved as class variable for easy comparison.
-            if (movieObject.has("backdrop_path") && movieImage.getDrawable() == null) {
+            if (movieObject.has("backdrop_path") && binding.movieImage.getDrawable() == null) {
                 Picasso.get().load("https://image.tmdb.org/t/p/w780" +
                         movieObject.getString("backdrop_path"))
-                        .into(movieImage);
+                        .into(binding.movieImage);
 
                 Animation animation = AnimationUtils.loadAnimation(
                         getApplicationContext(), R.anim.fade_in);
-                movieImage.startAnimation(animation);
+                binding.movieImage.startAnimation(animation);
 
                 // Set the old imageId to the new one.
                 String movieImageId = movieObject.getString( "backdrop_path" );
             }
 
             // Same goes for the movie poster of course.
-            if (movieObject.has("poster_path") && moviePoster.getDrawable() == null) {
+            if (movieObject.has("poster_path") && binding.moviePoster.getDrawable() == null) {
                 Picasso.get().load("https://image.tmdb.org/t/p/w500" +
                         movieObject.getString("poster_path"))
-                        .into(moviePoster);
+                        .into(binding.moviePoster);
 
                 // Set the old posterId to the new one.
                 String moviePosterId = movieObject.getString( "poster_path" );
@@ -762,9 +722,9 @@ public class DetailActivity extends BaseActivity {
             String title = (movieObject.has("title")) ? "title" : "name";
 
             if (movieObject.has(title) &&
-                    !movieObject.getString(title).equals(movieTitle
+                    !movieObject.getString(title).equals(binding.movieTitle
                             .getText().toString())) {
-                movieTitle.setText(movieObject.getString(title));
+                binding.movieTitle.setText(movieObject.getString(title));
 
                 // Initialise global variables (will become visible when scrolling down).
                 showTitle = new SpannableString(movieObject.getString(title));
@@ -785,7 +745,7 @@ public class DetailActivity extends BaseActivity {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 // Set the rating to the personal rating of the user.
-                movieRating.setRating(cursor.getFloat(cursor.getColumnIndexOrThrow(
+                binding.movieRating.setRating(cursor.getFloat(cursor.getColumnIndexOrThrow(
                         MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) / 2);
 
                 // If the database has a start date, use it, otherwise print unknown.
@@ -797,10 +757,10 @@ public class DetailActivity extends BaseActivity {
                             cursor.getColumnIndexOrThrow(MovieDatabaseHelper
                                     .COLUMN_PERSONAL_START_DATE));
                     startDate = parseDateString(startDateString, null, null);
-                    movieStartDate.setText(getString(R.string.start_date)
+                    binding.movieStartDate.setText(getString(R.string.start_date)
                             + parseDateToString(startDate, null, null));
                 } else {
-                    movieStartDate.setText(getString(R.string.start_date_unknown));
+                    binding.movieStartDate.setText(getString(R.string.start_date_unknown));
                 }
 
                 // If the database has a finish date, use it, otherwise print unknown.
@@ -813,10 +773,10 @@ public class DetailActivity extends BaseActivity {
                                     .COLUMN_PERSONAL_FINISH_DATE));
 
                     finishDate = parseDateString(finishDateString, null, null);
-                    movieFinishDate.setText(getString(R.string.finish_date)
+                    binding.movieFinishDate.setText(getString(R.string.finish_date)
                             + parseDateToString(finishDate, null, null));
                 } else {
-                    movieFinishDate.setText(getString(R.string.finish_date_unknown));
+                    binding.movieFinishDate.setText(getString(R.string.finish_date_unknown));
                 }
 
                 // If the database has a rewatched count, use it, otherwise it is 0.
@@ -831,7 +791,7 @@ public class DetailActivity extends BaseActivity {
                         MovieDatabaseHelper.COLUMN_CATEGORIES)) == 1) {
                     watched = 1;
                 }
-                movieRewatched.setText(getString(R.string.times_watched) + watched);
+                binding.movieRewatched.setText(getString(R.string.times_watched) + watched);
 
                 // If the database has an episodes seen count, use it, otherwise it is 0.
                 // Only make "episodes seen" visible for TV shows.
@@ -877,19 +837,19 @@ public class DetailActivity extends BaseActivity {
                             episodeCount = "?";
                         }
                     }
-                    movieEpisodes.setText(getString(R.string.episodes_seen) + episodeCount + "/"
+                    binding.movieEpisodes.setText(getString(R.string.episodes_seen) + episodeCount + "/"
                             + totalEpisodes);
 
                     // Make the row visible once the correct values are set.
                     TableRow episodesSeenRow = (TableRow) binding.episodesSeen.getParent();
                     episodesSeenRow.setVisibility(View.VISIBLE);
-                    movieEpisodes.setVisibility(View.VISIBLE);
+                    binding.movieEpisodes.setVisibility(View.VISIBLE);
                 }
 
                 // Make all the views visible (if the show is in the database).
-                movieStartDate.setVisibility(View.VISIBLE);
-                movieFinishDate.setVisibility(View.VISIBLE);
-                movieRewatched.setVisibility(View.VISIBLE);
+                binding.movieStartDate.setVisibility(View.VISIBLE);
+                binding.movieFinishDate.setVisibility(View.VISIBLE);
+                binding.movieRewatched.setVisibility(View.VISIBLE);
 
                 // Make it possible to change the values.
                 ImageView editIcon = binding.editIcon;
@@ -897,16 +857,16 @@ public class DetailActivity extends BaseActivity {
             } else if (movieObject.has("vote_average") &&
                     !movieObject.getString("vote_average").equals(voteAverage)) {
                 // Set the avarage (non-personal) rating (if it isn't the same).
-                movieRating.setRating(Float.parseFloat(movieObject
+                binding.movieRating.setRating(Float.parseFloat(movieObject
                         .getString("vote_average")) / 2);
             }
 
             // If the overview (summary) is different in the new dataset, change it.
             if (movieObject.has("overview") &&
-                    !movieObject.getString("overview").equals(movieDescription
+                    !movieObject.getString("overview").equals(binding.movieDescription
                             .getText().toString()) && !movieObject.getString("overview")
                     .equals("") && !movieObject.getString("overview").equals("null")) {
-                movieDescription.setText(movieObject.getString("overview"));
+                binding.movieDescription.setText(movieObject.getString("overview"));
                 if (movieObject.getString("overview").equals("")) {
                     MovieDetailsThread movieDetailsThread = new MovieDetailsThread("true");
                     movieDetailsThread.start();
@@ -939,28 +899,33 @@ public class DetailActivity extends BaseActivity {
                 }
 
                 // Remove the first ", " from the String and set the text.
-                movieGenres.setText(genreNames.substring(2));
+                binding.movieGenres.setText(genreNames.substring(2));
                 genres = genreNames.substring(2);
             }
 
-            // Set the release date
-            if (movieObject.has("release_date") && !movieObject.getString("release_date").equals(releaseDate.getText().toString())) {
-                releaseDate.setText(movieObject.getString("release_date"));
+            if (isMovie) {
+                if (movieObject.has( "release_date" ) && !movieObject.getString( "release_date" ).equals( binding.releaseDateDataText.getText().toString() )) {
+                    binding.releaseDateDataText.setText( movieObject.getString( "release_date" ) );
+                }
+            } else {
+                if (movieObject.has( "first_air_date" ) && !movieObject.getString( "first_air_date" ).equals( binding.releaseDateDataText.getText().toString() )) {
+                    binding.releaseDateDataText.setText( movieObject.getString( "first_air_date" ) );
+                }
             }
 
             if (isMovie) {
-                if (movieObject.has("runtime") && !movieObject.getString("runtime").equals(runtime.getText().toString())) {
+                if (movieObject.has("runtime") && !movieObject.getString("runtime").equals(binding.runtimeDataText.getText().toString())) {
                     int totalMinutes = Integer.parseInt(movieObject.getString("runtime"));
                     int hours = totalMinutes / 60;
                     int minutes = totalMinutes % 60;
-                    runtime.setText(hours + "h " + minutes + "m");
+                    binding.runtimeDataText.setText(hours + "h " + minutes + "m");
                 }
             } else {
-                runtime.setText("Unknown");
+                binding.runtimeDataText.setText("Unknown");
             }
 
-            if (movieObject.has("status") && !movieObject.getString("status").equals(status.getText().toString())) {
-                status.setText(movieObject.getString("status"));
+            if (movieObject.has("status") && !movieObject.getString("status").equals(binding.statusDataText.getText().toString())) {
+                binding.statusDataText.setText(movieObject.getString("status"));
             }
 
             if (movieObject.has("production_countries")) {
@@ -973,7 +938,7 @@ public class DetailActivity extends BaseActivity {
                         countries.append(", ");
                     }
                 }
-                country.setText(countries.toString());
+                binding.countryDataText.setText(countries.toString());
             }
 
             if (movieObject.has( "revenue" )) {
@@ -983,9 +948,9 @@ public class DetailActivity extends BaseActivity {
                 } else {
                     revenue = "$" + revenue;
                 }
-                revenueView.setText( revenue );
+                binding.revenueDataText.setText( revenue );
             } else {
-                revenueView.setText( "Unknown" );
+                binding.revenueDataText.setText( "Unknown" );
             }
 
             cursor.close();
@@ -1033,15 +998,13 @@ public class DetailActivity extends BaseActivity {
             try {
                 JSONObject jsonObject = new JSONObject(response);
                 String imdbId = jsonObject.getString("imdb_id");
-                imdbLink = binding.imdbLink;
-                TextView imdbLayout = findViewById(R.id.imdbLink);
                 //if imdbId is not available, set the text to "IMDB (not available)"
                 if (imdbId.equals("null")) {
-                    imdbLink.setText("IMDB (not available)");
+                    binding.imdbLink.setText("IMDB (not available)");
                 } else {
                     //if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
-                    imdbLink.setText("IMDB");
-                    imdbLayout.setOnClickListener(v -> {
+                    binding.imdbLink.setText("IMDB");
+                    binding.imdbLink.setOnClickListener(v -> {
                         String url = "https://www.imdb.com/title/" + imdbId;
                         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                         CustomTabsIntent customTabsIntent = builder.build();
@@ -1172,7 +1135,7 @@ public class DetailActivity extends BaseActivity {
                     database.close();
 
                     // Update the view
-                    movieRewatched.setText(getString(R.string.change_watched_times) + timesWatched );
+                    binding.movieRewatched.setText(getString(R.string.change_watched_times) + timesWatched );
                 }
             } );
 
@@ -1198,7 +1161,7 @@ public class DetailActivity extends BaseActivity {
                     if (totalEpisodes != null) {
                         movieEpisodesString += "/" + totalEpisodes;
                     }
-                    movieEpisodes.setText(movieEpisodesString);
+                    binding.movieEpisodes.setText(movieEpisodesString);
                 }
             } );
 
@@ -1225,7 +1188,7 @@ public class DetailActivity extends BaseActivity {
                     database.close();
 
                     // Update the view
-                    movieRating.setRating((float) rating / 2);
+                    binding.movieRating.setRating((float) rating / 2);
                 }
             } );
         } else {
@@ -1397,7 +1360,7 @@ public class DetailActivity extends BaseActivity {
 
                 Button button = findViewById(R.id.startDateButton);
                 button.setText(dateFormat);
-                movieStartDate.setText(getString(R.string.change_start_date_2) +
+                binding.movieStartDate.setText(getString(R.string.change_start_date_2) +
                         dateFormat);
                 startDate = calendar.getTime();
 
@@ -1407,7 +1370,7 @@ public class DetailActivity extends BaseActivity {
 
                 Button button = findViewById(R.id.endDateButton);
                 button.setText(dateFormat);
-                movieFinishDate.setText(getString(R.string.change_finish_date_2)
+                binding.movieFinishDate.setText(getString(R.string.change_finish_date_2)
                         + dateFormat);
                 finishDate = calendar.getTime();
             }
@@ -1561,7 +1524,7 @@ public class DetailActivity extends BaseActivity {
 
                         textView.setVisibility(View.GONE);
                         view.setVisibility(View.GONE);
-                        castView.setVisibility(View.GONE);
+                        binding.castRecyclerView.setVisibility(View.GONE);
                     } else {
                         JSONArray castArray = reader.getJSONArray("cast");
 
@@ -1572,7 +1535,7 @@ public class DetailActivity extends BaseActivity {
                         castAdapter = new CastBaseAdapter(castArrayList,
                                 getApplicationContext());
 
-                        castView.setAdapter(castAdapter);
+                        binding.castRecyclerView.setAdapter(castAdapter);
                     }
 
                     // Add the crew to the crewView
@@ -1584,7 +1547,7 @@ public class DetailActivity extends BaseActivity {
 
                         textView.setVisibility(View.GONE);
                         view.setVisibility(View.GONE);
-                        crewView.setVisibility(View.GONE);
+                        binding.crewRecyclerView.setVisibility(View.GONE);
                     } else {
                         JSONArray crewArray = reader.getJSONArray("crew");
 
@@ -1602,7 +1565,7 @@ public class DetailActivity extends BaseActivity {
                         crewAdapter = new CastBaseAdapter(crewArrayList,
                                 getApplicationContext());
 
-                        crewView.setAdapter(crewAdapter);
+                        binding.crewRecyclerView.setAdapter(crewAdapter);
                     }
 
                     mCastAndCrewLoaded = true;
@@ -1611,8 +1574,8 @@ public class DetailActivity extends BaseActivity {
                 }
             }
 
-            hideEmptyRecyclerView(castView, binding.castTitle);
-            hideEmptyRecyclerView(crewView, binding.crewTitle);
+            hideEmptyRecyclerView(binding.castRecyclerView, binding.castTitle);
+            hideEmptyRecyclerView(binding.castRecyclerView, binding.crewTitle);
         }
     }
 
@@ -1675,14 +1638,14 @@ public class DetailActivity extends BaseActivity {
                 similarMovieAdapter = new SimilarMovieBaseAdapter(
                         similarMovieArrayList, getApplicationContext());
 
-                similarMovieView.setAdapter(similarMovieAdapter);
+                binding.movieRecyclerView.setAdapter(similarMovieAdapter);
                 mSimilarMoviesLoaded = false;
             } catch (JSONException je) {
                 je.printStackTrace();
             }
         }
 
-        hideEmptyRecyclerView(similarMovieView, binding.similarMovieTitle);
+        hideEmptyRecyclerView(binding.movieRecyclerView, binding.similarMovieTitle);
     }
 
     // Load the movie details.
@@ -1749,7 +1712,7 @@ public class DetailActivity extends BaseActivity {
                     // Doing this with setMovieData would change everything to English.
                     // To prevent that, we use this if-statement.
                     if (missingOverview) {
-                        movieDescription.setText(movieData.getString("overview"));
+                        binding.movieDescription.setText(movieData.getString("overview"));
                     } else {
                         setMovieData(movieData);
                     }
@@ -1758,35 +1721,6 @@ public class DetailActivity extends BaseActivity {
                     e.printStackTrace();
                 }
             }
-        }
-    }
-
-    @SuppressLint("ParcelCreator")
-    /* Credits to: Flavien Laurent (http://flavienlaurent.com/blog/2013/11/20/making-your-action-bar-not-boring/) */
-    public static class AlphaForegroundColorSpan extends ForegroundColorSpan {
-        private float mAlpha;
-
-        AlphaForegroundColorSpan() {
-            super(0xffffffff);
-        }
-
-        public void writeToParcel(@NonNull Parcel dest, int flags) {
-            super.writeToParcel(dest, flags);
-            dest.writeFloat(mAlpha);
-        }
-
-        @Override
-        public void updateDrawState(TextPaint ds) {
-            ds.setColor(getAlphaColor());
-        }
-
-        void setAlpha(float alpha) {
-            mAlpha = alpha;
-        }
-
-        private int getAlphaColor() {
-            int foregroundColor = getForegroundColor();
-            return Color.argb((int) (mAlpha * 255), Color.red(foregroundColor), Color.green(foregroundColor), Color.blue(foregroundColor));
         }
     }
 }
