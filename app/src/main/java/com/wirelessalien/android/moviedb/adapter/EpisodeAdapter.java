@@ -22,18 +22,15 @@ package com.wirelessalien.android.moviedb.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.RatingBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.data.Episode;
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.data.Episode;
+import com.wirelessalien.android.moviedb.databinding.EpisodeItemBinding;
 
 import java.util.List;
 
@@ -50,22 +47,23 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
     @NonNull
     @Override
     public EpisodeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.episode_item, parent, false);
-        return new EpisodeViewHolder(view);
+        EpisodeItemBinding binding = EpisodeItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new EpisodeViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull EpisodeViewHolder holder, int position) {
         Episode episode = episodes.get(position);
-        holder.episodeName.setText(episode.getName());
-        holder.episodeOverview.setText(episode.getOverview());
-        holder.episodeAirDate.setText(episode.getAirDate());
-        holder.episodeRuntime.setText( episode.getRuntime() + " minutes");
-        holder.episodeVoteAverage.setRating((float) episode.getVoteAverage() / 2);
+        holder.binding.title.setText(episode.getName());
+        holder.binding.episodeNumber.setText( "(" + episode.getEpisodeNumber() + ")");
+        holder.binding.description.setText(episode.getOverview());
+        holder.binding.date.setText(episode.getAirDate());
+        holder.binding.episodeCount.setText( episode.getRuntime() + " minutes");
+        holder.binding.rating.setRating((float) episode.getVoteAverage() / 2);
         Picasso.get()
                 .load(episode.getPosterPath())
-                .placeholder(R.drawable.ic_broken_image)
-                .into(holder.episodePoster);
+                .placeholder(R.color.md_theme_surface)
+                .into(holder.binding.image);
     }
 
     @Override
@@ -74,23 +72,11 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
     }
 
     public static class EpisodeViewHolder extends RecyclerView.ViewHolder {
-        TextView episodeName;
-        TextView episodeOverview;
-        ImageView episodePoster;
-        TextView episodeAirDate;
-        TextView episodeRuntime;
-        RatingBar episodeVoteAverage;
+        EpisodeItemBinding binding;
 
-
-
-        public EpisodeViewHolder(@NonNull View itemView) {
-            super(itemView);
-            episodeName = itemView.findViewById(R.id.title);
-            episodeOverview = itemView.findViewById(R.id.description);
-            episodePoster = itemView.findViewById(R.id.image);
-            episodeAirDate = itemView.findViewById(R.id.date);
-            episodeRuntime = itemView.findViewById(R.id.episodeCount);
-            episodeVoteAverage = itemView.findViewById(R.id.rating);
+        public EpisodeViewHolder(@NonNull EpisodeItemBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
         }
     }
 }

@@ -27,6 +27,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -289,6 +290,20 @@ public class DetailActivity extends BaseActivity {
         sessionId = preferences.getString("access_token", null);
         accountId = preferences.getString("account_id", null);
 
+        if (sessionId == null || accountId == null) {
+            // Disable the buttons
+            binding.watchListButton.setEnabled(false);
+            binding.favouriteButton.setEnabled(false);
+            binding.ratingBtn.setEnabled(false);
+            binding.addToList.setEnabled(false);
+        } else {
+            // Enable the buttons
+            binding.watchListButton.setEnabled(true);
+            binding.favouriteButton.setEnabled(true);
+            binding.ratingBtn.setEnabled(true);
+            binding.addToList.setEnabled(true);
+        }
+
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
         // Send the JSONObject to setMovieData() so all the data
@@ -355,7 +370,7 @@ public class DetailActivity extends BaseActivity {
                     }
                 });
             } else {
-                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to retrieve account details", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id. Try login again.", Toast.LENGTH_SHORT).show());
             }
         }).exceptionally(ex -> {
             Log.e("DetailActivity", "Error in CompletableFuture", ex);
@@ -388,8 +403,6 @@ public class DetailActivity extends BaseActivity {
 
         binding.watchListButton.setOnClickListener( v -> new Thread( () -> {
             if (accountId != null) {
-                boolean add = true;
-                boolean remove = false;
                 String typeCheck = isMovie ? "movie" : "tv";
                 GetAccountStateThreadTMDb checkWatchlistThread = new GetAccountStateThreadTMDb(movieId, typeCheck, mActivity);
                 checkWatchlistThread.start();
@@ -402,10 +415,10 @@ public class DetailActivity extends BaseActivity {
                 runOnUiThread( () -> {
                     if (isInWatchlist) {
                         binding.watchListButton.setImageResource( R.drawable.ic_bookmark_border );
-                        new AddToWatchlistThreadTMDb(movieId, typeCheck, remove, mActivity).start();
+                        new AddToWatchlistThreadTMDb(movieId, typeCheck, false, mActivity).start();
                     } else {
                         binding.watchListButton.setImageResource( R.drawable.ic_bookmark );
-                        new AddToWatchlistThreadTMDb(movieId, typeCheck, add, mActivity).start();
+                        new AddToWatchlistThreadTMDb(movieId, typeCheck, true, mActivity).start();
                     }
                 } );
             } else {
@@ -421,8 +434,6 @@ public class DetailActivity extends BaseActivity {
 
         binding.favouriteButton.setOnClickListener( v -> new Thread( () -> {
             if (accountId != null) {
-                boolean add = true;
-                boolean remove = false;
                 String typeCheck = isMovie ? "movie" : "tv";
                 GetAccountStateThreadTMDb checkFavouritesThread = new GetAccountStateThreadTMDb(movieId, typeCheck, mActivity);
                 checkFavouritesThread.start();
@@ -435,10 +446,10 @@ public class DetailActivity extends BaseActivity {
                 runOnUiThread( () -> {
                     if (isInFavourites) {
                         binding.favouriteButton.setImageResource( R.drawable.ic_favorite_border );
-                        new AddToFavouritesThreadTMDb(movieId, typeCheck, remove, mActivity).start();
+                        new AddToFavouritesThreadTMDb(movieId, typeCheck, false, mActivity).start();
                     } else {
                         binding.favouriteButton.setImageResource( R.drawable.ic_favorite );
-                        new AddToFavouritesThreadTMDb(movieId, typeCheck, add, mActivity).start();
+                        new AddToFavouritesThreadTMDb(movieId, typeCheck, true, mActivity).start();
                     }
                 } );
 
@@ -547,9 +558,11 @@ public class DetailActivity extends BaseActivity {
                                         GradientDrawable.Orientation.TOP_BOTTOM,
                                         new int[]{mutedColor, Color.TRANSPARENT} );
 
-                                binding.getRoot().setBackground( gradientDrawable );
+                                binding.getRoot().setBackground(gradientDrawable);
 
-                                binding.toolbar.setBackgroundColor( Color.TRANSPARENT );
+                                binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT);
+                                ColorStateList colorStateList = ColorStateList.valueOf(mutedColor);
+                                binding.fab.setBackgroundTintList(colorStateList);
                             }
                         } );
 

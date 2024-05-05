@@ -63,7 +63,7 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
         airDate = findViewById(R.id.date);
         voteAverage = findViewById(R.id.rating);
         rvEpisodes = findViewById(R.id.episodeRecyclerView);
-        ProgressBar progressBar = findViewById(R.id.progressBar); // Assuming you have a ProgressBar in your layout
+        ProgressBar progressBar = findViewById(R.id.progressBar);
 
         int tvShowId = getIntent().getIntExtra("tvShowId", -1);
         int seasonNumber = getIntent().getIntExtra("seasonNumber", -1);

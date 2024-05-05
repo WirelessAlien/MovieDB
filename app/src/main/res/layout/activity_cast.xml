@@ -40,7 +40,7 @@
                 android:id="@+id/actorImage"
                 android:layout_width="match_parent"
                 android:layout_height="400dp"
-                android:background="@color/md_theme_primary"
+                android:background="@color/md_theme_surface"
                 android:contentDescription="@string/person_image_description"
                 android:scaleType="centerCrop" />
 
@@ -161,8 +161,8 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true"
-        android:theme="@style/ThemeOverlay.AppTheme.MediumContrast">
+        android:id="@+id/appBarLayout"
+        android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"

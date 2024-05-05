@@ -191,7 +191,7 @@ public class CastActivity extends BaseActivity {
 
                                 binding.getRoot().setBackground( gradientDrawable );
 
-                                binding.toolbar.setBackgroundColor( Color.TRANSPARENT );
+                                binding.appBarLayout.setBackgroundColor( Color.TRANSPARENT );
                             }
                         } );
 

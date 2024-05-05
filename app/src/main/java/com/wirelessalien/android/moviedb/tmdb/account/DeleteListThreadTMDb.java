@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import org.json.JSONObject;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -63,7 +65,8 @@ public class DeleteListThreadTMDb extends Thread {
                     .build();
 
             Response response = client.newCall(request).execute();
-            success = response.isSuccessful();
+            JSONObject jsonResponse = new JSONObject(response.body().string());
+            success = jsonResponse.getBoolean("success");
 
         } catch (Exception e) {
             e.printStackTrace();

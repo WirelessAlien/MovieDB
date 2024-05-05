@@ -180,6 +180,7 @@
     <string name="external_link">External Link</string>
     <string name="login_successful">Login successful</string>
     <string name="experimental">Experimental</string>
-    <string name="dynamic_color_preference_summary">The color of the details page will shown dynamically based on the color of the movie image</string>
+    <string name="dynamic_color_preference_summary">The color of the details page will shown dynamically based on the color of the movie or cast image</string>
     <string name="dynamic_color_preference_title">Dynamic color in details page</string>
+    <string name="share_link_button">Share link button</string>
 </resources>

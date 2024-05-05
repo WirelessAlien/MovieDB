@@ -28,10 +28,11 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_login_test"
+        android:id="@+id/action_login"
         android:icon="@drawable/ic_account"
+        android:orderInCategory="100"
         android:title="@string/login"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/action_list"
         android:icon="@drawable/ic_list_add"

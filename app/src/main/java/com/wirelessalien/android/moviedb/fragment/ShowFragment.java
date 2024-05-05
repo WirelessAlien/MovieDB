@@ -178,14 +178,12 @@ public class ShowFragment extends BaseFragment {
         }
     };
 
-    ActivityResultLauncher<Intent> filterRequestLauncher = registerForActivityResult(
-            filterRequestContract,
+    ActivityResultLauncher<Intent> filterRequestLauncher = registerForActivityResult( filterRequestContract,
             result -> {
-                if (result) {
-                    filterShows();
-                }
-            }
-    );
+        if (result) {
+            filterShows();
+        }
+    });
 
     /**
      * Filters the list of shows based on the preferences set in FilterActivity.

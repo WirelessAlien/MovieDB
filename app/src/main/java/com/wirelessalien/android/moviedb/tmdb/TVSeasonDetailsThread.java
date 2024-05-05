@@ -94,12 +94,10 @@ public class TVSeasonDetailsThread extends Thread {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("TVSeasonDetailsThread", "Error fetching TV season details", e);
         }
     }
 
     public List<Episode> getEpisodes() {
-        Log.d("TVSeasonDetailsThread", "Episodes: " + episodes);
         return episodes;
     }
 

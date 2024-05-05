@@ -52,8 +52,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
@@ -182,18 +180,22 @@ public class MainActivity extends BaseActivity {
 
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
-                case R.id.nav_movie:
-                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(0));
+                case R.id.nav_movie -> {
+                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 0 ) );
                     return true;
-                case R.id.nav_series:
-                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(1));
+                }
+                case R.id.nav_series -> {
+                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 1 ) );
                     return true;
-                case R.id.nav_saved:
-                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(2));
+                }
+                case R.id.nav_saved -> {
+                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 2 ) );
                     return true;
-                case R.id.nav_person:
-                    mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(3));
+                }
+                case R.id.nav_person -> {
+                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 3 ) );
                     return true;
+                }
             }
             return false;
         });
@@ -201,19 +203,11 @@ public class MainActivity extends BaseActivity {
         mViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                switch (mSectionsPagerAdapter.getCorrectedPosition(position)) {
-                    case 0:
-                        bottomNavigationView.setSelectedItemId(R.id.nav_movie);
-                        break;
-                    case 1:
-                        bottomNavigationView.setSelectedItemId(R.id.nav_series);
-                        break;
-                    case 2:
-                        bottomNavigationView.setSelectedItemId(R.id.nav_saved);
-                        break;
-                    case 3:
-                        bottomNavigationView.setSelectedItemId(R.id.nav_person);
-                        break;
+                switch (mSectionsPagerAdapter.getCorrectedPosition( position )) {
+                    case 0 -> bottomNavigationView.setSelectedItemId( R.id.nav_movie );
+                    case 1 -> bottomNavigationView.setSelectedItemId( R.id.nav_series );
+                    case 2 -> bottomNavigationView.setSelectedItemId( R.id.nav_saved );
+                    case 3 -> bottomNavigationView.setSelectedItemId( R.id.nav_person );
                 }
             }
         });
@@ -286,7 +280,7 @@ public class MainActivity extends BaseActivity {
             return true;
         }
 
-        if (id == R.id.action_login_test) {
+        if (id == R.id.action_login) {
             LoginFragment loginFragment = new LoginFragment();
             loginFragment.show(getSupportFragmentManager(), "login");
         }

@@ -73,6 +73,7 @@ public class TVSeasonAdapter extends RecyclerView.Adapter<TVSeasonAdapter.Season
             Intent intent = new Intent(v.getContext(), TVSeasonDetailsActivity.class);
             intent.putExtra("tvShowId", tvShowId);
             intent.putExtra("seasonNumber", season.getSeasonNumber());
+            preferences.edit().putInt("seasonNumber", season.getSeasonNumber()).apply();
             v.getContext().startActivity(intent);
         });
 

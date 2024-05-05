@@ -62,7 +62,7 @@ public class AddRatingThreadTMDb extends Thread {
             RequestBody body = RequestBody.create(mediaType, jsonParam.toString());
 
             Request request = new Request.Builder()
-                    .url("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating?api_key=" + accessToken)
+                    .url("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating")
                     .post(body)
                     .addHeader("accept", "application/json")
                     .addHeader("content-type", "application/json")
@@ -72,8 +72,8 @@ public class AddRatingThreadTMDb extends Thread {
             Response response = client.newCall(request).execute();
             String responseBody = response.body().string();
             JSONObject jsonResponse = new JSONObject(responseBody);
-            String statusMessage = jsonResponse.getString("status_message");
-            success = statusMessage.equals("Success.");
+            int statusCode = jsonResponse.getInt("status_code");
+            success = statusCode == 1;
 
         } catch (Exception e) {
             e.printStackTrace();

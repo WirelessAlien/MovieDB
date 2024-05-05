@@ -72,7 +72,7 @@ public class AddToWatchlistThreadTMDb extends Thread {
             RequestBody body = RequestBody.create(mediaType, jsonParam.toString());
 
             Request request = new Request.Builder()
-                    .url("https://api.themoviedb.org/3/account/" + accountId + "/watchlist?api_key=" + accessToken)
+                    .url("https://api.themoviedb.org/3/account/" + accountId + "/watchlist")
                     .post(body)
                     .addHeader("accept", "application/json")
                     .addHeader("content-type", "application/json")
@@ -82,13 +82,11 @@ public class AddToWatchlistThreadTMDb extends Thread {
             Response response = client.newCall(request).execute();
             String responseBody = response.body().string();
             JSONObject jsonResponse = new JSONObject(responseBody);
-            String statusMessage = jsonResponse.getString("status_message");
-            success = statusMessage.equals("Success.");
+            int statusCode = jsonResponse.getInt("status_code");
+            success = statusCode == 1;
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("AddToWatchlistThreadTMDb", "Failed to add movie to watchlist");
-            Log.e("AddToWatchlistThreadTMDb", e.getMessage());
         }
 
         final boolean finalSuccess = success;

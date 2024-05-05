@@ -26,8 +26,6 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
-import com.wirelessalien.android.moviedb.helper.ConfigHelper;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,7 +53,7 @@ public class DeleteRatingThreadTMDb extends Thread {
 
     @Override
     public void run() {
-        boolean success = false;
+        boolean success;
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url("https://api.themoviedb.org/3/" + type + "/" + movieId + "/rating")
@@ -68,8 +66,8 @@ public class DeleteRatingThreadTMDb extends Thread {
         try (Response response = client.newCall(request).execute()) {
             String responseBody = response.body().string();
             JSONObject jsonResponse = new JSONObject(responseBody);
-            String statusMessage = jsonResponse.getString("status_message");
-            success = statusMessage.equals("The item/record was deleted successfully.");
+            int statusCode = jsonResponse.getInt("status_code");
+            success = statusCode == 13;
 
             final boolean finalSuccess = success;
             activity.runOnUiThread(() -> {
