@@ -575,6 +575,21 @@ public class DetailActivity extends BaseActivity {
                 };
                 Picasso.get().load( imageUrl ).into( target );
             }
+        } else {
+
+            if (jMovieObject.has("backdrop_path") && binding.movieImage.getDrawable() == null) {
+                try {
+                    Picasso.get().load("https://image.tmdb.org/t/p/w780" +
+                                    jMovieObject.getString("backdrop_path"))
+                            .into(binding.movieImage);
+                } catch (JSONException e) {
+                    throw new RuntimeException( e );
+                }
+
+                Animation animation = AnimationUtils.loadAnimation(
+                        getApplicationContext(), R.anim.fade_in);
+                binding.movieImage.startAnimation(animation);
+            }
         }
     }
 

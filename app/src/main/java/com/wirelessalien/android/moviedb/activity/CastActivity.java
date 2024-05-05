@@ -212,6 +212,19 @@ public class CastActivity extends BaseActivity {
                 };
                 Picasso.get().load( imageUrl ).into( target );
             }
+        } else {
+            if (actorObject.has("profile_path")) {
+
+                if (binding.actorImage.getDrawable() == null) {
+                    try {
+                        Picasso.get().load("https://image.tmdb.org/t/p/h632" +
+                                        actorObject.getString("profile_path"))
+                                .into(binding.actorImage);
+                    } catch (JSONException e) {
+                        throw new RuntimeException( e );
+                    }
+                }
+            }
         }
     }
 
@@ -321,7 +334,7 @@ public class CastActivity extends BaseActivity {
     }
 
     /**
-     * AsyncTask that retrieves the shows that the person is credited
+     * Thread that retrieves the shows that the person is credited
      * for from the API.
      */
     private class ActorMovieList extends Thread {
@@ -435,7 +448,7 @@ public class CastActivity extends BaseActivity {
     }
 
     /**
-     * AsyncTask that retrieves the details of the person from the API.
+     * Thread that retrieves the details of the person from the API.
      */
     private class ActorDetailsThread extends Thread {
 

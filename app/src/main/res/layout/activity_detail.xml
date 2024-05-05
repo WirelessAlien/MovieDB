@@ -624,18 +624,15 @@
                 android:paddingBottom="16dp"
                 android:layout_below="@id/statusText"
                 android:textSize="15sp" />
-
-            <ProgressBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/progressBar"
-                android:layout_centerInParent="true"
-                android:visibility="gone"/>
-
         </RelativeLayout>
 
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
-
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
