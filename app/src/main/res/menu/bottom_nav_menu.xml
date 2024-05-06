@@ -33,6 +33,6 @@
         android:title="@string/saved_tab_title" />
     <item
         android:id="@+id/nav_person"
-        android:icon="@drawable/ic_account"
+        android:icon="@drawable/ic_people_group"
         android:title="@string/person_tab_title" />
 </menu>
