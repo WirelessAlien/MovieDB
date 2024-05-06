@@ -28,17 +28,29 @@ To use online mode you need to have account in TMDB. After login, the favourite,
 - [x] Import/Export database
 
 See the [open issues](https://github.com/WirelessAlien/MovieDB/issues) for a full list of proposed features (and known issues).
- ### Build instructions
+
+
+## Screenshots
+<pre>
+<img src="https://github.com/WirelessAlien/MovieDB/assets/121420261/b876ea1d-02a4-420e-a0c6-7b7085fcea83" width="130" height="280" />  <img src="https://github.com/WirelessAlien/MovieDB/assets/121420261/4e970fe9-d600-4d77-8837-97ef989edc92" width="130" height="280" />  <img src="https://github.com/WirelessAlien/MovieDB/assets/121420261/4e7765bc-eb24-4d4c-894f-40220a1c689e" width="130" height="280" />  <img src="https://github.com/WirelessAlien/MovieDB/assets/121420261/11d3282f-5f00-479f-9a49-7e07dd743d44" width="130" height="280" />  <img src="https://github.com/WirelessAlien/MovieDB/assets/121420261/aec79075-14b3-4fc9-82b9-a5888e0275fc" width="130" height="280" />  <img src="https://github.com/WirelessAlien/MovieDB/assets/121420261/dd4685bf-9b67-46b4-9bf8-b415289d153a" width="130" height="280" />
+</pre>
+
+
+### Build instructions
 
 This application can be compiled in android studio.
 You can compile it in command line with gradle also.
 To use your own api key-
 1. Get a free API Key at [https://www.themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)
-2. Enter your API in `config.helper`
-   ```
-   const API_KEY = "ENTER YOUR API";
-   ```
-3. Build
+2. Enter your API in `config.properties`
+
+ ```
+api_read_access_token = "ENTER YOUR KEY";
+ ```
+```
+api_key = "ENTER YOUR KEY";
+ ```
+4. Build
  ## Contributing
 Any contributions you make are **greatly appreciated**.
 
