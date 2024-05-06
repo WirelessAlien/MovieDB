@@ -34,7 +34,6 @@ import android.widget.ArrayAdapter;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -312,7 +311,7 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
         }
 
         // Create the dialog.
-        AlertDialog.Builder fileDialog = new AlertDialog.Builder(context);
+        MaterialAlertDialogBuilder fileDialog = new MaterialAlertDialogBuilder(context);
         fileDialog.setTitle(R.string.choose_file);
 
         fileDialog.setNegativeButton(R.string.import_cancel, (dialog, which) -> dialog.dismiss() );
@@ -345,6 +344,7 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                         dst.transferFrom(src, 0, src.size());
                         src.close();
                         dst.close();
+                        Toast.makeText(context, context.getResources().getString(R.string.database_import_successful), Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -376,6 +376,8 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
 
                     // Fill the new database with the JSON data.
                     importJSON(fileContent.toString(), database);
+                    Toast.makeText(context, context.getResources().getString(R.string.database_import_successful), Toast.LENGTH_SHORT).show();
+
                 }
             } catch (NullPointerException npe) {
                 npe.printStackTrace();
