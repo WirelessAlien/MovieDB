@@ -6,7 +6,7 @@
 </a>
 <h3 align="center">Movie DB</h3>
 <p align="center">
-An Offline (also has Online Support) Movie Database Android Application
+A Free and Open-source Offline (also has Online Support) Movie Database Android Application
 
 <br/>
 <br/>
@@ -24,7 +24,7 @@ To use online mode you need to have account in TMDB. After login, the favourite,
 
 - [x] Login to TMDB
 - [x] Add favorite, watchlist, rate with TMDB
-- [x] Offline support (If you don't want to use TMDB login
+- [x] Offline support (If you don't want to use TMDB login)
 - [x] Import/Export database
 
 See the [open issues](https://github.com/WirelessAlien/MovieDB/issues) for a full list of proposed features (and known issues).
