@@ -20,9 +20,11 @@
 
 package com.wirelessalien.android.moviedb.tmdb;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.wirelessalien.android.moviedb.data.Episode;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,16 +46,18 @@ public class TVSeasonDetailsThread extends Thread {
     private String seasonOverview;
     private String seasonPosterPath;
     private double seasonVoteAverage;
+    private final String apiKey;
 
-    public TVSeasonDetailsThread(int tvShowId, int seasonNumber) {
+    public TVSeasonDetailsThread(int tvShowId, int seasonNumber, Context context) {
         this.tvShowId = tvShowId;
         this.seasonNumber = seasonNumber;
+        this.apiKey = ConfigHelper.getConfigValue(context,"api_key");
     }
 
     @Override
     public void run() {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/tv/" + tvShowId + "/season/" + seasonNumber + "?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5");
+            URL url = new URL("https://api.themoviedb.org/3/tv/" + tvShowId + "/season/" + seasonNumber + "?api_key=" + apiKey);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 

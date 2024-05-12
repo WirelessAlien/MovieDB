@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.data;
 
 public class TVSeason {
+    private String tvShowName;
     private String airDate;
     private int episodeCount;
     private int id;
@@ -32,6 +33,14 @@ public class TVSeason {
 
     public TVSeason() {
 
+    }
+
+    public String getTvShowName() {
+        return tvShowName;
+    }
+
+    public void setTvShowName(String tvShowName) {
+        this.tvShowName = tvShowName;
     }
 
     public String getAirDate() {

@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.data.TVSeason;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -42,17 +43,19 @@ public class TVSeasonThread extends Thread {
 
     private final int tvShowId;
     private List<TVSeason> seasons;
-
+    private String tvShowName;
     private final SharedPreferences preferences;
+    private final String apiKey;
 
     public TVSeasonThread(int tvShowId, Context context) {
         this.tvShowId = tvShowId;
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.apiKey = ConfigHelper.getConfigValue(context, "api_key");
     }
     @Override
     public void run() {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/tv/" + tvShowId + "?api_key=54b3ccfdeee9c0c2c869d38b1a8724c5");
+            URL url = new URL("https://api.themoviedb.org/3/tv/" + tvShowId + "?api_key=" + apiKey);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
@@ -65,6 +68,8 @@ public class TVSeasonThread extends Thread {
             }
 
             JSONObject jsonResponse = new JSONObject(builder.toString());
+            tvShowName = jsonResponse.getString("name");
+
             JSONArray response = jsonResponse.getJSONArray("seasons");
             seasons = new ArrayList<>();
 
@@ -74,6 +79,7 @@ public class TVSeasonThread extends Thread {
 
                 if (seasonNumber > 0) {
                     TVSeason season = new TVSeason();
+                    season.setTvShowName(tvShowName);
                     season.setAirDate(seasonJson.getString("air_date"));
                     season.setEpisodeCount(seasonJson.getInt("episode_count"));
                     season.setId(seasonJson.getInt("id"));
@@ -91,13 +97,10 @@ public class TVSeasonThread extends Thread {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("TVSeasonThread", "Error fetching TV seasons", e);
         }
     }
 
     public List<TVSeason> getSeasons() {
-        Log.d("TVSeasonThread", "Seasons: " + seasons);
         return seasons;
-
     }
 }

@@ -76,18 +76,14 @@ public class LogoutThread extends Thread {
 
                 if (response.isSuccessful()) {
                     preferences.edit().remove("access_token").apply();
-                    Log.d("TMDbLogoutThread", "Logged out successfully");
 
                     handler.post(() -> Toast.makeText(context, "Logged out successfully", Toast.LENGTH_SHORT).show());
                 } else {
-                    Log.e("TMDbLogoutThread", "Error logging out");
                 }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("TMDbLogoutThread", "Error logging out");
-            Log.e("TMDbLogoutThread", e.getMessage());
         }
 
     }

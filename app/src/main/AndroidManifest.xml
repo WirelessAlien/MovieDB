@@ -24,6 +24,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
@@ -36,6 +39,9 @@
         android:theme="@style/AppTheme"
         android:name=".App"
         tools:ignore="GoogleAppIndexingWarning">
+
+        <service android:name=".ReleaseReminderService"/>
+
         <activity
             android:name=".activity.MainActivity"
             android:launchMode="singleTop"

@@ -23,6 +23,7 @@ package com.wirelessalien.android.moviedb.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,6 +74,7 @@ public class TVSeasonAdapter extends RecyclerView.Adapter<TVSeasonAdapter.Season
             Intent intent = new Intent(v.getContext(), TVSeasonDetailsActivity.class);
             intent.putExtra("tvShowId", tvShowId);
             intent.putExtra("seasonNumber", season.getSeasonNumber());
+            intent.putExtra("tvShowName", season.getTvShowName());
             preferences.edit().putInt("seasonNumber", season.getSeasonNumber()).apply();
             v.getContext().startActivity(intent);
         });

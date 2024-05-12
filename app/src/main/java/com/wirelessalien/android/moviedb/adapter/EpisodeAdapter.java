@@ -44,6 +44,10 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         this.episodes = episodes;
     }
 
+    public List<Episode> getEpisodes() {
+        return episodes;
+    }
+
     @NonNull
     @Override
     public EpisodeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

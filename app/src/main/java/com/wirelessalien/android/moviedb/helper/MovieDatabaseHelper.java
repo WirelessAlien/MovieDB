@@ -89,7 +89,6 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_FILE_NAME = "movies";
     private static final String DATABASE_FILE_EXT = ".db";
     private static final int DATABASE_VERSION = 8;
-    private static final int REQUEST_CODE_SELECT_DIRECTORY = 123;
 
 
     // Initialize the database object.

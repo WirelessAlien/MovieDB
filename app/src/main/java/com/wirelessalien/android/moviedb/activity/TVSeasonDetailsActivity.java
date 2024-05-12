@@ -20,7 +20,14 @@
 
 package com.wirelessalien.android.moviedb.activity;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -35,8 +42,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter;
+import com.wirelessalien.android.moviedb.data.Episode;
+import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper;
 import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetailsThread;
 
+import java.text.ParseException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 public class TVSeasonDetailsActivity extends AppCompatActivity {
@@ -48,6 +63,10 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
     private RatingBar voteAverage;
     private RecyclerView rvEpisodes;
+    private int tvShowId;
+    private String showName;
+    private final boolean added = false;
+    private EpisodeReminderDatabaseHelper dbHelper;
 
 
     @Override
@@ -65,13 +84,15 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
         rvEpisodes = findViewById(R.id.episodeRecyclerView);
         ProgressBar progressBar = findViewById(R.id.progressBar);
 
-        int tvShowId = getIntent().getIntExtra("tvShowId", -1);
+        tvShowId = getIntent().getIntExtra("tvShowId", -1);
         int seasonNumber = getIntent().getIntExtra("seasonNumber", -1);
+        showName = getIntent().getStringExtra("tvShowName");
+        Log.d( "TVSeasonDetailsActivity", "onCreate: " + tvShowId + " " + showName);
 
         progressBar.setVisibility( View.VISIBLE); // Show the ProgressBar
 
         CompletableFuture.supplyAsync(() -> {
-            TVSeasonDetailsThread thread = new TVSeasonDetailsThread(tvShowId, seasonNumber);
+            TVSeasonDetailsThread thread = new TVSeasonDetailsThread(tvShowId, seasonNumber, this);
             thread.start();
             try {
                 thread.join();
@@ -97,6 +118,24 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
             EpisodeAdapter adapter = new EpisodeAdapter(this, thread.getEpisodes());
             rvEpisodes.setLayoutManager(new LinearLayoutManager(this));
             rvEpisodes.setAdapter(adapter);
+
+            MenuItem notificationItem = toolbar.getMenu().findItem(R.id.action_notification);
+            List<Episode> episodes = adapter.getEpisodes();
+            Episode latestEpisode = Collections.max(episodes, Comparator.comparingInt(Episode::getEpisodeNumber));
+
+            // Parse the air date of the latest episode
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            try {
+                Date latestEpisodeDate = sdf.parse(latestEpisode.getAirDate());
+                Date currentDate = new Date();
+
+                // If the air date of the latest episode is older than the current date, disable the notification action
+                if (latestEpisodeDate != null && latestEpisodeDate.before(currentDate)) {
+                    notificationItem.setEnabled(false);
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         })).exceptionally(throwable -> {
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE); // Hide the ProgressBar
@@ -104,5 +143,82 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
             });
             return null;
         });
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d("TVSeasonDetailsActivity", "onCreateOptionsMenu: Start");
+        getMenuInflater().inflate(R.menu.notification_menu, menu);
+        dbHelper = new EpisodeReminderDatabaseHelper(this);
+
+        MenuItem notificationItem = menu.findItem(R.id.action_notification);
+
+        if (isShowInDatabase(tvShowId)) {
+            notificationItem.setIcon(R.drawable.ic_notifications_active);
+        } else {
+            notificationItem.setIcon(R.drawable.ic_add_alert);
+        }
+
+        return true;
+    }
+
+    public boolean isShowInDatabase(int tvShowId) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String selection = EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID + " = ?";
+        String[] selectionArgs = { String.valueOf(tvShowId) };
+
+        Cursor cursor = db.query(
+                EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+                null, selection, selectionArgs, null, null, null );
+
+        boolean exists = (cursor.getCount() > 0);
+        cursor.close();
+
+        return exists;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_notification) {
+
+            dbHelper = new EpisodeReminderDatabaseHelper(this);
+
+            if (isShowInDatabase(tvShowId)) {
+                dbHelper.deleteData(tvShowId);
+                Toast.makeText(this, showName + "is removed from reminder", Toast.LENGTH_SHORT).show();
+                item.setIcon(R.drawable.ic_add_alert);
+                return true;
+            }
+
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+            EpisodeAdapter adapter = (EpisodeAdapter) rvEpisodes.getAdapter();
+            if (adapter != null) {
+
+                for (Episode episode : adapter.getEpisodes()) {
+
+                    ContentValues values = new ContentValues();
+                    values.put(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID, tvShowId);
+                    values.put(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME, showName);
+                    values.put(EpisodeReminderDatabaseHelper.COLUMN_NAME, episode.getName());
+                    values.put(EpisodeReminderDatabaseHelper.COLUMN_DATE, episode.getAirDate());
+                    values.put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, episode.getEpisodeNumber());
+
+                    long newRowId = db.insert(EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, values);
+
+                    if (newRowId == -1) {
+                        Toast.makeText(this, "Error saving reminder for " + showName, Toast.LENGTH_SHORT).show();
+                        return true; // Return early if there was an error
+                    }
+                }
+                Toast.makeText(this, "You will get notified when episodes of " + showName + "release", Toast.LENGTH_SHORT).show();
+                item.setIcon(R.drawable.ic_notifications_active);
+            }
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

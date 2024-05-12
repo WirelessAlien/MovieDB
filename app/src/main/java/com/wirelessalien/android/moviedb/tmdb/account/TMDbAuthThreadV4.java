@@ -102,8 +102,6 @@ public class TMDbAuthThreadV4 extends Thread {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("TMDbAuthThreadV4", "Error authenticating with TMDb");
-            Log.e("TMDbAuthThreadV4", e.getMessage());
         }
 
         return accessToken;

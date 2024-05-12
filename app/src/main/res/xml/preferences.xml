@@ -59,6 +59,21 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/notification"
+        app:iconSpaceReserved="false">
+        <Preference
+            android:selectable="false"
+            android:summary="@string/summary_notification_one"
+            app:iconSpaceReserved="false"/>
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="key_get_notified_for_saved"
+            android:title="@string/get_notified_for_saved_movies"
+            android:summary="@string/summary_notification_two"
+            app:iconSpaceReserved="false"/>
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/title_show_representation"
         app:iconSpaceReserved="false">
         <Preference
