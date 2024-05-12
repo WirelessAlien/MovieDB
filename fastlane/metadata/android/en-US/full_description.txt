@@ -1,0 +1,8 @@
+Movie DB is an offline (also has online support) movie database android application. The required data are requested from themoviedb.org. The database (called 'saved' in the application) is offline. To use online mode you need to have account in TMDB. After login, the favourite, watchlist, rate, list feature can be use to sync with https://www.themoviedb.org
+
+Feature-
+ -Sync with TMDB
+ -Add favorite, watchlist, rate with TMDB
+ -Create List
+ -Offline support (If you don't want to sync with TMDB)
+ -Import/Export database
