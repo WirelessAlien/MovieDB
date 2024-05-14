@@ -238,8 +238,6 @@ public class MainActivity extends BaseActivity {
             return;
         }
 
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Released Movies";
             String description = "Get notified when a movie is released.";
@@ -251,7 +249,7 @@ public class MainActivity extends BaseActivity {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Episode Reminders";
+            CharSequence name = "Aired Episodes";
             String description = "Get notified when an episode is aired.";
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel("episode_reminders", name, importance);
@@ -259,7 +257,6 @@ public class MainActivity extends BaseActivity {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
-
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, ReleaseReminderService.class);
@@ -269,8 +266,22 @@ public class MainActivity extends BaseActivity {
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, 7);
         calendar.set(Calendar.MINUTE, 30);
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY, pendingIntent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                // For newer versions, use setExactAndAllowWhileIdle to ensure the alarm fires even in doze mode
+                alarmManager.setExactAndAllowWhileIdle( AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent );
+            }
+        } else {
+            // For older versions, use setExactAndAllowWhileIdle
+            alarmManager.setExactAndAllowWhileIdle( AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent );
+        }
+
+        Intent nIntent = getIntent();
+        if (nIntent != null && nIntent.hasExtra("tab_index")) {
+            int tabIndex = nIntent.getIntExtra("tab_index", 0);
+            mViewPager.setCurrentItem(tabIndex);
+        }
     }
 
     @Override

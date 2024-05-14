@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb;
 
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -34,6 +35,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.activity.MainActivity;
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 
@@ -88,22 +90,25 @@ public class ReleaseReminderService extends IntentService {
         cursorEpisode.close();
     }
 
-
-
     private void createNotification(String title) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean shouldNotify = sharedPreferences.getBoolean(NOTIFICATION_PREFERENCES, true);
 
         if (shouldNotify) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("tab_index", 2);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "released_movies")
-                    .setSmallIcon(R.drawable.ic_favorite)
+                    .setSmallIcon( R.drawable.icon )
                     .setContentTitle("Movie Release")
                     .setContentText(title + " is released today!")
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
-            // notificationId is a unique int for each notification that you must define
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
@@ -112,10 +117,16 @@ public class ReleaseReminderService extends IntentService {
     }
 
     private void createEpisodeNotification(String tvShowName, String episodeName, String episodeNumber) {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("tab_index", 2);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "episode_reminders")
-                .setSmallIcon(R.drawable.ic_favorite)
+                .setSmallIcon( R.drawable.icon )
                 .setContentTitle("Episode Reminder")
-                .setContentText(tvShowName + " - " + episodeName + "(" + episodeNumber + ")"+" is airing today!")
+                .setContentText(tvShowName + " - " + episodeName + " (" + episodeNumber + ")"+" is airing today!")
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
