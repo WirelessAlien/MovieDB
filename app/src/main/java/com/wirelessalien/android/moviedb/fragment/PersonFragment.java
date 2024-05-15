@@ -32,6 +32,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.BaseActivity;
@@ -96,8 +97,17 @@ public class PersonFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate( R.layout.fragment_person, container, false);
+        FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
+        fab.setVisibility( View.GONE );
         showPersonList(fragmentView);
         return fragmentView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
+        fab.setVisibility( View.GONE );
     }
 
     /**

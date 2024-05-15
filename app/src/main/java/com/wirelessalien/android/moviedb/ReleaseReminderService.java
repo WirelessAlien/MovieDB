@@ -123,8 +123,8 @@ public class ReleaseReminderService extends IntentService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "episode_reminders")
                 .setSmallIcon( R.drawable.icon )
-                .setContentTitle("Episode Reminder")
-                .setContentText(tvShowName + " - " + episodeName + " (" + episodeNumber + ")"+" is airing today!")
+                .setContentTitle(tvShowName)
+                .setContentText("Episode " + episodeNumber + " (" + episodeName + ")"+" is airing today!")
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);

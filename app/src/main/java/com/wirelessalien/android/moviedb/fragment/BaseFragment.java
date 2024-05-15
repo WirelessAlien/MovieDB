@@ -83,12 +83,6 @@ public class BaseFragment extends Fragment {
         setHasOptionsMenu(true);
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate( R.menu.filter_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
     public void doNetworkWork() {}
 
     /**

@@ -50,6 +50,7 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
@@ -60,6 +61,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.ReleaseReminderService;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
@@ -189,7 +191,7 @@ public class MainActivity extends BaseActivity {
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+        bottomNavigationView.setOnItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.nav_movie -> {
                     mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 0 ) );
@@ -221,6 +223,14 @@ public class MainActivity extends BaseActivity {
                     case 3 -> bottomNavigationView.setSelectedItemId( R.id.nav_person );
                 }
             }
+        });
+
+        FloatingActionButton fab = findViewById( R.id.fab );
+        bottomNavigationView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+           int bottomNavHeight = bottomNavigationView.getHeight();
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
+            params.bottomMargin = bottomNavHeight + 16;
+            fab.setLayoutParams(params);
         });
 
 
@@ -383,7 +393,6 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         mSearchAction = menu.findItem(R.id.action_search);
-        MenuItem mFilterAction = menu.findItem(R.id.action_filter);
         return super.onPrepareOptionsMenu(menu);
     }
 

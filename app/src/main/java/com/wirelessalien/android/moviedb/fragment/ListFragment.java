@@ -47,6 +47,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
 import com.wirelessalien.android.moviedb.activity.ExportActivity;
@@ -132,6 +133,19 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate( R.layout.fragment_show, container, false);
         showShowList(fragmentView);
+        FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
+        fab.setOnClickListener( view -> {
+            Intent intent = new Intent(requireContext().getApplicationContext(), FilterActivity.class);
+            intent.putExtra("categories", true);
+            intent.putExtra("most_popular", false);
+            intent.putExtra("dates", false);
+            intent.putExtra("keywords", false);
+            if (mShowBackupArrayList == null) {
+                mShowBackupArrayList = (ArrayList<JSONObject>) mShowArrayList.clone();
+            }
+            requireActivity().startActivityForResult(intent, FILTER_REQUEST_CODE);
+        } );
+
         return fragmentView;
     }
 
@@ -146,6 +160,19 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             updateShowViewAdapter();
             mDatabaseUpdate = false;
         }
+        FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
+        fab.setVisibility( View.VISIBLE );
+        fab.setOnClickListener( view -> {
+            Intent intent = new Intent(requireContext().getApplicationContext(), FilterActivity.class);
+            intent.putExtra("categories", true);
+            intent.putExtra("most_popular", false);
+            intent.putExtra("dates", false);
+            intent.putExtra("keywords", false);
+            if (mShowBackupArrayList == null) {
+                mShowBackupArrayList = (ArrayList<JSONObject>) mShowArrayList.clone();
+            }
+            requireActivity().startActivityForResult(intent, FILTER_REQUEST_CODE);
+        } );
         super.onResume();
     }
 
@@ -196,21 +223,6 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                 Intent intent = new Intent(requireContext().getApplicationContext(), ImportActivity.class);
                 startActivity(intent);
             }
-        }
-
-        // Filter action
-        if (id == R.id.action_filter) {
-            // Start the FilterActivity
-            Intent intent = new Intent(requireContext().getApplicationContext(), FilterActivity.class);
-            intent.putExtra("categories", true);
-            intent.putExtra("most_popular", false);
-            intent.putExtra("dates", false);
-            intent.putExtra("keywords", false);
-            if (mShowBackupArrayList == null) {
-                mShowBackupArrayList = (ArrayList<JSONObject>) mShowArrayList.clone();
-            }
-            requireActivity().startActivityForResult(intent, FILTER_REQUEST_CODE);
-            return true;
         }
 
         return super.onOptionsItemSelected(item);

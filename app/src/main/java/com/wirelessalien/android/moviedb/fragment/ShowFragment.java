@@ -29,11 +29,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -42,6 +45,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.BaseActivity;
@@ -145,24 +150,23 @@ public class ShowFragment extends BaseFragment {
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate( R.layout.fragment_show, container, false);
         showShowList(fragmentView);
+        FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
+        fab.setOnClickListener( view -> {
+            // Start the FilterActivity
+            filterRequestLauncher.launch(new Intent());
+        } );
         return fragmentView;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        // Filter action
-        if (id == R.id.action_filter) {
+    public void onResume() {
+        super.onResume();
+        FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
+        fab.setVisibility( View.VISIBLE );
+        fab.setOnClickListener( view -> {
             // Start the FilterActivity
             filterRequestLauncher.launch(new Intent());
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        } );
     }
 
     ActivityResultContract<Intent, Boolean> filterRequestContract = new ActivityResultContract<>() {
