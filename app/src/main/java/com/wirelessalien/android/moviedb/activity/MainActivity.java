@@ -99,6 +99,8 @@ public class MainActivity extends BaseActivity {
     public AdapterDataChangedListener mAdapterDataChangedListener;
     private String api_read_access_token;
     private static final int REQUEST_CODE = 101;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
+
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
@@ -192,23 +194,19 @@ public class MainActivity extends BaseActivity {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.nav_movie -> {
-                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 0 ) );
-                    return true;
-                }
-                case R.id.nav_series -> {
-                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 1 ) );
-                    return true;
-                }
-                case R.id.nav_saved -> {
-                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 2 ) );
-                    return true;
-                }
-                case R.id.nav_person -> {
-                    mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 3 ) );
-                    return true;
-                }
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_movie) {
+                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(0));
+                return true;
+            } else if (itemId == R.id.nav_series) {
+                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(1));
+                return true;
+            } else if (itemId == R.id.nav_saved) {
+                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(2));
+                return true;
+            } else if (itemId == R.id.nav_person) {
+                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(3));
+                return true;
             }
             return false;
         });
@@ -224,6 +222,31 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
+
+        Menu menu = bottomNavigationView.getMenu();
+        menu.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
+        menu.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
+        menu.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
+        menu.findItem(R.id.nav_person).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE, false));
+
+        prefListener = (prefs, key) -> {
+            if (key.equals(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE) ||
+                    key.equals(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) ||
+                    key.equals(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE) ||
+                    key.equals(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE)) {
+                mSectionsPagerAdapter = new SectionsPagerAdapter(MainActivity.this, MainActivity.this);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+
+                Menu menu1 = bottomNavigationView.getMenu();
+                menu1.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
+                menu1.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
+                menu1.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
+                menu1.findItem(R.id.nav_person).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE, false));
+            }
+        };
+
+        // Register the listener
+        preferences.registerOnSharedPreferenceChangeListener(prefListener);
 
         FloatingActionButton fab = findViewById( R.id.fab );
         bottomNavigationView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
@@ -330,6 +353,13 @@ public class MainActivity extends BaseActivity {
             return;
         }
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister the listener
+        preferences.unregisterOnSharedPreferenceChangeListener(prefListener);
     }
 
     @Override

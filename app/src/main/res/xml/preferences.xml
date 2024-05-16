@@ -110,11 +110,6 @@
         android:title="@string/title_hide_tabs"
         app:iconSpaceReserved="false">
 
-        <Preference
-            android:selectable="false"
-            android:summary="@string/summary_hide_tabs"
-            app:iconSpaceReserved="false"/>
-
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="key_hide_movies_tab"
