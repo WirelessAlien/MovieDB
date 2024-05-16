@@ -71,7 +71,7 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
     private final ArrayList<JSONObject> mShowArrayList;
     private final HashMap<String, String> mGenreHashMap;
     private final boolean mGridView;
-    private boolean showDeleteButton;
+    private final boolean showDeleteButton;
     private String genreType;
 
     /**

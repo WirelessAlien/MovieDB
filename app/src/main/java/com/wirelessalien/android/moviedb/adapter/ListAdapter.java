@@ -39,12 +39,12 @@ import java.util.List;
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private final List<ListData> listData;
     private final OnItemClickListener onItemClickListener;
-    private final boolean showDeleteButton; // Add this line
+    private final boolean showDeleteButton;
 
     public ListAdapter(List<ListData> listData, OnItemClickListener onItemClickListener, boolean showDeleteButton) { // Modify this line
         this.listData = listData;
         this.onItemClickListener = onItemClickListener;
-        this.showDeleteButton = showDeleteButton; // Add this line
+        this.showDeleteButton = showDeleteButton;
     }
 
     @NonNull

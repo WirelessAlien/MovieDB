@@ -33,7 +33,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:padding="8dip"
-            tools:listitem="@layout/show_card"
+            tools:listitem="@layout/show_grid_card"
             android:scrollbars="none" />
     </RelativeLayout>
     <ProgressBar

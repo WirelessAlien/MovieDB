@@ -27,10 +27,6 @@ import androidx.preference.DialogPreference;
 
 public class NumberPickerPreference extends DialogPreference {
 
-    // Allowed range
-    private static final int MAX_VALUE = 9;
-    private static final int MIN_VALUE = 1;
-
     private int value;
 
     public NumberPickerPreference(Context context, AttributeSet attrs) {

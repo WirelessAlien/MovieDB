@@ -27,7 +27,7 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="5dip"
         style="@style/Widget.Material3.CardView.Elevated"
@@ -39,7 +39,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/imagePercentLayout"
-                android:layout_width="100dp"
+                android:layout_width="match_parent"
                 android:layout_height="150dp"
                 app:layout_constraintDimensionRatio="H,1:1.4">
                 <FrameLayout
@@ -87,13 +87,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/imagePercentLayout"
-                android:layout_marginTop="-1dp"
                 android:ellipsize="marquee"
-                android:paddingStart="2dip"
-                android:paddingEnd="2dip"
+                android:paddingStart="4dip"
+                android:paddingEnd="4dip"
                 android:layout_centerVertical="true"
                 android:paddingTop="4dip"
                 android:paddingBottom="4dip"
+                android:textAlignment="center"
                 android:singleLine="true"
                 android:textStyle="bold" />
         </RelativeLayout>
