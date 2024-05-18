@@ -71,13 +71,30 @@
                 android:tag="alphabetic_order"
                 android:text="@string/alphabetic_order" />
 
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/startDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="start_date_order"
+                android:text="Start Date"
+                android:visibility="gone"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/finishDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="finish_date_order"
+                android:text="Finish Date"
+                android:visibility="gone"/>
             <TextView
+                android:id="@+id/accountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Account"
                 android:textStyle="bold"
                 android:layout_margin="5dip"/>
             <TextView
+                android:id="@+id/accountDescText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Other filters don't work with this option"

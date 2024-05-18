@@ -45,6 +45,7 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -153,9 +154,33 @@ public class FilterActivity extends AppCompatActivity {
             radioButton.setText(getString(R.string.default_sort));
         }
 
+        if (intent.getBooleanExtra("startDate", false)) {
+            RadioButton radioButton = findViewById( R.id.startDate);
+            radioButton.setVisibility(View.VISIBLE);
+        }
+
+        if (intent.getBooleanExtra("finishDate", false)) {
+            RadioButton radioButton = findViewById( R.id.finishDate);
+            radioButton.setVisibility(View.VISIBLE);
+        }
+
         if (!intent.getBooleanExtra("dates", true)) {
             RelativeLayout dateViewLayout = findViewById(R.id.dateViewLayout);
             dateViewLayout.setVisibility(View.GONE);
+        }
+
+        //account
+        if (!intent.getBooleanExtra( "account", true )) {
+            RadioButton watchlistBtn = findViewById( R.id.watchlist );
+            RadioButton favoriteBtn = findViewById( R.id.favorite );
+            RadioButton rateBtn = findViewById( R.id.rated );
+            TextView accountText = findViewById( R.id.accountText );
+            TextView accountDescText = findViewById( R.id.accountDescText );
+            watchlistBtn.setVisibility( View.GONE );
+            favoriteBtn.setVisibility( View.GONE );
+            rateBtn.setVisibility( View.GONE );
+            accountText.setVisibility( View.GONE );
+            accountDescText.setVisibility( View.GONE );
         }
 
         if (!intent.getBooleanExtra("keywords", true)) {

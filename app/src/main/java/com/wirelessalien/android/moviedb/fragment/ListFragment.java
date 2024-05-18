@@ -34,6 +34,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -140,6 +141,9 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             intent.putExtra("most_popular", false);
             intent.putExtra("dates", false);
             intent.putExtra("keywords", false);
+            intent.putExtra( "startDate", true );
+            intent.putExtra( "finishDate", true );
+            intent.putExtra( "account", false );
             if (mShowBackupArrayList == null) {
                 mShowBackupArrayList = (ArrayList<JSONObject>) mShowArrayList.clone();
             }
@@ -168,6 +172,10 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             intent.putExtra("most_popular", false);
             intent.putExtra("dates", false);
             intent.putExtra("keywords", false);
+            intent.putExtra( "startDate", true );
+            intent.putExtra( "finishDate", true );
+            intent.putExtra( "account", false );
+
             if (mShowBackupArrayList == null) {
                 mShowBackupArrayList = (ArrayList<JSONObject>) mShowArrayList.clone();
             }
@@ -337,8 +345,107 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                                 .compareToIgnoreCase( secondObject.optString( ShowBaseAdapter.KEY_TITLE ) ) );
                     }
                 }
+                case "start_date_order" -> {
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "dd-MM-yyyy", Locale.US );
+                    if (mSearchView) {
+                        mSearchShowArrayList.sort( (firstObject, secondObject) -> {
+                            Date firstDate = null, secondDate = null;
+                            try {
+                                String firstDateString = firstObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
+                                String secondDateString = secondObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
+                                Log.d( "ListFragment", "First Date: " + firstDateString );
+                                if (!firstDateString.isEmpty()) {
+                                    firstDate = simpleDateFormat.parse( firstDateString );
+                                }
+                                if (!secondDateString.isEmpty()) {
+                                    secondDate = simpleDateFormat.parse( secondDateString );
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                                return 0;
+                            }
+                            if (firstDate == null) return (secondDate == null) ? 0 : 1;
+                            if (secondDate == null) return -1;
+                            // * -1 is to make the order descending instead of ascending.
+                            return firstDate.compareTo( secondDate ) * -1;
+                        } );
+                    } else {
+                        mShowArrayList.sort( (firstObject, secondObject) -> {
+                            Date firstDate = null, secondDate = null;
+                            try {
+                                String firstDateString = firstObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
+                                String secondDateString = secondObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
+                                Log.d( "ListFragment", "First Date: " + firstDateString );
+                                Log.d( "ListFragment", "Second Date: " + secondDateString );
+                                if (!firstDateString.isEmpty()) {
+                                    firstDate = simpleDateFormat.parse( firstDateString );
+                                }
+                                if (!secondDateString.isEmpty()) {
+                                    secondDate = simpleDateFormat.parse( secondDateString );
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                                return 0;
+                            }
+                            if (firstDate == null) return (secondDate == null) ? 0 : 1;
+                            if (secondDate == null) return -1;
+                            // * -1 is to make the order descending instead of ascending.
+                            return firstDate.compareTo( secondDate ) * -1;
+                        } );
+                    }
+                    Log.d( "ListFragment", "Sorted by start date" );
+                }
+
+                case "finish_date_order" -> {
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+                    if (mSearchView) {
+                        mSearchShowArrayList.sort((firstObject, secondObject) -> {
+                            Date firstDate = null, secondDate = null;
+                            try {
+                                String firstDateString = firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
+                                String secondDateString = secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
+                                if (!firstDateString.isEmpty()) {
+                                    firstDate = simpleDateFormat.parse(firstDateString);
+                                }
+                                if (!secondDateString.isEmpty()) {
+                                    secondDate = simpleDateFormat.parse(secondDateString);
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                                return 0;
+                            }
+                            if (firstDate == null) return (secondDate == null) ? 0 : 1;
+                            if (secondDate == null) return -1;
+                            // * -1 is to make the order descending instead of ascending.
+                            return firstDate.compareTo(secondDate) * -1;
+                        });
+                    } else {
+                        mShowArrayList.sort((firstObject, secondObject) -> {
+                            Date firstDate = null, secondDate = null;
+                            try {
+                                String firstDateString = firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
+                                String secondDateString = secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
+                                if (!firstDateString.isEmpty()) {
+                                    firstDate = simpleDateFormat.parse(firstDateString);
+                                }
+                                if (!secondDateString.isEmpty()) {
+                                    secondDate = simpleDateFormat.parse(secondDateString);
+                                }
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                                return 0;
+                            }
+                            if (firstDate == null) return (secondDate == null) ? 0 : 1;
+                            if (secondDate == null) return -1;
+                            // * -1 is to make the order descending instead of ascending.
+                            return firstDate.compareTo(secondDate) * -1;
+                        });
+                    }
+                    Log.d("ListFragment", "Sorted by finish date");
+                }
             }
         }
+
 
         // Remove the movies that should not be displayed from the list.
         ArrayList<String> selectedCategories = FilterActivity.convertStringToArrayList
@@ -494,11 +601,11 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         Cursor cursor;
         // Search for shows that fulfill the searchQuery and fit in the list.
         if (searchQuery != null && !searchQuery.equals("")) {
-            cursor = mDatabase.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES
+            cursor = mDatabase.rawQuery("SELECT *, " + MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE + ", " + MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE + " FROM " + MovieDatabaseHelper.TABLE_MOVIES
                     + " WHERE " + MovieDatabaseHelper.COLUMN_TITLE + " LIKE '%"
                     + searchQuery + "%'" + dbOrder, null);
         } else {
-            cursor = mDatabase.rawQuery("SELECT * FROM " +
+            cursor = mDatabase.rawQuery("SELECT *, " + MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE + ", " + MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE + " FROM " +
                     MovieDatabaseHelper.TABLE_MOVIES + dbOrder, null);
         }
 
@@ -553,6 +660,14 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
 
                 showObject.put(ShowBaseAdapter.KEY_DATE_MOVIE, cursor.getString(
                         cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE)
+                ));
+
+                showObject.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, cursor.getString(
+                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
+                ));
+
+                showObject.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, cursor.getString(
+                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
                 ));
 
                 // Add a name key-value pair if it is a series.
