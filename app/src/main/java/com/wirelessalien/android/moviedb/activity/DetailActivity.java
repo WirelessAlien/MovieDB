@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.activity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.UiModeManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -532,6 +533,15 @@ public class DetailActivity extends BaseActivity {
             binding.revenueDataText.setVisibility( View.GONE );
         }
 
+        UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+        boolean isDarkTheme = uiModeManager.getNightMode() == UiModeManager.MODE_NIGHT_YES;
+
+        int color;
+        if (isDarkTheme) {
+            color = Color.BLACK;
+        } else {
+            color = Color.WHITE;
+        }
 
         if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
             if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
@@ -552,11 +562,11 @@ public class DetailActivity extends BaseActivity {
                         Palette.from( bitmap ).generate( new Palette.PaletteAsyncListener() {
                             public void onGenerated(Palette palette) {
 
-                                int mutedColor = palette.getMutedColor( Color.BLACK );
+                                int mutedColor = palette.getMutedColor( Color.TRANSPARENT );
                                 Log.d("ColorInfo", "Muted color: " + mutedColor);
                                 GradientDrawable gradientDrawable = new GradientDrawable(
-                                        GradientDrawable.Orientation.TOP_BOTTOM,
-                                        new int[]{mutedColor, Color.TRANSPARENT} );
+                                        GradientDrawable.Orientation.TL_BR,
+                                        new int[]{mutedColor, color} );
 
                                 binding.getRoot().setBackground(gradientDrawable);
 
