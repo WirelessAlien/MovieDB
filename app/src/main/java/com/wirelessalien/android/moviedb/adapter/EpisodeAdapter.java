@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -68,6 +69,8 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
                 .load(episode.getPosterPath())
                 .placeholder(R.color.md_theme_surface)
                 .into(holder.binding.image);
+
+        holder.itemView.setBackgroundColor( Color.TRANSPARENT );
     }
 
     @Override

@@ -23,6 +23,7 @@ package com.wirelessalien.android.moviedb.adapter;
 import android.content.Context;
 import android.content.Intent;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,6 +113,8 @@ public class SimilarMovieBaseAdapter extends RecyclerView.Adapter<SimilarMovieBa
         } catch (JSONException je) {
             je.printStackTrace();
         }
+
+        holder.cardView.setBackgroundColor( Color.TRANSPARENT );
 
         // Send the movie data and the user to DetailActivity when clicking on a card.
         holder.itemView.setOnClickListener( view -> {

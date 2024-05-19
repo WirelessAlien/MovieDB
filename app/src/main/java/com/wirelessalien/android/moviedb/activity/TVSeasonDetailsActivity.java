@@ -23,6 +23,7 @@ package com.wirelessalien.android.moviedb.activity;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.util.Log;
@@ -39,6 +40,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter;
@@ -98,6 +100,8 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar( toolbar);
+        AppBarLayout appBarLayout = findViewById(R.id.appBarLayout);
+        appBarLayout.setBackgroundColor(Color.TRANSPARENT);
         tvSeasonOverview = findViewById(R.id.description);
 //        ivSeasonPoster = findViewById(R.id.image);
         episodeNumber = findViewById(R.id.episodeCount);

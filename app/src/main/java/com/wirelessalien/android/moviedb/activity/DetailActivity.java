@@ -152,6 +152,8 @@ public class DetailActivity extends BaseActivity {
     private int retryCount = 0;
     private boolean added = false;
     private SpannableString showTitle;
+    private Palette palette;
+    private int mutedColor;
     private ActivityDetailBinding binding;
     private final NotifyingScrollView.OnScrollChangedListener
             mOnScrollChangedListener = new NotifyingScrollView
@@ -338,6 +340,7 @@ public class DetailActivity extends BaseActivity {
 
         checkNetwork();
 
+
         ProgressBar progressBar = binding.progressBar;
         progressBar.setVisibility(View.VISIBLE);
 
@@ -379,6 +382,89 @@ public class DetailActivity extends BaseActivity {
             Log.e("DetailActivity", "Error in CompletableFuture", ex);
             return null;
         }).thenRun(() -> runOnUiThread(() -> progressBar.setVisibility(View.GONE)));
+
+        UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+        boolean isDarkTheme = uiModeManager.getNightMode() == UiModeManager.MODE_NIGHT_YES;
+
+        int color;
+        if (isDarkTheme) {
+            color = Color.BLACK;
+        } else {
+            color = Color.WHITE;
+        }
+
+        if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
+            if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
+                String imageUrl = null;
+                try {
+                    imageUrl = "https://image.tmdb.org/t/p/w780" + jMovieObject.getString( "backdrop_path" );
+                } catch (JSONException e) {
+                    throw new RuntimeException( e );
+                }
+                // Set the loaded bitmap to your ImageView before generating the Palette
+                String finalImageUrl = imageUrl;
+                target = new Target() {
+
+                    @Override
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        // Set the loaded bitmap to your ImageView before generating the Palette
+                        binding.movieImage.setImageBitmap(bitmap);
+
+                        palette = Palette.from(bitmap).generate();
+                        mutedColor = palette.getMutedColor(Color.TRANSPARENT);
+
+                        GradientDrawable gradientDrawable = new GradientDrawable(
+                                GradientDrawable.Orientation.TL_BR,
+                                new int[]{mutedColor, color});
+
+                        binding.getRoot().setBackground(gradientDrawable);
+                        binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT);
+                        ColorStateList colorStateList = ColorStateList.valueOf(mutedColor);
+                        binding.fab.setBackgroundTintList(colorStateList);
+                        binding.certificationCv.setBackgroundColor( Color.TRANSPARENT );
+                        binding.releaseDateCv.setBackgroundColor( Color.TRANSPARENT );
+                        binding.runtimeCv.setBackgroundColor( Color.TRANSPARENT );
+                        binding.trailerCv.setBackgroundColor( Color.TRANSPARENT );
+                        binding.genreCv.setBackgroundColor( Color.TRANSPARENT );
+
+                        Animation animation = AnimationUtils.loadAnimation(
+                                getApplicationContext(), R.anim.fade_in);
+                        binding.movieImage.startAnimation(animation);
+                    }
+
+                    @Override
+                    public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                        if (retryCount < MAX_RETRY_COUNT) {
+                            Picasso.get().load( finalImageUrl ).into(this);
+                            retryCount++;
+                        } else {
+                            binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface));
+                        }
+                    }
+
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+                        binding.movieImage.setBackgroundColor( ContextCompat.getColor( context, R.color.md_theme_surface ) );
+                    }
+                };
+                Picasso.get().load( imageUrl ).into( target );
+            }
+        } else {
+
+            if (jMovieObject.has("backdrop_path") && binding.movieImage.getDrawable() == null) {
+                try {
+                    Picasso.get().load("https://image.tmdb.org/t/p/w780" +
+                                    jMovieObject.getString("backdrop_path"))
+                            .into(binding.movieImage);
+                } catch (JSONException e) {
+                    throw new RuntimeException( e );
+                }
+
+                Animation animation = AnimationUtils.loadAnimation(
+                        getApplicationContext(), R.anim.fade_in);
+                binding.movieImage.startAnimation(animation);
+            }
+        }
 
         CompletableFuture<List<TVSeason>> future2 = null;
 
@@ -531,88 +617,6 @@ public class DetailActivity extends BaseActivity {
         if (!isMovie) {
             binding.revenueText.setVisibility( View.GONE );
             binding.revenueDataText.setVisibility( View.GONE );
-        }
-
-        UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-        boolean isDarkTheme = uiModeManager.getNightMode() == UiModeManager.MODE_NIGHT_YES;
-
-        int color;
-        if (isDarkTheme) {
-            color = Color.BLACK;
-        } else {
-            color = Color.WHITE;
-        }
-
-        if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
-            if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
-                String imageUrl = null;
-                try {
-                    imageUrl = "https://image.tmdb.org/t/p/w780" + jMovieObject.getString( "backdrop_path" );
-                } catch (JSONException e) {
-                    throw new RuntimeException( e );
-                }
-                // Set the loaded bitmap to your ImageView before generating the Palette
-                String finalImageUrl = imageUrl;
-                target = new Target() {
-                    @Override
-                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                        // Set the loaded bitmap to your ImageView before generating the Palette
-                        binding.movieImage.setImageBitmap( bitmap );
-
-                        Palette.from( bitmap ).generate( new Palette.PaletteAsyncListener() {
-                            public void onGenerated(Palette palette) {
-
-                                int mutedColor = palette.getMutedColor( Color.TRANSPARENT );
-                                Log.d("ColorInfo", "Muted color: " + mutedColor);
-                                GradientDrawable gradientDrawable = new GradientDrawable(
-                                        GradientDrawable.Orientation.TL_BR,
-                                        new int[]{mutedColor, color} );
-
-                                binding.getRoot().setBackground(gradientDrawable);
-
-                                binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT);
-                                ColorStateList colorStateList = ColorStateList.valueOf(mutedColor);
-                                binding.fab.setBackgroundTintList(colorStateList);
-                            }
-                        } );
-
-                        Animation animation = AnimationUtils.loadAnimation(
-                                getApplicationContext(), R.anim.fade_in );
-                        binding.movieImage.startAnimation( animation );
-                    }
-
-                    @Override
-                    public void onBitmapFailed(Exception e, Drawable errorDrawable) {
-                        if (retryCount < MAX_RETRY_COUNT) {
-                            Picasso.get().load( finalImageUrl ).into(this);
-                            retryCount++;
-                        } else {
-                            binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface));
-                        }
-                    }
-
-                    @Override
-                    public void onPrepareLoad(Drawable placeHolderDrawable) {
-                        binding.movieImage.setBackgroundColor( ContextCompat.getColor( context, R.color.md_theme_surface ) );
-                    }
-                };
-                Picasso.get().load( imageUrl ).into( target );
-            }
-        } else {
-
-            if (jMovieObject.has("backdrop_path") && binding.movieImage.getDrawable() == null) {
-                try {
-                    Picasso.get().load("https://image.tmdb.org/t/p/w780" +
-                                    jMovieObject.getString("backdrop_path"))
-                            .into(binding.movieImage);
-                } catch (JSONException e) {
-                    throw new RuntimeException( e );
-                }
-
-                Animation animation = AnimationUtils.loadAnimation(
-                        getApplicationContext(), R.anim.fade_in);
-                binding.movieImage.startAnimation(animation);
-            }
         }
     }
 

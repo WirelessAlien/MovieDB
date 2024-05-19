@@ -23,7 +23,6 @@ package com.wirelessalien.android.moviedb.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,9 +35,9 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.data.TVSeason;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.TVSeasonDetailsActivity;
+import com.wirelessalien.android.moviedb.data.TVSeason;
 
 import java.util.List;
 

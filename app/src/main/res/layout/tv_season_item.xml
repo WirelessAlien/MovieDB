@@ -25,7 +25,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     card_view:cardCornerRadius="5dip"
-    style="@style/Widget.Material3.CardView.Filled"
+    style="@style/Widget.Material3.CardView.Outlined"
     card_view:cardUseCompatPadding="true">
 
     <LinearLayout

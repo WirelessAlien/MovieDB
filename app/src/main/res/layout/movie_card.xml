@@ -30,6 +30,7 @@
         android:id="@+id/cardView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        style="@style/Widget.Material3.CardView.Outlined"
         app:cardCornerRadius="5dp">
 
         <RelativeLayout

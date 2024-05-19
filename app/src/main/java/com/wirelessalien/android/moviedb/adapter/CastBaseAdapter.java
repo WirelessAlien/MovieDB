@@ -20,8 +20,11 @@
 
 package com.wirelessalien.android.moviedb.adapter;
 
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -100,6 +103,8 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
         } catch (JSONException je) {
             je.printStackTrace();
         }
+
+        holder.itemView.setBackgroundColor(Color.TRANSPARENT);
 
         // Send the actor data and the user to CastActivity when clicking on a card.
         holder.itemView.setOnClickListener( view -> {
