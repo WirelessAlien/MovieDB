@@ -23,7 +23,7 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="100dip"
     android:layout_height="175dip"
-    android:layout_margin="16dp"
+    android:layout_margin="16dip"
     app:cardCornerRadius="5dip"
     style="@style/Widget.Material3.CardView.Elevated"
     xmlns:app="http://schemas.android.com/apk/res-auto">

@@ -379,7 +379,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="5dp"
-                        android:text="Play Trailer"/>
+                        android:text="@string/play_trailer"/>
                     </com.google.android.material.card.MaterialCardView>
                 </RelativeLayout>
 
@@ -420,24 +420,25 @@
                     android:id="@+id/watchListButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="WatchList"
+                    android:text="@string/watchlist"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:src="@drawable/ic_bookmark"
-                    android:layout_below="@id/movieDescription"/>
+                    android:src="@drawable/ic_bookmark" />
                 <ImageButton
                     android:id="@+id/addToList"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_list_add"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:text="Add to List" />
+                    android:text="@string/add_to_list"
+                    android:contentDescription="@string/add_to_list" />
                 <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/favouriteButton"
-                    android:text="Favorite"
+                    android:text="@string/favourite"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:src="@drawable/ic_favorite"/>
+                    android:src="@drawable/ic_favorite"
+                    android:contentDescription="@string/add_to_favourite" />
 
                 <ImageButton
                     android:id="@+id/ratingBtn"
@@ -445,7 +446,8 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_thumb_up"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:text="Rate" />
+                    android:text="@string/rate"
+                    android:contentDescription="@string/add_rating" />
             </LinearLayout>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/seasonRecyclerview"
@@ -465,7 +467,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
-                android:text="Overview"
+                android:text="@string/overview"
                 android:textSize="20sp"
                 android:textStyle="bold" />
             <View
@@ -545,7 +547,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/crewRecyclerView"
-                android:layout_marginRight="16dp"
+                android:layout_marginEnd="16dp"
                 android:paddingTop="16dp"
                 android:paddingStart="16dp"
                 android:textStyle="bold"
@@ -571,7 +573,7 @@
                 android:id="@+id/otherText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Other Details"
+                android:text="@string/other_details"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:layout_below="@id/movieRecyclerView"
@@ -589,7 +591,7 @@
                 android:id="@+id/counrtyText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Country"
+                android:text="@string/country"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
@@ -634,7 +636,7 @@
                 android:id="@+id/revenueText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Revenue"
+                android:text="@string/revenue"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
@@ -645,7 +647,7 @@
                 android:id="@+id/revenueDataText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Revinue"
+                android:text="@string/revenue"
                 android:paddingStart="16dp"
                 android:layout_below="@id/revenueText"
                 android:textSize="15sp" />
@@ -653,7 +655,7 @@
                 android:id="@+id/statusText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status"
+                android:text="@string/status"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
@@ -664,7 +666,7 @@
                 android:id="@+id/statusDataText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Status"
+                android:text="@string/status"
                 android:paddingStart="16dp"
                 android:paddingBottom="16dp"
                 android:layout_below="@id/statusText"

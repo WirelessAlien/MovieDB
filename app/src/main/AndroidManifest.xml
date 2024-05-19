@@ -41,8 +41,6 @@
         android:name=".App"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <service android:name=".ReleaseReminderService"/>
-
         <activity
             android:name=".activity.MainActivity"
             android:launchMode="singleTop"

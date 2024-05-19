@@ -110,8 +110,9 @@
                 android:layout_below="@id/actorBiography"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
+                android:textStyle="bold"
                 android:text="@string/cast_movie_title"
-                android:textSize="16sp" />
+                android:textSize="20sp" />
 
             <View
                 android:id="@+id/secondDivider"
@@ -126,6 +127,7 @@
                 android:id="@+id/castMovieRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_margin="6dp"
                 android:layout_below="@id/secondDivider"
                 android:scrollbars="none" />
 
@@ -136,8 +138,9 @@
                 android:layout_below="@id/castMovieRecyclerView"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
+                android:textStyle="bold"
                 android:text="@string/crew_movie_title"
-                android:textSize="16sp" />
+                android:textSize="20sp" />
 
             <View
                 android:id="@+id/thirdDivider"
@@ -153,7 +156,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_below="@id/thirdDivider"
-                android:scrollbars="none" />
+                android:scrollbars="none"
+                android:layout_margin="6dp"
+                android:layout_marginBottom="10dp"/>
         </RelativeLayout>
 
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>

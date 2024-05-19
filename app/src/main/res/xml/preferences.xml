@@ -99,7 +99,8 @@
     <PreferenceCategory android:title="@string/title_data_usage"
         app:iconSpaceReserved="false">
 
-        <androidx.preference.SwitchPreferenceCompat            android:defaultValue="true"
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
             android:key="key_live_search"
             android:title="@string/title_live_search"
             app:iconSpaceReserved="false"/>
@@ -159,7 +160,7 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Other"
+    <PreferenceCategory android:title="@string/other"
         app:iconSpaceReserved="false">
 
         <Preference android:title="@string/title_source_code"

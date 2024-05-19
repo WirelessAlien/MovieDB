@@ -96,7 +96,7 @@ public class LoginFragment extends BottomSheetDialogFragment {
         if (preferences.getString("account_id", null) != null && preferences.getString("access_token", null) != null){
             loginButton.setVisibility(View.GONE);
             logoutButton.setVisibility(View.VISIBLE);
-            loginStatus.setText("You are logged in");
+            loginStatus.setText( R.string.logged_in);
 
         }
 
@@ -107,7 +107,7 @@ public class LoginFragment extends BottomSheetDialogFragment {
 
             loginButton.setVisibility(View.VISIBLE);
             logoutButton.setVisibility(View.GONE);
-            loginStatus.setText("You are not logged in");
+            loginStatus.setText( R.string.not_logged_in);
         });
 
         loginButton.setOnClickListener(v -> {
@@ -126,21 +126,25 @@ public class LoginFragment extends BottomSheetDialogFragment {
 
         //if access token is not null, then the user is logged in
         if (preferences.getString("access_token", null) != null){
-            GetAccountDetailsThread getAccountIdThread = new GetAccountDetailsThread(getContext(), (accountId, name, username, avatarPath, gravatar) -> requireActivity().runOnUiThread( () -> {
-                // If both username and name are available, display name. Otherwise, display whichever is available.
-                if (name != null && !name.isEmpty()) {
-                    nameTextView.setText(name);
-                } else if (username != null && !username.isEmpty()) {
-                    nameTextView.setText(username);
-                }
+            GetAccountDetailsThread getAccountIdThread = new GetAccountDetailsThread(getContext(), (accountId, name, username, avatarPath, gravatar) -> {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread( () -> {
+                        // If both username and name are available, display name. Otherwise, display whichever is available.
+                        if (name != null && !name.isEmpty()) {
+                            nameTextView.setText(name);
+                        } else if (username != null && !username.isEmpty()) {
+                            nameTextView.setText(username);
+                        }
 
-                // If both avatarPath and gravatar are available, display avatarPath. Otherwise, display whichever is available.
-                if (avatarPath != null && !avatarPath.isEmpty()) {
-                    Picasso.get().load("https://image.tmdb.org/t/p/w200" + avatarPath).into(avatar);
-                } else if (gravatar != null && !gravatar.isEmpty()) {
-                    Picasso.get().load("https://secure.gravatar.com/avatar/" + gravatar + ".jpg?s=200").into(avatar);
+                        // If both avatarPath and gravatar are available, display avatarPath. Otherwise, display whichever is available.
+                        if (avatarPath != null && !avatarPath.isEmpty()) {
+                            Picasso.get().load("https://image.tmdb.org/t/p/w200" + avatarPath).into(avatar);
+                        } else if (gravatar != null && !gravatar.isEmpty()) {
+                            Picasso.get().load("https://secure.gravatar.com/avatar/" + gravatar + ".jpg?s=200").into(avatar);
+                        }
+                    } );
                 }
-            } ) );
+            });
             getAccountIdThread.start();
         }
 

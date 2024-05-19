@@ -67,7 +67,7 @@
         android:id="@+id/privateRadioBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Private"/>
+        android:text="@string/private_list"/>
 
 
     <com.google.android.material.button.MaterialButton

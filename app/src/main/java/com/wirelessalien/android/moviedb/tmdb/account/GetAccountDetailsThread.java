@@ -38,13 +38,13 @@ import okhttp3.Response;
 
 public class GetAccountDetailsThread extends Thread {
 
-    private String accountId;
+    private final String accountId;
     private int accountIdInt;
     private final String accessToken;
     private final Context context;
     private final OkHttpClient client;
 
-    private AccountDataCallback callback;
+    private final AccountDataCallback callback;
 
     public interface AccountDataCallback {
         void onAccountDataReceived(int accountId, String name, String username, String avatarPath, String gravatar);

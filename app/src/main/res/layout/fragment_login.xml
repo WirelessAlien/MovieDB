@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textAlignment="center"
-        android:text="User Name"
+        android:text="@string/user_name"
         android:textStyle="bold" />
 
 
@@ -48,14 +48,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Login" />
+        android:text="@string/login" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/signup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Sign Up" />
+        android:text="@string/sign_up" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/logout"
@@ -63,7 +63,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="gone"
-        android:text="Logout" />
+        android:text="@string/logout" />
 
     <TextView
         android:id="@+id/login_status"

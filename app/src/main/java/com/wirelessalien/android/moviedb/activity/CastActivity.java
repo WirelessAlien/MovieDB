@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.activity;
 
 import android.app.Activity;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -161,6 +162,15 @@ public class CastActivity extends BaseActivity {
         checkNetwork();
 
 
+        UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+        boolean isDarkTheme = uiModeManager.getNightMode() == UiModeManager.MODE_NIGHT_YES;
+
+        int color;
+        if (isDarkTheme) {
+            color = Color.BLACK;
+        } else {
+            color = Color.WHITE;
+        }
 
         // Set a listener to change the visibility when the TextView is clicked.
         setTitleClickListener(binding.castMovieTitle, binding.castMovieRecyclerView, CAST_MOVIE_VIEW_PREFERENCE);
@@ -184,10 +194,10 @@ public class CastActivity extends BaseActivity {
                         Palette.from( bitmap ).generate( new Palette.PaletteAsyncListener() {
                             public void onGenerated(Palette palette) {
 
-                                int mutedColor = palette.getMutedColor( Color.BLACK );
+                                int mutedColor = palette.getMutedColor( Color.TRANSPARENT );
                                 GradientDrawable gradientDrawable = new GradientDrawable(
-                                        GradientDrawable.Orientation.TOP_BOTTOM,
-                                        new int[]{mutedColor, Color.TRANSPARENT} );
+                                        GradientDrawable.Orientation.TL_BR,
+                                        new int[]{mutedColor, color} );
 
                                 binding.getRoot().setBackground( gradientDrawable );
 

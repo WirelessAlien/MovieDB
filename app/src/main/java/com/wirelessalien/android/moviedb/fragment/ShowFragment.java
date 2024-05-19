@@ -887,52 +887,54 @@ public class ShowFragment extends BaseFragment {
 
         @Override
         public void run() {
-            requireActivity().runOnUiThread(() -> {
-                ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.VISIBLE);
-            });
+            if (isAdded()) {
+                requireActivity().runOnUiThread(() -> {
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                    progressBar.setVisibility(View.VISIBLE);
+                });
 
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                StringBuilder stringBuilder = new StringBuilder();
 
-            // Load the webpage with the list of movies/series.
-            try {
-                URL url;
-                if (missingOverview) {
-                    url = new URL("https://api.themoviedb.org/3/search/" +
-                            listType + "?query=" + query + "&page=" + page +
-                            "&api_key=" + API_KEY);
-                } else {
-                    url = new URL("https://api.themoviedb.org/3/search/" +
-                            listType + "?&query=" + query + "&page=" + page +
-                            "&api_key=" + API_KEY + getLanguageParameter(getContext()));
-                }
-
-                URLConnection urlConnection = url.openConnection();
+                // Load the webpage with the list of movies/series.
                 try {
-                    BufferedReader bufferedReader = new BufferedReader(
-                            new InputStreamReader(
-                                    urlConnection.getInputStream()));
-
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
+                    URL url;
+                    if (missingOverview) {
+                        url = new URL("https://api.themoviedb.org/3/search/" +
+                                listType + "?query=" + query + "&page=" + page +
+                                "&api_key=" + API_KEY);
+                    } else {
+                        url = new URL("https://api.themoviedb.org/3/search/" +
+                                listType + "?&query=" + query + "&page=" + page +
+                                "&api_key=" + API_KEY + getLanguageParameter(getContext()));
                     }
 
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    String response = stringBuilder.toString();
-                    handleResponse(response);
+                    URLConnection urlConnection = url.openConnection();
+                    try {
+                        BufferedReader bufferedReader = new BufferedReader(
+                                new InputStreamReader(
+                                        urlConnection.getInputStream()));
+
+                        // Create one long string of the webpage.
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line).append("\n");
+                        }
+
+                        // Close connection and return the data from the webpage.
+                        bufferedReader.close();
+                        String response = stringBuilder.toString();
+                        handleResponse(response);
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
 
-            if (!Locale.getDefault().getLanguage().equals("en") && !missingOverview && attemptCount < MAX_ATTEMPTS) {
-                attemptCount++;
-                new SearchListThread(listType, page, query, true).start();
+                if (!Locale.getDefault().getLanguage().equals("en") && !missingOverview && attemptCount < MAX_ATTEMPTS) {
+                    attemptCount++;
+                    new SearchListThread(listType, page, query, true).start();
+                }
             }
         }
 
