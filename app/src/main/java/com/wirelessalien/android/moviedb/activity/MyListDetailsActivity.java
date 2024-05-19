@@ -37,6 +37,11 @@ import com.wirelessalien.android.moviedb.tmdb.account.ListDetailsThreadTMDb;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -53,6 +58,23 @@ public class MyListDetailsActivity extends AppCompatActivity implements ListDeta
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_detail);
+
+        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+            StringWriter crashLog = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(crashLog));
+
+            try {
+                String fileName = "Crash_Log.txt";
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(crashLog.toString().getBytes());
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            android.os.Process.killProcess(android.os.Process.myPid());
+        } );
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         MaterialToolbar toolbar = findViewById(R.id.toolbar);

@@ -29,30 +29,25 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.preference.PreferenceManager;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.BaseActivity;
 import com.wirelessalien.android.moviedb.activity.FilterActivity;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;

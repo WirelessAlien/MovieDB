@@ -41,13 +41,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class ImportActivity extends AppCompatActivity implements AdapterDataChangedListener {
 
     private Context context;
     private static final int PICK_FILE_REQUEST_CODE = 1;
-    private Uri archiveFileUri;
-
 
 
     @Override
@@ -55,12 +55,12 @@ public class ImportActivity extends AppCompatActivity implements AdapterDataChan
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (data.getData() != null) {
-                archiveFileUri = data.getData();
+                Uri archiveFileUri = data.getData();
                 Log.d("ArchiveFileUri", archiveFileUri.toString());
                 Toast.makeText(this, getString(R.string.file_picked_success), Toast.LENGTH_SHORT).show();
 
                 try {
-                    InputStream inputStream = getContentResolver().openInputStream(archiveFileUri);
+                    InputStream inputStream = getContentResolver().openInputStream( archiveFileUri );
                     File cacheFile = new File(getCacheDir(), getArchiveFileName( archiveFileUri ));
                     FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
                     byte[] buffer = new byte[1024];
@@ -113,7 +113,24 @@ public class ImportActivity extends AppCompatActivity implements AdapterDataChan
         super.onCreate(savedInstanceState);
         setContentView( R.layout.activity_import);
 
-        context = this; // Initialize the context object
+        context = this;
+
+        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+            StringWriter crashLog = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(crashLog));
+
+            try {
+                String fileName = "Crash_Log.txt";
+                File targetFile = new File(context.getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(crashLog.toString().getBytes());
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            android.os.Process.killProcess(android.os.Process.myPid());
+        } );
 
         Button pickFileButton = findViewById(R.id.pick_file_button);
         pickFileButton.setOnClickListener(v -> {

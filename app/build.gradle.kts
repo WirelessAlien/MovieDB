@@ -53,6 +53,8 @@ dependencies {
     implementation("androidx.browser:browser:1.5.0")
     implementation("androidx.palette:palette:1.0.0")
 
+    implementation("androidx.work:work-runtime:2.8.1")
+
     implementation("androidx.preference:preference:1.2.0")
 
     implementation ("de.hdodenhof:circleimageview:3.1.0")

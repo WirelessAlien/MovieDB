@@ -61,6 +61,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -141,6 +146,22 @@ public class FilterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
 
+        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+            StringWriter crashLog = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(crashLog));
+
+            try {
+                String fileName = "Crash_Log.txt";
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(crashLog.toString().getBytes());
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            android.os.Process.killProcess(android.os.Process.myPid());
+        } );
         Intent intent = getIntent();
 
         // Show different types of sorting depending on the activity that the user came from.

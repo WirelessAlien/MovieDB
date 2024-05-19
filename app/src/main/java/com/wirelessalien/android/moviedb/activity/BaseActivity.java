@@ -42,6 +42,11 @@ import androidx.preference.PreferenceManager;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.wirelessalien.android.moviedb.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Locale;
 
 /**
@@ -80,6 +85,23 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+            StringWriter crashLog = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(crashLog));
+
+            try {
+                String fileName = "Crash_Log.txt";
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(crashLog.toString().getBytes());
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            android.os.Process.killProcess(android.os.Process.myPid());
+        } );
     }
 
     /**

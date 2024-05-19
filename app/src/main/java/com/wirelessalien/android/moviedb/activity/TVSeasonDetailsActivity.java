@@ -46,6 +46,11 @@ import com.wirelessalien.android.moviedb.data.Episode;
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper;
 import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetailsThread;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -73,6 +78,23 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tv_season_details);
+
+        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+            StringWriter crashLog = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(crashLog));
+
+            try {
+                String fileName = "Crash_Log.txt";
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(crashLog.toString().getBytes());
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            android.os.Process.killProcess(android.os.Process.myPid());
+        } );
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar( toolbar);

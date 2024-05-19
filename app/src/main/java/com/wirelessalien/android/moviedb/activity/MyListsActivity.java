@@ -37,6 +37,11 @@ import com.wirelessalien.android.moviedb.databinding.ActivityMyListsBinding;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 public class MyListsActivity extends AppCompatActivity {
@@ -48,6 +53,23 @@ public class MyListsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ActivityMyListsBinding binding = ActivityMyListsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+            StringWriter crashLog = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(crashLog));
+
+            try {
+                String fileName = "Crash_Log.txt";
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(crashLog.toString().getBytes());
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            android.os.Process.killProcess(android.os.Process.myPid());
+        } );
 
         MaterialToolbar toolbar = binding.toolbar;
         setSupportActionBar(toolbar);

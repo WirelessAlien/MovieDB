@@ -35,6 +35,12 @@ import androidx.preference.PreferenceManager;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public class ExportActivity extends AppCompatActivity {
 
    private static final int REQUEST_CODE_SELECT_DIRECTORY = 1;
@@ -76,7 +82,24 @@ public class ExportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView( R.layout.activity_export);
 
-        context = this; // Initialize the context object
+        context = this;
+
+        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+            StringWriter crashLog = new StringWriter();
+            throwable.printStackTrace(new PrintWriter(crashLog));
+
+            try {
+                String fileName = "Crash_Log.txt";
+                File targetFile = new File(context.getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+                fileOutputStream.write(crashLog.toString().getBytes());
+                fileOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            android.os.Process.killProcess(android.os.Process.myPid());
+        } );
 
         Button selectDirButton = findViewById(R.id.select_directory_button);
         selectDirButton.setOnClickListener(v -> {

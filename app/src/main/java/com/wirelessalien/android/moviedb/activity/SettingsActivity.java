@@ -52,13 +52,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finishActivity();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home) {
+            finishActivity();
+            return true;
         }
+        return super.onOptionsItemSelected( item );
     }
 
     public void onBackPressed() {

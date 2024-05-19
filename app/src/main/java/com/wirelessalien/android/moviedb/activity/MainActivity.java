@@ -20,10 +20,10 @@
 
 package com.wirelessalien.android.moviedb.activity;
 
-import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -31,32 +31,28 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.SearchView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -75,8 +71,15 @@ import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends BaseActivity {
 
@@ -94,11 +97,11 @@ public class MainActivity extends BaseActivity {
     // Variables used for searching
     private MenuItem mSearchAction;
     private boolean isSearchOpened = false;
-    private EditText editSearch;
     private SharedPreferences preferences;
     public AdapterDataChangedListener mAdapterDataChangedListener;
     private String api_read_access_token;
     private static final int REQUEST_CODE = 101;
+    private Context context;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
 
 
@@ -107,6 +110,39 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView( R.layout.activity_main);
+
+        context = this;
+
+        String fileName = "Crash_Log.txt";
+        File crashLogFile = new File(getFilesDir(), fileName);
+        if (crashLogFile.exists()) {
+            StringBuilder crashLog = new StringBuilder();
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(crashLogFile));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    crashLog.append(line);
+                    crashLog.append('\n');
+                }
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Crash Log")
+                    .setMessage(crashLog.toString())
+                    .setPositiveButton("Copy", (dialog, which) -> {
+                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        ClipData clip = ClipData.newPlainText("Movie DB Crash Log", crashLog.toString());
+                        clipboard.setPrimaryClip(clip);
+                        Toast.makeText(MainActivity.this, "Crash log copied to clipboard", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Close", null)
+                    .show();
+
+            crashLogFile.delete();
+        }
 
         // Set the default preference values.
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -291,24 +327,9 @@ public class MainActivity extends BaseActivity {
             notificationManager.createNotificationChannel(channel);
         }
 
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, ReleaseReminderService.class);
-        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 7);
-        calendar.set(Calendar.MINUTE, 30);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                // For newer versions, use setExactAndAllowWhileIdle to ensure the alarm fires even in doze mode
-                alarmManager.setExactAndAllowWhileIdle( AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent );
-            }
-        } else {
-            // For older versions, use setExactAndAllowWhileIdle
-            alarmManager.setExactAndAllowWhileIdle( AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent );
-        }
+        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(ReleaseReminderService.class, 24, TimeUnit.HOURS)
+                .build();
+        WorkManager.getInstance(this).enqueue(workRequest);
 
         Intent nIntent = getIntent();
         if (nIntent != null && nIntent.hasExtra("tab_index")) {
@@ -452,75 +473,38 @@ public class MainActivity extends BaseActivity {
      * Handles input from the search bar and icon.
      */
     private void handleMenuSearch() {
-        ActionBar action = getSupportActionBar();
-        if (action == null) {
-            return;
-        }
-
         final boolean liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, true);
 
+        SearchView searchView = (SearchView) mSearchAction.getActionView();
+
         if (isSearchOpened) {
-            if (editSearch.getText().toString().equals("")) {
-                action.setDisplayShowCustomEnabled(true);
-
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    imm.hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
-                }
-
-                mSearchAction.setIcon( ResourcesCompat.getDrawable(getResources(), R.drawable.ic_search, null));
-
+            if (searchView != null && searchView.getQuery().toString().equals( "" )) {
+                searchView.setIconified( true );
+                mSearchAction.collapseActionView();
                 isSearchOpened = false;
-
-                action.setCustomView(null);
-                action.setDisplayShowTitleEnabled(true);
-
                 cancelSearchInFragment();
-            } else {
-                editSearch.setText("");
             }
         } else {
-            action.setDisplayShowCustomEnabled(true);
-            action.setCustomView(R.layout.search_bar);
-            action.setDisplayShowTitleEnabled(false);
-
-            editSearch = action.getCustomView().findViewById(R.id.editSearch);
-
-            editSearch.setOnEditorActionListener( (view, actionId, event) -> {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    searchInFragment(editSearch.getText().toString());
-                    return true;
-                }
-                return false;
-            } );
-
-            editSearch.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void afterTextChanged(Editable s) {
-                    if (liveSearch) {
-                        searchInFragment(editSearch.getText().toString());
-                    }
-                }
-
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int before, int count) {
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
-            });
-
-            editSearch.requestFocus();
-
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (imm != null) {
-                imm.showSoftInput(editSearch, InputMethodManager.SHOW_IMPLICIT);
-            }
-
-            mSearchAction.setIcon( ResourcesCompat.getDrawable(getResources(), R.drawable.ic_close, null));
-
+            mSearchAction.expandActionView();
             isSearchOpened = true;
+
+            if (searchView != null) {
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        searchInFragment(query);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        if (liveSearch) {
+                            searchInFragment(newText);
+                        }
+                        return true;
+                    }
+                });
+            }
         }
     }
 
