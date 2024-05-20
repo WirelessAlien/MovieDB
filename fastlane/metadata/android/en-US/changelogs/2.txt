@@ -1,0 +1,12 @@
+Fix: 
+ -Inconsistent grid width (movie/shows)
+ -Failure to hide navigation item #1
+ -Login failure with Firefox #2
+ -Inconsistent keyboard behaviour #6
+Other:
+ -Minor UI change
+ -Add additional sort options for saved entries #3
+ -Add certification, trailer etc (movie/shows)
+
+
+
