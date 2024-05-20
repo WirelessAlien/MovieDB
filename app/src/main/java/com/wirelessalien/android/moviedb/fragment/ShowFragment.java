@@ -982,8 +982,9 @@ public class ShowFragment extends BaseFragment {
                             for (int i = 0; i < mSearchShowArrayList.size(); i++) {
                                 JSONObject movieObject = mSearchShowArrayList.get(i);
                                 if (movieObject.getString("overview").equals("")) {
-                                    movieObject.put("overview", tempSearchMovieArrayList.
-                                            get(i).getString("overview"));
+                                    if(i < tempSearchMovieArrayList.size()) {
+                                        movieObject.put("overview", tempSearchMovieArrayList.get(i).getString("overview"));
+                                    }
                                 }
                             }
                         }
