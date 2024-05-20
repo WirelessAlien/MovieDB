@@ -1,8 +1,17 @@
-Movie DB is an offline (also has online support) movie database android application. The required data are requested from themoviedb.org. The database (called 'saved' in the application) is offline. To use online mode you need to have account in TMDB. After login, the favourite, watchlist, rate, list feature can be use to sync with https://www.themoviedb.org
+Movie DB is a fully open-source android application for exploring and organizing your personal collection of films and television series. 
 
-Feature-
- -Sync with TMDB
+It offers synchronization with your TMDB account. Once logged in, you can sync your favorites, watchlist, rated movies, and more. It also integrates with a local database to keep track of your shows. You can assign various statuses to each title—such as ‘planned’, ‘watched’, or ‘dropped’—rate them, and note the dates you commenced and concluded each show.
+
+It allows you to filter shows based on genre, release dates, and more. Detailed information on each show, including the cast, crew, and recommendations for similar titles, is also available. 
+
+Key Features-
+ -Synchronization with TMDB
  -Add favorite, watchlist, rate with TMDB
- -Create List
- -Offline support (If you don't want to sync with TMDB)
+ -Create List (Public/private)
+ -Offline support (Local database to keep track of your shows)
  -Import/Export database
+ -Support for Material You 
+ -Get notified of movie and tv show release
+ -And many more...
+
+The required data are requested from themoviedb.org. This app is still is development, feel free to request feature or report any issue.
