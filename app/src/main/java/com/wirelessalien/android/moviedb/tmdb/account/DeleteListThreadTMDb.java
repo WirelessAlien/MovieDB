@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
+
 import org.json.JSONObject;
 
 import okhttp3.OkHttpClient;
@@ -75,10 +77,10 @@ public class DeleteListThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                Toast.makeText(activity, "List deleted successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.list_delete_success, Toast.LENGTH_SHORT).show();
                 onListDeletedListener.onListDeleted();
             } else {
-                Toast.makeText(activity, "Failed to delete list", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.failed_to_delete_list, Toast.LENGTH_SHORT).show();
             }
         });
     }

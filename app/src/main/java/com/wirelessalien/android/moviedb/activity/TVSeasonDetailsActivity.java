@@ -113,7 +113,6 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
         tvShowId = getIntent().getIntExtra("tvShowId", -1);
         int seasonNumber = getIntent().getIntExtra("seasonNumber", -1);
         showName = getIntent().getStringExtra("tvShowName");
-        Log.d( "TVSeasonDetailsActivity", "onCreate: " + tvShowId + " " + showName);
 
         progressBar.setVisibility( View.VISIBLE); // Show the ProgressBar
 
@@ -138,8 +137,8 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
 //                    .into(ivSeasonPoster);
 
             voteAverage.setRating((float) thread.getSeasonVoteAverage() / 2);
-            episodeNumber.setText("Episodes: " + thread.getEpisodes().size());
-            airDate.setText("Air Date: " + thread.getEpisodes().get(0).getAirDate());
+            episodeNumber.setText(getString(R.string.episodes_count, thread.getEpisodes().size()));
+            airDate.setText(getString(R.string.air_date, thread.getEpisodes().get(0).getAirDate()));
 
             EpisodeAdapter adapter = new EpisodeAdapter(this, thread.getEpisodes());
             rvEpisodes.setLayoutManager(new LinearLayoutManager(this));
@@ -164,7 +163,7 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
             }
         })).exceptionally(throwable -> {
             runOnUiThread(() -> {
-                progressBar.setVisibility(View.GONE); // Hide the ProgressBar
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(this, "Error: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
             });
             return null;
@@ -174,7 +173,6 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.d("TVSeasonDetailsActivity", "onCreateOptionsMenu: Start");
         getMenuInflater().inflate(R.menu.notification_menu, menu);
         dbHelper = new EpisodeReminderDatabaseHelper(this);
 
@@ -213,7 +211,8 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
 
             if (isShowInDatabase(tvShowId)) {
                 dbHelper.deleteData(tvShowId);
-                Toast.makeText(this, showName + "is removed from reminder", Toast.LENGTH_SHORT).show();
+                String message = getString(R.string.removed_from_reminder, showName);
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 item.setIcon(R.drawable.ic_add_alert);
                 return true;
             }
@@ -235,11 +234,13 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
                     long newRowId = db.insert(EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, values);
 
                     if (newRowId == -1) {
-                        Toast.makeText(this, "Error saving reminder for " + showName, Toast.LENGTH_SHORT).show();
-                        return true; // Return early if there was an error
+                        String message = getString(R.string.error_reminder_episode, showName);
+                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                        return true;
                     }
                 }
-                Toast.makeText(this, "You will get notified when episodes of " + showName + "release", Toast.LENGTH_SHORT).show();
+                String message = getString(R.string.get_notified_for_episode, showName);
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 item.setIcon(R.drawable.ic_notifications_active);
             }
 

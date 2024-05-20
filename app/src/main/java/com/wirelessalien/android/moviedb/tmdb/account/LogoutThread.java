@@ -28,6 +28,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
+
 import org.json.JSONObject;
 
 import okhttp3.MediaType;
@@ -77,7 +79,7 @@ public class LogoutThread extends Thread {
                 if (response.isSuccessful()) {
                     preferences.edit().remove("access_token").apply();
 
-                    handler.post(() -> Toast.makeText(context, "Logged out successfully", Toast.LENGTH_SHORT).show());
+                    handler.post(() -> Toast.makeText(context, R.string.logged_out_successfully, Toast.LENGTH_SHORT).show());
                 } else {
                 }
             }

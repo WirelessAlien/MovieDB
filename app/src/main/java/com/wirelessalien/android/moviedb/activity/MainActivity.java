@@ -20,6 +20,7 @@
 
 package com.wirelessalien.android.moviedb.activity;
 
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ClipData;
@@ -136,7 +137,7 @@ public class MainActivity extends BaseActivity {
                         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                         ClipData clip = ClipData.newPlainText("Movie DB Crash Log", crashLog.toString());
                         clipboard.setPrimaryClip(clip);
-                        Toast.makeText(MainActivity.this, "Crash log copied to clipboard", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, R.string.crash_log_copied, Toast.LENGTH_SHORT).show();
                     })
                     .setNegativeButton("Close", null)
                     .show();
@@ -296,10 +297,10 @@ public class MainActivity extends BaseActivity {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.POST_NOTIFICATIONS)) {
                 new MaterialAlertDialogBuilder( this )
-                        .setTitle("Permission needed")
-                        .setMessage("This permission is needed to show notifications.")
-                        .setPositiveButton("ok", (dialog, which) -> ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE))
-                        .setNegativeButton("cancel", (dialog, which) -> dialog.dismiss())
+                        .setTitle( R.string.permission_required)
+                        .setMessage( R.string.permission_required_description)
+                        .setPositiveButton( R.string.ok, (dialog, which) -> ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE))
+                        .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
                         .create().show();
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE);
@@ -308,8 +309,8 @@ public class MainActivity extends BaseActivity {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Released Movies";
-            String description = "Get notified when a movie is released.";
+            CharSequence name = getString( R.string.released_movies);
+            String description = getString( R.string.notification_for_movie_released);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel("released_movies", name, importance);
             channel.setDescription(description);
@@ -318,8 +319,8 @@ public class MainActivity extends BaseActivity {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Aired Episodes";
-            String description = "Get notified when an episode is aired.";
+            CharSequence name = getString( R.string.aired_episodes);
+            String description = getString( R.string.notification_for_episode_air);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel("episode_reminders", name, importance);
             channel.setDescription(description);

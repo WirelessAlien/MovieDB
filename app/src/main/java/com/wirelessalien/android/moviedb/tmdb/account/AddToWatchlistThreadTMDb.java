@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONObject;
@@ -92,9 +93,9 @@ public class AddToWatchlistThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                Toast.makeText(activity, "Added to watchlist", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.added_to_watchlist, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(activity, "Removed from watchlist", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.removed_from_watchlist, Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONObject;
@@ -89,9 +90,9 @@ public class CreateListThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                Toast.makeText(activity, "List created successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.list_created_successfully, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(activity, "Failed to create list", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.failed_to_create_list, Toast.LENGTH_SHORT).show();
             }
         });
     }

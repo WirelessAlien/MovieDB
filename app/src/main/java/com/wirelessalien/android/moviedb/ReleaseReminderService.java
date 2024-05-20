@@ -20,7 +20,6 @@
 
 package com.wirelessalien.android.moviedb;
 
-import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -31,7 +30,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -106,8 +104,8 @@ public class ReleaseReminderService extends Worker {
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "released_movies")
                     .setSmallIcon( R.drawable.icon )
-                    .setContentTitle("Movie Release")
-                    .setContentText(title + " is released today!")
+                    .setContentTitle(title)
+                    .setContentText(getApplicationContext().getString(R.string.movie_released_today, title))
                     .setContentIntent(pendingIntent)
                     .setAutoCancel(true)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT);
@@ -129,7 +127,7 @@ public class ReleaseReminderService extends Worker {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "episode_reminders")
                 .setSmallIcon( R.drawable.icon )
                 .setContentTitle(tvShowName)
-                .setContentText("Episode " + episodeNumber + " (" + episodeName + ")"+" is airing today!")
+                .setContentText(getApplicationContext().getString(R.string.episode_airing_today, episodeNumber, episodeName))
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);

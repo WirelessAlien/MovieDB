@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -72,9 +74,9 @@ public class DeleteRatingThreadTMDb extends Thread {
             final boolean finalSuccess = success;
             activity.runOnUiThread(() -> {
                 if (finalSuccess) {
-                    Toast.makeText(activity, "Rating deleted successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(activity, R.string.rating_delete_success, Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(activity, "Failed to delete rating", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(activity, R.string.delete_rating_fail, Toast.LENGTH_SHORT).show();
                 }
             });
         } catch (IOException | JSONException e) {

@@ -395,7 +395,7 @@ public class DetailActivity extends BaseActivity {
 
         if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
             if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
-                String imageUrl = null;
+                String imageUrl;
                 try {
                     imageUrl = "https://image.tmdb.org/t/p/w780" + jMovieObject.getString( "backdrop_path" );
                 } catch (JSONException e) {
@@ -1031,7 +1031,7 @@ public class DetailActivity extends BaseActivity {
                     binding.runtime.setText( hours + "h " + minutes + "m" );
                 }
             } else {
-                binding.runtime.setText( "00h 00m" );
+                binding.runtime.setText( R.string._00h_00m );
             }
 
             if (movieObject.has("status") && !movieObject.getString("status").equals(binding.statusDataText.getText().toString())) {
@@ -1065,7 +1065,7 @@ public class DetailActivity extends BaseActivity {
                 }
                 binding.revenueDataText.setText(formattedRevenue);
             } else {
-                binding.revenueDataText.setText("Unknown");
+                binding.revenueDataText.setText( R.string.unknown);
             }
 
             cursor.close();
@@ -1115,7 +1115,7 @@ public class DetailActivity extends BaseActivity {
                 String imdbId = jsonObject.getString("imdb_id");
                 //if imdbId is not available, set the text to "IMDB (not available)"
                 if (imdbId.equals("null")) {
-                    binding.imdbLink.setText("IMDB (not available)");
+                    binding.imdbLink.setText( R.string.imdb_not_available);
                 } else {
                     //if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
                     binding.imdbLink.setText("IMDB");
@@ -1242,7 +1242,7 @@ public class DetailActivity extends BaseActivity {
             if (!certification.isEmpty()) {
                 binding.certification.setText( certification );
             } else
-                binding.certification.setText( "Not Rated" );
+                binding.certification.setText( R.string.not_rated );
         }
     }
 
@@ -1623,7 +1623,7 @@ public class DetailActivity extends BaseActivity {
                 }
                 startDateButton.setText(parseDateToString(startDate, null, null));
             } else {
-                startDateButton.setText("Not set");
+                startDateButton.setText( R.string.not_set_btn);
             }
 
             if (!cursor.isNull(cursor.getColumnIndexOrThrow
@@ -1639,7 +1639,7 @@ public class DetailActivity extends BaseActivity {
                 }
                 endDateButton.setText(parseDateToString(finishDate, null, null));
             } else {
-                endDateButton.setText("Not set");
+                endDateButton.setText(R.string.not_set_btn);
             }
 
             if (!cursor.isNull(cursor.getColumnIndexOrThrow

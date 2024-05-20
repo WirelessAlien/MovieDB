@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter;
 
 import org.json.JSONArray;
@@ -97,11 +98,11 @@ public class DeleteFromListThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                Toast.makeText(activity, "Media removed from list", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.media_removed_from_list, Toast.LENGTH_SHORT).show();
                 showList.remove(position);
                 adapter.notifyItemRemoved(position);
             } else {
-                Toast.makeText(activity, "Failed to remove media from list", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.failed_to_remove_media_from_list, Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -93,7 +93,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
             // Check if description is null or empty
             if (listData.getDescription() == null || listData.getDescription().isEmpty()) {
-                descriptionTextView.setText("No description");
+                descriptionTextView.setText( R.string.no_description);
             } else {
                 descriptionTextView.setText(listData.getDescription());
             }

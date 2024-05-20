@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 
 import org.json.JSONArray;
@@ -92,9 +93,9 @@ public class AddToListThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                Toast.makeText(activity, "Media added to list", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.media_added_to_list, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(activity, "Failed to add media to list", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.failed_to_add_media_to_list, Toast.LENGTH_SHORT).show();
             }
         });
     }

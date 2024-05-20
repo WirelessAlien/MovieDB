@@ -27,6 +27,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
+
 import org.json.JSONObject;
 
 import okhttp3.MediaType;
@@ -90,9 +92,9 @@ public class AddToFavouritesThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread( () -> {
             if (finalSuccess) {
-                Toast.makeText( activity, "Added to favourites", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( activity, R.string.added_to_favourites, Toast.LENGTH_SHORT ).show();
             } else {
-                Toast.makeText( activity, "Removed from favourites", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( activity, R.string.removed_from_favourites, Toast.LENGTH_SHORT ).show();
             }
         } );
     }

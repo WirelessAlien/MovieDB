@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
+
 import org.json.JSONObject;
 
 import okhttp3.MediaType;
@@ -82,9 +84,9 @@ public class AddRatingThreadTMDb extends Thread {
         final boolean finalSuccess = success;
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
-                Toast.makeText(activity, "Rating added successfully.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.rating_added_successfully, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(activity, "Failed to add rating.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.failed_to_add_rating, Toast.LENGTH_SHORT).show();
             }
         });
     }
