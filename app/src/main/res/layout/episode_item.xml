@@ -39,8 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:orientation="vertical"
-          >
+            android:orientation="vertical">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -48,14 +47,38 @@
                 style="@style/Widget.Material3.CardView.Elevated"
                 card_view:cardCornerRadius="5dp">
 
-                <com.wirelessalien.android.moviedb.view.WideRatioImageView
-                    android:id="@+id/image"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:adjustViewBounds="true"
-                    android:contentDescription="@string/image_description"
-                    android:scaleType="fitXY" />
+                    android:layout_height="wrap_content">
+
+                    <com.wirelessalien.android.moviedb.view.WideRatioImageView
+                        android:id="@+id/image"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/image_description"
+                        android:scaleType="fitXY" />
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|top">
+                    <ImageButton
+                        android:id="@+id/rateBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_thumb_up"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+                    <ImageButton
+                        android:id="@+id/watched"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/rateBtn"
+                        android:src="@drawable/ic_bookmark"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+                    </RelativeLayout>
+                </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <View

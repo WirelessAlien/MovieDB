@@ -247,4 +247,6 @@
     <string name="failed_to_add_rating">Failed to add rating.</string>
     <string name="episode_airing_today">Episode %1$s (%2$s) is airing today!</string>
     <string name="movie_released_today">%1$s is released today!</string>
+    <string name="episodes_removed">All episodes added</string>
+    <string name="episodes_added">All episodes removed</string>
 </resources>

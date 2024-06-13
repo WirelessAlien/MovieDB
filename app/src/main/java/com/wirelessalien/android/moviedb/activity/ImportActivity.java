@@ -20,29 +20,39 @@
 
 package com.wirelessalien.android.moviedb.activity;
 
+import static com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper.DATABASE_NAME;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.OpenableColumns;
 import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.channels.FileChannel;
+import java.util.concurrent.CompletableFuture;
 
 public class ImportActivity extends AppCompatActivity implements AdapterDataChangedListener {
 

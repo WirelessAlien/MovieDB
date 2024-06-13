@@ -34,6 +34,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -43,6 +45,7 @@ import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 
 public class ReleaseReminderService extends Worker {
@@ -90,6 +93,12 @@ public class ReleaseReminderService extends Worker {
             }
         }
         cursorEpisode.close();
+
+        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(ReleaseReminderService.class)
+                .setInitialDelay(24, TimeUnit.HOURS)
+                .build();
+        WorkManager.getInstance(getApplicationContext()).enqueue(workRequest);
+
         return Result.success();
     }
 

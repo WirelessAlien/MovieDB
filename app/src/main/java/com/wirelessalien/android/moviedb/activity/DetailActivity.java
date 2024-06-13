@@ -81,17 +81,16 @@ import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
-import com.wirelessalien.android.moviedb.adapter.TVSeasonAdapter;
-import com.wirelessalien.android.moviedb.data.TVSeason;
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
-import com.wirelessalien.android.moviedb.tmdb.TVSeasonThread;
+import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToFavouritesThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlistThreadTMDb;
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateThreadTMDb;
 import com.wirelessalien.android.moviedb.view.NotifyingScrollView;
@@ -110,8 +109,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -138,8 +137,12 @@ public class DetailActivity extends BaseActivity {
     private SQLiteDatabase database;
     private MovieDatabaseHelper databaseHelper;
     private int movieId;
+    private int seasonNumber;
+    private int episodeNumber;
     private Target target;
     private String voteAverage;
+    private int numSeason;
+    private String showName;
     private Integer totalEpisodes;
     private boolean isMovie = true;
     private Context context = this;
@@ -376,7 +379,15 @@ public class DetailActivity extends BaseActivity {
                     }
                 });
             } else {
-                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Failed to retrieve account id. Try login again.", Toast.LENGTH_SHORT).show());
+                boolean isToastShown = preferences.getBoolean("isToastShown", false);
+
+                if (!isToastShown) {
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Login is required to use TMDB based sync.", Toast.LENGTH_SHORT).show());
+
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean("isToastShown", true);
+                    editor.apply();
+                }
             }
         }).exceptionally(ex -> {
             Log.e("DetailActivity", "Error in CompletableFuture", ex);
@@ -464,30 +475,6 @@ public class DetailActivity extends BaseActivity {
                         getApplicationContext(), R.anim.fade_in);
                 binding.movieImage.startAnimation(animation);
             }
-        }
-
-        CompletableFuture<List<TVSeason>> future2 = null;
-
-        if (!isMovie) {
-            future2 = CompletableFuture.supplyAsync(() -> {
-                TVSeasonThread tvSeasonThread = new TVSeasonThread(movieId, getApplicationContext());
-                tvSeasonThread.start();
-                try {
-                    tvSeasonThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return tvSeasonThread.getSeasons();
-            });
-        }
-
-        if (future2 != null) {
-            future2.thenAcceptBoth(future1, (seasons, voidResult) -> runOnUiThread(() -> {
-                RecyclerView recyclerView = binding.seasonRecyclerview;
-                TVSeasonAdapter adapter = new TVSeasonAdapter(DetailActivity.this, seasons);
-                recyclerView.setLayoutManager(new LinearLayoutManager(DetailActivity.this, LinearLayoutManager.HORIZONTAL, false));
-                recyclerView.setAdapter(adapter);
-            }) );
         }
 
         binding.watchListButton.setOnClickListener( v -> new Thread( () -> {
@@ -618,6 +605,102 @@ public class DetailActivity extends BaseActivity {
             binding.revenueText.setVisibility( View.GONE );
             binding.revenueDataText.setVisibility( View.GONE );
         }
+        if (!isMovie) {
+            jMovieObject.has( "name" );
+            showName = jMovieObject.optString( "name" );
+        }
+        if (isMovie) {
+            binding.lastEpisodeCard.setVisibility( View.GONE );
+            binding.allEpisodeBtn.setVisibility( View.GONE );
+            binding.episodeText.setVisibility( View.GONE );
+        }
+
+        binding.allEpisodeBtn.setOnClickListener( v -> {
+            Intent iiintent = new Intent( getApplicationContext(), TVSeasonDetailsActivity.class );
+            iiintent.putExtra( "tvShowId", movieId );
+            iiintent.putExtra( "numSeasons", numSeason );
+            iiintent.putExtra( "tvShowName", showName);
+            startActivity( iiintent );
+        } );
+
+        if (!isMovie) {
+            if (jMovieObject.has("last_episode_to_air")) {
+                JSONObject lastEpisode = null;
+                try {
+                    lastEpisode = jMovieObject.getJSONObject("last_episode_to_air");
+                } catch (JSONException ignored) {
+
+                }
+                try {
+                    seasonNumber = lastEpisode.getInt( "season_number" );
+                } catch (JSONException ignored) {
+
+                }
+                try {
+                    episodeNumber = lastEpisode.getInt("episode_number");
+                } catch (JSONException ignored) {
+
+                }
+            }
+        }
+
+        if (!isMovie) {
+            MovieDatabaseHelper db = new MovieDatabaseHelper(context);
+            if (db.isEpisodeInDatabase(movieId, seasonNumber, Collections.singletonList( episodeNumber ) )) {
+                binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility_fill );
+            } else {
+                binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility );
+            }
+        }
+
+        binding.episodeRateBtn.setOnClickListener( v -> {
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
+            LayoutInflater inflater = LayoutInflater.from(mActivity);
+            View dialogView = inflater.inflate( R.layout.rating_dialog, null );
+            builder.setView( dialogView );
+            final AlertDialog dialog = builder.create();
+            dialog.show();
+
+            RatingBar ratingBar = dialogView.findViewById( R.id.ratingBar );
+            Button submitButton = dialogView.findViewById( R.id.btnSubmit );
+            Button cancelButton = dialogView.findViewById( R.id.btnCancel );
+            Button deleteButton = dialogView.findViewById( R.id.btnDelete );
+
+            Handler mainHandler = new Handler( Looper.getMainLooper() );
+
+            CompletableFuture.runAsync( () -> {
+                submitButton.setOnClickListener( v1 -> CompletableFuture.runAsync( () -> {
+                    double rating = ratingBar.getRating() * 2;
+                    new AddEpisodeRatingThreadTMDb( movieId, seasonNumber, episodeNumber, rating, context ).start();
+                    mainHandler.post( dialog::dismiss );
+                } ) );
+
+                deleteButton.setOnClickListener( v12 -> CompletableFuture.runAsync( () -> {
+                    new DeleteEpisodeRatingThreadTMDb( movieId, seasonNumber, episodeNumber, context ).start();
+                    mainHandler.post( dialog::dismiss );
+                } ) );
+
+                cancelButton.setOnClickListener( v12 -> dialog.dismiss() );
+            } );
+        });
+
+        binding.episodeWathchBtn.setOnClickListener( v -> {
+            if (database == null) {
+                databaseHelper = new MovieDatabaseHelper(getApplicationContext());
+                database = databaseHelper.getWritableDatabase();
+                databaseHelper.onCreate(database);
+            }
+
+            if (database != null) {
+                if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, Collections.singletonList( episodeNumber ) )) {
+                    databaseHelper.removeEpisodeNumber(movieId, seasonNumber, Collections.singletonList( episodeNumber ) );
+                    binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility );
+                } else {
+                    databaseHelper.addEpisodeNumber(movieId, seasonNumber, Collections.singletonList( episodeNumber ) );
+                    binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility_fill );
+                }
+            }
+        });
     }
 
     @Override
@@ -1016,6 +1099,24 @@ public class DetailActivity extends BaseActivity {
                 genres = genreNames.substring(2);
             }
 
+            if (!isMovie) {
+                if (movieObject.has("last_episode_to_air")) {
+                    JSONObject lastEpisode = movieObject.getJSONObject("last_episode_to_air");
+                    if (lastEpisode != null) {
+                        seasonNumber = lastEpisode.getInt("season_number");
+                        episodeNumber = lastEpisode.getInt("episode_number");
+                        String name = lastEpisode.getString("name");
+                        double voteAverage = lastEpisode.getDouble("vote_average");
+                        String overview = lastEpisode.getString("overview");
+
+                        binding.seasonNo.setText( "S:" + seasonNumber);
+                        binding.episodeNo.setText( "E:" + episodeNumber);
+                        binding.episodeName.setText( name );
+                        binding.ratingAverage.setText( String.valueOf( voteAverage ) );
+                        binding.episodeOverview.setText( overview );
+                    }
+                }
+            }
 
             if (!isMovie) {
                 if (movieObject.has("first_air_date") && !movieObject.getString("first_air_date").equals(binding.releaseDate.getText().toString())) {
@@ -1031,7 +1132,17 @@ public class DetailActivity extends BaseActivity {
                     binding.runtime.setText( hours + "h " + minutes + "m" );
                 }
             } else {
-                binding.runtime.setText( R.string._00h_00m );
+                if (movieObject.has("episode_run_time")) {
+                    String episodeRuntime = movieObject.getString("episode_run_time");
+                    episodeRuntime = episodeRuntime.replace("[", "").replace("]", "").trim();
+                    if (!episodeRuntime.isEmpty() && !episodeRuntime.equals(binding.runtime.getText().toString())) {
+                        binding.runtime.setText(episodeRuntime + "m");
+                    } else {
+                        binding.runtime.setText(R.string.unknown);
+                    }
+                } else {
+                    binding.runtime.setText(R.string.unknown);
+                }
             }
 
             if (movieObject.has("status") && !movieObject.getString("status").equals(binding.statusDataText.getText().toString())) {
@@ -2077,6 +2188,9 @@ public class DetailActivity extends BaseActivity {
                         binding.movieDescription.setText(movieData.getString("overview"));
                     } else {
                         setMovieData(movieData);
+                    }
+                    if (movieData.has("number_of_seasons")) {
+                        numSeason = movieData.getInt("number_of_seasons");
                     }
                     mMovieDetailsLoaded = true;
                 } catch (JSONException e) {

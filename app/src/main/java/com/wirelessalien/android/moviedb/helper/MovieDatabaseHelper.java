@@ -45,17 +45,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class provides some (basic) database functionality.
@@ -63,6 +63,7 @@ import java.util.Locale;
 public class MovieDatabaseHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_MOVIES = "movies";
+    public static final String TABLE_EPISODES = "episodes";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_MOVIES_ID = "movie_id";
     public static final String COLUMN_RATING = "rating";
@@ -78,6 +79,8 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PERSONAL_FINISH_DATE = "personal_finish_date";
     public static final String COLUMN_PERSONAL_REWATCHED = "personal_rewatched";
     public static final String COLUMN_PERSONAL_EPISODES = "personal_episodes";
+    public static final String COLUMN_EPISODE_NUMBER = "episode_number";
+    public static final String COLUMN_SEASON_NUMBER = "season_number";
     public static final String COLUMN_CATEGORIES = "watched";
     public static final String COLUMN_MOVIE = "movie";
     public static final int CATEGORY_WATCHING = 2;
@@ -85,10 +88,10 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
     public static final int CATEGORY_WATCHED = 1;
     public static final int CATEGORY_ON_HOLD = 3;
     public static final int CATEGORY_DROPPED = 4;
-    private static final String DATABASE_NAME = "movies.db";
+    public static final String DATABASE_NAME = "movies.db";
     private static final String DATABASE_FILE_NAME = "movies";
     private static final String DATABASE_FILE_EXT = ".db";
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 12;
 
 
     // Initialize the database object.
@@ -117,6 +120,40 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
      * @param database the database to get the data from.
      * @return a string in JSON format containing all the show data.
      */
+    private JSONArray getEpisodesForMovie(int movieId, SQLiteDatabase database) {
+        String selectQuery = "SELECT * FROM " + TABLE_EPISODES + " WHERE " + COLUMN_MOVIES_ID + " = " + movieId;
+        Cursor cursor = database.rawQuery(selectQuery, null);
+
+        // Convert the database to JSON
+        JSONArray episodesSet = new JSONArray();
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            int totalColumn = cursor.getColumnCount();
+            JSONObject rowObject = new JSONObject();
+
+            for (int i = 0; i < totalColumn; i++) {
+                if (cursor.getColumnName(i) != null) {
+                    try {
+                        if (cursor.getString(i) != null) {
+                            rowObject.put(cursor.getColumnName(i), cursor.getString(i));
+                        } else {
+                            rowObject.put(cursor.getColumnName(i), "");
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            episodesSet.put(rowObject);
+            cursor.moveToNext();
+        }
+        cursor.close();
+
+        return episodesSet;
+    }
+
     private String getJSONExportString(SQLiteDatabase database) {
         String selectQuery = "SELECT * FROM " + TABLE_MOVIES;
         Cursor cursor = database.rawQuery(selectQuery, null);
@@ -143,6 +180,14 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                 }
             }
 
+            // Add episodes for this movie
+            int movieId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MOVIES_ID));
+            try {
+                rowObject.put("episodes", getEpisodesForMovie(movieId, database));
+            } catch (JSONException e) {
+                throw new RuntimeException( e );
+            }
+
             databaseSet.put(rowObject);
             cursor.moveToNext();
         }
@@ -151,61 +196,6 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
         // Convert databaseSet to string and put in file
         return databaseSet.toString();
     }
-
-    /**
-     * Inserts all JSONObjects into the database.
-     *
-     * @param JSONString the String in JSON format containing show data in JSONObjects.
-     * @param database   the database containing a show table that all the shows should be added to.
-     */
-    private void importJSON(String JSONString, SQLiteDatabase database) {
-        // Get the JSONObject from the text.
-        try {
-            JSONArray movieDatabase = new JSONArray(JSONString);
-
-            for (int i = 0; i < movieDatabase.length(); i++) {
-                JSONObject movieObject = movieDatabase.getJSONObject(i);
-
-                ContentValues movieDatabaseValues = new ContentValues();
-
-                movieDatabaseValues.put(COLUMN_MOVIES_ID,
-                        Integer.parseInt(movieObject.getString(COLUMN_MOVIES_ID)));
-                movieDatabaseValues.put(COLUMN_IMAGE,
-                        movieObject.getString(COLUMN_IMAGE));
-                movieDatabaseValues.put(COLUMN_ICON,
-                        movieObject.getString(COLUMN_ICON));
-                movieDatabaseValues.put(COLUMN_TITLE,
-                        movieObject.getString(COLUMN_TITLE));
-                movieDatabaseValues.put(COLUMN_SUMMARY,
-                        movieObject.getString(COLUMN_SUMMARY));
-                movieDatabaseValues.put(COLUMN_GENRES,
-                        movieObject.getString(COLUMN_GENRES));
-                movieDatabaseValues.put(COLUMN_GENRES_IDS,
-                        movieObject.getString(COLUMN_GENRES_IDS));
-                movieDatabaseValues.put(COLUMN_MOVIE,
-                        movieObject.getString(COLUMN_MOVIE));
-                movieDatabaseValues.put(COLUMN_CATEGORIES,
-                        movieObject.getString(COLUMN_CATEGORIES));
-                movieDatabaseValues.put(COLUMN_RATING,
-                        movieObject.getString(COLUMN_RATING));
-                movieDatabaseValues.put(COLUMN_PERSONAL_RATING,
-                        movieObject.optString(COLUMN_PERSONAL_RATING));
-                movieDatabaseValues.put(COLUMN_PERSONAL_START_DATE,
-                        movieObject.optString(COLUMN_PERSONAL_START_DATE));
-                movieDatabaseValues.put(COLUMN_PERSONAL_FINISH_DATE,
-                        movieObject.optString(COLUMN_PERSONAL_FINISH_DATE));
-                movieDatabaseValues.put(COLUMN_PERSONAL_REWATCHED,
-                        movieObject.optString(COLUMN_PERSONAL_REWATCHED));
-                movieDatabaseValues.put(COLUMN_PERSONAL_EPISODES,
-                        movieObject.optString(COLUMN_PERSONAL_EPISODES));
-
-                database.insert(TABLE_MOVIES, null, movieDatabaseValues);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     /**
      * Writes the database in the chosen format to the downloads directory.
@@ -280,8 +270,7 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                 } )
                 .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel() );
 
-        MaterialAlertDialogBuilder dialog = builder;
-        dialog.show();
+        builder.show();
     }
 
 
@@ -297,94 +286,55 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
         String downloadPath = context.getCacheDir().getPath();
         File directory = new File(downloadPath);
         File[] files = directory.listFiles( pathname -> {
-            // Only show database or json files
+            // Only show database
             String name = pathname.getName();
-            return name.endsWith(".db") || name.endsWith(".json");
+            return name.endsWith(".db");
         } );
 
-        // Creates an adapter with files for the dialog.
         final ArrayAdapter<String> fileAdapter = new ArrayAdapter<>
                 (context, android.R.layout.select_dialog_singlechoice);
         for (File file : files) {
             fileAdapter.add(file.getName());
         }
 
-        // Create the dialog.
         MaterialAlertDialogBuilder fileDialog = new MaterialAlertDialogBuilder(context);
         fileDialog.setTitle(R.string.choose_file);
 
         fileDialog.setNegativeButton(R.string.import_cancel, (dialog, which) -> dialog.dismiss() );
 
-        final SQLiteDatabase database = getWritableDatabase();
-
         // Show the files that can be imported.
         fileDialog.setAdapter(fileAdapter, (dialog, which) -> {
             File path = new File( context.getCacheDir().getPath() );
 
-            // Check the file type and use the associated import method.
             try {
                 String exportDBPath = fileAdapter.getItem(which);
                 if (exportDBPath == null) {
                     throw new NullPointerException();
                 } else if (fileAdapter.getItem(which).endsWith(".db")) {
 
-                    // Import the file selected in the dialog.
-                    try {
-                        File data = Environment.getDataDirectory();
+                    CompletableFuture.runAsync(() -> {
+                        try {
+                            // Import the file selected in the dialog.
+                            File data = Environment.getDataDirectory();
+                            String currentDBPath = "/data/" + context.getPackageName() + "/databases/" + MovieDatabaseHelper.DATABASE_NAME;
+                            File currentDB = new File(data, currentDBPath);
+                            File importDB = new File(path, exportDBPath);
 
-                        String currentDBPath = "/data/" + context.getPackageName() +
-                                "/databases/" + DATABASE_NAME;
-                        File currentDB = new File(data, currentDBPath);
-                        assert exportDBPath != null;
-                        File importDB = new File(path, exportDBPath);
-
-                        FileChannel src = new FileInputStream(importDB).getChannel();
-                        FileChannel dst = new FileOutputStream(currentDB).getChannel();
-                        dst.transferFrom(src, 0, src.size());
-                        src.close();
-                        dst.close();
-                        Toast.makeText(context, context.getResources().getString(R.string.database_import_successful), Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    // Retrieve the file
-                    File file = new File(path, exportDBPath);
-
-                    StringBuilder fileContent = new StringBuilder();
-
-                    try {
-                        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-                        String line;
-
-                        while ((line = bufferedReader.readLine()) != null) {
-                            fileContent.append(line);
-                            fileContent.append("\n");
+                            FileChannel src = new FileInputStream(importDB).getChannel();
+                            FileChannel dst = new FileOutputStream(currentDB).getChannel();
+                            dst.transferFrom(src, 0, src.size());
+                            src.close();
+                            dst.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-
-                        bufferedReader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Drop the current table
-                    database.execSQL("DROP TABLE IF EXISTS " + TABLE_MOVIES);
-
-                    // Create a new table
-                    onCreate(database);
-
-                    // Fill the new database with the JSON data.
-                    importJSON(fileContent.toString(), database);
-                    Toast.makeText(context, context.getResources().getString(R.string.database_import_successful), Toast.LENGTH_SHORT).show();
-
+                    });
                 }
             } catch (NullPointerException npe) {
                 npe.printStackTrace();
                 Toast.makeText(context, context.getResources().getString
                         (R.string.file_not_found_exception), Toast.LENGTH_SHORT).show();
             }
-
-            // Reload the data in the adapter.
             listener.onAdapterDataChangedListener();
         } );
 
@@ -406,6 +356,12 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                 " integer, " + COLUMN_CATEGORIES + " integer not null, " + COLUMN_MOVIE +
                 " integer not null, " + COLUMN_PERSONAL_EPISODES + " integer);";
         database.execSQL(DATABASE_CREATE);
+
+        String CREATE_EPISODES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_EPISODES + "(" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_MOVIES_ID + " INTEGER NOT NULL, " +
+               COLUMN_SEASON_NUMBER + " INTEGER NOT NULL, " +
+                COLUMN_EPISODE_NUMBER + " INTEGER NOT NULL);";
+        database.execSQL(CREATE_EPISODES_TABLE);
     }
 
     @Override
@@ -415,10 +371,54 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                 + oldVersion + " to " + newVersion +
                 ", database will be temporarily exported to a JSON string and imported after the upgrade.");
 
-        // Get the database
-        String JSONDatabaseString = getJSONExportString(database);
-        database.execSQL("DROP TABLE IF EXISTS " + TABLE_MOVIES);
+        if (oldVersion < newVersion) {
+            // Create a new table named episodes
+            String CREATE_EPISODES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_EPISODES + "(" +
+                    COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_MOVIES_ID + " INTEGER NOT NULL, " +
+                    COLUMN_SEASON_NUMBER + " INTEGER NOT NULL, " +
+                    COLUMN_EPISODE_NUMBER + " INTEGER NOT NULL);";
+            database.execSQL(CREATE_EPISODES_TABLE);
+        }
         onCreate(database);
-        importJSON(JSONDatabaseString, database);
+    }
+
+    public void addEpisodeNumber(int movieId, int seasonNumber, List<Integer> episodeNumbers) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        for (Integer episodeNumber : episodeNumbers) {
+            values.put(COLUMN_MOVIES_ID, movieId);
+            values.put(COLUMN_SEASON_NUMBER, seasonNumber);
+            values.put(COLUMN_EPISODE_NUMBER, episodeNumber);
+            db.insert(TABLE_EPISODES, null, values);
+        }
+    }
+
+    public void removeEpisodeNumber(int movieId, int seasonNumber, List<Integer> episodeNumbers) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        for (Integer episodeNumber : episodeNumbers) {
+            db.delete(TABLE_EPISODES, COLUMN_MOVIES_ID + " = ? AND " + COLUMN_SEASON_NUMBER + " = ? AND " + COLUMN_EPISODE_NUMBER + " = ?",
+                    new String[]{String.valueOf(movieId), String.valueOf(seasonNumber), String.valueOf(episodeNumber)});
+        }
+    }
+
+    public boolean isEpisodeInDatabase(int movieId, int seasonNumber, List<Integer> episodeNumbers) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selection = COLUMN_MOVIES_ID + " = ? AND " + COLUMN_SEASON_NUMBER + " = ? AND " + COLUMN_EPISODE_NUMBER + " = ?";
+        boolean exists = false;
+
+        for (Integer episodeNumber : episodeNumbers) {
+            Cursor cursor = db.query(TABLE_EPISODES, null, selection,
+                    new String[]{String.valueOf(movieId), String.valueOf(seasonNumber), String.valueOf(episodeNumber)},
+                    null, null, null);
+
+            if (cursor.getCount() > 0) {
+                exists = true;
+            }
+            cursor.close();
+        }
+
+        return exists;
     }
 }

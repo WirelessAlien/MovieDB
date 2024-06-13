@@ -64,6 +64,7 @@ public class TVSeasonAdapter extends RecyclerView.Adapter<TVSeasonAdapter.Season
         TVSeason season = seasons.get(position);
         holder.name.setText(season.getName());
         holder.overview.setText(season.getOverview());
+        holder.seasonNumber.setText( season.getSeasonNumber() + " ");
         holder.episodeCount.setText(String.valueOf(season.getEpisodeCount()));
         holder.airDate.setText(season.getAirDate());
         holder.voteAverage.setRating((float) season.getVoteAverage() / 2);
@@ -90,6 +91,7 @@ public class TVSeasonAdapter extends RecyclerView.Adapter<TVSeasonAdapter.Season
         TextView overview;
         TextView episodeCount;
         TextView airDate;
+        TextView seasonNumber;
         RatingBar voteAverage;
         ImageView poster;
 
@@ -100,6 +102,7 @@ public class TVSeasonAdapter extends RecyclerView.Adapter<TVSeasonAdapter.Season
             poster = itemView.findViewById(R.id.image);
             episodeCount = itemView.findViewById(R.id.episodeCount);
             airDate = itemView.findViewById(R.id.date);
+            seasonNumber = itemView.findViewById(R.id.seasonNumber);
             voteAverage = itemView.findViewById(R.id.rating);
         }
     }
