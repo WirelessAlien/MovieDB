@@ -25,7 +25,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,9 +47,7 @@ import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRatingThreadT
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateTvSeason;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeViewHolder> {
@@ -91,8 +88,8 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         holder.binding.episodeNumber.setText( "(" + episode.getEpisodeNumber() + ")");
         holder.binding.description.setText(episode.getOverview());
         holder.binding.date.setText(episode.getAirDate());
-        holder.binding.episodeCount.setText( episode.getRuntime() + " minutes");
-        holder.binding.rating.setRating((float) episode.getVoteAverage() / 2);
+        holder.binding.runtime.setText( episode.getRuntime() + " minutes");
+        holder.binding.averageRating.setText( episode.getVoteAverage() + "/10");
         Picasso.get()
                 .load(episode.getPosterPath())
                 .placeholder(R.color.md_theme_surface)

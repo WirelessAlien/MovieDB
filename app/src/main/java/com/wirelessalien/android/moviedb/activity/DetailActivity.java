@@ -1112,7 +1112,7 @@ public class DetailActivity extends BaseActivity {
                         binding.seasonNo.setText( "S:" + seasonNumber);
                         binding.episodeNo.setText( "E:" + episodeNumber);
                         binding.episodeName.setText( name );
-                        binding.ratingAverage.setText( String.valueOf( voteAverage ) );
+                        binding.ratingAverage.setText( voteAverage + "/10" );
                         binding.episodeOverview.setText( overview );
                     }
                 }
@@ -2001,6 +2001,9 @@ public class DetailActivity extends BaseActivity {
                     } else {
                         JSONArray castArray = reader.getJSONArray("cast");
 
+                        // Clear the castArrayList before adding new data
+                        castArrayList.clear();
+
                         for (int i = 0; i < castArray.length(); i++) {
                             JSONObject castData = castArray.getJSONObject(i);
                             castArrayList.add(castData);
@@ -2023,6 +2026,9 @@ public class DetailActivity extends BaseActivity {
                         binding.crewRecyclerView.setVisibility(View.GONE);
                     } else {
                         JSONArray crewArray = reader.getJSONArray("crew");
+
+                        // Clear the crewArrayList before adding new data
+                        crewArrayList.clear();
 
                         for (int i = 0; i < crewArray.length(); i++) {
                             JSONObject crewData = crewArray.getJSONObject(i);

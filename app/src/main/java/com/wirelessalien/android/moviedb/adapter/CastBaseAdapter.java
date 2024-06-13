@@ -20,11 +20,9 @@
 
 package com.wirelessalien.android.moviedb.adapter;
 
-import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +42,6 @@ import com.wirelessalien.android.moviedb.activity.CastActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
 
 import java.util.ArrayList;
 

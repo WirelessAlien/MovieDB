@@ -21,7 +21,6 @@
 package com.wirelessalien.android.moviedb.tmdb;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.wirelessalien.android.moviedb.data.Episode;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
