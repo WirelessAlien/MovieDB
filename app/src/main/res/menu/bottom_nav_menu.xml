@@ -21,18 +21,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_movie"
-        android:icon="@drawable/ic_movie"
+        android:icon="@drawable/movie_selector"
         android:title="@string/movie_tab_title" />
     <item
         android:id="@+id/nav_series"
-        android:icon="@drawable/ic_tv_show"
+        android:icon="@drawable/tv_selector"
         android:title="@string/series_tab_title" />
     <item
         android:id="@+id/nav_saved"
-        android:icon="@drawable/ic_bookmark_border"
+        android:icon="@drawable/saved_selector"
         android:title="@string/saved_tab_title" />
     <item
         android:id="@+id/nav_person"
-        android:icon="@drawable/ic_people_group"
+        android:icon="@drawable/people_selector"
         android:title="@string/person_tab_title" />
 </menu>

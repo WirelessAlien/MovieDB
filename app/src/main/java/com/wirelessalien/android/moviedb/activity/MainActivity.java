@@ -52,6 +52,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -328,7 +329,8 @@ public class MainActivity extends BaseActivity {
             notificationManager.createNotificationChannel(channel);
         }
 
-        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(ReleaseReminderService.class, 24, TimeUnit.HOURS)
+        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(ReleaseReminderService.class)
+                .setInitialDelay(24, TimeUnit.HOURS)
                 .build();
         WorkManager.getInstance(this).enqueue(workRequest);
 
