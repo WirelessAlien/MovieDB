@@ -139,6 +139,7 @@ public class DetailActivity extends BaseActivity {
     private int movieId;
     private int seasonNumber;
     private int episodeNumber;
+    private JSONArray seasons;
     private Target target;
     private String voteAverage;
     private int numSeason;
@@ -321,6 +322,7 @@ public class DetailActivity extends BaseActivity {
         try {
             setMovieData(new JSONObject(intent.getStringExtra("movieObject")));
             jMovieObject = new JSONObject(intent.getStringExtra("movieObject"));
+            Log.d("DetailActivity", "MovieObject: " + jMovieObject.toString());
 
             // Set the adapter with the (still) empty ArrayList.
             castArrayList = new ArrayList<>();
@@ -347,52 +349,52 @@ public class DetailActivity extends BaseActivity {
         ProgressBar progressBar = binding.progressBar;
         progressBar.setVisibility(View.VISIBLE);
 
-        CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync( () -> {
             if (accountId != null && sessionId != null) {
                 String typeCheck = isMovie ? "movie" : "tv";
-                GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(movieId, typeCheck, mActivity);
+                GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb( movieId, typeCheck, mActivity );
                 getAccountStateThread.start();
                 try {
                     getAccountStateThread.join();
                 } catch (InterruptedException e) {
-                    throw new RuntimeException("Thread interrupted", e);
+                    e.printStackTrace();
                 }
                 final boolean isInWatchlist = getAccountStateThread.isInWatchlist();
                 final boolean isFavourite = getAccountStateThread.isInFavourites();
                 double ratingValue = getAccountStateThread.getRating();
-                runOnUiThread(() -> {
+                runOnUiThread( () -> {
                     if (isInWatchlist) {
-                        binding.watchListButton.setImageResource(R.drawable.ic_bookmark);
+                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark );
                     } else {
-                        binding.watchListButton.setImageResource(R.drawable.ic_bookmark_border);
+                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark_border );
                     }
                     if (isFavourite) {
-                        binding.favouriteButton.setImageResource(R.drawable.ic_favorite);
+                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite );
                     } else {
-                        binding.favouriteButton.setImageResource(R.drawable.ic_favorite_border);
+                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite_border );
                     }
 
                     if (ratingValue != 0) {
-                        binding.ratingBtn.setImageResource(R.drawable.ic_thumb_up);
+                        binding.ratingBtn.setImageResource( R.drawable.ic_thumb_up );
                     } else {
-                        binding.ratingBtn.setImageResource(R.drawable.ic_thumb_up_border);
+                        binding.ratingBtn.setImageResource( R.drawable.ic_thumb_up_border );
                     }
-                });
+                } );
             } else {
-                boolean isToastShown = preferences.getBoolean("isToastShown", false);
+                boolean isToastShown = preferences.getBoolean( "isToastShown", false );
 
                 if (!isToastShown) {
-                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Login is required to use TMDB based sync.", Toast.LENGTH_SHORT).show());
+                    runOnUiThread( () -> Toast.makeText( getApplicationContext(), "Login is required to use TMDB based sync.", Toast.LENGTH_SHORT ).show() );
 
                     SharedPreferences.Editor editor = preferences.edit();
-                    editor.putBoolean("isToastShown", true);
+                    editor.putBoolean( "isToastShown", true );
                     editor.apply();
                 }
             }
-        }).exceptionally(ex -> {
-            Log.e("DetailActivity", "Error in CompletableFuture", ex);
+        } ).exceptionally( ex -> {
+            Log.e( "DetailActivity", "Error in CompletableFuture", ex );
             return null;
-        }).thenRun(() -> runOnUiThread(() -> progressBar.setVisibility(View.GONE)));
+        } ).thenRun( () -> runOnUiThread( () -> progressBar.setVisibility( View.GONE ) ) );
 
         UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
         boolean isDarkTheme = uiModeManager.getNightMode() == UiModeManager.MODE_NIGHT_YES;
@@ -798,8 +800,14 @@ public class DetailActivity extends BaseActivity {
                     categoriesDialog.setItems(R.array.categories, (dialog, which) -> {
                         showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(which));
 
+                        // Add the show to the database
                         addMovieToDatabase(showValues, item);
-                    } );
+
+                        // If the selected category is CATEGORY_WATCHED, add seasons and episodes to the database
+                        if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                            addSeasonsAndEpisodesToDatabase();
+                        }
+                    });
 
                     categoriesDialog.show();
                 } else {
@@ -811,6 +819,31 @@ public class DetailActivity extends BaseActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void addSeasonsAndEpisodesToDatabase() {
+        try {
+            for (int i = 1; i <= seasons.length(); i++) {
+                JSONObject season = seasons.getJSONObject(i-1);
+                int seasonNumber = season.getInt("season_number");
+                int episodeCount = season.getInt("episode_count");
+                for (int j = 1; j <= episodeCount; j++) {
+                    int episodeNumber = j;
+
+                    // Add to database
+                    ContentValues values = new ContentValues();
+                    values.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieId);
+                    values.put(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, seasonNumber);
+                    values.put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, episodeNumber);
+                    long newRowId = database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values);
+                    if (newRowId == -1) {
+                        Toast.makeText(this, "Error adding episode to database", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -941,8 +974,8 @@ public class DetailActivity extends BaseActivity {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 // Set the rating to the personal rating of the user.
-                binding.movieRating.setRating(cursor.getFloat(cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) / 2);
+                binding.rating.setText(cursor.getFloat(cursor.getColumnIndexOrThrow(
+                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) +"/10");
 
                 // If the database has a start date, use it, otherwise print unknown.
                 if (!cursor.isNull(cursor.getColumnIndexOrThrow
@@ -989,13 +1022,13 @@ public class DetailActivity extends BaseActivity {
                 }
                 binding.movieRewatched.setText(getString(R.string.times_watched) + watched);
 
-                // If the database has an episodes seen count, use it, otherwise it is 0.
-                // Only make "episodes seen" visible for TV shows.
                 if (!isMovie) {
                     String episodeCount = "0";
 
-                    // Get the total amount of episodes (of all seasons).
-                    if (movieObject.has("seasons")) {
+                    // Get the total amount of episodes.
+                    if (movieObject.has("number_of_episodes")) {
+                        totalEpisodes = movieObject.getInt("number_of_episodes");
+                    } else if (movieObject.has("seasons")) {
                         JSONArray seasonArray = movieObject.getJSONArray("seasons");
                         if (seasonArray != null) {
                             if (seasonArray.length() > 1) {
@@ -1053,8 +1086,8 @@ public class DetailActivity extends BaseActivity {
             } else if (movieObject.has("vote_average") &&
                     !movieObject.getString("vote_average").equals(voteAverage)) {
                 // Set the avarage (non-personal) rating (if it isn't the same).
-                binding.movieRating.setRating(Float.parseFloat(movieObject
-                        .getString("vote_average")) / 2);
+                binding.rating.setText(Float.parseFloat(movieObject
+                        .getString("vote_average")) + "/10");
             }
 
             // If the overview (summary) is different in the new dataset, change it.
@@ -1116,6 +1149,16 @@ public class DetailActivity extends BaseActivity {
                         binding.episodeOverview.setText( overview );
                     }
                 }
+            }
+
+            if (movieObject.has("tagline")) {
+                String tagline = movieObject.getString("tagline");
+                if (!tagline.equals(binding.tagline.getText().toString())) {
+                    binding.tagline.setText(tagline);
+                    binding.tagline.setVisibility(View.VISIBLE);
+                }
+            } else {
+                binding.tagline.setVisibility(View.GONE);
             }
 
             if (!isMovie) {
@@ -1575,6 +1618,16 @@ public class DetailActivity extends BaseActivity {
                                     1);
                             timesWatchedView.setText("1");
                         }
+
+                        // Fetch seasons data and add to database if category is changed to "watched"
+                        MovieDetailsThread movieDetailsThread = new MovieDetailsThread();
+                        movieDetailsThread.start();
+                        try {
+                            movieDetailsThread.join();
+                            addSeasonsAndEpisodesToDatabase();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES,
@@ -1661,7 +1714,7 @@ public class DetailActivity extends BaseActivity {
                     database.close();
 
                     // Update the view
-                    binding.movieRating.setRating((float) rating / 2);
+                    binding.rating.setText((float) rating + "/10");
                 }
             } );
         } else {
@@ -2197,6 +2250,10 @@ public class DetailActivity extends BaseActivity {
                     }
                     if (movieData.has("number_of_seasons")) {
                         numSeason = movieData.getInt("number_of_seasons");
+                    }
+                    //seasons
+                    if(movieData.has("seasons")) {
+                        seasons = movieData.getJSONArray("seasons");
                     }
                     mMovieDetailsLoaded = true;
                 } catch (JSONException e) {

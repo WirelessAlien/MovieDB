@@ -23,6 +23,7 @@ package com.wirelessalien.android.moviedb.activity;
 import static com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper.TABLE_MOVIES;
 
 import android.content.ContentValues;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -80,22 +81,35 @@ public class TVSeasonDetailsActivity extends AppCompatActivity {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_tv_season_details );
 
-        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             StringWriter crashLog = new StringWriter();
-            throwable.printStackTrace( new PrintWriter( crashLog ) );
+            PrintWriter printWriter = new PrintWriter(crashLog);
+            throwable.printStackTrace(printWriter);
+
+            String osVersion = android.os.Build.VERSION.RELEASE;
+            String appVersion = "";
+            try {
+                appVersion = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName;
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            printWriter.write("\nDevice OS Version: " + osVersion);
+            printWriter.write("\nApp Version: " + appVersion);
+            printWriter.close();
 
             try {
                 String fileName = "Crash_Log.txt";
-                File targetFile = new File( getApplicationContext().getFilesDir(), fileName );
-                FileOutputStream fileOutputStream = new FileOutputStream( targetFile );
-                fileOutputStream.write( crashLog.toString().getBytes() );
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile, true);
+                fileOutputStream.write((crashLog + "\n").getBytes());
                 fileOutputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            android.os.Process.killProcess( android.os.Process.myPid() );
-        } );
+            android.os.Process.killProcess(android.os.Process.myPid());
+        });
 
         toolbar = findViewById( R.id.toolbar );
         setSupportActionBar( toolbar );

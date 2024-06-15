@@ -165,20 +165,22 @@ public class SeasonDetailsFragment extends Fragment {
 
         if (adapter != null) {
             List<Episode> episodes = adapter.getEpisodes();
-            Episode latestEpisode = Collections.max( episodes, Comparator.comparingInt( Episode::getEpisodeNumber ) );
+            if (!episodes.isEmpty()) {
+                Episode latestEpisode = Collections.max( episodes, Comparator.comparingInt( Episode::getEpisodeNumber ) );
 
-            // Parse the air date of the latest episode
-            SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd", Locale.US );
-            try {
-                Date latestEpisodeDate = sdf.parse( latestEpisode.getAirDate() );
-                Date currentDate = new Date();
+                // Parse the air date of the latest episode
+                SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd", Locale.US );
+                try {
+                    Date latestEpisodeDate = sdf.parse( latestEpisode.getAirDate() );
+                    Date currentDate = new Date();
 
-                // If the air date of the latest episode is older than the current date, disable the notification action
-                if (latestEpisodeDate != null && latestEpisodeDate.before( currentDate )) {
-                    notificationItem.setEnabled( false );
+                    // If the air date of the latest episode is older than the current date, disable the notification action
+                    if (latestEpisodeDate != null && latestEpisodeDate.before( currentDate )) {
+                        notificationItem.setEnabled( false );
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
         }
 

@@ -24,6 +24,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
@@ -84,22 +85,35 @@ public class ExportActivity extends AppCompatActivity {
 
         context = this;
 
-        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             StringWriter crashLog = new StringWriter();
-            throwable.printStackTrace(new PrintWriter(crashLog));
+            PrintWriter printWriter = new PrintWriter(crashLog);
+            throwable.printStackTrace(printWriter);
+
+            String osVersion = android.os.Build.VERSION.RELEASE;
+            String appVersion = "";
+            try {
+                appVersion = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName;
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            printWriter.write("\nDevice OS Version: " + osVersion);
+            printWriter.write("\nApp Version: " + appVersion);
+            printWriter.close();
 
             try {
                 String fileName = "Crash_Log.txt";
-                File targetFile = new File(context.getFilesDir(), fileName);
-                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
-                fileOutputStream.write(crashLog.toString().getBytes());
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile, true);
+                fileOutputStream.write((crashLog + "\n").getBytes());
                 fileOutputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             android.os.Process.killProcess(android.os.Process.myPid());
-        } );
+        });
 
         Button selectDirButton = findViewById(R.id.select_directory_button);
         selectDirButton.setOnClickListener(v -> {

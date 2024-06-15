@@ -52,6 +52,8 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.1")
     implementation("androidx.browser:browser:1.5.0")
     implementation("androidx.palette:palette:1.0.0")
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
+
 
     implementation("androidx.work:work-runtime:2.8.1")
 

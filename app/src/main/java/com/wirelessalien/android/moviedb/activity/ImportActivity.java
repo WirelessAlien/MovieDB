@@ -25,6 +25,7 @@ import static com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper.DATAB
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -125,22 +126,35 @@ public class ImportActivity extends AppCompatActivity implements AdapterDataChan
 
         context = this;
 
-        Thread.setDefaultUncaughtExceptionHandler( (thread, throwable) -> {
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             StringWriter crashLog = new StringWriter();
-            throwable.printStackTrace(new PrintWriter(crashLog));
+            PrintWriter printWriter = new PrintWriter(crashLog);
+            throwable.printStackTrace(printWriter);
+
+            String osVersion = android.os.Build.VERSION.RELEASE;
+            String appVersion = "";
+            try {
+                appVersion = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName;
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            printWriter.write("\nDevice OS Version: " + osVersion);
+            printWriter.write("\nApp Version: " + appVersion);
+            printWriter.close();
 
             try {
                 String fileName = "Crash_Log.txt";
-                File targetFile = new File(context.getFilesDir(), fileName);
-                FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
-                fileOutputStream.write(crashLog.toString().getBytes());
+                File targetFile = new File(getApplicationContext().getFilesDir(), fileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(targetFile, true);
+                fileOutputStream.write((crashLog + "\n").getBytes());
                 fileOutputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             android.os.Process.killProcess(android.os.Process.myPid());
-        } );
+        });
 
         Button pickFileButton = findViewById(R.id.pick_file_button);
         pickFileButton.setOnClickListener(v -> {

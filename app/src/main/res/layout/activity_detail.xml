@@ -83,7 +83,7 @@
                             android:id="@+id/movieTitle"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textSize="20sp"
+                            android:textSize="22sp"
                             android:layout_marginTop="5dp"
                             android:textStyle="bold" />
 
@@ -111,14 +111,13 @@
                             android:layout_height="wrap_content"
                             android:visibility="gone" />
 
-                        <RatingBar
-                            android:id="@+id/movieRating"
-                            style="?android:attr/ratingBarStyleSmall"
+                        <TextView
+                            android:id="@+id/tagline"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="5dip"
-                            android:numStars="5"
-                            android:rating="3.5" />
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -317,10 +316,11 @@
                 android:layout_marginStart="11dip"
                 android:layout_marginBottom="10dp">
 
-                <RelativeLayout
+                <com.google.android.flexbox.FlexboxLayout
                     android:id="@+id/movieDetailsRl2"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    app:flexWrap="wrap">
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/certificationCv"
                     android:layout_width="wrap_content"
@@ -334,13 +334,26 @@
                     android:padding="5dp"
                     android:text="Not Rated"/>
                 </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/ratingCv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="5dp"
+                        android:layout_marginStart="5dp"
+                        style="@style/Widget.Material3.CardView.Elevated">
+                        <TextView
+                            android:id="@+id/rating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="5dp"
+                            android:text="7.6/10"/>
+                    </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/releaseDateCv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
-                    android:layout_toEndOf="@id/certificationCv"
                     app:cardCornerRadius="5dp"
                     style="@style/Widget.Material3.CardView.Elevated">
                 <TextView
@@ -355,7 +368,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5dp"
-                        android:layout_toEndOf="@id/releaseDateCv"
                         app:cardCornerRadius="5dp"
                         style="@style/Widget.Material3.CardView.Elevated">
                         <TextView
@@ -370,7 +382,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5dp"
-                        android:layout_toEndOf="@id/runtimeCv"
                         app:cardCornerRadius="5dp"
                         style="@style/Widget.Material3.CardView.Elevated">
 
@@ -381,23 +392,21 @@
                         android:padding="5dp"
                         android:text="@string/play_trailer"/>
                     </com.google.android.material.card.MaterialCardView>
-                </RelativeLayout>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/genreCv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    app:cardCornerRadius="5dp"
-                    android:layout_below="@id/movieDetailsRl2"
-                    style="@style/Widget.Material3.CardView.Elevated">
-                <TextView
-                    android:id="@+id/genreText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:text="Action, Science Fiction"/>
-                </com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/genreCv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        app:cardCornerRadius="5dp"
+                        style="@style/Widget.Material3.CardView.Elevated">
+                        <TextView
+                            android:id="@+id/genreText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="5dp"
+                            android:text="Action, Science Fiction"/>
+                    </com.google.android.material.card.MaterialCardView>
+                </com.google.android.flexbox.FlexboxLayout>
             </RelativeLayout>
 
             <View

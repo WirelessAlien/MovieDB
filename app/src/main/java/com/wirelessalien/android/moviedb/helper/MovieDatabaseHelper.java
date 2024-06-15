@@ -26,6 +26,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -325,6 +327,12 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                             dst.transferFrom(src, 0, src.size());
                             src.close();
                             dst.close();
+
+                            Handler mainHandler = new Handler( Looper.getMainLooper());
+
+                            mainHandler.post( () -> {
+                                Toast.makeText(context, R.string.database_import_successful, Toast.LENGTH_SHORT).show();
+                            } );
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
