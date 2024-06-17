@@ -309,14 +309,14 @@
             android:text="@string/genres"
             android:textStyle="bold" />
 
-        <org.apmem.tools.layouts.FlowLayout
+        <com.google.android.material.chip.ChipGroup
             android:id="@+id/genreButtons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/genresText"
             android:orientation="horizontal">
 
-        </org.apmem.tools.layouts.FlowLayout>
+        </com.google.android.material.chip.ChipGroup>
 
         <View
             android:id="@+id/genreViewSeparator"

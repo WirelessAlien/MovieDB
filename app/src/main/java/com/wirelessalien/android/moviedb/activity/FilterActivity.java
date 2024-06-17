@@ -53,6 +53,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.wirelessalien.android.moviedb.R;
@@ -230,7 +232,6 @@ public class FilterActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("GenreList", Context.MODE_PRIVATE);
         String mode = intent.getStringExtra("mode");
 
-        // Put every genre in its own button.
         try {
             JSONArray genreArray;
             if (mode != null) {
@@ -242,48 +243,37 @@ public class FilterActivity extends AppCompatActivity {
             }
 
             if (genreArray != null) {
-                FlowLayout flowLayout = findViewById(R.id.genreButtons);
+                ChipGroup chipGroup = findViewById(R.id.genreButtons);
                 for (int i = 0; i < genreArray.length(); i++) {
                     JSONObject genre = genreArray.getJSONObject(i);
 
-                    // Create a button for every genre. Add the genre to a category
-                    // (include/exclude/neutral) depending on the amount of clicks.
-                    Button button = new Button(this);
-                    button.setText(genre.getString("name"));
-                    button.setId(Integer.parseInt(genre.getString("id")));
-                    button.setOnClickListener( v -> {
-                        Button genreButton = (Button) v;
-                        int buttonId = genreButton.getId();
+                    Chip chip = new Chip(this);
+                    chip.setText(genre.getString("name"));
+                    chip.setId(Integer.parseInt(genre.getString("id")));
+                    chip.setCheckable(true);
+                    chip.setOnClickListener( v -> {
+                        Chip genreChip = (Chip) v;
+                        int chipId = genreChip.getId();
 
-                        // Check the state of the button.
-                        if (withGenres.contains(buttonId)) {
-                            // The genre needs to be moved over to the withoutGenres list.
-                            withGenres.remove((Integer) buttonId);
-                            withoutGenres.add(buttonId);
+                        if (withGenres.contains(chipId)) {
+                            withGenres.remove((Integer) chipId);
+                            withoutGenres.add(chipId);
 
-                            // Change the color of the button.
-                            genreButton.getBackground().setColorFilter( ContextCompat.getColor(FilterActivity.this, R.color.colorRed), PorterDuff.Mode.SRC_ATOP);
-                            genreButton.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(FilterActivity.this, R.drawable.ic_close), null, null, null);
-                        } else if (withoutGenres.contains(buttonId)) {
-                            // The genre needs to be removed from the withoutGenres list.
-                            withoutGenres.remove((Integer) buttonId);
+                            genreChip.setChipBackgroundColorResource(R.color.colorRed);
+                            genreChip.setCloseIconResource(R.drawable.ic_close);
+                        } else if (withoutGenres.contains(chipId)) {
+                            withoutGenres.remove((Integer) chipId);
 
-                            // Remove the special button color.
-                            genreButton.getBackground().clearColorFilter();
-                            genreButton.setCompoundDrawablesWithIntrinsicBounds(null,
-                                    null, null, null);
-                            genreButton.setTextColor(Color.BLACK);
+                            genreChip.setChipBackgroundColorResource(android.R.color.transparent);
+                            genreChip.setCloseIconVisible(false);
                         } else {
-                            // The button is in it's default state, add it to the withGenres list.
-                            withGenres.add(buttonId);
+                            withGenres.add(chipId);
 
-                            // Change the color of the button
-                            genreButton.getBackground().setColorFilter( ContextCompat.getColor(FilterActivity.this, R.color.md_theme_primary), PorterDuff.Mode.SRC_ATOP);
-                            genreButton.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(FilterActivity.this, R.drawable.ic_check), null, null, null);
-                            genreButton.setTextColor(Color.WHITE);
+                            genreChip.setChipBackgroundColorResource(R.color.md_theme_primary);
+                            genreChip.setCloseIconResource(R.drawable.ic_check);
                         }
                     } );
-                    flowLayout.addView(button);
+                    chipGroup.addView(chip);
                 }
             }
         } catch (JSONException je) {
@@ -562,10 +552,9 @@ public class FilterActivity extends AppCompatActivity {
             for (int i = 0; i < withGenres.size(); i++) {
                 int id = withGenres.get(i);
 
-                Button genreButton = findViewById(id);
+                Chip genreChip = findViewById(id);
                 Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_check, null);
-                genreButton.setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null);
-                genreButton.setTextColor(Color.WHITE);
+                genreChip.setChipIcon(drawable);
             }
         }
 
@@ -574,10 +563,9 @@ public class FilterActivity extends AppCompatActivity {
             for (int i = 0; i < withoutGenres.size(); i++) {
                 int id = withoutGenres.get(i);
 
-                Button genreButton = findViewById(id);
+                Chip genreChip = findViewById(id);
                 Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_close, null);
-                genreButton.setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null);
-                genreButton.setTextColor(Color.WHITE);
+                genreChip.setChipIcon(drawable);
             }
         }
 
