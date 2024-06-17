@@ -21,6 +21,8 @@
 package com.wirelessalien.android.moviedb.fragment;
 
 import android.app.Activity;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +38,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.radiobutton.MaterialRadioButton;
+import com.wirelessalien.android.moviedb.adapter.ListDataAdapter;
+import com.wirelessalien.android.moviedb.data.ListData;
+import com.wirelessalien.android.moviedb.data.ListDetailsData;
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToListThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.CreateListThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb;
@@ -43,6 +49,8 @@ import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.ListAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
@@ -52,8 +60,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
     private final Activity activity;
     private final String mediaType;
     private final boolean fetchList;
-    private ListAdapter listAdapter;
-
+    private ListDataAdapter listDataAdapter;
     public ListBottomSheetDialogFragment(int movieId, String mediaType, Activity activity, boolean fetchList) {
         this.movieId = movieId;
         this.mediaType = mediaType;
@@ -78,13 +85,8 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         privateList = view.findViewById(R.id.privateRadioBtn);
         TextView previousLists = view.findViewById(R.id.previousListText);
 
-
-        listAdapter = new ListAdapter(new ArrayList<>(), listData -> {
-            new AddToListThreadTMDb(movieId, listData.getId(), mediaType, activity).start();
-            dismiss();
-        }, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(listAdapter);
+        recyclerView.setAdapter(listDataAdapter);
 
         createListButton.setOnClickListener( v -> {
             String listName = newListName.getText().toString();
@@ -100,8 +102,57 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         }
 
         if (fetchList) {
-            FetchListThreadTMDb fetcher = new FetchListThreadTMDb(activity);
-            fetcher.fetchLists().thenAccept(listData -> activity.runOnUiThread(() -> listAdapter.updateData(listData)));
+            CompletableFuture.runAsync(() -> {
+                ListDatabaseHelper listdatabaseHelper = new ListDatabaseHelper(activity);
+                SQLiteDatabase listdb = listdatabaseHelper.getReadableDatabase();
+
+                Cursor cursor = listdb.query(
+                        true,
+                        ListDatabaseHelper.TABLE_LISTS,
+                        new String[]{ListDatabaseHelper.COLUMN_LIST_ID, ListDatabaseHelper.COLUMN_LIST_NAME},
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                );
+
+                List<ListDetailsData> listData = new ArrayList<>();
+                while(cursor.moveToNext()) {
+                    int listId = cursor.getInt(cursor.getColumnIndexOrThrow(ListDatabaseHelper.COLUMN_LIST_ID));
+                    String listName = cursor.getString(cursor.getColumnIndexOrThrow(ListDatabaseHelper.COLUMN_LIST_NAME));
+                    boolean isMovieInList = checkIfMovieInList(movieId, listName);
+                    listData.add(new ListDetailsData(movieId, listId, listName, mediaType, isMovieInList));
+                }
+                cursor.close();
+
+                activity.runOnUiThread(() -> {
+                    ListDataAdapter adapter = new ListDataAdapter(listData, activity,null);
+                    recyclerView.setAdapter(adapter);
+                });
+            });
         }
+    }
+
+    private boolean checkIfMovieInList(int movieId, String listName) {
+        String selection = ListDatabaseHelper.COLUMN_MOVIE_ID + " = ? AND " + ListDatabaseHelper.COLUMN_LIST_NAME + " = ?";
+        String[] selectionArgs = { String.valueOf(movieId), listName };
+        ListDatabaseHelper listdatabaseHelper = new ListDatabaseHelper(activity);
+        SQLiteDatabase listdb = listdatabaseHelper.getReadableDatabase();
+
+        String[] projection = {
+                ListDatabaseHelper.COLUMN_MOVIE_ID,
+                ListDatabaseHelper.COLUMN_LIST_NAME
+        };
+
+        Cursor cursor = listdb.query(
+                ListDatabaseHelper.TABLE_LIST_DATA, projection, selection, selectionArgs, null, null, null
+        );
+
+        boolean isMovieInList = cursor.getCount() > 0;
+        cursor.close();
+
+        return isMovieInList;
     }
 }

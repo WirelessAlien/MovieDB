@@ -249,4 +249,5 @@
     <string name="movie_released_today">%1$s is released today!</string>
     <string name="episodes_removed">All episodes added</string>
     <string name="episodes_added">All episodes removed</string>
+    <string name="error_occurred_in_list_data">Failed to get lists data.</string>
 </resources>

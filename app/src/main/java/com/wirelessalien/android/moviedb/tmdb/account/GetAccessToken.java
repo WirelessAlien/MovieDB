@@ -43,13 +43,18 @@ public class GetAccessToken extends Thread {
     private final SharedPreferences preferences;
     private final Context context;
     private final Handler handler;
+    private OnTokenReceivedListener listener;
 
-    public GetAccessToken(String apiKey, String requestToken, Context context, Handler handler) {
+    public interface OnTokenReceivedListener {
+        void onTokenReceived(String accessToken);
+    }
+    public GetAccessToken(String apiKey, String requestToken, Context context, Handler handler, OnTokenReceivedListener listener) {
         this.apiKey = apiKey;
         this.requestToken = requestToken;
         this.context = context;
         this.handler = handler;
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.listener = listener;
     }
 
     @Override
@@ -87,6 +92,10 @@ public class GetAccessToken extends Thread {
 
             preferences.edit().putString("access_token", accessToken).apply();
             preferences.edit().putString("account_id", accountId).apply();
+
+            if (listener != null) {
+                listener.onTokenReceived(accessToken);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

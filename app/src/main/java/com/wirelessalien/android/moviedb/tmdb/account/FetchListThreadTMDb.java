@@ -43,11 +43,17 @@ public class FetchListThreadTMDb {
 
     private final String accessToken;
     private final String accountId;
+    private final OnListFetchListener listener;
 
-    public FetchListThreadTMDb(Activity activity) {
+    public interface OnListFetchListener {
+        void onListFetch(List<ListData> listData);
+    }
+
+    public FetchListThreadTMDb(Activity activity, OnListFetchListener listener) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
         this.accessToken = preferences.getString("access_token", "");
         this.accountId = preferences.getString("account_id", "");
+        this.listener = listener;
     }
 
     public CompletableFuture<List<ListData>> fetchLists() {
@@ -56,7 +62,7 @@ public class FetchListThreadTMDb {
                 OkHttpClient client = new OkHttpClient();
 
                 Request request = new Request.Builder()
-                        .url("https://api.themoviedb.org/4/account/" + accountId + "/lists?page=1")
+                        .url("https://api.themoviedb.org/4/account/" + accountId + "/lists")
                         .get()
                         .addHeader("accept", "application/json")
                         .addHeader("Authorization", "Bearer " + accessToken)
@@ -72,7 +78,10 @@ public class FetchListThreadTMDb {
                     listData.add(new ListData(result.getInt("id"), result.getString("name"), result.getString("description"), result.getInt("number_of_items"), result.getDouble("average_rating")));
                 }
 
+                if(listener != null)
+                    listener.onListFetch(listData);
                 return listData;
+
 
             } catch (Exception e) {
                 throw new RuntimeException(e);

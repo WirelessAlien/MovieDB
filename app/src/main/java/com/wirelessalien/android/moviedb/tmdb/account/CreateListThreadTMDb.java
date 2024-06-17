@@ -28,6 +28,7 @@ import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 
 import org.json.JSONObject;
 
@@ -82,6 +83,11 @@ public class CreateListThreadTMDb extends Thread {
             Response response = client.newCall(request).execute();
             JSONObject jsonResponse = new JSONObject(response.body().string());
             success = jsonResponse.getBoolean("success");
+
+            if (success) {
+                ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper(activity);
+                listDatabaseHelper.addList(jsonResponse.getInt("id"), listName);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

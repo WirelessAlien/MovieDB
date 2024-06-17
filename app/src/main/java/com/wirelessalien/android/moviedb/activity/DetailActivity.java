@@ -79,12 +79,16 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
+import com.wirelessalien.android.moviedb.adapter.ListDataAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
+import com.wirelessalien.android.moviedb.data.ListData;
+import com.wirelessalien.android.moviedb.data.ListDetailsData;
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
@@ -111,6 +115,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -822,27 +827,28 @@ public class DetailActivity extends BaseActivity {
     }
 
     private void addSeasonsAndEpisodesToDatabase() {
-        try {
-            for (int i = 1; i <= seasons.length(); i++) {
-                JSONObject season = seasons.getJSONObject(i-1);
-                int seasonNumber = season.getInt("season_number");
-                int episodeCount = season.getInt("episode_count");
-                for (int j = 1; j <= episodeCount; j++) {
-                    int episodeNumber = j;
+        if (!isMovie && seasons != null) {
+            try {
+                for (int i = 1; i <= seasons.length(); i++) {
+                    JSONObject season = seasons.getJSONObject(i-1);
+                    int seasonNumber = season.getInt("season_number");
+                    int episodeCount = season.getInt("episode_count");
+                    for (int j = 1; j <= episodeCount; j++) {
+                        int episodeNumber = j;
 
-                    // Add to database
-                    ContentValues values = new ContentValues();
-                    values.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieId);
-                    values.put(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, seasonNumber);
-                    values.put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, episodeNumber);
-                    long newRowId = database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values);
-                    if (newRowId == -1) {
-                        Toast.makeText(this, "Error adding episode to database", Toast.LENGTH_SHORT).show();
+                        ContentValues values = new ContentValues();
+                        values.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieId);
+                        values.put(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, seasonNumber);
+                        values.put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, episodeNumber);
+                        long newRowId = database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values);
+                        if (newRowId == -1) {
+                            Toast.makeText(this, "Error adding episode to database", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
     }
 

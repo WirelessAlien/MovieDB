@@ -45,6 +45,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
@@ -53,7 +54,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 import androidx.work.OneTimeWorkRequest;
-import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -63,23 +63,27 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.ReleaseReminderService;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
+import com.wirelessalien.android.moviedb.data.ListData;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.fragment.LoginFragment;
 import com.wirelessalien.android.moviedb.fragment.PersonFragment;
 import com.wirelessalien.android.moviedb.fragment.ShowFragment;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
+import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken;
+import com.wirelessalien.android.moviedb.tmdb.account.ListDetailsThreadTMDb;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -349,8 +353,41 @@ public class MainActivity extends BaseActivity {
             if (uri.toString().startsWith("com.wirelessalien.android.moviedb://callback")) {
                 String requestToken = preferences.getString("request_token", null);
                 if (requestToken != null) {
-                    Handler handler = new Handler( Looper.getMainLooper());
-                    GetAccessToken getAccessToken = new GetAccessToken(api_read_access_token, requestToken, this, handler);
+                    Handler handler = new Handler(Looper.getMainLooper());
+
+                    AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
+                            .setView(R.layout.dialog_progress)
+                            .setCancelable(false)
+                            .create();
+                    progressDialog.show();
+
+                    GetAccessToken getAccessToken = new GetAccessToken(api_read_access_token, requestToken, this, handler, accessToken -> {
+                        FetchListThreadTMDb fetchListThreadTMDb = new FetchListThreadTMDb(MainActivity.this, listData -> {
+                            ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper(MainActivity.this);
+                            for (ListData data : listData) {
+                                listDatabaseHelper.addList(data.getId(), data.getName());
+
+                                ListDetailsThreadTMDb listDetailsThreadTMDb = new ListDetailsThreadTMDb(data.getId(), MainActivity.this, listDetailsData -> {
+
+                                    for (JSONObject item : listDetailsData) {
+                                        try {
+                                            int movieId = item.getInt("id");
+                                            String mediaType = item.getString("media_type");
+
+                                            listDatabaseHelper.addListDetails(data.getId(), data.getName(), movieId, mediaType);
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                            progressDialog.dismiss();
+                                            Toast.makeText(MainActivity.this, R.string.error_occurred_in_list_data, Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+                                listDetailsThreadTMDb.start();
+                            }
+                            progressDialog.dismiss();
+                        });
+                        fetchListThreadTMDb.fetchLists();
+                    });
                     getAccessToken.start();
                 }
             }

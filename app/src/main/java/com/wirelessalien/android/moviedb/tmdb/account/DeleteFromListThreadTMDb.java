@@ -28,6 +28,7 @@ import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter;
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -91,6 +92,14 @@ public class DeleteFromListThreadTMDb extends Thread {
             JSONObject jsonResponse = new JSONObject(response.body().string());
             success = jsonResponse.getBoolean("success");
 
+            if (success) {
+                try (ListDatabaseHelper dbHelper = new ListDatabaseHelper(activity)) {
+                    dbHelper.deleteData(mediaId, listId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -99,8 +108,10 @@ public class DeleteFromListThreadTMDb extends Thread {
         activity.runOnUiThread(() -> {
             if (finalSuccess) {
                 Toast.makeText(activity, R.string.media_removed_from_list, Toast.LENGTH_SHORT).show();
-                showList.remove(position);
-                adapter.notifyItemRemoved(position);
+                if (showList != null) {
+                    showList.remove(position);
+                    adapter.notifyItemRemoved(position);
+                }
             } else {
                 Toast.makeText(activity, R.string.failed_to_remove_media_from_list, Toast.LENGTH_SHORT).show();
             }

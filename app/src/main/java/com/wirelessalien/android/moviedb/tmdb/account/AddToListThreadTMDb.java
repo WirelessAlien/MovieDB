@@ -21,19 +21,24 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.icu.text.SimpleDateFormat;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
+import java.util.Date;
+import java.util.Locale;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -85,6 +90,32 @@ public class AddToListThreadTMDb extends Thread {
             Response response = client.newCall(request).execute();
             JSONObject jsonResponse = new JSONObject(response.body().string());
             success = jsonResponse.getBoolean("success");
+
+            if (success) {
+                ListDatabaseHelper dbHelper = new ListDatabaseHelper(activity);
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+                // Query the database to get the list name
+                String listName = "";
+                String selectQuery = "SELECT list_name FROM " + ListDatabaseHelper.TABLE_LISTS + " WHERE list_id = " + listId;
+                Cursor cursor = db.rawQuery(selectQuery, null);
+                if (cursor.moveToFirst()) {
+                    listName = cursor.getString(cursor.getColumnIndexOrThrow("list_name"));
+                }
+                cursor.close();
+
+                ContentValues values = new ContentValues();
+                values.put(ListDatabaseHelper.COLUMN_MOVIE_ID, mediaId);
+                values.put(ListDatabaseHelper.COLUMN_LIST_ID, listId);
+                values.put(ListDatabaseHelper.COLUMN_DATE_ADDED, new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+                values.put(ListDatabaseHelper.COLUMN_IS_ADDED, 1);
+                values.put(ListDatabaseHelper.COLUMN_MEDIA_TYPE, type);
+                values.put(ListDatabaseHelper.COLUMN_LIST_NAME, listName);
+
+                Log.d("AddToListThreadTMDb", "Adding media to list: " + mediaId + " " + listId);
+                db.insert(ListDatabaseHelper.TABLE_LIST_DATA, null, values);
+                db.close();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

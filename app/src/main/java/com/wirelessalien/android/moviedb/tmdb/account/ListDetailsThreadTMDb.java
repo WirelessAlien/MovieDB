@@ -62,7 +62,7 @@ public class ListDetailsThreadTMDb extends Thread {
                         .url("https://api.themoviedb.org/4/list/" + listId + "?page=" + currentPage)
                         .get()
                         .addHeader("accept", "application/json")
-                        .addHeader("Authorization", "Bearer " + accessToken) // assuming accessToken is defined and initialized
+                        .addHeader("Authorization", "Bearer " + accessToken)
                         .build();
 
                 Response response = client.newCall(request).execute();

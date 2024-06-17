@@ -102,7 +102,7 @@ public class MyListsActivity extends AppCompatActivity {
 
         progressBar.setVisibility( View.VISIBLE);
 
-        FetchListThreadTMDb fetcher = new FetchListThreadTMDb(this);
+        FetchListThreadTMDb fetcher = new FetchListThreadTMDb(this, null);
         fetcher.fetchLists().thenAccept(listData -> runOnUiThread(() -> {
             listAdapter.updateData(listData);
             progressBar.setVisibility(View.GONE);
