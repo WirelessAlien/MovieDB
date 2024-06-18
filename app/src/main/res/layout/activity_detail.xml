@@ -47,6 +47,14 @@
                 android:contentDescription="@string/movie_image_description"
                 android:scaleType="centerCrop" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/moreImageBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                app:cornerRadius="5dip"
+                app:icon="@drawable/ic_arrow_next"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~     This file is part of Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     Movie DB is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     Movie DB is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:id="@+id/dialog_image_view"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/dialog_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dip"
+        android:layout_centerInParent="true"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:contentDescription="Movie Image">
+    </ImageView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/rotate_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@id/zoom_out_btn"
+        app:icon="@drawable/ic_refresh"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/load_original_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_above="@+id/rotate_btn"
+        android:layout_alignParentEnd="true"
+        app:icon="@drawable/ic_high_quality"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/zoom_in_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_above="@+id/dismiss_btn"
+        android:layout_alignParentEnd="true"
+        app:icon="@drawable/ic_zoom_in"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/zoom_out_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_above="@+id/zoom_in_btn"
+        android:layout_alignParentEnd="true"
+        app:icon="@drawable/ic_zoom_out"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/dismiss_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        app:icon="@drawable/ic_close"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/prev_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_toStartOf="@id/next_btn"
+        android:layout_alignParentBottom="true"
+        app:icon="@drawable/ic_arrow_next"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/next_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_toStartOf="@id/dismiss_btn"
+        android:layout_alignParentBottom="true"
+        app:icon="@drawable/ic_arrow_next"/>
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+</RelativeLayout>

@@ -79,16 +79,12 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
-import com.wirelessalien.android.moviedb.adapter.ListDataAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
-import com.wirelessalien.android.moviedb.data.ListData;
-import com.wirelessalien.android.moviedb.data.ListDetailsData;
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
-import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
@@ -115,9 +111,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * This class provides all the details about the shows.
@@ -131,6 +130,7 @@ public class DetailActivity extends BaseActivity {
     private final static String SHOW_SAVE_DIALOG_PREFERENCE = "key_show_save_dialog";
     private final static String DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity";
     private String API_KEY;
+    private String api_read_access_token;
     private CastBaseAdapter castAdapter;
     private CastBaseAdapter crewAdapter;
     private ArrayList<JSONObject> castArrayList;
@@ -239,6 +239,7 @@ public class DetailActivity extends BaseActivity {
         binding = ActivityDetailBinding.inflate(getLayoutInflater());
 
         API_KEY = ConfigHelper.getConfigValue(getApplicationContext(), "api_key");
+        api_read_access_token = ConfigHelper.getConfigValue(getApplicationContext(), "api_read_access_token");
 
         setContentView(binding.getRoot());
 
@@ -708,6 +709,13 @@ public class DetailActivity extends BaseActivity {
                 }
             }
         });
+
+        binding.moreImageBtn.setOnClickListener( v -> {
+            Intent imageintent = new Intent( getApplicationContext(), MovieImageActivity.class );
+            imageintent.putExtra( "movieId", movieId );
+            imageintent.putExtra( "isMovie", isMovie );
+            startActivity( imageintent );
+        } );
     }
 
     @Override
@@ -723,25 +731,13 @@ public class DetailActivity extends BaseActivity {
 
         // Load movie details.
         if (!mMovieDetailsLoaded) {
-            MovieDetailsThread movieDetailsThread = new MovieDetailsThread();
-            movieDetailsThread.start();
-        }
-
-        if (!mExternalDataLoaded) {
-            GetExternalIdsThread externalDataThread = new GetExternalIdsThread(context);
-            externalDataThread.start();
-        }
-
-        String deviceLocale = Locale.getDefault().getCountry();
-
-        if (!mReleaseDatesLoaded) {
-           if (isMovie) {
-               GetReleaseDatesThread getReleaseDatesThread = new GetReleaseDatesThread( deviceLocale );
-               getReleaseDatesThread.start();
-           } else {
-               GetContentRatingsThread getContentRatingsThread = new GetContentRatingsThread();
-               getContentRatingsThread.start();
-           }
+            CompletableFuture.runAsync( () -> {
+                MovieDetailsThread movieDetailsThread = new MovieDetailsThread();
+                movieDetailsThread.start();
+            } ).exceptionally( ex -> {
+                Log.e( "DetailActivity", "Error in CompletableFuture", ex );
+                return null;
+            } );
         }
 
         if (!mVideosLoaded) {
@@ -1231,243 +1227,6 @@ public class DetailActivity extends BaseActivity {
             cursor.close();
         } catch (JSONException | ParseException e) {
             e.printStackTrace();
-        }
-    }
-
-    public class GetExternalIdsThread extends Thread {
-
-        private final Handler handler;
-        private final Context context;
-
-        public GetExternalIdsThread(Context context) {
-
-            this.context = context;
-            this.handler = new Handler(Looper.getMainLooper());
-        }
-
-        @Override
-        public void run() {
-            try {
-                String movie = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
-                URL url = new URL("https://api.themoviedb.org/3/" + movie + "/" + movieId + "/external_ids?api_key=" + API_KEY);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    stringBuilder.append(line);
-                }
-                reader.close();
-                String response = stringBuilder.toString();
-
-                handler.post(() -> onPostExecute(response));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void onPostExecute(String response) {
-            try {
-                JSONObject jsonObject = new JSONObject(response);
-                String imdbId = jsonObject.getString("imdb_id");
-                //if imdbId is not available, set the text to "IMDB (not available)"
-                if (imdbId.equals("null")) {
-                    binding.imdbLink.setText( R.string.imdb_not_available);
-                } else {
-                    //if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
-                    binding.imdbLink.setText("IMDB");
-                    binding.imdbLink.setOnClickListener(v -> {
-                        String url = "https://www.imdb.com/title/" + imdbId;
-                        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                        CustomTabsIntent customTabsIntent = builder.build();
-                        // Check if there is any package available to handle the CustomTabsIntent
-                        if (customTabsIntent.intent.resolveActivity(getPackageManager()) != null) {
-                            customTabsIntent.launchUrl(context, Uri.parse(url));
-                        } else {
-                            // If no package is available to handle the CustomTabsIntent, launch the URL in a web browser
-                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                            if (browserIntent.resolveActivity(getPackageManager()) != null) {
-                                startActivity(browserIntent);
-                            } else {
-                                Toast.makeText(context, "No application can handle this request. Please install a web browser.", Toast.LENGTH_LONG).show();
-                            }
-                        }
-                    });
-                }
-                mExternalDataLoaded = true;
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public class GetReleaseDatesThread extends Thread {
-
-        private final Handler handler;
-        private final String locale;
-
-        public GetReleaseDatesThread(String locale) {
-            this.locale = locale;
-            this.handler = new Handler(Looper.getMainLooper());
-        }
-
-        @Override
-        public void run() {
-            try {
-                URL url = new URL("https://api.themoviedb.org/3/movie/" + movieId + "/release_dates?api_key=" + API_KEY);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    stringBuilder.append(line);
-                }
-                reader.close();
-                String response = stringBuilder.toString();
-
-                handler.post(() -> onPostExecute(response));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void onPostExecute(String response) {
-            try {
-                JSONObject jsonObject = new JSONObject(response);
-                JSONArray results = jsonObject.getJSONArray("results");
-
-                JSONObject defaultResult = null;
-
-                for (int i = 0; i < results.length(); i++) {
-                    JSONObject result = results.getJSONObject(i);
-                    String isoCountry = result.getString("iso_3166_1");
-
-                    if (isoCountry.equals(locale)) {
-                        processReleaseDates(result);
-                        return;
-                    }
-
-                    if (isoCountry.equals("US")) {
-                        defaultResult = result;
-                    }
-                }
-
-                if (defaultResult != null) {
-                    processReleaseDates(defaultResult);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            mReleaseDatesLoaded = true;
-        }
-
-        private void processReleaseDates(JSONObject result) throws JSONException {
-            JSONArray releaseDates = result.getJSONArray("release_dates");
-            String date = "Unknown";
-            String certification = "Unknown";
-            for (int j = 0; j < releaseDates.length(); j++) {
-                JSONObject releaseDate = releaseDates.getJSONObject(j);
-                if (releaseDate.getString("type").equals("3")) { // Theatrical release
-                    date = releaseDate.getString("release_date");
-                    certification = releaseDate.getString("certification");
-                    break;
-                } else if (releaseDate.getString("type").equals("4")) { // Digital release
-                    date = releaseDate.getString("release_date");
-                    certification = releaseDate.getString("certification");
-                }
-            }
-
-            // Parse the date string and format it to only include the date
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
-            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            if (isMovie) {
-               try {
-                   Date parsedDate = inputFormat.parse( date );
-                   if (parsedDate != null) {
-                       String formattedDate = outputFormat.format( parsedDate );
-                       binding.releaseDate.setText( formattedDate );
-                   }
-               } catch (ParseException e) {
-                   e.printStackTrace();
-               }
-            }
-
-            if (!certification.isEmpty()) {
-                binding.certification.setText( certification );
-            } else
-                binding.certification.setText( R.string.not_rated );
-        }
-    }
-
-    public class GetContentRatingsThread extends Thread {
-
-        public GetContentRatingsThread() {
-
-        }
-
-        @Override
-        public void run() {
-            try {
-                URL url = new URL("https://api.themoviedb.org/3/tv/" + movieId + "/content_ratings?api_key=" + API_KEY);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    stringBuilder.append(line);
-                }
-                reader.close();
-                String response = stringBuilder.toString();
-
-                processContentRatings(response);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void processContentRatings(String response) {
-            try {
-                JSONObject jsonObject = new JSONObject(response);
-                JSONArray results = jsonObject.getJSONArray("results");
-
-                String localeCountry = Locale.getDefault().getCountry();
-                boolean isLocaleRatingFound = false;
-                String usRating = null;
-
-                for (int i = 0; i < results.length(); i++) {
-                    JSONObject result = results.getJSONObject(i);
-                    String isoCountry = result.getString("iso_3166_1");
-                    String rating = result.getString("rating");
-
-                    if (isoCountry.equalsIgnoreCase(localeCountry)) {
-                        handler.post(() -> binding.certification.setText(rating + " (" + isoCountry + ")"));
-                        isLocaleRatingFound = true;
-                        break;
-                    }
-
-                    if (isoCountry.equalsIgnoreCase("US")) {
-                        usRating = rating;
-                    }
-                }
-
-                if (!isLocaleRatingFound && usRating != null) {
-                    String finalUsRating = usRating;
-                    handler.post(() -> binding.certification.setText( finalUsRating + " (US)"));
-                }
-                mReleaseDatesLoaded = true;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -2202,42 +1961,33 @@ public class DetailActivity extends BaseActivity {
                 missingOverview = params[0].equalsIgnoreCase("true");
             }
 
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
+            OkHttpClient client = new OkHttpClient();
 
-            // Load the movie webpage (and check for updates/corrections).
+            String type = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
+            String additionalEndpoint = (isMovie) ? "release_dates,external_ids" : "content_ratings,external_ids";
+            String url;
+            if (missingOverview) {
+                url = "https://api.themoviedb.org/3/" + type +
+                        "/" + movieId + "?append_to_response=" + additionalEndpoint;
+            } else {
+                url = "https://api.themoviedb.org/3/" + type +
+                        "/" + movieId + "?append_to_response=" + additionalEndpoint
+                        + getLanguageParameter(getApplicationContext());
+            }
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer " + api_read_access_token)
+                    .build();
+
             try {
-                String type = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
-                URL url;
-                if (missingOverview) {
-                    url = new URL("https://api.themoviedb.org/3/" + type +
-                            "/" + movieId + "?api_key=" + API_KEY);
-                } else {
-                    url = new URL("https://api.themoviedb.org/3/" + type +
-                            "/" + movieId + "?api_key=" + API_KEY
-                            + getLanguageParameter(getApplicationContext()));
-                }
-                URLConnection urlConnection = url.openConnection();
-
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(
-                            new InputStreamReader(
-                                    urlConnection.getInputStream()));
-
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    String response = stringBuilder.toString();
-                    handler.post(() -> onPostExecute(response));
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
-                }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+                Response response = client.newCall(request).execute();
+                String responseBody = response.body().string();
+                handler.post(() -> onPostExecute(responseBody));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -2261,11 +2011,131 @@ public class DetailActivity extends BaseActivity {
                     if(movieData.has("seasons")) {
                         seasons = movieData.getJSONArray("seasons");
                     }
+
+                    if (isMovie) {
+                        JSONObject releaseDatesObject = movieData.getJSONObject( "release_dates" );
+
+                        JSONArray resultsArray = releaseDatesObject.getJSONArray( "results" );
+
+                        JSONObject defaultResult = null;
+
+                        for (int i = 0; i < resultsArray.length(); i++) {
+                            JSONObject result = resultsArray.getJSONObject( i );
+                            String isoCountry = result.getString( "iso_3166_1" );
+
+                            if (isoCountry.equals( Locale.getDefault().getCountry() )) {
+                                processReleaseDates( result );
+                                return;
+                            }
+
+                            if (isoCountry.equals( "US" )) {
+                                defaultResult = result;
+                            }
+                        }
+
+                        if (defaultResult != null) {
+                            processReleaseDates( defaultResult );
+                        }
+                    } else {
+
+                        JSONObject contentRatingsObject = movieData.getJSONObject( "content_ratings" );
+
+                        JSONArray contentRrArray = contentRatingsObject.getJSONArray( "results" );
+
+                        boolean isLocaleRatingFound = false;
+                        String usRating = null;
+
+                        for (int i = 0; i < contentRrArray.length(); i++) {
+                            JSONObject result = contentRrArray.getJSONObject( i );
+                            String isoCountry = result.getString( "iso_3166_1" );
+                            String rating = result.getString( "rating" );
+
+                            if (isoCountry.equalsIgnoreCase( Locale.getDefault().getCountry() )) {
+                                handler.post( () -> binding.certification.setText( rating + " (" + isoCountry + ")" ) );
+                                isLocaleRatingFound = true;
+                                break;
+                            }
+
+                            if (isoCountry.equalsIgnoreCase( "US" )) {
+                                usRating = rating;
+                            }
+                        }
+
+                        if (!isLocaleRatingFound && usRating != null) {
+                            String finalUsRating = usRating;
+                            handler.post( () -> binding.certification.setText( finalUsRating + " (US)" ) );
+                        }
+                    }
+
+                    JSONObject externalIdsObject = movieData.getJSONObject( "external_ids" );
+
+                    String imdbId = externalIdsObject.getString("imdb_id");
+                    //if imdbId is not available, set the text to "IMDB (not available)"
+                    if (imdbId.equals("null")) {
+                        binding.imdbLink.setText( R.string.imdb_not_available);
+                    } else {
+                        //if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
+                        binding.imdbLink.setText("IMDB");
+                        binding.imdbLink.setOnClickListener(v -> {
+                            String url = "https://www.imdb.com/title/" + imdbId;
+                            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                            CustomTabsIntent customTabsIntent = builder.build();
+                            // Check if there is any package available to handle the CustomTabsIntent
+                            if (customTabsIntent.intent.resolveActivity(getPackageManager()) != null) {
+                                customTabsIntent.launchUrl(context, Uri.parse(url));
+                            } else {
+                                // If no package is available to handle the CustomTabsIntent, launch the URL in a web browser
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                if (browserIntent.resolveActivity(getPackageManager()) != null) {
+                                    startActivity(browserIntent);
+                                } else {
+                                    Toast.makeText(context, "No application can handle this request. Please install a web browser.", Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        });
+                    }
                     mMovieDetailsLoaded = true;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         }
+    }
+
+    private void processReleaseDates(JSONObject result) throws JSONException {
+        JSONArray releaseDates = result.getJSONArray("release_dates");
+        String date = "Unknown";
+        String certification = "Unknown";
+        for (int j = 0; j < releaseDates.length(); j++) {
+            JSONObject releaseDate = releaseDates.getJSONObject(j);
+            if (releaseDate.getString("type").equals("3")) { // Theatrical release
+                date = releaseDate.getString("release_date");
+                certification = releaseDate.getString("certification");
+                break;
+            } else if (releaseDate.getString("type").equals("4")) { // Digital release
+                date = releaseDate.getString("release_date");
+                certification = releaseDate.getString("certification");
+            }
+        }
+
+        // Parse the date string and format it to only include the date
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        if (isMovie) {
+            try {
+                Date parsedDate = inputFormat.parse( date );
+                if (parsedDate != null) {
+                    String formattedDate = outputFormat.format( parsedDate );
+                    binding.releaseDate.setText( formattedDate );
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!certification.isEmpty()) {
+            binding.certification.setText( certification );
+        } else
+            binding.certification.setText( R.string.not_rated );
     }
 }

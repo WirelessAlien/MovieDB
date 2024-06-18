@@ -60,7 +60,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
 
     private final SharedPreferences preferences;
 
-    public EpisodeAdapter(Context context, List<Episode> episodes, int seasonNumber, int tvShowId) { // Modify this line
+    public EpisodeAdapter(Context context, List<Episode> episodes, int seasonNumber, int tvShowId) {
         this.context = context;
         this.episodes = episodes;
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
