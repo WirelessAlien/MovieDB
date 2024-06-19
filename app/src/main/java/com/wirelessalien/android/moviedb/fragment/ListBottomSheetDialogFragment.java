@@ -24,20 +24,26 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.radiobutton.MaterialRadioButton;
+import com.wirelessalien.android.moviedb.activity.MainActivity;
 import com.wirelessalien.android.moviedb.adapter.ListDataAdapter;
 import com.wirelessalien.android.moviedb.data.ListData;
 import com.wirelessalien.android.moviedb.data.ListDetailsData;
@@ -47,6 +53,10 @@ import com.wirelessalien.android.moviedb.tmdb.account.CreateListThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.ListAdapter;
+import com.wirelessalien.android.moviedb.tmdb.account.ListDetailsThreadTMDb;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,9 +94,22 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         Button createListButton = view.findViewById( R.id.createListBtn );
         privateList = view.findViewById(R.id.privateRadioBtn);
         TextView previousLists = view.findViewById(R.id.previousListText);
+        Button infoButton = view.findViewById(R.id.infoBtn);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(listDataAdapter);
+
+        infoButton.setOnClickListener( v -> {
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
+            builder.setTitle( R.string.lists_state_info_title);
+            builder.setMessage( R.string.list_state_info);
+            builder.setPositiveButton("Refresh", (dialog, which) -> {
+                fetchList();
+                dialog.dismiss();
+            });
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+            builder.show();
+        });
 
         createListButton.setOnClickListener( v -> {
             String listName = newListName.getText().toString();
@@ -154,5 +177,47 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         cursor.close();
 
         return isMovieInList;
+    }
+
+    //fetch list function
+    public void fetchList() {
+        ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper( activity);
+        SQLiteDatabase db = listDatabaseHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + ListDatabaseHelper.TABLE_LISTS, null);
+        if (cursor.getCount() > 0) {
+            new Handler( Looper.getMainLooper());
+
+            AlertDialog progressDialog = new MaterialAlertDialogBuilder(activity)
+                    .setView(R.layout.dialog_progress)
+                    .setCancelable(false)
+                    .create();
+            progressDialog.show();
+
+            FetchListThreadTMDb fetchListThreadTMDb = new FetchListThreadTMDb(activity, listData -> {
+                for (ListData data : listData) {
+                    listDatabaseHelper.addList(data.getId(), data.getName());
+
+                    ListDetailsThreadTMDb listDetailsThreadTMDb = new ListDetailsThreadTMDb(data.getId(), activity, listDetailsData -> {
+
+                        for (JSONObject item : listDetailsData) {
+                            try {
+                                int movieId = item.getInt("id");
+                                String mediaType = item.getString("media_type");
+
+                                listDatabaseHelper.addListDetails(data.getId(), data.getName(), movieId, mediaType);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                progressDialog.dismiss();
+                                Toast.makeText(activity, R.string.error_occurred_in_list_data, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                    listDetailsThreadTMDb.start();
+                }
+                progressDialog.dismiss();
+            });
+            fetchListThreadTMDb.fetchLists();
+        }
+        cursor.close();
     }
 }

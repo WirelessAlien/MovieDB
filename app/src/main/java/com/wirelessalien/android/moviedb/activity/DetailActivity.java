@@ -328,7 +328,6 @@ public class DetailActivity extends BaseActivity {
         try {
             setMovieData(new JSONObject(intent.getStringExtra("movieObject")));
             jMovieObject = new JSONObject(intent.getStringExtra("movieObject"));
-            Log.d("DetailActivity", "MovieObject: " + jMovieObject.toString());
 
             // Set the adapter with the (still) empty ArrayList.
             castArrayList = new ArrayList<>();

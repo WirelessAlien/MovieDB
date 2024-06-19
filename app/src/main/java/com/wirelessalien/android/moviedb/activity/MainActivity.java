@@ -343,6 +343,51 @@ public class MainActivity extends BaseActivity {
             int tabIndex = nIntent.getIntExtra("tab_index", 0);
             mViewPager.setCurrentItem(tabIndex);
         }
+
+        String access_token = preferences.getString("access_token", null);
+        boolean hasRunOnce = preferences.getBoolean("hasRunOnce", false);
+
+        if (!hasRunOnce && access_token != null && !access_token.equals("")) {
+            ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper(MainActivity.this);
+            SQLiteDatabase db = listDatabaseHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + ListDatabaseHelper.TABLE_LISTS, null);
+            if (cursor.getCount() > 0) {
+                new Handler(Looper.getMainLooper());
+
+                AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
+                        .setView(R.layout.dialog_progress)
+                        .setCancelable(false)
+                        .create();
+                progressDialog.show();
+
+                FetchListThreadTMDb fetchListThreadTMDb = new FetchListThreadTMDb(MainActivity.this, listData -> {
+                    for (ListData data : listData) {
+                        listDatabaseHelper.addList(data.getId(), data.getName());
+
+                        ListDetailsThreadTMDb listDetailsThreadTMDb = new ListDetailsThreadTMDb(data.getId(), MainActivity.this, listDetailsData -> {
+
+                            for (JSONObject item : listDetailsData) {
+                                try {
+                                    int movieId = item.getInt("id");
+                                    String mediaType = item.getString("media_type");
+
+                                    listDatabaseHelper.addListDetails(data.getId(), data.getName(), movieId, mediaType);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                    progressDialog.dismiss();
+                                    Toast.makeText(MainActivity.this, R.string.error_occurred_in_list_data, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                        listDetailsThreadTMDb.start();
+                    }
+                    progressDialog.dismiss();
+                });
+                fetchListThreadTMDb.fetchLists();
+            }
+            cursor.close();
+            preferences.edit().putBoolean("hasRunOnce", true).apply();
+        }
     }
 
     @Override

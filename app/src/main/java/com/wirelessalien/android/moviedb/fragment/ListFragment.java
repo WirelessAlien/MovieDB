@@ -34,7 +34,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -198,7 +197,6 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -349,39 +347,47 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "dd-MM-yyyy", Locale.US );
                     if (mSearchView) {
                         mSearchShowArrayList.sort( (firstObject, secondObject) -> {
-                            Date firstDate = null, secondDate = null;
+                            Date firstDate, secondDate;
                             try {
                                 String firstDateString = firstObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
                                 String secondDateString = secondObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
-                                Log.d( "ListFragment", "First Date: " + firstDateString );
                                 if (!firstDateString.isEmpty()) {
                                     firstDate = simpleDateFormat.parse( firstDateString );
+                                } else {
+                                    firstDate = new Date(Long.MIN_VALUE);
                                 }
                                 if (!secondDateString.isEmpty()) {
                                     secondDate = simpleDateFormat.parse( secondDateString );
+                                } else {
+                                    secondDate = new Date(Long.MIN_VALUE);
                                 }
                             } catch (ParseException e) {
                                 e.printStackTrace();
                                 return 0;
                             }
-                            if (firstDate == null) return (secondDate == null) ? 0 : 1;
-                            if (secondDate == null) return -1;
                             // * -1 is to make the order descending instead of ascending.
-                            return firstDate.compareTo( secondDate ) * -1;
+                            if (firstDate != null) {
+                                return firstDate.compareTo( secondDate ) * -1;
+                            } else if (secondDate != null) {
+                                return -1;
+                            }
+                            return 0;
                         } );
                     } else {
                         mShowArrayList.sort( (firstObject, secondObject) -> {
-                            Date firstDate = null, secondDate = null;
+                            Date firstDate, secondDate;
                             try {
                                 String firstDateString = firstObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
                                 String secondDateString = secondObject.optString( MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE );
-                                Log.d( "ListFragment", "First Date: " + firstDateString );
-                                Log.d( "ListFragment", "Second Date: " + secondDateString );
                                 if (!firstDateString.isEmpty()) {
                                     firstDate = simpleDateFormat.parse( firstDateString );
+                                } else {
+                                    firstDate = new Date(Long.MIN_VALUE);
                                 }
                                 if (!secondDateString.isEmpty()) {
                                     secondDate = simpleDateFormat.parse( secondDateString );
+                                } else {
+                                    secondDate = new Date(Long.MIN_VALUE);
                                 }
                             } catch (ParseException e) {
                                 e.printStackTrace();
@@ -393,22 +399,25 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                             return firstDate.compareTo( secondDate ) * -1;
                         } );
                     }
-                    Log.d( "ListFragment", "Sorted by start date" );
                 }
 
                 case "finish_date_order" -> {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
                     if (mSearchView) {
                         mSearchShowArrayList.sort((firstObject, secondObject) -> {
-                            Date firstDate = null, secondDate = null;
+                            Date firstDate, secondDate;
                             try {
                                 String firstDateString = firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
                                 String secondDateString = secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
                                 if (!firstDateString.isEmpty()) {
                                     firstDate = simpleDateFormat.parse(firstDateString);
+                                } else {
+                                    firstDate = new Date(Long.MIN_VALUE);
                                 }
                                 if (!secondDateString.isEmpty()) {
                                     secondDate = simpleDateFormat.parse(secondDateString);
+                                } else {
+                                    secondDate = new Date(Long.MIN_VALUE);
                                 }
                             } catch (ParseException e) {
                                 e.printStackTrace();
@@ -421,15 +430,19 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                         });
                     } else {
                         mShowArrayList.sort((firstObject, secondObject) -> {
-                            Date firstDate = null, secondDate = null;
+                            Date firstDate, secondDate;
                             try {
                                 String firstDateString = firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
                                 String secondDateString = secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE);
                                 if (!firstDateString.isEmpty()) {
                                     firstDate = simpleDateFormat.parse(firstDateString);
+                                } else {
+                                    firstDate = new Date(Long.MIN_VALUE);
                                 }
                                 if (!secondDateString.isEmpty()) {
                                     secondDate = simpleDateFormat.parse(secondDateString);
+                                } else {
+                                    secondDate = new Date(Long.MIN_VALUE);
                                 }
                             } catch (ParseException e) {
                                 e.printStackTrace();
@@ -441,7 +454,6 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
                             return firstDate.compareTo(secondDate) * -1;
                         });
                     }
-                    Log.d("ListFragment", "Sorted by finish date");
                 }
             }
         }

@@ -36,6 +36,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -48,6 +49,7 @@ public class GetMovieImageThread extends Thread {
     private final Context context;
     private final RecyclerView recyclerView;
     private final String apiKey;
+    private final String locale = Locale.getDefault().getCountry();
 
     public GetMovieImageThread(int movieId, String type, Context context, RecyclerView recyclerView) {
         this.movieId = movieId;
@@ -60,10 +62,12 @@ public class GetMovieImageThread extends Thread {
     @Override
     public void run() {
         try {
+            String locale = Locale.getDefault().getCountry();
+
             OkHttpClient client = new OkHttpClient();
 
             Request request = new Request.Builder()
-                    .url("https://api.themoviedb.org/3/" + type + "/" + movieId + "/images")
+                    .url("https://api.themoviedb.org/3/" + type + "/" + movieId + "/images?language=" + locale + "&include_image_language=en,null")
                     .get()
                     .addHeader("accept", "application/json")
                     .addHeader("Authorization", "Bearer " + apiKey)

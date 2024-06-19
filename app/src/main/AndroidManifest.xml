@@ -77,7 +77,6 @@
         <activity android:name=".activity.MyListsActivity"/>
         <activity android:name=".activity.MyListDetailsActivity"/>
         <activity android:name=".activity.MovieImageActivity"/>
-        <activity android:name=".activity.ImageViewActivity"/>
     </application>
 
 </manifest>

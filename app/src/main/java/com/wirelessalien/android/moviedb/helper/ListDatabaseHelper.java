@@ -72,10 +72,19 @@ public class ListDatabaseHelper extends SQLiteOpenHelper {
 
     public void addList(int id, String name) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_LIST_ID, id);
-        values.put(COLUMN_LIST_NAME, name);
-        db.insert(TABLE_LISTS, null, values);
+
+        String selectQuery = "SELECT * FROM " + TABLE_LISTS + " WHERE " +
+                COLUMN_LIST_ID + " = ? AND " + COLUMN_LIST_NAME + " = ?";
+        Cursor cursor = db.rawQuery(selectQuery, new String[]{String.valueOf(id), name});
+
+        if (!cursor.moveToFirst()) {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_LIST_ID, id);
+            values.put(COLUMN_LIST_NAME, name);
+            db.insert(TABLE_LISTS, null, values);
+        }
+
+        cursor.close();
         db.close();
     }
 

@@ -28,6 +28,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.wirelessalien.android.moviedb.R;
+
 import org.json.JSONObject;
 
 import okhttp3.MediaType;
@@ -43,7 +45,7 @@ public class GetAccessToken extends Thread {
     private final SharedPreferences preferences;
     private final Context context;
     private final Handler handler;
-    private OnTokenReceivedListener listener;
+    private final OnTokenReceivedListener listener;
 
     public interface OnTokenReceivedListener {
         void onTokenReceived(String accessToken);
@@ -80,9 +82,9 @@ public class GetAccessToken extends Thread {
             String sessionResponseBody = sessionResponse.body().string();
 
             if (sessionResponse.isSuccessful()) {
-                handler.post(() -> Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show());
+                handler.post(() -> Toast.makeText(context, R.string.login_successful, Toast.LENGTH_SHORT).show());
             } else {
-                handler.post(() -> Toast.makeText(context, "Something went wrong, please login again", Toast.LENGTH_SHORT).show());
+                handler.post(() -> Toast.makeText(context, R.string.login_failed, Toast.LENGTH_SHORT).show());
             }
 
             JSONObject sessionResponseObject = new JSONObject(sessionResponseBody);

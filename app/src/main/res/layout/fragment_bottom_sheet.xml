@@ -27,15 +27,27 @@
     android:layout_height="wrap_content"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/previousListText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/previous_lists"
-        android:textSize="20sp"
-        android:layout_marginStart="5dip"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dip"/>
+   <RelativeLayout
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginStart="5dip"
+       android:layout_marginBottom="16dip">
+       <TextView
+           android:id="@+id/previousListText"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="@string/previous_lists"
+           android:textSize="20sp"
+           android:layout_centerVertical="true"
+           android:textStyle="bold" />
+       <com.google.android.material.button.MaterialButton
+           android:id="@+id/infoBtn"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_alignParentEnd="true"
+           style="@style/Widget.Material3.Button.IconButton"
+           app:icon="@drawable/ic_info"/>
+   </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"

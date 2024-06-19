@@ -49,12 +49,16 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/moreImageBtn"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="5dp"
                 app:cornerRadius="5dip"
-                app:icon="@drawable/ic_arrow_next"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+                app:icon="@drawable/ic_more_up" />
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -328,91 +332,103 @@
                     android:id="@+id/movieDetailsRl2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:flexDirection="row"
                     app:flexWrap="wrap">
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/certificationCv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="5dp"
-                    style="@style/Widget.Material3.CardView.Elevated">
-                <TextView
-                    android:id="@+id/certification"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:text="Not Rated"/>
-                </com.google.android.material.card.MaterialCardView>
+
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/ratingCv"
+                        android:id="@+id/certificationCv"
+                        style="@style/Widget.Material3.CardView.Elevated"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="5dp"
-                        android:layout_marginStart="5dp"
-                        style="@style/Widget.Material3.CardView.Elevated">
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="5dp">
+
+                        <TextView
+                            android:id="@+id/certification"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="5dp"
+                            android:text="Not Rated" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/ratingCv"
+                        style="@style/Widget.Material3.CardView.Elevated"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="5dp">
+
                         <TextView
                             android:id="@+id/rating"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="5dp"
-                            android:text="7.6/10"/>
+                            android:text="7.6/10" />
                     </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/releaseDateCv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    app:cardCornerRadius="5dp"
-                    style="@style/Widget.Material3.CardView.Elevated">
-                <TextView
-                    android:id="@+id/releaseDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:text="Unknown" />
-                </com.google.android.material.card.MaterialCardView>
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/runtimeCv"
+                        android:id="@+id/releaseDateCv"
+                        style="@style/Widget.Material3.CardView.Elevated"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        app:cardCornerRadius="5dp"
-                        style="@style/Widget.Material3.CardView.Elevated">
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="5dp">
+
+                        <TextView
+                            android:id="@+id/releaseDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="5dp"
+                            android:text="Unknown" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/runtimeCv"
+                        style="@style/Widget.Material3.CardView.Elevated"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="5dp">
+
                         <TextView
                             android:id="@+id/runtime"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="5dp"
-                            android:text="00h 00m"/>
+                            android:text="00h 00m" />
                     </com.google.android.material.card.MaterialCardView>
+
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/trailerCv"
+                        style="@style/Widget.Material3.CardView.Elevated"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        app:cardCornerRadius="5dp"
-                        style="@style/Widget.Material3.CardView.Elevated">
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="5dp">
 
-                    <TextView
-                        android:id="@+id/trailer"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="5dp"
-                        android:text="@string/play_trailer"/>
+                        <TextView
+                            android:id="@+id/trailer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="5dp"
+                            android:text="@string/play_trailer" />
                     </com.google.android.material.card.MaterialCardView>
+
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/genreCv"
+                        style="@style/Widget.Material3.CardView.Elevated"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        app:cardCornerRadius="5dp"
-                        style="@style/Widget.Material3.CardView.Elevated">
+                        android:layout_margin="3dp"
+                        app:cardCornerRadius="5dp">
+
                         <TextView
                             android:id="@+id/genreText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="5dp"
-                            android:text="Action, Science Fiction"/>
+                            android:text="Action, Science Fiction" />
                     </com.google.android.material.card.MaterialCardView>
                 </com.google.android.flexbox.FlexboxLayout>
             </RelativeLayout>
@@ -516,8 +532,9 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="16dp"
+                app:cornerRadius="5dp"
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                app:icon="@drawable/ic_arrow_next"/>
+                app:icon="@drawable/ic_read_more"/>
             </RelativeLayout>
             <com.google.android.material.card.MaterialCardView
                android:id="@+id/lastEpisodeCard"
