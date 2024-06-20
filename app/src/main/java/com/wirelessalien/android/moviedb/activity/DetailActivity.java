@@ -444,6 +444,8 @@ public class DetailActivity extends BaseActivity {
                         binding.runtimeCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.trailerCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.genreCv.setBackgroundColor( Color.TRANSPARENT );
+                        binding.ratingCv.setBackgroundColor( Color.TRANSPARENT );
+                        binding.moreImageBtn.setBackgroundTintList( colorStateList );
 
                         Animation animation = AnimationUtils.loadAnimation(
                                 getApplicationContext(), R.anim.fade_in);
