@@ -49,7 +49,6 @@ public class GetMovieImageThread extends Thread {
     private final Context context;
     private final RecyclerView recyclerView;
     private final String apiKey;
-    private final String locale = Locale.getDefault().getCountry();
 
     public GetMovieImageThread(int movieId, String type, Context context, RecyclerView recyclerView) {
         this.movieId = movieId;
@@ -62,7 +61,7 @@ public class GetMovieImageThread extends Thread {
     @Override
     public void run() {
         try {
-            String locale = Locale.getDefault().getCountry();
+            String locale = Locale.getDefault().getLanguage();
 
             OkHttpClient client = new OkHttpClient();
 

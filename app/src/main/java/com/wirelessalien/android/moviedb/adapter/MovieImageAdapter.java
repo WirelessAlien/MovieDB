@@ -20,7 +20,6 @@
 
 package com.wirelessalien.android.moviedb.adapter;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -38,7 +37,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.flexbox.AlignItems;
-import com.google.android.flexbox.AlignSelf;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.R;
@@ -79,36 +77,53 @@ public class MovieImageAdapter extends RecyclerView.Adapter<MovieImageAdapter.Vi
             flexboxLp.setAlignSelf(AlignItems.STRETCH);
         }
 
-        holder.imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final int[] position = {holder.getBindingAdapterPosition()};
-                if (position[0] != RecyclerView.NO_POSITION) {
-                    View popupView = LayoutInflater.from(context).inflate(R.layout.dialog_image_view, null);
-                    PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                    popupWindow.setOutsideTouchable(true);
-                    popupWindow.setFocusable(true);
+        holder.imageView.setOnClickListener( v -> {
+            final int[] position1 = {holder.getBindingAdapterPosition()};
+            if (position1[0] != RecyclerView.NO_POSITION) {
+                View popupView = LayoutInflater.from(context).inflate(R.layout.dialog_image_view, null);
+                PopupWindow popupWindow = new PopupWindow(popupView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.setFocusable(true);
 
-                    ImageView dialogImageView = popupView.findViewById(R.id.dialog_image);
-                    Button rotateButton = popupView.findViewById(R.id.rotate_btn);
-                    Button loadOriginalButton = popupView.findViewById(R.id.load_original_btn);
-                    ProgressBar progressBar = popupView.findViewById(R.id.progress_bar);
-                    Button dismissButton = popupView.findViewById(R.id.dismiss_btn);
-                    Button nextButton = popupView.findViewById(R.id.next_btn);
-                    Button prevButton = popupView.findViewById(R.id.prev_btn);
-                    Button zoomInButton = popupView.findViewById(R.id.zoom_in_btn);
-                    Button zoomOutButton = popupView.findViewById(R.id.zoom_out_btn);
+                ImageView dialogImageView = popupView.findViewById(R.id.dialog_image);
+                Button rotateButton = popupView.findViewById(R.id.rotate_btn);
+                Button loadOriginalButton = popupView.findViewById(R.id.load_original_btn);
+                ProgressBar progressBar = popupView.findViewById(R.id.progress_bar);
+                Button dismissButton = popupView.findViewById(R.id.dismiss_btn);
+                Button nextButton = popupView.findViewById(R.id.next_btn);
+                Button prevButton = popupView.findViewById(R.id.prev_btn);
+                Button zoomInButton = popupView.findViewById(R.id.zoom_in_btn);
+                Button zoomOutButton = popupView.findViewById(R.id.zoom_out_btn);
 
 
-                    String hDImageUrl = "https://image.tmdb.org/t/p/w780" + movieImages.get( position[0] ).getFilePath();
-                    String originalImageUrl = "https://image.tmdb.org/t/p/original" + movieImages.get( position[0] ).getFilePath();
+                String hDImageUrl = "https://image.tmdb.org/t/p/w780" + movieImages.get( position1[0] ).getFilePath();
+                final String[] originalImageUrl = {"https://image.tmdb.org/t/p/original" + movieImages.get( position1[0] ).getFilePath()};
 
+                progressBar.setVisibility(View.VISIBLE);
+                popupWindow.showAtLocation(v, Gravity.CENTER, 0, 0);
+
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        Bitmap bitmap = Picasso.get().load(hDImageUrl).get();
+                        Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
+                        dialogImageView.post(() -> {
+                            dialogImageView.setImageDrawable(drawable);
+                            progressBar.setVisibility(View.GONE);
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                rotateButton.setOnClickListener( v1 -> dialogImageView.setRotation(dialogImageView.getRotation() + 90) );
+
+                dismissButton.setOnClickListener( v12 -> popupWindow.dismiss() );
+
+                loadOriginalButton.setOnClickListener( v13 -> {
                     progressBar.setVisibility(View.VISIBLE);
-                    popupWindow.showAtLocation(v, Gravity.CENTER, 0, 0);
-
                     CompletableFuture.runAsync(() -> {
                         try {
-                            Bitmap bitmap = Picasso.get().load(hDImageUrl).get();
+                            Bitmap bitmap = Picasso.get().load( originalImageUrl[0] ).get();
                             Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
                             dialogImageView.post(() -> {
                                 dialogImageView.setImageDrawable(drawable);
@@ -118,106 +133,63 @@ public class MovieImageAdapter extends RecyclerView.Adapter<MovieImageAdapter.Vi
                             e.printStackTrace();
                         }
                     });
+                } );
 
-                    rotateButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialogImageView.setRotation(dialogImageView.getRotation() + 90);
-                        }
-                    });
+                //zoom in btn
+                zoomInButton.setOnClickListener( v14 -> {
+                    dialogImageView.setScaleX(dialogImageView.getScaleX() + 0.1f);
+                    dialogImageView.setScaleY(dialogImageView.getScaleY() + 0.1f);
+                } );
 
-                    dismissButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            popupWindow.dismiss();
-                        }
-                    });
+                //zoom out btn
+                zoomOutButton.setOnClickListener( v17 -> {
+                    dialogImageView.setScaleX(dialogImageView.getScaleX() - 0.1f);
+                    dialogImageView.setScaleY(dialogImageView.getScaleY() - 0.1f);
+                } );
 
-                    loadOriginalButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            progressBar.setVisibility(View.VISIBLE);
-                            CompletableFuture.runAsync(() -> {
-                                try {
-                                    Bitmap bitmap = Picasso.get().load(originalImageUrl).get();
-                                    Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
-                                    dialogImageView.post(() -> {
-                                        dialogImageView.setImageDrawable(drawable);
-                                        progressBar.setVisibility(View.GONE);
-                                    });
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            });
-                        }
-                    });
-
-                    //zoom in btn
-                    zoomInButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialogImageView.setScaleX(dialogImageView.getScaleX() + 0.1f);
-                            dialogImageView.setScaleY(dialogImageView.getScaleY() + 0.1f);
-                        }
-                    });
-
-                    //zoom out btn
-                    zoomOutButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialogImageView.setScaleX(dialogImageView.getScaleX() - 0.1f);
-                            dialogImageView.setScaleY(dialogImageView.getScaleY() - 0.1f);
-                        }
-                    });
-
-                    nextButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (position[0] < movieImages.size() - 1) {
-                                position[0]++;
-                                String nextImageUrl = "https://image.tmdb.org/t/p/w780" + movieImages.get( position[0] ).getFilePath();
-                                progressBar.setVisibility(View.VISIBLE);
-                                CompletableFuture.runAsync(() -> {
-                                    try {
-                                        Bitmap bitmap = Picasso.get().load(nextImageUrl).get();
-                                        Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
-                                        dialogImageView.post(() -> {
-                                            dialogImageView.setImageDrawable(drawable);
-                                            progressBar.setVisibility(View.GONE);
-                                        });
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                nextButton.setOnClickListener( v15 -> {
+                    if (position1[0] < movieImages.size() - 1) {
+                        position1[0]++;
+                        String nextImageUrl = "https://image.tmdb.org/t/p/w780" + movieImages.get( position1[0] ).getFilePath();
+                        originalImageUrl[0] = "https://image.tmdb.org/t/p/original" + movieImages.get( position1[0] ).getFilePath();
+                        progressBar.setVisibility(View.VISIBLE);
+                        CompletableFuture.runAsync(() -> {
+                            try {
+                                Bitmap bitmap = Picasso.get().load(nextImageUrl).get();
+                                Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
+                                dialogImageView.post(() -> {
+                                    dialogImageView.setImageDrawable(drawable);
+                                    progressBar.setVisibility(View.GONE);
                                 });
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        }
-                    });
+                        });
+                    }
+                } );
 
-                    prevButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (position[0] > 0) {
-                                position[0]--;
-                                String prevImageUrl = "https://image.tmdb.org/t/p/w780" + movieImages.get( position[0] ).getFilePath();
-                                progressBar.setVisibility(View.VISIBLE);
-                                CompletableFuture.runAsync(() -> {
-                                    try {
-                                        Bitmap bitmap = Picasso.get().load(prevImageUrl).get();
-                                        Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
-                                        dialogImageView.post(() -> {
-                                            dialogImageView.setImageDrawable(drawable);
-                                            progressBar.setVisibility(View.GONE);
-                                        });
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                prevButton.setOnClickListener( v16 -> {
+                    if (position1[0] > 0) {
+                        position1[0]--;
+                        String prevImageUrl = "https://image.tmdb.org/t/p/w780" + movieImages.get( position1[0] ).getFilePath();
+                        originalImageUrl[0] = "https://image.tmdb.org/t/p/original" + movieImages.get( position1[0] ).getFilePath();
+                        progressBar.setVisibility(View.VISIBLE);
+                        CompletableFuture.runAsync(() -> {
+                            try {
+                                Bitmap bitmap = Picasso.get().load(prevImageUrl).get();
+                                Drawable drawable = new BitmapDrawable(context.getResources(), bitmap);
+                                dialogImageView.post(() -> {
+                                    dialogImageView.setImageDrawable(drawable);
+                                    progressBar.setVisibility(View.GONE);
                                 });
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        }
-                    });
-                }
+                        });
+                    }
+                } );
             }
-        });
+        } );
     }
 
     @Override

@@ -297,21 +297,6 @@ public class CastActivity extends BaseActivity {
                 actorId = Integer.parseInt(actorObject.getString("id"));
             }
 
-            // Due to the difficulty of comparing images (or rather,
-            // this can be a slow process) the id of the image is
-            // saved as class variable for easy comparison.
-            if (actorObject.has("profile_path")) {
-
-                if (binding.actorIcon.getDrawable() == null) {
-                    Picasso.get().load("https://image.tmdb.org/t/p/w154" +
-                            actorObject.getString("profile_path"))
-                            .into(binding.actorIcon);
-                }
-
-                // Set the old imageId to the new one.
-                actorObject.getString( "profile_path" );
-            }
-
             // If the name is different in the new dataset, change it.
             if (actorObject.has("name") && !actorObject.getString("name").equals(binding.actorName.getText().toString())) {
                 binding.actorName.setText(actorObject.getString("name"));

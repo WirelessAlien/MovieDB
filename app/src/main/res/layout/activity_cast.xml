@@ -30,35 +30,35 @@
     <com.wirelessalien.android.moviedb.view.NotifyingScrollView
         android:id="@+id/castScrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/actorCardView"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dip"
+                app:cardCornerRadius="5dip">
             <ImageView
                 android:id="@+id/actorImage"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
+                android:layout_height="match_parent"
                 android:background="@color/md_theme_surface"
                 android:contentDescription="@string/person_image_description"
                 android:scaleType="centerCrop" />
+            </com.google.android.material.card.MaterialCardView>
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/actorIcon"
-                android:layout_width="150dip"
-                android:layout_height="150dip"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="75dp"
-                android:background="@color/md_theme_primary"
-                android:scaleType="centerCrop"
-                android:visibility="gone" />
 
             <RelativeLayout
                 android:id="@+id/actorDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/actorImage"
+                android:layout_below="@id/actorCardView"
                 android:layout_centerHorizontal="true"
                 android:layout_margin="16dp">
 
@@ -66,7 +66,8 @@
                     android:id="@+id/actorName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:textAlignment="center"
+                    android:layout_centerHorizontal="true"
                     android:textSize="25sp"
                     android:textStyle="bold" />
 
@@ -74,6 +75,7 @@
                     android:id="@+id/actorPlaceOfBirth"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:layout_below="@id/actorName" />
 
                 <TextView
