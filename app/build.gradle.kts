@@ -53,16 +53,12 @@ dependencies {
     implementation("androidx.browser:browser:1.5.0")
     implementation("androidx.palette:palette:1.0.0")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
-
-
     implementation("androidx.work:work-runtime:2.8.1")
-
     implementation("androidx.preference:preference:1.2.0")
 
     implementation ("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.picasso:picasso:2.8")
 
-    implementation("org.apmem.tools:layouts:1.10")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

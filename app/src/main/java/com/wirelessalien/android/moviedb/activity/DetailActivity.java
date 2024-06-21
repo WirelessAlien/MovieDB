@@ -446,9 +446,12 @@ public class DetailActivity extends BaseActivity {
                         binding.genreCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.ratingCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.moreImageBtn.setBackgroundTintList( colorStateList );
+                        binding.allEpisodeBtn.setBackgroundTintList( colorStateList );
+                        binding.lastEpisodeCard.setStrokeWidth( 5 );
+                        binding.lastEpisodeCard.setCardBackgroundColor( Color.TRANSPARENT );
 
                         Animation animation = AnimationUtils.loadAnimation(
-                                getApplicationContext(), R.anim.fade_in);
+                                getApplicationContext(), R.anim.slide_in_right);
                         binding.movieImage.startAnimation(animation);
                     }
 
