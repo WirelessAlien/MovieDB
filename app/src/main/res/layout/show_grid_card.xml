@@ -40,13 +40,13 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/imagePercentLayout"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="wrap_content"
                 app:layout_constraintDimensionRatio="H,1:1.4">
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <ImageView
+                    <com.wirelessalien.android.moviedb.view.TwoThreeRatioImageView
                         android:id="@+id/image"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
