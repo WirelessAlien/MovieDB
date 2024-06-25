@@ -27,49 +27,45 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="5dp"
         android:layout_margin="5dip">
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
-            <RelativeLayout
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardView2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="5dp">
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintDimensionRatio="1:1">
+                    <com.wirelessalien.android.moviedb.view.SquareImageView
+                        android:id="@+id/personImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/person_image_description"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <TextView
+                android:id="@+id/personName"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="5dp">
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="130dp"
-                        android:layout_height="130dp"
-                        app:layout_constraintDimensionRatio="1:1">
-                        <ImageView
-                            android:id="@+id/personImage"
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:contentDescription="@string/person_image_description"
-                            android:scaleType="centerCrop"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
-                <TextView
-                    android:id="@+id/personName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="marquee"
-                    android:layout_below="@id/cardView2"
-                    android:layout_margin="5dip"
-                    android:layout_centerVertical="true"
-                    android:layout_centerHorizontal="true"
-                    android:maxLines="1"
-                    android:textStyle="bold" />
-            </RelativeLayout>
+                android:layout_height="wrap_content"
+                android:ellipsize="marquee"
+                android:layout_below="@id/cardView2"
+                android:layout_margin="5dip"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:maxLines="1"
+                android:textStyle="bold" />
         </RelativeLayout>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

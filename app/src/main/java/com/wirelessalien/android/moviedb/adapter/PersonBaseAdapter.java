@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
@@ -86,7 +88,7 @@ public class PersonBaseAdapter extends RecyclerView.Adapter<PersonBaseAdapter.Pe
             if (personData.getString("profile_path") == null) {
                 holder.personImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w154"
+                Picasso.get().load("https://image.tmdb.org/t/p/w500"
                         + personData.getString("profile_path"))
                         .into(holder.personImage);
             }

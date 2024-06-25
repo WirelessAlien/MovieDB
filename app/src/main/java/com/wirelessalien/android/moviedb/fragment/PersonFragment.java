@@ -21,7 +21,10 @@
 package com.wirelessalien.android.moviedb.fragment;
 
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,10 +36,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.BaseActivity;
 import com.wirelessalien.android.moviedb.adapter.PersonBaseAdapter;
+import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,6 +63,8 @@ public class PersonFragment extends BaseFragment {
     private ArrayList<JSONObject> mSearchPersonArrayList;
     private GridLayoutManager mGridLayoutManager;
     private Thread mSearchThread;
+    private boolean isShowingDatabasePeople = false;
+
     private String API_KEY;
     private String mSearchQuery;
     private boolean mSearchView;
@@ -71,6 +77,7 @@ public class PersonFragment extends BaseFragment {
     private int pastVisibleItems;
     private int visibleItemCount;
     private int totalItemCount;
+    private SharedPreferences preferences;
 
     public PersonFragment() {
         // Required empty public constructor
@@ -95,19 +102,76 @@ public class PersonFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        preferences = PreferenceManager.getDefaultSharedPreferences( getContext() );
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate( R.layout.fragment_person, container, false);
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
-        fab.setVisibility( View.GONE );
+        fab.setImageResource(R.drawable.ic_star);
+        fab.setOnClickListener (v -> {
+            if (!isShowingDatabasePeople) {
+                // Show people from the database
+                showPeopleFromDatabase();
+                isShowingDatabasePeople = true;
+            } else {
+                // Show all people from the API
+                createPersonList();
+                isShowingDatabasePeople = false;
+            }
+        });
         showPersonList(fragmentView);
         return fragmentView;
     }
+
+    private void showPeopleFromDatabase() {
+        // Get people from the database
+        ArrayList<JSONObject> databasePeople = getPeopleFromDatabase();
+
+        // Set the adapter with the database people
+        mPersonAdapter = new PersonBaseAdapter(databasePeople);
+        mPersonGridView.setAdapter(mPersonAdapter);
+        mPersonAdapter.notifyDataSetChanged();
+    }
+
+    private ArrayList<JSONObject> getPeopleFromDatabase() {
+        ArrayList<JSONObject> databasePeople = new ArrayList<>();
+        PeopleDatabaseHelper dbHelper = new PeopleDatabaseHelper(requireActivity());
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery( PeopleDatabaseHelper.SELECT_ALL_SORTED_BY_NAME, null);
+        if (cursor.moveToFirst()) {
+            do {
+                JSONObject person = new JSONObject();
+                try {
+                    person.put("id", cursor.getInt(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_ID)));
+                    person.put("name", cursor.getString(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_NAME)));
+                    person.put("profile_path", cursor.getString(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_PROFILE_PATH)));
+                    databasePeople.add(person);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return databasePeople;
+    }
+
 
     @Override
     public void onResume() {
         super.onResume();
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
-        fab.setVisibility( View.GONE );
+        fab.setImageResource(R.drawable.ic_star);
+        fab.setOnClickListener (v -> {
+            if (!isShowingDatabasePeople) {
+                // Show people from the database
+                showPeopleFromDatabase();
+                isShowingDatabasePeople = true;
+            } else {
+                // Show all people from the API
+                createPersonList();
+                isShowingDatabasePeople = false;
+            }
+        });
     }
 
     /**
@@ -137,7 +201,7 @@ public class PersonFragment extends BaseFragment {
         mPersonGridView = fragmentView.findViewById(R.id.personRecyclerView);
 
         // Use a GridLayoutManager
-        mGridLayoutManager = new GridLayoutManager(getActivity(), 3); // For now three items in a row seems good, might be changed later on.
+        mGridLayoutManager = new GridLayoutManager(getActivity(), preferences.getInt( GRID_SIZE_PREFERENCE, 3 )); // For now three items in a row seems good, might be changed later on.
         mPersonGridView.setLayoutManager(mGridLayoutManager);
 
         if (mPersonAdapter != null) {
