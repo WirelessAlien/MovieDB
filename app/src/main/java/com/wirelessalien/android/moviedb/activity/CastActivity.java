@@ -32,6 +32,8 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -49,6 +51,7 @@ import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
 import com.wirelessalien.android.moviedb.databinding.ActivityCastBinding;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
+import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -72,6 +75,7 @@ public class CastActivity extends BaseActivity {
     private final static String DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity";
     private Context context;
     private JSONObject actorObject;
+    private JSONObject actorData;
     private SimilarMovieBaseAdapter castMovieAdapter;
     private ArrayList<JSONObject> castMovieArrayList;
     private SimilarMovieBaseAdapter crewMovieAdapter;
@@ -107,6 +111,7 @@ public class CastActivity extends BaseActivity {
         // Create a variable with the application context that can be used
         // when data is retrieved.
         mActivity = this;
+        actorData = new JSONObject();
 
         // RecyclerView to display the shows that the person was part of the cast in.
         binding.castMovieRecyclerView.setHasFixedSize(true); // Improves performance (if size is static)
@@ -280,6 +285,55 @@ public class CastActivity extends BaseActivity {
             collapseViewEditor.apply();
         } );
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.save_menu, menu);
+
+        MenuItem saveItem = menu.findItem(R.id.action_save);
+
+        PeopleDatabaseHelper dbHelper = new PeopleDatabaseHelper(context);
+
+        if (dbHelper.personExists(actorId)) {
+            saveItem.setIcon(R.drawable.ic_star);
+        } else {
+            saveItem.setIcon(R.drawable.ic_star_border);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_save) {
+            PeopleDatabaseHelper dbHelper = new PeopleDatabaseHelper(context);
+
+            int actorId = actorData.optInt("id");
+
+            if (dbHelper.personExists(actorId)) {
+                dbHelper.deleteById( actorId );
+                item.setIcon(R.drawable.ic_star_border);
+            } else {
+                // If the person does not exist in the database, insert the person
+                String name = actorData.optString("name");
+                String birthday = actorData.optString("birthday");
+                String deathday = actorData.optString("deathday");
+                String biography = actorData.optString("biography");
+                String placeOfBirth = actorData.optString("place_of_birth");
+                double popularity = actorData.optDouble("popularity");
+                String profilePath = actorData.optString("profile_path");
+                String imdbId = actorData.optString("imdb_id");
+                String homepage = actorData.optString("homepage");
+
+                dbHelper.insert(actorId, name, birthday, deathday, biography, placeOfBirth, popularity, profilePath, imdbId, homepage);
+                item.setIcon(R.drawable.ic_star);
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     /**
      * Sets the data gotten from the actorObject to the appropriate views.
@@ -510,7 +564,7 @@ public class CastActivity extends BaseActivity {
             if (response != null && !response.isEmpty()) {
                 // Send all the actor data to setActorData.
                 try {
-                    JSONObject actorData = new JSONObject(response);
+                    actorData = new JSONObject(response);
                     if (missingOverview && actorData.has("biography") && !actorData.getString("biography").equals("")) {
                         binding.actorBiography.setText(actorData.getString("biography"));
                     } else if (missingOverview && (actorData.optString("biography") == null

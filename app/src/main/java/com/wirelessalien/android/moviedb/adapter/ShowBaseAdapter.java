@@ -135,7 +135,7 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
                 holder.showImage.setImageDrawable
                         (ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w342"
+                Picasso.get().load("https://image.tmdb.org/t/p/w780"
                         + showData.getString(KEY_POSTER)).into(holder.showImage);
             }
 

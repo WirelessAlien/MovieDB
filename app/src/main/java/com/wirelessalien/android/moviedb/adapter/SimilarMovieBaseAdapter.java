@@ -101,7 +101,7 @@ public class SimilarMovieBaseAdapter extends RecyclerView.Adapter<SimilarMovieBa
             if (movieData.getString("poster_path") == null) {
                 holder.movieImage.setImageDrawable( ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_broken_image, null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w300" +
+                Picasso.get().load("https://image.tmdb.org/t/p/w500" +
                         movieData.getString("poster_path"))
                         .into(holder.movieImage);
             }

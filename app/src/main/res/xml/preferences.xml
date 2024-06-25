@@ -105,6 +105,13 @@
             android:title="@string/title_live_search"
             app:iconSpaceReserved="false"/>
 
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="key_hq_images"
+            android:title="Load HQ images"
+            app:iconSpaceReserved="false"/>
+
+
     </PreferenceCategory>
 
     <PreferenceCategory

@@ -84,7 +84,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             listNameTextView = itemView.findViewById(R.id.listNameTextView);
             descriptionTextView = itemView.findViewById(R.id.description);
             itemCountTextView = itemView.findViewById(R.id.itemCount);
-            deleteButton = itemView.findViewById(R.id.deleteButton); // Add this line
+            deleteButton = itemView.findViewById(R.id.deleteButton);
             this.onItemClickListener = onItemClickListener;
         }
 

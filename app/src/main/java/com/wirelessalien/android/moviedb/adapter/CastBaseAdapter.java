@@ -88,7 +88,7 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
             if (actorData.getString("profile_path").equals("null")) {
                 holder.castImage.setImageDrawable( ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_profile_photo), null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w154" +
+                Picasso.get().load("https://image.tmdb.org/t/p/w300" +
                         actorData.getString("profile_path"))
                         .into(holder.castImage);
             }
