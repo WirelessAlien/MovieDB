@@ -56,7 +56,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
@@ -66,6 +65,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Objects;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 
 public class ShowFragment extends BaseFragment {
@@ -87,6 +91,7 @@ public class ShowFragment extends BaseFragment {
     private int pastVisibleItems;
     private int visibleItemCount;
     private int totalItemCount;
+    private String currentListType = "";
 
     private boolean mShowListLoaded = false;
 
@@ -201,15 +206,15 @@ public class ShowFragment extends BaseFragment {
                 case "release_date" -> filterParameter = "sort_by=release_date.desc";
                 case "alphabetic_order" -> filterParameter = "sort_by=original_title.desc";
                 case "favorite" -> {
-                    new FavoriteListThread( new String[]{mListType, "1"}).start();
+                    new FavoriteListThread(mListType, 1).start();
                     return;
                 }
                 case "watchlist" -> {
-                    new WatchListThread( new String[]{mListType, "1"}).start();
+                    new WatchListThread(mListType, 1).start();
                     return;
                 }
                 case "rated" -> {
-                    new RatedThread( new String[]{mListType, "1"}).start();
+                    new RatedThread(mListType, 1).start();
                     return;
                 }
                 default ->
@@ -364,7 +369,16 @@ public class ShowFragment extends BaseFragment {
                         } else {
                             // Check if the previous request returned any data
                             if (mShowArrayList.size() > 0) {
-                                new ShowListThread( new String[]{mListType, Integer.toString(currentPage)}).start();
+                                switch (currentListType) {
+                                    case "favorite" ->
+                                            new FavoriteListThread(mListType, Integer.parseInt(String.valueOf(currentPage))).start();
+                                    case "watchlist" ->
+                                            new WatchListThread(mListType, Integer.parseInt(String.valueOf(currentPage))).start();
+                                    case "rated" ->
+                                            new RatedThread(mListType, Integer.parseInt(String.valueOf(currentPage))).start();
+                                    default ->
+                                            new ShowListThread(new String[]{mListType, Integer.toString(currentPage)}).start();
+                                }
                             }
                         }
                         loading = true;
@@ -444,41 +458,37 @@ public class ShowFragment extends BaseFragment {
                 missingOverview = params[2].equalsIgnoreCase("true");
             }
 
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
-
-            // Load the webpage with the popular movies/series.
             try {
+                String api_key = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_read_access_token");
                 URL url;
                 if (missingOverview) {
                     url = new URL("https://api.themoviedb.org/3/discover/"
                             + listType + "?" + filterParameter + "&page="
-                            + page + "&api_key=" + API_KEY);
+                            + page);
                 } else {
                     url = new URL("https://api.themoviedb.org/3/discover/"
                             + listType + "?" + filterParameter + "&page="
-                            + page + "&api_key=" + API_KEY + getLanguageParameter(getContext()));
+                            + page + getLanguageParameter(getContext()));
                 }
 
-                URLConnection urlConnection = url.openConnection();
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(
-                            new InputStreamReader(
-                                    urlConnection.getInputStream()));
+                OkHttpClient client = new OkHttpClient();
 
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
+                Request request = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("Content-Type", "application/json;charset=utf-8")
+                        .addHeader("Authorization", "Bearer " + api_key)
+                        .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    String responseBody = null;
+                    if (response.body() != null) {
+                        responseBody = response.body().string();
                     }
-
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    String response = stringBuilder.toString();
-                    handleResponse(response);
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                    handleResponse(responseBody);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             } finally {
@@ -559,6 +569,7 @@ public class ShowFragment extends BaseFragment {
                             }
                         }
                         mShowListLoaded = true;
+                        currentListType = "";
                         ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
                         progressBar.setVisibility(View.GONE);
                     } catch (JSONException je) {
@@ -574,11 +585,13 @@ public class ShowFragment extends BaseFragment {
     //get users favorite movies when filter
     private class FavoriteListThread extends Thread {
         private final Handler handler;
-        private final String[] params;
+        private final String listType;
+        private final int page;
 
-        public FavoriteListThread(String[] params) {
-            handler = new Handler( Looper.getMainLooper() );
-            this.params = params;
+        public FavoriteListThread(String listType, int page) {
+            handler = new Handler(Looper.getMainLooper());
+            this.listType = listType;
+            this.page = page;
         }
 
         @Override
@@ -593,38 +606,27 @@ public class ShowFragment extends BaseFragment {
                 }
             } );
 
-            String listType = params[0];
-            int page = Integer.parseInt( params[1] );
+            String access_token = preferences.getString("access_token", "");
+            String accountId = preferences.getString("account_id", "");
+            String url = "https://api.themoviedb.org/4/account/" + accountId + "/" + listType + "/favorites?page=" + page;
 
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
+            OkHttpClient client = new OkHttpClient();
 
-            try {
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Content-Type", "application/json;charset=utf-8")
+                    .addHeader("Authorization", "Bearer " + access_token)
+                    .build();
 
-                String access_token = preferences.getString( "access_token", "" );
-                URL url = new URL( "https://api.themoviedb.org/4/account/" + preferences.getString( "account_id", "" ) + "/" + listType + "/favorites?page=" + page );
-
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.setRequestProperty("Authorization", "Bearer " + access_token);
-                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-                try {
-                    BufferedReader bufferedReader = new BufferedReader( new InputStreamReader( urlConnection.getInputStream() ) );
-
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append( line ).append( "\n" );
-                    }
-
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    String response = stringBuilder.toString();
-                    handleResponse( response );
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
+            try (Response response = client.newCall(request).execute()) {
+                String responseBody = null;
+                if (response.body() != null) {
+                    responseBody = response.body().string();
                 }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+                handleResponse(responseBody);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -640,16 +642,18 @@ public class ShowFragment extends BaseFragment {
                     }
 
                     // Clear the array list before adding new movies to it.
-                    mShowArrayList.clear();
+                    if (Objects.equals(currentListType, "") || Objects.equals(currentListType, "watchlist") || Objects.equals(currentListType, "rated")) {
+                        mShowArrayList.clear();
+                    }
 
                     // Convert the JSON webpage to JSONObjects
                     // Add the JSONObjects to the list with movies/series.
                     try {
-                        JSONObject reader = new JSONObject( response );
-                        JSONArray arrayData = reader.getJSONArray( "results" );
+                        JSONObject reader = new JSONObject(response);
+                        JSONArray arrayData = reader.getJSONArray("results");
                         for (int i = 0; i < arrayData.length(); i++) {
-                            JSONObject websiteData = arrayData.getJSONObject( i );
-                            mShowArrayList.add( websiteData );
+                            JSONObject websiteData = arrayData.getJSONObject(i);
+                            mShowArrayList.add(websiteData);
                         }
 
                         // Reload the adapter (with the new page)
@@ -658,6 +662,7 @@ public class ShowFragment extends BaseFragment {
                             mShowView.setAdapter( mShowAdapter );
                             mShowView.scrollToPosition( position );
                         }
+                        currentListType = "favorite";
                         ProgressBar progressBar = requireActivity().findViewById( R.id.progressBar );
                         progressBar.setVisibility( View.GONE );
                     } catch (JSONException je) {
@@ -672,11 +677,13 @@ public class ShowFragment extends BaseFragment {
 
     private class WatchListThread extends Thread {
         private final Handler handler;
-        private final String[] params;
+        private final String listType;
+        private final int page;
 
-        public WatchListThread(String[] params) {
+        public WatchListThread(String listType, int page) {
             handler = new Handler(Looper.getMainLooper());
-            this.params = params;
+            this.listType = listType;
+            this.page = page;
         }
 
         @Override
@@ -691,38 +698,27 @@ public class ShowFragment extends BaseFragment {
                 }
             });
 
-            String listType = params[0];
-            int page = Integer.parseInt( params[1] );
+            String access_token = preferences.getString("access_token", "");
+            String accountId = preferences.getString("account_id", "");
+            String url = "https://api.themoviedb.org/4/account/" + accountId + "/" + listType + "/watchlist?page=" + page;
 
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
+            OkHttpClient client = new OkHttpClient();
 
-            // Load the webpage with the list of watchlist movies/series.
-            try {
-                String access_token = preferences.getString("access_token", "");
-                URL url = new URL("https://api.themoviedb.org/4/account/" + preferences.getString("account_id", "") + "/" + listType + "/watchlist?page=" + page );
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Content-Type", "application/json;charset=utf-8")
+                    .addHeader("Authorization", "Bearer " + access_token)
+                    .build();
 
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.setRequestProperty("Authorization", "Bearer " + access_token);
-                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    String response = stringBuilder.toString();
-                    handleResponse(response);
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
+            try (Response response = client.newCall(request).execute()) {
+                String responseBody = null;
+                if (response.body() != null) {
+                    responseBody = response.body().string();
                 }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+                handleResponse(responseBody);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -738,7 +734,9 @@ public class ShowFragment extends BaseFragment {
                     }
 
                     // Clear the array list before adding new movies to it.
-                    mShowArrayList.clear();
+                    if (Objects.equals(currentListType, "") || Objects.equals(currentListType, "rated") || Objects.equals(currentListType, "favorite")) {
+                        mShowArrayList.clear();
+                    }
 
                     // Convert the JSON webpage to JSONObjects
                     // Add the JSONObjects to the list with movies/series.
@@ -753,9 +751,10 @@ public class ShowFragment extends BaseFragment {
                         // Reload the adapter (with the new page)
                         // and set the user to his old position.
                         if (mShowView != null) {
-                            mShowView.setAdapter(mShowAdapter);
-                            mShowView.scrollToPosition(position);
+                            mShowView.setAdapter( mShowAdapter );
+                            mShowView.scrollToPosition( position );
                         }
+                        currentListType = "watchlist";
                         ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
                         progressBar.setVisibility(View.GONE);
                     } catch (JSONException je) {
@@ -770,11 +769,13 @@ public class ShowFragment extends BaseFragment {
 
     private class RatedThread extends Thread {
         private final Handler handler;
-        private final String[] params;
+        private final String listType;
+        private final int page;
 
-        public RatedThread(String[] params) {
+        public RatedThread(String listType, int page) {
             handler = new Handler(Looper.getMainLooper());
-            this.params = params;
+            this.listType = listType;
+            this.page = page;
         }
 
         @Override
@@ -789,38 +790,28 @@ public class ShowFragment extends BaseFragment {
                 }
             });
 
-            String listType = params[0];
-            int page = Integer.parseInt( params[1] );
-
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
-
             // Load the webpage with the list of rated movies/series.
-            try {
-                String access_token = preferences.getString("access_token", "");
-                URL url = new URL("https://api.themoviedb.org/4/account/" + preferences.getString("account_id", "") + "/" + listType + "/rated?page" + page );
+            String access_token = preferences.getString("access_token", "");
+            String accountId = preferences.getString("account_id", "");
+            String url = "https://api.themoviedb.org/4/account/" + accountId + "/" + listType + "/rated?page=" + page;
 
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.setRequestProperty("Authorization", "Bearer " + access_token);
-                urlConnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+            OkHttpClient client = new OkHttpClient();
 
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Content-Type", "application/json;charset=utf-8")
+                    .addHeader("Authorization", "Bearer " + access_token)
+                    .build();
 
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    String response = stringBuilder.toString();
-                    handleResponse(response);
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
+            try (Response response = client.newCall(request).execute()) {
+                String responseBody = null;
+                if (response.body() != null) {
+                    responseBody = response.body().string();
                 }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+                handleResponse(responseBody);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -836,7 +827,9 @@ public class ShowFragment extends BaseFragment {
                     }
 
                     // Clear the array list before adding new movies to it.
-                    mShowArrayList.clear();
+                    if (Objects.equals(currentListType, "") || Objects.equals(currentListType, "watchlist") || Objects.equals(currentListType, "favorite")) {
+                        mShowArrayList.clear();
+                    }
 
                     // Convert the JSON webpage to JSONObjects
                     // Add the JSONObjects to the list with movies/series.
@@ -851,9 +844,10 @@ public class ShowFragment extends BaseFragment {
                         // Reload the adapter (with the new page)
                         // and set the user to his old position.
                         if (mShowView != null) {
-                            mShowView.setAdapter(mShowAdapter);
-                            mShowView.scrollToPosition(position);
+                            mShowView.setAdapter( mShowAdapter );
+                            mShowView.scrollToPosition( position );
                         }
+                        currentListType = "rated";
                         ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
                         progressBar.setVisibility(View.GONE);
                     } catch (JSONException je) {

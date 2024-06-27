@@ -391,14 +391,6 @@ public class FilterActivity extends AppCompatActivity {
         prefsEditor.putString(FILTER_WITH_KEYWORDS, withKeywords.getText().toString());
         prefsEditor.putString(FILTER_WITHOUT_KEYWORDS, withoutKeywords.getText().toString());
 
-        MaterialRadioButton favoriteRadioButton = findViewById(R.id.favorite);
-        prefsEditor.putBoolean("favorite", favoriteRadioButton.isChecked());
-
-        MaterialRadioButton watchlistRadioButton = findViewById( R.id.watchlist );
-        prefsEditor.putBoolean("watchlist", watchlistRadioButton.isChecked());
-
-        MaterialRadioButton ratedRadioButton = findViewById( R.id.rated );
-        prefsEditor.putBoolean("rated", ratedRadioButton.isChecked());
 
         prefsEditor.apply();
     }
