@@ -23,6 +23,7 @@ package com.wirelessalien.android.moviedb.adapter;
 import android.content.Context;
 import android.content.Intent;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +36,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
@@ -58,6 +60,7 @@ public class SimilarMovieBaseAdapter extends RecyclerView.Adapter<SimilarMovieBa
 
     private final ArrayList<JSONObject> similarMovieList;
     private final Context context;
+    private static final String HD_IMAGE_SIZE = "key_hq_images";
 
     // Create the adapter with the list of similar shows and the context.
     public SimilarMovieBaseAdapter(ArrayList<JSONObject> similarMovieList,
@@ -95,13 +98,18 @@ public class SimilarMovieBaseAdapter extends RecyclerView.Adapter<SimilarMovieBa
                 title = "name";
             }
 
+            SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            boolean loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false);
+
+            String imageSize = loadHDImage ? "w780" : "w500";
+
             holder.movieTitle.setText(movieData.getString(title));
 
             // Either show the poster or an icon indicating that the poster is not available.
             if (movieData.getString("poster_path") == null) {
                 holder.movieImage.setImageDrawable( ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_broken_image, null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w500" +
+                Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize +
                         movieData.getString("poster_path"))
                         .into(holder.movieImage);
             }

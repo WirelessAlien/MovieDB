@@ -51,6 +51,7 @@ import java.util.ArrayList;
 public class PersonBaseAdapter extends RecyclerView.Adapter<PersonBaseAdapter.PersonItemViewHolder> {
 
     private final ArrayList<JSONObject> mPersonList;
+    private static final String HD_IMAGE_SIZE = "key_hq_images";
 
     /**
      * Create the adapter with the list of persons and the context
@@ -84,11 +85,15 @@ public class PersonBaseAdapter extends RecyclerView.Adapter<PersonBaseAdapter.Pe
         Context context = holder.cardView.getContext();
 
         try {
+            SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            boolean loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false);
+
+            String imageSize = loadHDImage ? "w780" : "w342";
             holder.personName.setText(personData.getString("name"));
             if (personData.getString("profile_path") == null) {
                 holder.personImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w500"
+                Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize
                         + personData.getString("profile_path"))
                         .into(holder.personImage);
             }

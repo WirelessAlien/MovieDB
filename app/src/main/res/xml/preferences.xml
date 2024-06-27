@@ -108,8 +108,9 @@
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_hq_images"
-            android:title="Load HQ images"
-            app:iconSpaceReserved="false"/>
+            android:title="Load HD images"
+            app:iconSpaceReserved="false"
+            android:summary="The movie posters, episode images, cast images will be loaded with 780+ resolution."/>
 
 
     </PreferenceCategory>

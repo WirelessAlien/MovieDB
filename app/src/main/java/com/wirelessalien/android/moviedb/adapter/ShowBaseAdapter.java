@@ -67,6 +67,8 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
     public static final String KEY_DATE_SERIES = "first_air_date";
     public static final String KEY_GENRES = "genre_ids";
     public static final String KEY_RELEASE_DATE = "release_date";
+    private static final String HD_IMAGE_SIZE = "key_hq_images";
+
     private static final String KEY_CATEGORIES = MovieDatabaseHelper.COLUMN_CATEGORIES;
     private final ArrayList<JSONObject> mShowArrayList;
     private final HashMap<String, String> mGenreHashMap;
@@ -131,12 +133,15 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
         // Fills the views with show details.
         try {
             // Load the thumbnail with Picasso.
+            SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            boolean loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false);
+
+            String imageSize = loadHDImage ? "w780" : "w500";
+
             if (showData.getString(KEY_POSTER).equals("null")) {
-                holder.showImage.setImageDrawable
-                        (ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
+                holder.showImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w780"
-                        + showData.getString(KEY_POSTER)).into(holder.showImage);
+                Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_POSTER)).into(holder.showImage);
             }
 
             // Check if the object has "title" if not,

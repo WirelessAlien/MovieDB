@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +35,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
@@ -53,6 +55,7 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
 
     private final ArrayList<JSONObject> castList;
     private final Context context;
+    private static final String HD_IMAGE_SIZE = "key_hq_images";
 
     // Create the adapter with the list of actors and the context.
     public CastBaseAdapter(ArrayList<JSONObject> castList, Context context) {
@@ -81,6 +84,10 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
         final JSONObject actorData = castList.get(position);
 
         try {
+            SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            boolean loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false);
+
+            String imageSize = loadHDImage ? "h632" : "w185";
             holder.castName.setText(actorData.getString("name"));
             holder.characterName.setText(actorData.getString("character"));
 
@@ -88,7 +95,7 @@ public class CastBaseAdapter extends RecyclerView.Adapter<CastBaseAdapter.CastIt
             if (actorData.getString("profile_path").equals("null")) {
                 holder.castImage.setImageDrawable( ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_profile_photo), null));
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/w300" +
+                Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize +
                         actorData.getString("profile_path"))
                         .into(holder.castImage);
             }

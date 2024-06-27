@@ -57,8 +57,9 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
     int tvShowId;
     int seasonNumber;
     private final GetAccountStateTvSeason accountState;
-
     private final SharedPreferences preferences;
+    private static final String HD_IMAGE_SIZE = "key_hq_images";
+
 
     public EpisodeAdapter(Context context, List<Episode> episodes, int seasonNumber, int tvShowId) {
         this.context = context;
@@ -83,6 +84,10 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
 
     @Override
     public void onBindViewHolder(@NonNull EpisodeViewHolder holder, int position) {
+        SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false);
+
+        String imageSize = loadHDImage ? "w780" : "w500";
         Episode episode = episodes.get(position);
         holder.binding.title.setText(episode.getName());
         holder.binding.episodeNumber.setText( "(" + episode.getEpisodeNumber() + ")");
@@ -91,7 +96,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         holder.binding.runtime.setText( episode.getRuntime() + " minutes");
         holder.binding.averageRating.setText( episode.getVoteAverage() + "/10");
         Picasso.get()
-                .load(episode.getPosterPath())
+                .load("https://image.tmdb.org/t/p/" + imageSize + episode.getPosterPath())
                 .placeholder(R.color.md_theme_surface)
                 .into(holder.binding.image);
 

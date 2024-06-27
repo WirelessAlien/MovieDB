@@ -129,6 +129,8 @@ public class DetailActivity extends BaseActivity {
     private final static String RECOMMENDATION_VIEW_PREFERENCE = "key_show_similar_movies";
     private final static String SHOW_SAVE_DIALOG_PREFERENCE = "key_show_save_dialog";
     private final static String DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity";
+    private static final String HD_IMAGE_SIZE = "key_hq_images";
+
     private String API_KEY;
     private String api_read_access_token;
     private CastBaseAdapter castAdapter;
@@ -413,9 +415,11 @@ public class DetailActivity extends BaseActivity {
 
         if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
             if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
+                boolean loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false);
+                String imageSize = loadHDImage ? "w1280" : "w780";
                 String imageUrl;
                 try {
-                    imageUrl = "https://image.tmdb.org/t/p/w780" + jMovieObject.getString( "backdrop_path" );
+                    imageUrl = "https://image.tmdb.org/t/p/" + imageSize + jMovieObject.getString( "backdrop_path" );
                 } catch (JSONException e) {
                     throw new RuntimeException( e );
                 }
@@ -475,8 +479,10 @@ public class DetailActivity extends BaseActivity {
         } else {
 
             if (jMovieObject.has("backdrop_path") && binding.movieImage.getDrawable() == null) {
+                boolean loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false);
+                String imageSize = loadHDImage ? "w1280" : "w780";
                 try {
-                    Picasso.get().load("https://image.tmdb.org/t/p/w780" +
+                    Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize +
                                     jMovieObject.getString("backdrop_path"))
                             .into(binding.movieImage);
                 } catch (JSONException e) {
