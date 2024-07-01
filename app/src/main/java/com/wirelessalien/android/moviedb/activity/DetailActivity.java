@@ -152,6 +152,7 @@ public class DetailActivity extends BaseActivity {
     private int numSeason;
     private String showName;
     private Integer totalEpisodes;
+    private int seenEpisode;
     private boolean isMovie = true;
     private Context context = this;
     private JSONObject jMovieObject;
@@ -259,6 +260,7 @@ public class DetailActivity extends BaseActivity {
         mActivity = this;
         movieId = 0;
         context = this;
+        seenEpisode = 0;
 
         // RecyclerView to display the cast of the show.
         binding.castRecyclerView.setHasFixedSize(true); // Improves performance (if size is static)
@@ -726,6 +728,8 @@ public class DetailActivity extends BaseActivity {
             imageintent.putExtra( "isMovie", isMovie );
             startActivity( imageintent );
         } );
+
+        binding.episodesSeen.setEnabled(false);
     }
 
     @Override
@@ -840,12 +844,11 @@ public class DetailActivity extends BaseActivity {
                     int seasonNumber = season.getInt("season_number");
                     int episodeCount = season.getInt("episode_count");
                     for (int j = 1; j <= episodeCount; j++) {
-                        int episodeNumber = j;
 
                         ContentValues values = new ContentValues();
                         values.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieId);
                         values.put(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, seasonNumber);
-                        values.put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, episodeNumber);
+                        values.put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, j );
                         long newRowId = database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values);
                         if (newRowId == -1) {
                             Toast.makeText(this, "Error adding episode to database", Toast.LENGTH_SHORT).show();
@@ -940,6 +943,11 @@ public class DetailActivity extends BaseActivity {
      * @param movieObject JSONObject with the information about the show.
      */
     private void setMovieData(JSONObject movieObject) {
+        SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false);
+
+        String imageSize = loadHDImage ? "w780" : "w500";
+
         // Check if movieObject values differ from the current values,
         // if they do, use the movieObject values.
         try {
@@ -951,7 +959,7 @@ public class DetailActivity extends BaseActivity {
             // saved as class variable for easy comparison.
 
             if (movieObject.has("poster_path") && binding.moviePoster.getDrawable() == null) {
-                Picasso.get().load("https://image.tmdb.org/t/p/w500" +
+                Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize +
                         movieObject.getString("poster_path"))
                         .into(binding.moviePoster);
 
@@ -1059,6 +1067,10 @@ public class DetailActivity extends BaseActivity {
                         }
                     }
 
+                    if (!isMovie) {
+                        seenEpisode = databaseHelper.getSeenEpisodesCount(movieId);
+                    }
+
                     // If there is a personal episode count available,
                     // set the episodeCount equal to it. If the show is marked
                     // as "watched" then that implies that all episodes have
@@ -1075,9 +1087,12 @@ public class DetailActivity extends BaseActivity {
                         if (totalEpisodes != null) {
                             episodeCount = String.valueOf(totalEpisodes);
                         } else {
-                            episodeCount = "?";
+                            episodeCount = String.valueOf(seenEpisode);
                         }
+                    } else {
+                        episodeCount = String.valueOf(seenEpisode);
                     }
+
                     binding.movieEpisodes.setText(getString(R.string.episodes_seen) + episodeCount + "/"
                             + totalEpisodes);
 
@@ -1382,7 +1397,8 @@ public class DetailActivity extends BaseActivity {
                         if (totalEpisodes != null) {
                             showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES,
                                     totalEpisodes);
-                            episodesSeenView.setText(totalEpisodes.toString());
+                            Locale currentLocale = Locale.getDefault();
+                            episodesSeenView.setText(String.format(currentLocale, "%d", totalEpisodes));
                         }
 
                         // If the user hasn't set their own watched value, automatically set it.

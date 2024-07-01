@@ -83,7 +83,7 @@ public class ShowFragment extends BaseFragment {
     private String filterParameter = "";
     private boolean filterChanged = false;
     // Variables for scroll detection
-    private int visibleThreshold = 3; // Three times the amount of items in a row
+    private int visibleThreshold; // Three times the amount of items in a row
     private int currentPage = 0;
     private int currentSearchPage = 0;
     private int previousTotal = 0;
@@ -126,7 +126,8 @@ public class ShowFragment extends BaseFragment {
         }
 
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        visibleThreshold *= preferences.getInt(GRID_SIZE_PREFERENCE, 3);
+        int gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3);
+        visibleThreshold = gridSizePreference * gridSizePreference;
 
         createShowList(mListType);
     }
@@ -356,7 +357,8 @@ public class ShowFragment extends BaseFragment {
                     int threshold = visibleThreshold;
                     if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
                         // It is a grid view, so the threshold should be bigger.
-                        threshold *= preferences.getInt(GRID_SIZE_PREFERENCE, 3);
+                        int gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3);
+                        threshold = gridSizePreference * gridSizePreference;
                     }
 
                     // When no new pages are being loaded,
@@ -382,6 +384,7 @@ public class ShowFragment extends BaseFragment {
                             }
                         }
                         loading = true;
+                        currentPage++;
                     }
                 }
             }
@@ -578,6 +581,7 @@ public class ShowFragment extends BaseFragment {
                         progressBar.setVisibility(View.GONE);
                     }
                 }
+                loading = false;
             });
         }
     }
@@ -628,6 +632,7 @@ public class ShowFragment extends BaseFragment {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            loading = false;
         }
 
         private void handleResponse(String response) {
@@ -763,6 +768,7 @@ public class ShowFragment extends BaseFragment {
                         progressBar.setVisibility(View.GONE);
                     }
                 }
+                loading = false;
             });
         }
     }
@@ -856,6 +862,7 @@ public class ShowFragment extends BaseFragment {
                         progressBar.setVisibility(View.GONE);
                     }
                 }
+                loading = false;
             });
         }
     }

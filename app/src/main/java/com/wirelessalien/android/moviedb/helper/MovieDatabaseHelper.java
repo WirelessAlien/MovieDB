@@ -429,4 +429,13 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
 
         return exists;
     }
+
+    public int getSeenEpisodesCount(int movieId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String countQuery = "SELECT * FROM " + TABLE_EPISODES + " WHERE " + COLUMN_MOVIES_ID + " = " + movieId;
+        Cursor cursor = db.rawQuery(countQuery, null);
+        int count = cursor.getCount();
+        cursor.close();
+        return count;
+    }
 }

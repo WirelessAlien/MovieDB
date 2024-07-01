@@ -20,6 +20,7 @@
 
 package com.wirelessalien.android.moviedb.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -57,14 +58,13 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
     int tvShowId;
     int seasonNumber;
     private final GetAccountStateTvSeason accountState;
-    private final SharedPreferences preferences;
     private static final String HD_IMAGE_SIZE = "key_hq_images";
 
 
     public EpisodeAdapter(Context context, List<Episode> episodes, int seasonNumber, int tvShowId) {
         this.context = context;
         this.episodes = episodes;
-        this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        PreferenceManager.getDefaultSharedPreferences( context );
         this.tvShowId = tvShowId;
         this.seasonNumber = seasonNumber;
         this.accountState = new GetAccountStateTvSeason(tvShowId, seasonNumber, context);
@@ -82,6 +82,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         return new EpisodeViewHolder(binding);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull EpisodeViewHolder holder, int position) {
         SharedPreferences defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -93,8 +94,8 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         holder.binding.episodeNumber.setText( "(" + episode.getEpisodeNumber() + ")");
         holder.binding.description.setText(episode.getOverview());
         holder.binding.date.setText(episode.getAirDate());
-        holder.binding.runtime.setText( episode.getRuntime() + " minutes");
-        holder.binding.averageRating.setText( episode.getVoteAverage() + "/10");
+        holder.binding.runtime.setText(context.getString(R.string.runtime_minutes, episode.getRuntime()));
+        holder.binding.averageRating.setText(context.getString(R.string.average_rating, episode.getVoteAverage()));
         Picasso.get()
                 .load("https://image.tmdb.org/t/p/" + imageSize + episode.getPosterPath())
                 .placeholder(R.color.md_theme_surface)
@@ -105,62 +106,59 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         double rating = accountState.getEpisodeRating(episode.getEpisodeNumber());
         holder.binding.rating.setRating((float) rating / 2);
 
-        MovieDatabaseHelper db = new MovieDatabaseHelper(context);
-        if (db.isEpisodeInDatabase(tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) )) {
-            holder.binding.watched.setImageResource( R.drawable.ic_visibility_fill );
-        } else {
-            holder.binding.watched.setImageResource( R.drawable.ic_visibility );
-        }
+        try (MovieDatabaseHelper db = new MovieDatabaseHelper( context )) {
+            if (db.isEpisodeInDatabase( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) )) {
+                holder.binding.watched.setImageResource( R.drawable.ic_visibility_fill );
+            } else {
+                holder.binding.watched.setImageResource( R.drawable.ic_visibility );
+            }
 
-        holder.binding.watched.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            holder.binding.watched.setOnClickListener( v -> {
                 // If the episode is in the database, remove it
-                if (db.isEpisodeInDatabase(tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) )) {
-                    db.removeEpisodeNumber(tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) );
+                if (db.isEpisodeInDatabase( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) )) {
+                    db.removeEpisodeNumber( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) );
                     holder.binding.watched.setImageResource( R.drawable.ic_visibility );
                 } else {
                     // If the episode is not in the database, add it
-                    db.addEpisodeNumber(tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) );
+                    db.addEpisodeNumber( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) );
                     holder.binding.watched.setImageResource( R.drawable.ic_visibility_fill );
                 }
-            }
-        });
+            } );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        holder.binding.rateBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Open a dialog to rate the episode
-                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
-                LayoutInflater inflater = LayoutInflater.from(context);
-                View dialogView = inflater.inflate( R.layout.rating_dialog, null );
-                builder.setView( dialogView );
-                final AlertDialog dialog = builder.create();
-                dialog.show();
+        holder.binding.rateBtn.setOnClickListener( v -> {
+            // Open a dialog to rate the episode
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
+            LayoutInflater inflater = LayoutInflater.from(context);
+            View dialogView = inflater.inflate( R.layout.rating_dialog, null );
+            builder.setView( dialogView );
+            final AlertDialog dialog = builder.create();
+            dialog.show();
 
-                RatingBar ratingBar = dialogView.findViewById( R.id.ratingBar );
-                Button submitButton = dialogView.findViewById( R.id.btnSubmit );
-                Button cancelButton = dialogView.findViewById( R.id.btnCancel );
-                Button deleteButton = dialogView.findViewById( R.id.btnDelete );
+            RatingBar ratingBar = dialogView.findViewById( R.id.ratingBar );
+            Button submitButton = dialogView.findViewById( R.id.btnSubmit );
+            Button cancelButton = dialogView.findViewById( R.id.btnCancel );
+            Button deleteButton = dialogView.findViewById( R.id.btnDelete );
 
-                Handler mainHandler = new Handler( Looper.getMainLooper());
+            Handler mainHandler = new Handler( Looper.getMainLooper());
 
-                CompletableFuture.runAsync(() -> {
-                    submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
-                        double rating = ratingBar.getRating() * 2;
-                        new AddEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(),rating, context).start();
-                        mainHandler.post(dialog::dismiss);
-                    }));
+            CompletableFuture.runAsync(() -> {
+                submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
+                    double rating1 = ratingBar.getRating() * 2;
+                    new AddEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(), rating1, context).start();
+                    mainHandler.post(dialog::dismiss);
+                }));
 
-                    deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
-                        new DeleteEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(), context).start();
-                        mainHandler.post(dialog::dismiss);
-                    }));
+                deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
+                    new DeleteEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(), context).start();
+                    mainHandler.post(dialog::dismiss);
+                }));
 
-                    cancelButton.setOnClickListener(v12 -> dialog.dismiss());
-                });
-            }
-        });
+                cancelButton.setOnClickListener(v12 -> dialog.dismiss());
+            });
+        } );
     }
 
     @Override

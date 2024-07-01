@@ -536,102 +536,118 @@
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                 app:icon="@drawable/ic_read_more"/>
             </RelativeLayout>
-            <com.google.android.material.card.MaterialCardView
-               android:id="@+id/lastEpisodeCard"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_margin="16dp"
-               app:cardCornerRadius="5dp"
-               android:layout_below="@id/episodeRL">
-               <LinearLayout
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:padding="10dp"
-                   android:orientation="vertical">
-                   <RelativeLayout
-                       android:layout_width="wrap_content"
-                       android:layout_height="wrap_content">
-                       <TextView
-                           android:id="@+id/seasonNo"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:textStyle="bold"
-                           android:textSize="20sp"
-                           android:text="S1"/>
-                       <TextView
-                           android:id="@+id/episodeNo"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:textStyle="bold"
-                           android:textSize="20sp"
-                           android:layout_marginStart="5dp"
-                           android:layout_toEndOf="@id/seasonNo"
-                           android:text="E1"/>
-                       <TextView
-                           android:id="@+id/episodeName"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:textStyle="bold"
-                           android:textSize="20sp"
-                           android:layout_marginStart="5dp"
-                           android:layout_toEndOf="@id/episodeNo"
-                           android:text="Episode Name"/>
-                   </RelativeLayout>
-                 <RelativeLayout
-                     android:layout_width="wrap_content"
-                     android:layout_height="wrap_content">
-                     <TextView
-                         android:id="@+id/episodeAirDate"
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:layout_centerVertical="true"
-                         android:text="2021-09-01" />
-                     <com.google.android.material.button.MaterialButton
-                         android:id="@+id/episodeRateIcon"
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:layout_toEndOf="@id/episodeAirDate"
-                         android:clickable="false"
-                         style="@style/Widget.Material3.Button.IconButton"
-                         app:icon="@drawable/ic_star"/>
-                     <TextView
-                         android:id="@+id/ratingAverage"
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:layout_centerVertical="true"
-                         android:layout_toEndOf="@id/episodeRateIcon"
-                         android:textStyle="bold"
-                         android:text="7.6"/>
-                 </RelativeLayout>
 
-                   <TextView
-                       android:id="@+id/episodeOverview"
-                       android:layout_width="wrap_content"
-                       android:layout_height="wrap_content"
-                       android:layout_marginTop="10dp"
-                       android:maxLines="2"
-                       android:ellipsize="end"
-                       android:text="jdjidoj  djioe fjrif ifje fojofj rfrj ofifj rj" />
-                   <RelativeLayout
-                       android:layout_width="wrap_content"
-                       android:layout_height="wrap_content"
-                       android:layout_marginTop="5dp">
-                       <ImageButton
-                           android:id="@+id/episodeRateBtn"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:src="@drawable/ic_thumb_up_border"
-                           style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
-                       <ImageButton
-                           android:id="@+id/episodeWathchBtn"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:src="@drawable/ic_visibility"
-                           style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                           android:layout_toEndOf="@id/episodeRateBtn"/>
-                   </RelativeLayout>
-               </LinearLayout>
-           </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/lastEpisodeCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/episodeRL"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="5dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/seasonNo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="S1"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/episodeNo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
+                            android:layout_toEndOf="@id/seasonNo"
+                            android:text="E1"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/episodeName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
+                            android:layout_toEndOf="@id/episodeNo"
+                            android:text="Episode Name"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/episodeAirDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="2021-09-01" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/episodeRateIcon"
+                            style="@style/Widget.Material3.Button.IconButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_toEndOf="@id/episodeAirDate"
+                            android:clickable="false"
+                            app:icon="@drawable/ic_star" />
+
+                        <TextView
+                            android:id="@+id/ratingAverage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toEndOf="@id/episodeRateIcon"
+                            android:text="7.6"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/episodeOverview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="Overview of the episode" />
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp">
+
+                        <ImageButton
+                            android:id="@+id/episodeRateBtn"
+                            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_thumb_up_border" />
+
+                        <ImageButton
+                            android:id="@+id/episodeWathchBtn"
+                            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_toEndOf="@id/episodeRateBtn"
+                            android:src="@drawable/ic_visibility" />
+                    </RelativeLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/castTitle"
