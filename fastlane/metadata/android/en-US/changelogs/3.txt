@@ -1,0 +1,12 @@
+Feature:
+ -Media state for lists
+ -People can be added to favourite
+ -Episode can be checked as watched (offline database)
+ -Episode rating (with TMDB)
+ -HD image loading preference
+ -Images of Movies/Shows
+Other:
+ -Fix #10
+ -Minor UI change
+ -Fix image ratio issue of Movies/Shows
+ -...
