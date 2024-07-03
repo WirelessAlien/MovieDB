@@ -76,7 +76,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:tag="start_date_order"
-                android:text="Start Date"
+                android:text="@string/start_date"
                 android:visibility="gone"/>
 
             <com.google.android.material.radiobutton.MaterialRadioButton
@@ -84,40 +84,40 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:tag="finish_date_order"
-                android:text="Finish Date"
+                android:text="@string/finish_date"
                 android:visibility="gone"/>
             <TextView
                 android:id="@+id/accountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Account"
+                android:text="@string/account"
                 android:textStyle="bold"
                 android:layout_margin="5dip"/>
             <TextView
                 android:id="@+id/accountDescText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Other filters don't work with this option"
+                android:text="@string/other_filters_don_t_work_with_this_option"
                 android:layout_margin="5dip"/>
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/favorite"
                 android:layout_width="wrap_content"
                 android:tag="favorite"
-                android:text="Favorite"
+                android:text="@string/favourite"
                 android:layout_height="wrap_content"/>
 
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/watchlist"
                 android:layout_width="wrap_content"
                 android:tag="watchlist"
-                android:text="Watchlist"
+                android:text="@string/watchlist"
                 android:layout_height="wrap_content"/>
 
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/rated"
                 android:layout_width="wrap_content"
                 android:tag="rated"
-                android:text="Rated"
+                android:text="@string/rated"
                 android:layout_height="wrap_content"/>
         </RadioGroup>
 
@@ -185,6 +185,39 @@
                     android:layout_height="wrap_content"
                     android:tag="dropped"
                     android:text="@string/dropped" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/categoryViewSeparator"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="10dip"
+                android:layout_marginTop="10dip"
+                android:background="?android:attr/listDivider" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dip"
+                android:text="@string/type"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/mediaCheckBoxesLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/movieCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="movie"
+                    android:text="@string/movie" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/tvCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="tv"
+                    android:text="@string/tv_show" />
             </LinearLayout>
 
             <View

@@ -285,6 +285,25 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             mSearchShowArrayList = (ArrayList<JSONObject>) mSearchShowBackupArrayList.clone();
         }
 
+        ArrayList<String> showMovie = FilterActivity.convertStringToArrayList(
+                sharedPreferences.getString(FilterActivity.FILTER_SHOW_MOVIE, null), ", ");
+
+
+        if (showMovie != null && (!showMovie.contains("movie") || !showMovie.contains("tv"))) {
+            if (mSearchView) {
+                mSearchShowArrayList.removeIf(showObject -> {
+                    boolean isTV = showObject.optString(ShowBaseAdapter.KEY_NAME).equals("0");
+                    return (showMovie.contains("movie") && isTV) || (showMovie.contains("tv") && !isTV);
+                });
+            } else {
+                mShowArrayList.removeIf(showObject -> {
+                    boolean isTV = showObject.optString(ShowBaseAdapter.KEY_NAME).equals("0");
+                    return (showMovie.contains("movie") && isTV) || (showMovie.contains("tv") && !isTV);
+                });
+            }
+        }
+
+
         // Sort the ArrayList based on the chosen order.
         String sortPreference;
         if ((sortPreference = sharedPreferences.getString(FilterActivity.FILTER_SORT, null)) != null) {

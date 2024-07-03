@@ -25,8 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -50,7 +48,6 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.google.android.material.chip.Chip;
@@ -85,6 +82,7 @@ public class FilterActivity extends AppCompatActivity {
     public static final String FILTER_PREFERENCES = "filter_preferences";
     public static final String FILTER_SORT = "filter_sort";
     public static final String FILTER_CATEGORIES = "filter_categories";
+    public static final String FILTER_SHOW_MOVIE = "filter_show_movie";
     public static final String FILTER_DATES = "filter_dates";
     public static final String FILTER_START_DATE = "filter_start_date";
     public static final String FILTER_END_DATE = "filter_end_date";
@@ -377,8 +375,11 @@ public class FilterActivity extends AppCompatActivity {
                 findViewById(R.id.watchedCheckBox),
                 findViewById(R.id.plannedToWatchCheckBox),
                 findViewById(R.id.onHoldCheckBox),
-                findViewById(R.id.droppedCheckBox)
-        ).toString());
+                findViewById(R.id.droppedCheckBox)).toString());
+
+        prefsEditor.putString( FILTER_SHOW_MOVIE, getSelectedCheckBoxes(
+                findViewById( R.id.movieCheckBox),
+                findViewById( R.id.tvCheckBox)).toString());
 
         prefsEditor.putString(FILTER_DATES, getSelectedCheckBox(
                 findViewById(R.id.theaterCheckBox),
@@ -505,6 +506,18 @@ public class FilterActivity extends AppCompatActivity {
             ArrayList<String> categoryTagArray = convertStringToArrayList(categoriesTags, ", ");
             selectCheckBoxByTag(categoryTagArray, findViewById(R.id.categoryCheckBoxesLayout) );
         }
+
+        String showMovieTag = sharedPreferences.getString(FILTER_SHOW_MOVIE, "");
+        ArrayList<String> showMovieTagList = new ArrayList<>();
+
+        if (showMovieTag.isEmpty() || showMovieTag.equals("[]") || showMovieTag.contains("movie") && showMovieTag.contains("tv")) {
+            showMovieTagList.add("movie");
+            showMovieTagList.add("tv");
+        } else {
+            showMovieTagList = convertStringToArrayList(showMovieTag, ", ");
+        }
+        selectCheckBoxByTag(showMovieTagList, findViewById(R.id.mediaCheckBoxesLayout));
+
 
         // Select the dates that the shows were filtered on last time (if any).
         String dateTag = sharedPreferences.getString(FILTER_DATES, null);

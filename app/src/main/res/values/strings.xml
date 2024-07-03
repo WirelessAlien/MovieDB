@@ -257,4 +257,10 @@
     <string name="load_hd_image_summary">The movie posters, episode images, cast images will be loaded with 780+ resolution.</string>
     <string name="runtime_minutes">%1$d minutes</string>
     <string name="average_rating">%1$.1f/10</string>
+    <string name="other_filters_don_t_work_with_this_option">Other filters don\'t work with this option</string>
+    <string name="account">Account</string>
+    <string name="rated">Rated</string>
+    <string name="movie">Movie</string>
+    <string name="tv_show">TV Show</string>
+    <string name="type">Type</string>
 </resources>
