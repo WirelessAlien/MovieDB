@@ -47,18 +47,6 @@
                 android:contentDescription="@string/movie_image_description"
                 android:scaleType="centerCrop" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/moreImageBtn"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginBottom="5dp"
-                app:cornerRadius="5dip"
-                app:icon="@drawable/ic_more_up" />
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -400,22 +388,6 @@
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/trailerCv"
-                        style="@style/Widget.Material3.CardView.Elevated"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="3dp"
-                        app:cardCornerRadius="5dp">
-
-                        <TextView
-                            android:id="@+id/trailer"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:padding="5dp"
-                            android:text="@string/play_trailer" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <com.google.android.material.card.MaterialCardView
                         android:id="@+id/genreCv"
                         style="@style/Widget.Material3.CardView.Elevated"
                         android:layout_width="wrap_content"
@@ -447,38 +419,43 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginStart="2dp"
                 android:layout_below="@id/firstDivider">
 
-                <ImageButton
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/watchListButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/watchlist"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:src="@drawable/ic_bookmark" />
-                <ImageButton
+                    app:iconGravity="textTop"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    app:icon="@drawable/ic_bookmark" />
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/addToList"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_list_add"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    app:icon="@drawable/ic_list_add"
+                    app:iconGravity="textTop"
+                    style="@style/Widget.Material3.Button.IconButton"
                     android:text="@string/add_to_list"
                     android:contentDescription="@string/add_to_list" />
-                <ImageButton
+                <com.google.android.material.button.MaterialButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/favouriteButton"
                     android:text="@string/favourite"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:src="@drawable/ic_favorite"
+                    app:iconGravity="textTop"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    app:icon="@drawable/ic_favorite"
                     android:contentDescription="@string/add_to_favourite" />
 
-                <ImageButton
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/ratingBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_thumb_up"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    app:icon="@drawable/ic_thumb_up"
+                    app:iconGravity="textTop"
+                    style="@style/Widget.Material3.Button.IconButton"
                     android:text="@string/rate"
                     android:contentDescription="@string/add_rating" />
             </LinearLayout>
@@ -507,12 +484,49 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/forthDivider"
-                android:layout_margin="16dp" />
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginEnd="16dp"/>
+
+            <RelativeLayout
+                android:id="@+id/relativeLayout3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_below="@id/movieDescription">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/moreImageBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:cornerRadius="5dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:text="IMAGES"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/watchProvider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:cornerRadius="5dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="5dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_toEndOf="@id/trailer"
+                    android:text="WHERE TO WATCH ?"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/trailer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:cornerRadius="5dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_toEndOf="@id/moreImageBtn"
+                    android:text="TRAILER"/>
+            </RelativeLayout>
             <RelativeLayout
                 android:id="@+id/episodeRL"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/movieDescription">
+                android:layout_below="@id/relativeLayout3">
 
                 <TextView
                     android:id="@+id/episodeText"

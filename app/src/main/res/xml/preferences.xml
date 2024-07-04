@@ -178,10 +178,17 @@
                 android:data="https://github.com/WirelessAlien/MovieDB" />
         </Preference>
 
+        <PreferenceCategory
+            android:title="Attribution"
+            app:iconSpaceReserved="false">
         <Preference
             android:summary="@string/text_tmdb_credits"
             android:icon="@drawable/ic_movie_db"
             app:iconSpaceReserved="false"/>
+        <Preference
+            android:summary="@string/just_watch_attribution"
+            app:iconSpaceReserved="false"/>
+        </PreferenceCategory>
 
     </PreferenceCategory>
 

@@ -373,20 +373,20 @@ public class DetailActivity extends BaseActivity {
                 double ratingValue = getAccountStateThread.getRating();
                 runOnUiThread( () -> {
                     if (isInWatchlist) {
-                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark );
+                        binding.watchListButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_bookmark));
                     } else {
-                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark_border );
+                        binding.watchListButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_bookmark_border));
                     }
                     if (isFavourite) {
-                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite );
+                        binding.favouriteButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_favorite));
                     } else {
-                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite_border );
+                        binding.favouriteButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_favorite_border));
                     }
 
                     if (ratingValue != 0) {
-                        binding.ratingBtn.setImageResource( R.drawable.ic_thumb_up );
+                        binding.ratingBtn.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_thumb_up));
                     } else {
-                        binding.ratingBtn.setImageResource( R.drawable.ic_thumb_up_border );
+                        binding.ratingBtn.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_thumb_up_border));
                     }
                 } );
             } else {
@@ -448,10 +448,8 @@ public class DetailActivity extends BaseActivity {
                         binding.certificationCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.releaseDateCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.runtimeCv.setBackgroundColor( Color.TRANSPARENT );
-                        binding.trailerCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.genreCv.setBackgroundColor( Color.TRANSPARENT );
                         binding.ratingCv.setBackgroundColor( Color.TRANSPARENT );
-                        binding.moreImageBtn.setBackgroundTintList( colorStateList );
                         binding.allEpisodeBtn.setBackgroundTintList( colorStateList );
                         binding.lastEpisodeCard.setStrokeWidth( 5 );
                         binding.lastEpisodeCard.setCardBackgroundColor( Color.TRANSPARENT );
@@ -510,10 +508,10 @@ public class DetailActivity extends BaseActivity {
                 final boolean isInWatchlist = checkWatchlistThread.isInWatchlist();
                 runOnUiThread( () -> {
                     if (isInWatchlist) {
-                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark_border );
+                        binding.watchListButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_bookmark_border));
                         new AddToWatchlistThreadTMDb(movieId, typeCheck, false, mActivity).start();
                     } else {
-                        binding.watchListButton.setImageResource( R.drawable.ic_bookmark );
+                        binding.watchListButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_bookmark));
                         new AddToWatchlistThreadTMDb(movieId, typeCheck, true, mActivity).start();
                     }
                 } );
@@ -541,10 +539,10 @@ public class DetailActivity extends BaseActivity {
                 final boolean isInFavourites = checkFavouritesThread.isInFavourites();
                 runOnUiThread( () -> {
                     if (isInFavourites) {
-                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite_border );
+                        binding.favouriteButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_favorite_border));
                         new AddToFavouritesThreadTMDb(movieId, typeCheck, false, mActivity).start();
                     } else {
-                        binding.favouriteButton.setImageResource( R.drawable.ic_favorite );
+                        binding.favouriteButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_favorite));
                         new AddToFavouritesThreadTMDb(movieId, typeCheck, true, mActivity).start();
                     }
                 } );
@@ -730,6 +728,21 @@ public class DetailActivity extends BaseActivity {
         } );
 
         binding.episodesSeen.setEnabled(false);
+
+        binding.watchProvider.setOnClickListener(v -> {
+            final String typeCheck = isMovie ? "movie" : "tv";
+            String url = "https://www.themoviedb.org/" + typeCheck  + "/" + movieId + "/watch?locale=" + Locale.getDefault().getCountry();
+
+            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+            CustomTabsIntent customTabIntent = builder.build();
+
+            if (customTabIntent.intent.resolveActivity(getPackageManager()) != null) {
+                customTabIntent.launchUrl(this, Uri.parse(url));
+            } else {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+            }
+        });
     }
 
     @Override
