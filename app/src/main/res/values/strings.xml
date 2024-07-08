@@ -268,4 +268,10 @@
     <string name="donate">Donate</string>
     <string name="attribution">Attribution</string>
     <string name="about_movie_db">About Movie DB</string>
+    <string name="image">IMAGE</string>
+    <string name="where_to_watch">WHERE TO WATCH ?</string>
+    <string name="trailer">TRAILER</string>
+    <string name="selected_directory">Path:</string>
+    <string name="export_info">The application allows for the exportation of files in either \"db\" or \"json\" formats. Please note, however, that only the \"db\" format is supported for subsequent import operations.</string>
+    <string name="directory_path">Path: %1$s</string>
 </resources>

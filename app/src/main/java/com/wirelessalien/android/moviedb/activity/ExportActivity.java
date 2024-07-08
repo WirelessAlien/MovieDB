@@ -34,6 +34,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 
 import java.io.File;
@@ -48,6 +49,8 @@ public class ExportActivity extends AppCompatActivity {
 
     private DocumentFile outputDirectory;
     private Context context;
+    private ActivityExportBinding binding;
+
 
 
 
@@ -62,12 +65,18 @@ public class ExportActivity extends AppCompatActivity {
                         Intent.FLAG_GRANT_READ_URI_PERMISSION |
                                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 outputDirectory = DocumentFile.fromTreeUri(this, uri);
-                String fullPath = outputDirectory.getUri().getPath();
-                String displayedPath = fullPath.replace("/tree/primary", "");
+                String fullPath = null;
+                if (outputDirectory != null) {
+                    fullPath = outputDirectory.getUri().getPath();
+                }
+                String displayedPath = null;
+                if (fullPath != null) {
+                    displayedPath = fullPath.replace("/tree/primary", "");
+                }
 
                 // Update the TextView with the directory path
-//                String directoryText = getString(R.string.directory_path, displayedPath);
-//                binding.directoryTextView.setText(directoryText);
+                String directoryText = getString(R.string.directory_path, displayedPath);
+                binding.selectedDirectoryText.setText(directoryText);
 
                 // Save the output directory URI in SharedPreferences
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -78,10 +87,12 @@ public class ExportActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView( R.layout.activity_export);
+        binding = ActivityExportBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         context = this;
 
@@ -115,8 +126,7 @@ public class ExportActivity extends AppCompatActivity {
             android.os.Process.killProcess(android.os.Process.myPid());
         });
 
-        Button selectDirButton = findViewById(R.id.select_directory_button);
-        selectDirButton.setOnClickListener(v -> {
+        binding.selectDirectoryButton.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             startActivityForResult(intent, REQUEST_CODE_SELECT_DIRECTORY);
         });
@@ -129,8 +139,7 @@ public class ExportActivity extends AppCompatActivity {
             outputDirectory = DocumentFile.fromTreeUri(this, uri);
         }
 
-        Button exportButton = findViewById(R.id.export_button);
-        exportButton.setOnClickListener(v -> {
+        binding.exportButton.setOnClickListener(v -> {
             MovieDatabaseHelper databaseHelper = new MovieDatabaseHelper(getApplicationContext());
             databaseHelper.exportDatabase(context, outputDirectory);
         });

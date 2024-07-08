@@ -486,7 +486,7 @@
                 android:layout_below="@id/forthDivider"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="5dp"
                 android:layout_marginEnd="16dp"/>
 
             <RelativeLayout
@@ -502,7 +502,7 @@
                     android:layout_height="wrap_content"
                     app:cornerRadius="5dp"
                     style="@style/Widget.Material3.Button.IconButton"
-                    android:text="IMAGES"/>
+                    android:text="@string/image"/>
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/watchProvider"
                     android:layout_width="wrap_content"
@@ -512,7 +512,7 @@
                     android:layout_marginEnd="5dp"
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_toEndOf="@id/trailer"
-                    android:text="WHERE TO WATCH ?"/>
+                    android:text="@string/where_to_watch"/>
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/trailer"
                     android:layout_width="wrap_content"
@@ -520,7 +520,7 @@
                     app:cornerRadius="5dp"
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_toEndOf="@id/moreImageBtn"
-                    android:text="TRAILER"/>
+                    android:text="@string/trailer"/>
             </RelativeLayout>
             <RelativeLayout
                 android:id="@+id/episodeRL"
