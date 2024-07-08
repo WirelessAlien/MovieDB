@@ -42,7 +42,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
         // Find the preference and set an OnPreferenceClickListener
-        NumberPickerPreference numberPickerPreference = findPreference("your_preference_key");
+        NumberPickerPreference numberPickerPreference = findPreference("key_grid_size_number");
         if (numberPickerPreference != null) {
             numberPickerPreference.setOnPreferenceClickListener(preference -> {
                 // Create a new instance of NumberPickerPreferenceDialogFragmentCompat
@@ -51,6 +51,15 @@ public class SettingsFragment extends PreferenceFragmentCompat
                 dialogFragment.setTargetFragment(this, 0);
                 // Show the dialog
                 dialogFragment.show(getParentFragmentManager(), null);
+                return true;
+            });
+        }
+
+        Preference aboutPreference = findPreference("about_key");
+        if (aboutPreference != null) {
+            aboutPreference.setOnPreferenceClickListener(preference -> {
+                // Show AboutFragment as a dialog
+                new AboutFragment().show(getParentFragmentManager(), "about_dialog");
                 return true;
             });
         }

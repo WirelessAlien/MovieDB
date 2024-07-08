@@ -171,15 +171,12 @@
     <PreferenceCategory android:title="@string/other"
         app:iconSpaceReserved="false">
 
-        <Preference android:title="@string/title_source_code"
-            app:iconSpaceReserved="false">
-            <intent
-                android:action="android.intent.action.VIEW"
-                android:data="https://github.com/WirelessAlien/MovieDB" />
-        </Preference>
+        <Preference android:title="@string/about_movie_db"
+            app:iconSpaceReserved="false"
+            android:key="about_key"/>
 
         <PreferenceCategory
-            android:title="Attribution"
+            android:title="@string/attribution"
             app:iconSpaceReserved="false">
         <Preference
             android:summary="@string/text_tmdb_credits"

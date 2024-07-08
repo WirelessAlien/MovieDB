@@ -264,4 +264,8 @@
     <string name="tv_show">TV Show</string>
     <string name="type">Type</string>
     <string name="just_watch_attribution">This app uses JustWatch data to show \'Where to watch\' information.</string>
+    <string name="share">Share Movie DB</string>
+    <string name="donate">Donate</string>
+    <string name="attribution">Attribution</string>
+    <string name="about_movie_db">About Movie DB</string>
 </resources>
