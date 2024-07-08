@@ -1,0 +1,3 @@
+Add filter option for "Saved" tab: Movies / Series #14
+Bug Fix: Random crash #13
+Oher minor change
