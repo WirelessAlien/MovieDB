@@ -37,6 +37,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardView2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="5dip"
+                style="@style/Widget.Material3.CardView.Elevated"
+                android:layout_margin="2dip">
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/imagePercentLayout"
                 android:layout_width="match_parent"
@@ -81,21 +88,39 @@
                         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
                 </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
-
+            </com.google.android.material.card.MaterialCardView>
             <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/imagePercentLayout"
+                android:layout_below="@id/cardView2"
+                android:ellipsize="marquee"
+                android:paddingStart="4dip"
+                android:paddingEnd="4dip"
+                android:text="Title"
+                android:layout_centerVertical="true"
+                android:paddingTop="4dip"
+                android:paddingBottom="4dip"
+                android:singleLine="true"
+                android:textStyle="bold" />
+
+
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/title"
                 android:ellipsize="marquee"
                 android:paddingStart="4dip"
                 android:paddingEnd="4dip"
                 android:layout_centerVertical="true"
-                android:paddingTop="4dip"
+
+                android:text="02/04/2004"
+                android:textSize="12sp"
                 android:paddingBottom="4dip"
-                android:textAlignment="center"
                 android:singleLine="true"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:alpha="0.8"/>
         </RelativeLayout>
 
     </com.google.android.material.card.MaterialCardView>

@@ -35,6 +35,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.icu.text.DateFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -1124,11 +1125,10 @@ public class DetailActivity extends BaseActivity {
                 ImageView editIcon = binding.editIcon;
                 editIcon.setVisibility(View.VISIBLE);
             } else if (movieObject.has("vote_average") &&
-                    !movieObject.getString("vote_average").equals(voteAverage)) {
-                // Set the avarage (non-personal) rating (if it isn't the same).
-                binding.rating.setText(Float.parseFloat(movieObject
-                        .getString("vote_average")) + "/10");
-            }
+                !movieObject.getString("vote_average").equals(voteAverage)) {
+            float voteAverage = Float.parseFloat(movieObject.getString("vote_average"));
+            binding.rating.setText(String.format(Locale.getDefault(), "%.2f/10", voteAverage));
+        }
 
             // If the overview (summary) is different in the new dataset, change it.
             if (movieObject.has("overview") &&
@@ -1204,8 +1204,21 @@ public class DetailActivity extends BaseActivity {
             }
 
             if (!isMovie) {
-                if (movieObject.has("first_air_date") && !movieObject.getString("first_air_date").equals(binding.releaseDate.getText().toString())) {
-                    binding.releaseDate.setText(movieObject.getString("first_air_date"));
+                if (movieObject.has("first_air_date")) {
+                    String firstAirDateStr = movieObject.getString("first_air_date");
+                    try {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        Date firstAirDate = sdf.parse(firstAirDateStr);
+                        if (firstAirDate != null) {
+                            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
+                            String formattedDate = dateFormat.format(firstAirDate);
+                            if (!formattedDate.equals(binding.releaseDate.getText().toString())) {
+                                binding.releaseDate.setText(formattedDate);
+                            }
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -1214,14 +1227,18 @@ public class DetailActivity extends BaseActivity {
                     int totalMinutes = Integer.parseInt(movieObject.getString("runtime"));
                     int hours = totalMinutes / 60;
                     int minutes = totalMinutes % 60;
-                    binding.runtime.setText( hours + "h " + minutes + "m" );
+                    String formattedRuntime = String.format(Locale.getDefault(), "%dh %dm", hours, minutes);
+                    binding.runtime.setText(formattedRuntime);
                 }
             } else {
                 if (movieObject.has("episode_run_time")) {
-                    String episodeRuntime = movieObject.getString("episode_run_time");
-                    episodeRuntime = episodeRuntime.replace("[", "").replace("]", "").trim();
-                    if (!episodeRuntime.isEmpty() && !episodeRuntime.equals(binding.runtime.getText().toString())) {
-                        binding.runtime.setText(episodeRuntime + "m");
+                    JSONArray episodeRuntimes = movieObject.getJSONArray("episode_run_time");
+                    if (episodeRuntimes.length() > 0) {
+                        int episodeRuntimeMinutes = episodeRuntimes.getInt(0);
+                        int hours = episodeRuntimeMinutes / 60;
+                        int minutes = episodeRuntimeMinutes % 60;
+                        String formattedRuntime = String.format(Locale.getDefault(), "%dh %dm", hours, minutes);
+                        binding.runtime.setText(formattedRuntime);
                     } else {
                         binding.runtime.setText(R.string.unknown);
                     }
@@ -2160,14 +2177,14 @@ public class DetailActivity extends BaseActivity {
         }
 
         // Parse the date string and format it to only include the date
-        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
-        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         if (isMovie) {
             try {
-                Date parsedDate = inputFormat.parse( date );
+                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+                Date parsedDate = inputFormat.parse(date);
                 if (parsedDate != null) {
-                    String formattedDate = outputFormat.format( parsedDate );
-                    binding.releaseDate.setText( formattedDate );
+                    DateFormat outputFormat = DateFormat.getDateInstance( DateFormat.DEFAULT, Locale.getDefault());
+                    String formattedDate = outputFormat.format(parsedDate);
+                    binding.releaseDate.setText(formattedDate);
                 }
             } catch (ParseException e) {
                 e.printStackTrace();

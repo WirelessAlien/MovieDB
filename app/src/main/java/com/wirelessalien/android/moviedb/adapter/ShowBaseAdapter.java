@@ -24,6 +24,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.icu.text.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +32,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -40,9 +40,9 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
-import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromListThreadTMDb;
 
 import org.json.JSONException;
@@ -53,6 +53,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowItemViewHolder> {
     // API key names
@@ -168,6 +169,23 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
                 holder.categoryColorView.setVisibility(View.GONE);
             }
 
+            // Check if the object has "title" if not,
+            // it is a series and "name" is used.
+            String dateString = (showData.has(KEY_DATE_MOVIE)) ?
+                    showData.getString(KEY_DATE_MOVIE) : showData.getString(KEY_DATE_SERIES);
+
+            // Convert date to locale.
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date date = sdf.parse(dateString);
+                DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
+                dateString = dateFormat.format(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            holder.showDate.setText(dateString);
+
             // Only if the shows are presented in a list.
             if (!mGridView) {
                 holder.showDescription.setText(showData.getString(KEY_DESCRIPTION));
@@ -200,23 +218,6 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
                 // Remove the first ", " from the string and set the text.
                 holder.showGenre.setText(genreNames.substring(2));
 
-                // Check if the object has "title" if not,
-                // it is a series and "name" is used.
-                String dateString = (showData.has(KEY_DATE_MOVIE)) ?
-                        showData.getString(KEY_DATE_MOVIE) : showData.getString(KEY_DATE_SERIES);
-
-                // Convert date to locale.
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                try {
-                    Date date;
-                    date = sdf.parse(dateString);
-                    java.text.DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(context);
-                    dateString = dateFormat.format(date);
-                } catch (ParseException e) {
-                    // Use default format.
-                }
-
-                holder.showDate.setText(dateString);
             }
         } catch (JSONException e) {
             e.printStackTrace();
