@@ -1181,12 +1181,14 @@ public class DetailActivity extends BaseActivity {
                         String name = lastEpisode.getString("name");
                         double voteAverage = lastEpisode.getDouble("vote_average");
                         String overview = lastEpisode.getString("overview");
+                        String episodeAirDate = lastEpisode.getString("air_date");
 
                         binding.seasonNo.setText( "S:" + seasonNumber);
                         binding.episodeNo.setText( "E:" + episodeNumber);
                         binding.episodeName.setText( name );
                         binding.ratingAverage.setText( voteAverage + "/10" );
                         binding.episodeOverview.setText( overview );
+                        binding.episodeAirDate.setText( episodeAirDate );
                     }
                 }
             }
