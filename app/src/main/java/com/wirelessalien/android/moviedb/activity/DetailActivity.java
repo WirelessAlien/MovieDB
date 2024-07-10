@@ -316,12 +316,14 @@ public class DetailActivity extends BaseActivity {
             binding.favouriteButton.setEnabled(false);
             binding.ratingBtn.setEnabled(false);
             binding.addToList.setEnabled(false);
+            binding.episodeRateBtn.setEnabled(false);
         } else {
             // Enable the buttons
             binding.watchListButton.setEnabled(true);
             binding.favouriteButton.setEnabled(true);
             binding.ratingBtn.setEnabled(true);
             binding.addToList.setEnabled(true);
+            binding.episodeRateBtn.setEnabled(true);
         }
 
         // Get the movieObject from the intent that contains the necessary
@@ -1186,9 +1188,20 @@ public class DetailActivity extends BaseActivity {
                         binding.seasonNo.setText( "S:" + seasonNumber);
                         binding.episodeNo.setText( "E:" + episodeNumber);
                         binding.episodeName.setText( name );
-                        binding.ratingAverage.setText( voteAverage + "/10" );
+                        binding.ratingAverage.setText(String.format(Locale.getDefault(), "%.2f/10", voteAverage));
                         binding.episodeOverview.setText( overview );
-                        binding.episodeAirDate.setText( episodeAirDate );
+                        try {
+                            SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                            Date date = originalFormat.parse(episodeAirDate);
+
+                            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
+                            String formattedDate = dateFormat.format(date);
+
+                            binding.episodeAirDate.setText(formattedDate);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                            binding.episodeAirDate.setText(episodeAirDate);
+                        }
                     }
                 }
             }
@@ -2147,7 +2160,7 @@ public class DetailActivity extends BaseActivity {
                                 if (browserIntent.resolveActivity(getPackageManager()) != null) {
                                     startActivity(browserIntent);
                                 } else {
-                                    Toast.makeText(context, "No application can handle this request. Please install a web browser.", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show();
                                 }
                             }
                         });
