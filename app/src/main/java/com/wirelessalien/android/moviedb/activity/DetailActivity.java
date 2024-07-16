@@ -998,32 +998,38 @@ public class DetailActivity extends BaseActivity {
                         MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) +"/10");
 
                 // If the database has a start date, use it, otherwise print unknown.
-                if (!cursor.isNull(cursor.getColumnIndexOrThrow
-                        (MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                        && !cursor.getString(cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)).equals("")) {
-                    String startDateString = cursor.getString(
-                            cursor.getColumnIndexOrThrow(MovieDatabaseHelper
-                                    .COLUMN_PERSONAL_START_DATE));
-                    startDate = parseDateString(startDateString, null, null);
-                    binding.movieStartDate.setText(getString(R.string.start_date)
-                            + parseDateToString(startDate, null, null));
+                SimpleDateFormat dbDateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+
+                // Start Date
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                        && !cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)).equals("")) {
+                    String startDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE));
+                    try {
+                        Date startDate = dbDateFormat.parse(startDateString);
+                        // Use DateFormat.getDateInstance(DateFormat.DEFAULT) for default system date format
+                        String formattedStartDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(startDate);
+                        binding.movieStartDate.setText(getString(R.string.start_date) + formattedStartDate);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                        binding.movieStartDate.setText(getString(R.string.start_date_unknown));
+                    }
                 } else {
                     binding.movieStartDate.setText(getString(R.string.start_date_unknown));
                 }
 
-                // If the database has a finish date, use it, otherwise print unknown.
-                if (!cursor.isNull(cursor.getColumnIndexOrThrow
-                        (MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
-                        && !cursor.getString(cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)).equals("")) {
-                    String finishDateString = cursor.getString(
-                            cursor.getColumnIndexOrThrow(MovieDatabaseHelper
-                                    .COLUMN_PERSONAL_FINISH_DATE));
-
-                    finishDate = parseDateString(finishDateString, null, null);
-                    binding.movieFinishDate.setText(getString(R.string.finish_date)
-                            + parseDateToString(finishDate, null, null));
+                // Finish Date
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                        && !cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)).equals("")) {
+                    String finishDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE));
+                    try {
+                        Date finishDate = dbDateFormat.parse(finishDateString);
+                        // Use DateFormat.getDateInstance(DateFormat.DEFAULT) for default system date format
+                        String formattedFinishDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(finishDate);
+                        binding.movieFinishDate.setText(getString(R.string.finish_date) + formattedFinishDate);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                        binding.movieFinishDate.setText(getString(R.string.finish_date_unknown));
+                    }
                 } else {
                     binding.movieFinishDate.setText(getString(R.string.finish_date_unknown));
                 }
@@ -1278,7 +1284,7 @@ public class DetailActivity extends BaseActivity {
             }
 
             cursor.close();
-        } catch (JSONException | ParseException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
@@ -1400,7 +1406,8 @@ public class DetailActivity extends BaseActivity {
                 }
             });
 
-            binding.editIcon.setText( "Done" );
+            binding.editIcon.setIcon( ContextCompat.getDrawable( this, R.drawable.ic_check ));
+            binding.editIcon.setText( R.string.done );
 
             // Listen for changes to the categories.
             Spinner categoriesView = binding.categories;
@@ -1555,7 +1562,8 @@ public class DetailActivity extends BaseActivity {
                 }
             });
 
-            binding.editIcon.setText( "Edit" );
+            binding.editIcon.setIcon( ContextCompat.getDrawable( this, R.drawable.ic_edit ));
+            binding.editIcon.setText( R.string.edit );
         }
     }
 
@@ -1592,34 +1600,30 @@ public class DetailActivity extends BaseActivity {
                 // The "Watching" category will be displayed.
             }
 
-            if (!cursor.isNull(cursor.getColumnIndexOrThrow
-                    (MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                    && !cursor.getString(cursor.getColumnIndexOrThrow(
-                    MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)).equals("")) {
-                String startDateString = cursor.getString(cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE));
+            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                    && !cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)).equals("")) {
+                String startDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE));
                 try {
-                    startDate = parseDateString(startDateString, null, null);
+                    startDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(startDateString);
+                    // Use DateFormat.getDateInstance() for default system date format
+                    startDateButton.setText(DateFormat.getDateInstance().format(startDate));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                startDateButton.setText(parseDateToString(startDate, null, null));
             } else {
-                startDateButton.setText( R.string.not_set_btn);
+                startDateButton.setText(R.string.not_set_btn);
             }
 
-            if (!cursor.isNull(cursor.getColumnIndexOrThrow
-                    (MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
-                    && !cursor.getString(cursor.getColumnIndexOrThrow(
-                    MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)).equals("")) {
-                String finishDateString = cursor.getString(cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE));
+            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                    && !cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)).equals("")) {
+                String finishDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE));
                 try {
-                    finishDate = parseDateString(finishDateString, null, null);
+                    finishDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(finishDateString);
+                    // Use DateFormat.getDateInstance() for default system date format
+                    endDateButton.setText(DateFormat.getDateInstance().format(finishDate));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                endDateButton.setText(parseDateToString(finishDate, null, null));
             } else {
                 endDateButton.setText(R.string.not_set_btn);
             }

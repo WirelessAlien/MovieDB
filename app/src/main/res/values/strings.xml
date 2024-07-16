@@ -45,9 +45,9 @@
     <string name="movie_added">Movie added</string>
     <string name="series_added">Series added</string>
     <string name="show_added_error">An error occurred while adding the show to the database</string>
-    <string name="start_date">"Start date: "</string>
+    <string name="start_date">"Started on: "</string>
     <string name="start_date_unknown">Start date: Not set </string>
-    <string name="finish_date">"Finish date: "</string>
+    <string name="finish_date">"Finished on: "</string>
     <string name="finish_date_unknown">Finish date: Not set </string>
     <string name="times_watched">"Times watched: "</string>
     <string name="times_watched_default" translatable="false">1</string>
@@ -199,7 +199,7 @@
     <string name="private_list">Private</string>
     <string name="play_trailer">Play Trailer</string>
     <string name="watchlist">WatchList</string>
-    <string name="add_to_list">Add to List</string>
+    <string name="add_to_list">List</string>
     <string name="favourite">Favourite</string>
     <string name="rate">Rate</string>
     <string name="overview">Overview</string>
@@ -277,4 +277,6 @@
     <string name="no_browser_available">No application can handle this request. Please install a web browser.</string>
     <string name="category_prompt">Select a Category</string>
     <string name="rate_movie">Rate</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
 </resources>

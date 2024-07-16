@@ -107,7 +107,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         holder.binding.rating.setRating((float) rating / 2);
 
         try (MovieDatabaseHelper db = new MovieDatabaseHelper( context )) {
-            if (db.isEpisodeInDatabase( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) )) {
+            if (db.isEpisodeInDatabase( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber()))) {
                 holder.binding.watched.setImageResource( R.drawable.ic_visibility_fill );
             } else {
                 holder.binding.watched.setImageResource( R.drawable.ic_visibility );
@@ -115,12 +115,12 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
 
             holder.binding.watched.setOnClickListener( v -> {
                 // If the episode is in the database, remove it
-                if (db.isEpisodeInDatabase( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) )) {
-                    db.removeEpisodeNumber( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) );
+                if (db.isEpisodeInDatabase( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber()))) {
+                    db.removeEpisodeNumber( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber()));
                     holder.binding.watched.setImageResource( R.drawable.ic_visibility );
                 } else {
                     // If the episode is not in the database, add it
-                    db.addEpisodeNumber( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber() ) );
+                    db.addEpisodeNumber( tvShowId, seasonNumber, Collections.singletonList( episode.getEpisodeNumber()));
                     holder.binding.watched.setImageResource( R.drawable.ic_visibility_fill );
                 }
             } );

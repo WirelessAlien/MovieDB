@@ -80,7 +80,7 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -113,45 +113,56 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textSize="22sp"
-                            android:layout_marginTop="5dp"
                             android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tagline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="10dp"
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
 
+                        <com.google.android.flexbox.FlexboxLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="-8dp"
+                            app:flexDirection="row"
+                            app:flexWrap="wrap">
                         <TextView
                             android:id="@+id/movieStartDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginBottom="5dp"
+                            android:layout_centerVertical="true"
+                            app:drawableLeftCompat="@drawable/ic_dot"
                             android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/movieFinishDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="5dp"
-                            android:visibility="gone" />
+                            android:layout_centerVertical="true"
+                            android:visibility="gone"
+                            app:drawableLeftCompat="@drawable/ic_dot" />
 
                         <TextView
                             android:id="@+id/movieRewatched"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="5dp"
+                            app:drawableLeftCompat="@drawable/ic_dot"
+                            android:layout_centerVertical="true"
                             android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/movieEpisodes"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="5dp"
+                            android:layout_centerVertical="true"
+                            app:drawableLeftCompat="@drawable/ic_dot"
+                            app:drawableRightCompat="@drawable/ic_dot"
                             android:visibility="gone" />
+                        </com.google.android.flexbox.FlexboxLayout>
 
-                        <TextView
-                            android:id="@+id/tagline"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="5dip"
-                            android:textSize="14sp"
-                            android:textStyle="bold"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -299,30 +310,22 @@
                                 android:text="@string/show_rating_default" />
                         </GridLayout>
                     </LinearLayout>
-
                 </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/editIcon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_below="@id/linearMovieDetails"
-                    android:contentDescription="@string/edit_icon_description"
-                    android:onClick="editDetails"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    app:cornerRadius="5dp"
-                    android:text="Edit"
-                    android:visibility="gone"/>
-
             </RelativeLayout>
-
+            <View
+                android:id="@+id/zeroDivider"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_below="@id/movieDetails"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="10dp"
+                android:background="?android:attr/listDivider"/>
             <RelativeLayout
                 android:id="@+id/movieDetailsRl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/movieDetails"
+                android:layout_below="@id/zeroDivider"
                 android:layout_marginStart="11dip"
                 android:layout_marginBottom="10dp">
 
@@ -424,51 +427,68 @@
                 android:layout_marginRight="16dp"
                 android:background="?android:attr/listDivider"/>
 
-            <LinearLayout
+            <HorizontalScrollView
                 android:id="@+id/linearLayout"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginStart="2dp"
-                android:layout_below="@id/firstDivider">
+                android:layout_below="@id/firstDivider"
+                android:scrollbars="none">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginStart="2dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/watchListButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/watchlist"
-                    app:iconGravity="textTop"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    app:icon="@drawable/ic_bookmark" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/addToList"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:icon="@drawable/ic_list_add"
-                    app:iconGravity="textTop"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:text="@string/add_to_list"
-                    android:contentDescription="@string/add_to_list" />
-                <com.google.android.material.button.MaterialButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/favouriteButton"
-                    android:text="@string/favourite"
-                    app:iconGravity="textTop"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    app:icon="@drawable/ic_favorite"
-                    android:contentDescription="@string/add_to_favourite" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/watchListButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/watchlist"
+                        app:iconGravity="textTop"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        app:icon="@drawable/ic_bookmark" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/addToList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:icon="@drawable/ic_list_add"
+                        app:iconGravity="textTop"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:text="@string/add_to_list"
+                        android:contentDescription="@string/add_to_list" />
+                    <com.google.android.material.button.MaterialButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/favouriteButton"
+                        android:text="@string/favourite"
+                        app:iconGravity="textTop"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        app:icon="@drawable/ic_favorite"
+                        android:contentDescription="@string/add_to_favourite" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/ratingBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:icon="@drawable/ic_thumb_up"
-                    app:iconGravity="textTop"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:text="@string/rate"
-                    android:contentDescription="@string/add_rating" />
-            </LinearLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/ratingBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:icon="@drawable/ic_thumb_up"
+                        app:iconGravity="textTop"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:text="@string/rate"
+                        android:contentDescription="@string/add_rating" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/editIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/edit_icon_description"
+                        android:onClick="editDetails"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        app:icon="@drawable/ic_edit"
+                        app:iconGravity="textTop"
+                        android:text="Edit"
+                        android:visibility="gone"/>
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <TextView
                 android:id="@+id/overviewTitle"
