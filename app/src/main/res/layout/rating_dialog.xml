@@ -25,15 +25,30 @@
     android:layout_height="match_parent"
     android:layout_margin="10dp">
 
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/rate_movie"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:textSize="20sp"
+        android:layout_marginBottom="10dp"
+        android:textStyle="bold" />
     <RatingBar
         android:id="@+id/ratingBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"
+        android:layout_margin="16dp"
         android:isIndicator="false"
-        android:numStars="5"
+        android:numStars="10"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
         android:rating="0"
+        style="@style/Widget.AppCompat.RatingBar.Small"
         android:stepSize="1.0" />
 
 
@@ -41,7 +56,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_margin="10dp">
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="20dp">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDelete"

@@ -31,13 +31,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RatingBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.data.Episode;
@@ -128,37 +128,36 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
             e.printStackTrace();
         }
 
-        holder.binding.rateBtn.setOnClickListener( v -> {
-            // Open a dialog to rate the episode
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
+        holder.binding.rateBtn.setOnClickListener(v -> {
+            BottomSheetDialog dialog = new BottomSheetDialog(context);
             LayoutInflater inflater = LayoutInflater.from(context);
-            View dialogView = inflater.inflate( R.layout.rating_dialog, null );
-            builder.setView( dialogView );
-            final AlertDialog dialog = builder.create();
+            View dialogView = inflater.inflate(R.layout.rating_dialog, null);
+            dialog.setContentView(dialogView);
             dialog.show();
 
-            RatingBar ratingBar = dialogView.findViewById( R.id.ratingBar );
-            Button submitButton = dialogView.findViewById( R.id.btnSubmit );
-            Button cancelButton = dialogView.findViewById( R.id.btnCancel );
-            Button deleteButton = dialogView.findViewById( R.id.btnDelete );
+            RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
+            Button submitButton = dialogView.findViewById(R.id.btnSubmit);
+            Button cancelButton = dialogView.findViewById(R.id.btnCancel);
+            Button deleteButton = dialogView.findViewById(R.id.btnDelete);
+            TextView episodeTitle = dialogView.findViewById(R.id.tvTitle);
 
-            Handler mainHandler = new Handler( Looper.getMainLooper());
+            episodeTitle.setText(  "S:" + seasonNumber + " " + "E:" + episode.getEpisodeNumber() + " " + episode.getName());
 
-            CompletableFuture.runAsync(() -> {
-                submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
-                    double rating1 = ratingBar.getRating() * 2;
-                    new AddEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(), rating1, context).start();
-                    mainHandler.post(dialog::dismiss);
-                }));
+            Handler mainHandler = new Handler(Looper.getMainLooper());
 
-                deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
-                    new DeleteEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(), context).start();
-                    mainHandler.post(dialog::dismiss);
-                }));
+            submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
+                double ratingS = ratingBar.getRating();
+                new AddEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(), ratingS, context).start();
+                mainHandler.post(dialog::dismiss);
+            }));
 
-                cancelButton.setOnClickListener(v12 -> dialog.dismiss());
-            });
-        } );
+            deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
+                new DeleteEpisodeRatingThreadTMDb(tvShowId, seasonNumber, episode.getEpisodeNumber(), context).start();
+                mainHandler.post(dialog::dismiss);
+            }));
+
+            cancelButton.setOnClickListener(v12 -> dialog.dismiss());
+        });
     }
 
     @Override

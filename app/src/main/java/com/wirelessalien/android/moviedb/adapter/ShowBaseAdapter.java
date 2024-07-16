@@ -175,11 +175,11 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
                     showData.getString(KEY_DATE_MOVIE) : showData.getString(KEY_DATE_SERIES);
 
             // Convert date to locale.
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             try {
-                Date date = sdf.parse(dateString);
-                DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
-                dateString = dateFormat.format(date);
+                Date date = originalFormat.parse(dateString);
+                DateFormat localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
+                dateString = localFormat.format(date);
             } catch (ParseException e) {
                 e.printStackTrace();
             }

@@ -42,8 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="5dip"
-                style="@style/Widget.Material3.CardView.Elevated"
-                android:layout_margin="2dip">
+                style="@style/Widget.Material3.CardView.Elevated">
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/imagePercentLayout"
                 android:layout_width="match_parent"

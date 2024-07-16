@@ -24,12 +24,14 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ScrollView;
 
+import androidx.core.widget.NestedScrollView;
+
 /*
 * Credits for this class go to cyrilmottier.
 * https://cyrilmottier.com/2013/05/24/pushing-the-actionbar-to-the-next-level/
 */
 
-public class NotifyingScrollView extends ScrollView {
+public class NotifyingScrollView extends NestedScrollView {
 
     private OnScrollChangedListener mOnScrollChangedListener;
 

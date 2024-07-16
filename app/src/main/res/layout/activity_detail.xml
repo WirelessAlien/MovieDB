@@ -27,6 +27,55 @@
     android:fitsSystemWindows="true"
     tools:context="com.wirelessalien.android.moviedb.activity.DetailActivity">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true"
+            app:scrimAnimationDuration="@integer/material_motion_duration_long_1"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:titleEnabled="false">
+
+            <ImageView
+                android:id="@+id/movieImage"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:fitsSystemWindows="true"
+                android:scaleType="centerCrop"
+                app:layout_collapseMode="parallax" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="70dp"
+                app:cardCornerRadius="5dp"
+                app:layout_collapseMode="parallax">
+
+                <ImageView
+                    android:id="@+id/moviePoster"
+                    android:layout_width="125dp"
+                    android:layout_height="200dp"
+                    android:contentDescription="@string/image_description"
+                    android:scaleType="fitXY" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:layout_gravity="top"
+                app:layout_collapseMode="pin" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
     <com.wirelessalien.android.moviedb.view.NotifyingScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
@@ -39,33 +88,13 @@
 
             <requestFocus />
 
-            <ImageView
-                android:id="@+id/movieImage"
-                android:layout_width="match_parent"
-                android:layout_height="240dp"
-                android:background="@color/md_theme_surface"
-                android:contentDescription="@string/movie_image_description"
-                android:scaleType="centerCrop" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="5dp">
-                <ImageView
-                    android:id="@+id/moviePoster"
-                    android:layout_width="125dp"
-                    android:layout_height="200dp"
-                    android:scaleType="fitXY"
-                    android:contentDescription="@string/image_description" />
-            </com.google.android.material.card.MaterialCardView>
-
             <RelativeLayout
                 android:id="@+id/movieDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/movieImage"
-                android:layout_margin="16dp">
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginEnd="16dp">
 
                 <LinearLayout
                     android:id="@+id/linearMovieDetails"
@@ -91,24 +120,29 @@
                             android:id="@+id/movieStartDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="5dp"
                             android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/movieFinishDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
                             android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/movieRewatched"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
                             android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/movieEpisodes"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
                             android:visibility="gone" />
 
                         <TextView
@@ -122,178 +156,153 @@
 
                     <LinearLayout
                         android:id="@+id/editShowDetails"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:visibility="gone">
 
-                        <TableLayout
+                        <GridLayout
                             android:id="@+id/dateDetailsLayout"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:shrinkColumns="0,1">
+                            android:columnCount="2"
+                            android:orientation="horizontal">
 
-                            <TableRow
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
+                            <!-- Show Category Row -->
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:gravity="center_vertical"
+                                android:text="@string/show_category" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/show_category" />
+                            <Spinner
+                                android:id="@+id/categories"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:entries="@array/categories" />
 
-                                <Spinner
-                                    android:id="@+id/categories"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:entries="@array/categories" />
-                            </TableRow>
+                            <!-- Start Date Row -->
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:gravity="center_vertical"
+                                android:text="@string/start_date" />
 
-                            <TableRow
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/startDateButton"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                app:cornerRadius="5dp"
+                                android:drawableEnd="@drawable/ic_calendar"
+                                android:drawablePadding="5dip"
+                                android:onClick="selectDate"
+                                android:tag="start_date" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/start_date" />
+                            <!-- Finish Date Row -->
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:gravity="center_vertical"
+                                android:text="@string/finish_date" />
 
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/startDateButton"
-                                    style="@style/Widget.Material3.Button.TextButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    app:cornerRadius="5dp"
-                                    android:drawableEnd="@drawable/ic_calendar"
-                                    android:drawablePadding="5dip"
-                                    android:onClick="selectDate"
-                                    android:tag="start_date" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/endDateButton"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                app:cornerRadius="5dp"
+                                android:drawableEnd="@drawable/ic_calendar"
+                                android:drawablePadding="5dip"
+                                android:onClick="selectDate"
+                                android:tag="end_date" />
 
-                            </TableRow>
+                            <!-- Times Watched Row -->
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:gravity="center_vertical"
+                                android:text="@string/times_watched" />
 
-                            <TableRow
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/timesWatched"
+                                android:layout_width="0dp"
+                                android:layout_height="50dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:digits="0123456789"
+                                android:gravity="center_vertical"
+                                android:hint="@string/times_watched_default"
+                                android:inputType="number"
+                                style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                                android:text="@string/times_watched_default" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/finish_date" />
+                            <!-- Episodes Seen Row (Initially Hidden) -->
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="5dip"
+                                android:text="@string/episodes_seen"
+                                android:visibility="gone" />
 
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/endDateButton"
-                                    style="@style/Widget.Material3.Button.TextButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    app:cornerRadius="5dp"
-                                    android:drawableEnd="@drawable/ic_calendar"
-                                    android:drawablePadding="5dip"
-                                    android:onClick="selectDate"
-                                    android:tag="end_date" />
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/episodesSeen"
+                                android:layout_width="0dp"
+                                android:layout_height="50dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:digits="0123456789"
+                                android:gravity="center_vertical"
+                                android:hint="@string/episodes_seen_default"
+                                android:inputType="number"
+                                style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                                android:text="@string/episodes_seen_default"
+                                android:visibility="gone" />
 
-                            </TableRow>
+                            <!-- Rating Row -->
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:gravity="center_vertical"
+                                android:text="@string/rating" />
 
-                            <TableRow
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginBottom="5dip"
-                                    android:text="@string/times_watched" />
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/timesWatched"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="4dip"
-                                    android:layout_marginStart="4dip"
-                                    android:digits="0123456789"
-                                    android:gravity="center_horizontal"
-                                    android:hint="@string/times_watched_default"
-                                    android:inputType="number"
-                                    android:paddingBottom="3dip"
-                                    android:paddingTop="3dip"
-                                    android:text="@string/times_watched_default" />
-
-                            </TableRow>
-
-                            <TableRow
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="3dip"
-                                android:orientation="vertical"
-                                android:visibility="gone">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginBottom="5dip"
-                                    android:text="@string/episodes_seen" />
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/episodesSeen"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="4dip"
-                                    android:layout_marginStart="4dip"
-                                    android:layout_weight="1"
-                                    android:digits="0123456789"
-                                    android:gravity="center_horizontal"
-                                    android:hint="@string/episodes_seen_default"
-                                    android:inputType="number"
-                                    android:paddingBottom="3dip"
-                                    android:paddingTop="3dip"
-                                    android:text="@string/episodes_seen_default" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1" />
-
-                            </TableRow>
-
-                            <TableRow
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="3dip"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginBottom="5dip"
-                                    android:text="@string/rating" />
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/showRating"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="4dip"
-                                    android:layout_marginStart="4dip"
-                                    android:layout_weight="1"
-                                    android:digits="0123456789"
-                                    android:gravity="center_horizontal"
-                                    android:hint="@string/show_rating_default"
-                                    android:inputType="number"
-                                    android:paddingBottom="3dip"
-                                    android:paddingTop="3dip"
-                                    android:text="@string/show_rating_default" />
-                            </TableRow>
-
-                        </TableLayout>
-
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/showRating"
+                                android:layout_width="0dp"
+                                android:layout_height="50dp"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:digits="0123456789"
+                                android:gravity="center_vertical"
+                                android:hint="@string/show_rating_default"
+                                android:inputType="number"
+                                style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                                android:text="@string/show_rating_default" />
+                        </GridLayout>
                     </LinearLayout>
 
                 </LinearLayout>
 
-                <ImageView
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/editIcon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -302,9 +311,10 @@
                     android:layout_below="@id/linearMovieDetails"
                     android:contentDescription="@string/edit_icon_description"
                     android:onClick="editDetails"
-                    android:padding="10dip"
-                    android:src="@drawable/ic_edit"
-                    android:visibility="gone" />
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    app:cornerRadius="5dp"
+                    android:text="Edit"
+                    android:visibility="gone"/>
 
             </RelativeLayout>
 
@@ -868,18 +878,14 @@
         android:src="@drawable/ic_share"
         app:layout_behavior="com.google.android.material.floatingactionbutton.FloatingActionButton$Behavior"/>
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabSave"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:background="@android:color/transparent"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"/>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
+        android:layout_margin="16dp"
+        app:layout_anchor="@id/movieImage"
+        app:layout_anchorGravity="bottom|end"
+        android:contentDescription="@string/share_link_button"
+        android:src="@drawable/ic_star_border" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

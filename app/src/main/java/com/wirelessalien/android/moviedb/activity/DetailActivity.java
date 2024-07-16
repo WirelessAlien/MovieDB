@@ -43,8 +43,6 @@ import android.os.Looper;
 import android.text.SpannableString;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
@@ -54,6 +52,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -64,7 +63,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
@@ -74,7 +72,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -147,6 +145,7 @@ public class DetailActivity extends BaseActivity {
     private int movieId;
     private int seasonNumber;
     private int episodeNumber;
+    private String episodeName;
     private JSONArray seasons;
     private Target target;
     private String voteAverage;
@@ -175,7 +174,7 @@ public class DetailActivity extends BaseActivity {
         final int scrollThreshold = 50;
         public void onScrollChanged(int t) {
             if (t == 0) {
-                getSupportActionBar().setTitle(R.string.app_name);
+                getSupportActionBar().setTitle("");
             } else {
                 if (showTitle != null) {
                     getSupportActionBar().setTitle(showTitle);
@@ -184,8 +183,10 @@ public class DetailActivity extends BaseActivity {
             if (Math.abs(t - lastScrollY) > scrollThreshold) {
                 if (t > lastScrollY) {
                     binding.fab.hide();
+                    binding.fabSave.hide();
                 } else if (t < lastScrollY) {
                     binding.fab.show();
+                    binding.fabSave.show();
                 }
                 lastScrollY = t;
             }
@@ -248,13 +249,11 @@ public class DetailActivity extends BaseActivity {
         setContentView(binding.getRoot());
 
         setNavigationDrawer();
-        setBackButtons();
+        getSupportActionBar().setTitle("");
 
-        MaterialToolbar toolbar = binding.toolbar;
 
         // Make the transparency dependent on how far the user scrolled down.
-        NotifyingScrollView notifyingScrollView = binding.scrollView;
-        notifyingScrollView.setOnScrollChangedListener(mOnScrollChangedListener);
+        binding.scrollView.setOnScrollChangedListener(mOnScrollChangedListener);
 
         // Create a variable with the application context that can be used
         // when data is retrieved.
@@ -357,6 +356,22 @@ public class DetailActivity extends BaseActivity {
 
         checkNetwork();
 
+        databaseHelper = new MovieDatabaseHelper(getApplicationContext());
+        database = databaseHelper.getWritableDatabase();
+        databaseHelper.onCreate(database);
+
+        // Check if the show is already in the database.
+        Cursor cursor = database.rawQuery("SELECT * FROM " +
+                MovieDatabaseHelper.TABLE_MOVIES +
+                " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
+                "=" + movieId + " LIMIT 1", null);
+
+        // If the show is in the database, display a filled in star as icon.
+        if (cursor.getCount() > 0) {
+            // A record has been found
+            binding.fabSave.setImageResource(R.drawable.ic_star);
+            added = true;
+        }
 
         ProgressBar progressBar = binding.progressBar;
         progressBar.setVisibility(View.VISIBLE);
@@ -456,6 +471,10 @@ public class DetailActivity extends BaseActivity {
                         binding.allEpisodeBtn.setBackgroundTintList( colorStateList );
                         binding.lastEpisodeCard.setStrokeWidth( 5 );
                         binding.lastEpisodeCard.setCardBackgroundColor( Color.TRANSPARENT );
+                        binding.fabSave.setBackgroundTintList( colorStateList );
+                        binding.toolbar.setBackgroundColor(Color.TRANSPARENT );
+                        binding.collapsingToolbar.setContentScrimColor( mutedColor );
+
 
                         Animation animation = AnimationUtils.loadAnimation(
                                 getApplicationContext(), R.anim.slide_in_right);
@@ -556,19 +575,19 @@ public class DetailActivity extends BaseActivity {
         } ).start() );
 
         binding.ratingBtn.setOnClickListener(v -> {
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
+            BottomSheetDialog dialog = new BottomSheetDialog(mActivity);
             LayoutInflater inflater = getLayoutInflater();
             View dialogView = inflater.inflate(R.layout.rating_dialog, null);
-            builder.setView(dialogView);
-            final AlertDialog dialog = builder.create();
+            dialog.setContentView(dialogView);
             dialog.show();
 
             RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
             Button submitButton = dialogView.findViewById(R.id.btnSubmit);
             Button cancelButton = dialogView.findViewById(R.id.btnCancel);
             Button deleteButton = dialogView.findViewById(R.id.btnDelete);
-
-            progressBar.setVisibility(View.VISIBLE);
+            TextView movieTitle = dialogView.findViewById(R.id.tvTitle);
+            
+            movieTitle.setText( showTitle );
 
             CompletableFuture.runAsync(() -> {
                 GetAccountStateThreadTMDb getAccountStateThread = new GetAccountStateThreadTMDb(movieId, isMovie ? "movie" : "tv", mActivity);
@@ -579,24 +598,26 @@ public class DetailActivity extends BaseActivity {
                     e.printStackTrace();
                 }
                 double previousRating = getAccountStateThread.getRating();
-                runOnUiThread(() -> ratingBar.setRating((float) previousRating / 2));
+                runOnUiThread(() -> ratingBar.setRating((float) previousRating));
             }).thenRun(() -> {
                 submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
                     String type = isMovie ? "movie" : "tv";
-                    double rating = ratingBar.getRating() * 2;
+                    double rating = ratingBar.getRating();
                     new AddRatingThreadTMDb(movieId, rating, type, mActivity).start();
                     runOnUiThread( dialog::dismiss );
-                }) );
+                }));
 
                 deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
                     String type = isMovie ? "movie" : "tv";
                     new DeleteRatingThreadTMDb(movieId, type, mActivity).start();
                     runOnUiThread( dialog::dismiss );
-                }) );
+                }));
 
                 cancelButton.setOnClickListener(v12 -> dialog.dismiss());
-            }).thenRun(() -> progressBar.setVisibility(View.GONE));
+            });
         });
+
+
 
         CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder().build();
         customTabsIntent.intent.setPackage("com.android.chrome");
@@ -662,6 +683,11 @@ public class DetailActivity extends BaseActivity {
                 } catch (JSONException ignored) {
 
                 }
+                try {
+                    episodeName = lastEpisode.getString("name");
+                } catch (JSONException ignored) {
+
+                }
             }
         }
 
@@ -674,36 +700,36 @@ public class DetailActivity extends BaseActivity {
             }
         }
 
-        binding.episodeRateBtn.setOnClickListener( v -> {
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(mActivity);
+        binding.episodeRateBtn.setOnClickListener(v -> {
+            BottomSheetDialog dialog = new BottomSheetDialog(mActivity);
             LayoutInflater inflater = LayoutInflater.from(mActivity);
-            View dialogView = inflater.inflate( R.layout.rating_dialog, null );
-            builder.setView( dialogView );
-            final AlertDialog dialog = builder.create();
+            View dialogView = inflater.inflate(R.layout.rating_dialog, null);
+            dialog.setContentView(dialogView);
             dialog.show();
 
-            RatingBar ratingBar = dialogView.findViewById( R.id.ratingBar );
-            Button submitButton = dialogView.findViewById( R.id.btnSubmit );
-            Button cancelButton = dialogView.findViewById( R.id.btnCancel );
-            Button deleteButton = dialogView.findViewById( R.id.btnDelete );
+            RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
+            Button submitButton = dialogView.findViewById(R.id.btnSubmit);
+            Button cancelButton = dialogView.findViewById(R.id.btnCancel);
+            Button deleteButton = dialogView.findViewById(R.id.btnDelete);
+            TextView episodeTitle = dialogView.findViewById(R.id.tvTitle);
 
-            Handler mainHandler = new Handler( Looper.getMainLooper() );
+            episodeTitle.setText(  "S:" + seasonNumber + " " + "E:" + episodeNumber + " " + episodeName);
 
-            CompletableFuture.runAsync( () -> {
-                submitButton.setOnClickListener( v1 -> CompletableFuture.runAsync( () -> {
-                    double rating = ratingBar.getRating() * 2;
-                    new AddEpisodeRatingThreadTMDb( movieId, seasonNumber, episodeNumber, rating, context ).start();
-                    mainHandler.post( dialog::dismiss );
-                } ) );
+            submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
+                double rating = ratingBar.getRating();
+                new AddEpisodeRatingThreadTMDb(movieId, seasonNumber, episodeNumber, rating, context).start();
+                mActivity.runOnUiThread(dialog::dismiss);
+            }));
 
-                deleteButton.setOnClickListener( v12 -> CompletableFuture.runAsync( () -> {
-                    new DeleteEpisodeRatingThreadTMDb( movieId, seasonNumber, episodeNumber, context ).start();
-                    mainHandler.post( dialog::dismiss );
-                } ) );
+            deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
+                new DeleteEpisodeRatingThreadTMDb(movieId, seasonNumber, episodeNumber, context).start();
+                mActivity.runOnUiThread(dialog::dismiss);
+            }));
 
-                cancelButton.setOnClickListener( v12 -> dialog.dismiss() );
-            } );
+            cancelButton.setOnClickListener(v12 -> dialog.dismiss());
         });
+
+
 
         binding.episodeWathchBtn.setOnClickListener( v -> {
             if (database == null) {
@@ -746,6 +772,44 @@ public class DetailActivity extends BaseActivity {
                 startActivity(browserIntent);
             }
         });
+
+        binding.fabSave.setOnClickListener(v -> {
+            if (added) {
+                // Remove the show from the database.
+                database.delete(MovieDatabaseHelper.TABLE_MOVIES,
+                        MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
+                added = false;
+                binding.fabSave.setImageResource(R.drawable.ic_star_border);
+                ListFragment.databaseUpdate();
+            } else {
+                final ContentValues showValues = new ContentValues();
+
+                // Only show the dialog is the user specified so in the preferences.
+                if (preferences.getBoolean(SHOW_SAVE_DIALOG_PREFERENCE, false)) {
+
+                    // Ask in which category the show should be placed.
+                    final MaterialAlertDialogBuilder categoriesDialog = new MaterialAlertDialogBuilder(this);
+                    categoriesDialog.setTitle(getString(R.string.category_picker));
+                    categoriesDialog.setItems(R.array.categories, (dialog, which) -> {
+                        showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(which));
+
+                        // Add the show to the database
+                        addMovieToDatabase(showValues);
+
+                        // If the selected category is CATEGORY_WATCHED, add seasons and episodes to the database
+                        if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                            addSeasonsAndEpisodesToDatabase();
+                        }
+                    });
+
+                    categoriesDialog.show();
+                } else {
+                    // If no dialog is shown, add the show to the default category.
+                    showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_WATCHING);
+                    addMovieToDatabase(showValues);
+                }
+            }
+        });
     }
 
     @Override
@@ -776,81 +840,6 @@ public class DetailActivity extends BaseActivity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.save_menu, menu);
-
-        databaseHelper = new MovieDatabaseHelper(getApplicationContext());
-        database = databaseHelper.getWritableDatabase();
-        databaseHelper.onCreate(database);
-
-        // Check if the show is already in the database.
-        Cursor cursor = database.rawQuery("SELECT * FROM " +
-                MovieDatabaseHelper.TABLE_MOVIES +
-                " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                "=" + movieId + " LIMIT 1", null);
-
-        // If the show is in the database, display a filled in star as icon.
-        if (cursor.getCount() > 0) {
-            // A record has been found
-            MenuItem item = menu.findItem(R.id.action_save);
-            item.setIcon(R.drawable.ic_star);
-            added = true;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        // Add or remove the show from the database.
-        if (id == R.id.action_save) {
-            databaseHelper = new MovieDatabaseHelper(getApplicationContext());
-            database = databaseHelper.getWritableDatabase();
-            databaseHelper.onCreate(database);
-            if (added) {
-                // Remove the show from the database.
-                database.delete(MovieDatabaseHelper.TABLE_MOVIES,
-                        MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
-                added = false;
-                item.setIcon(R.drawable.ic_star_border);
-                ListFragment.databaseUpdate();
-            } else {
-                final ContentValues showValues = new ContentValues();
-
-                // Only show the dialog is the user specified so in the preferences.
-                if (preferences.getBoolean(SHOW_SAVE_DIALOG_PREFERENCE, false)) {
-
-                    // Ask in which category the show should be placed.
-                    final MaterialAlertDialogBuilder categoriesDialog = new MaterialAlertDialogBuilder(this);
-                    categoriesDialog.setTitle(getString(R.string.category_picker));
-                    categoriesDialog.setItems(R.array.categories, (dialog, which) -> {
-                        showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(which));
-
-                        // Add the show to the database
-                        addMovieToDatabase(showValues, item);
-
-                        // If the selected category is CATEGORY_WATCHED, add seasons and episodes to the database
-                        if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
-                            addSeasonsAndEpisodesToDatabase();
-                        }
-                    });
-
-                    categoriesDialog.show();
-                } else {
-                    // If no dialog is shown, add the show to the default category.
-                    showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_WATCHING);
-                    addMovieToDatabase(showValues, item);
-                }
-            }
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     private void addSeasonsAndEpisodesToDatabase() {
         if (!isMovie && seasons != null) {
@@ -882,9 +871,8 @@ public class DetailActivity extends BaseActivity {
      * and then inserts it into the database.
      *
      * @param showValues the ContentValuese with the already specified values.
-     * @param item       the menu item that will be replaced with a filled in star.
      */
-    private void addMovieToDatabase(ContentValues showValues, MenuItem item) {
+    private void addMovieToDatabase(ContentValues showValues) {
         // Add the show to the database.
         try {
             // Put the necessary values into ContentValues object.
@@ -913,7 +901,7 @@ public class DetailActivity extends BaseActivity {
             // Inform the user of the addition to the database
             // and change the boolean in order to change the MenuItem's behaviour.
             added = true;
-            item.setIcon(R.drawable.ic_star);
+            binding.fabSave.setImageResource(R.drawable.ic_star);
             if (isMovie) {
                 Toast.makeText(getApplicationContext(), getResources().getString(R.string.movie_added), Toast.LENGTH_SHORT).show();
             } else {
@@ -936,15 +924,11 @@ public class DetailActivity extends BaseActivity {
         if (editShowDetails.getVisibility() != View.GONE) {
             // Clear the focus (in case it has the focus)
             // so the content will be saved when the user leaves.
-            Spinner categoriesView = binding.categories;
-            EditText timesWatched = binding.timesWatched;
-            EditText episodesSeen = binding.episodesSeen;
-            EditText showRating = binding.showRating;
 
-            categoriesView.clearFocus();
-            timesWatched.clearFocus();
-            episodesSeen.clearFocus();
-            showRating.clearFocus();
+            binding.categories.clearFocus();
+            binding.timesWatched.clearFocus();
+            binding.episodesSeen.clearFocus();
+            binding.showRating.clearFocus();
         }
 
         setResult(RESULT_CANCELED);
@@ -1113,7 +1097,7 @@ public class DetailActivity extends BaseActivity {
                             + totalEpisodes);
 
                     // Make the row visible once the correct values are set.
-                    TableRow episodesSeenRow = (TableRow) binding.episodesSeen.getParent();
+                    GridLayout episodesSeenRow = (GridLayout) binding.episodesSeen.getParent();
                     episodesSeenRow.setVisibility(View.VISIBLE);
                     binding.movieEpisodes.setVisibility(View.VISIBLE);
                 }
@@ -1124,8 +1108,7 @@ public class DetailActivity extends BaseActivity {
                 binding.movieRewatched.setVisibility(View.VISIBLE);
 
                 // Make it possible to change the values.
-                ImageView editIcon = binding.editIcon;
-                editIcon.setVisibility(View.VISIBLE);
+                binding.editIcon.setVisibility(View.VISIBLE);
             } else if (movieObject.has("vote_average") &&
                 !movieObject.getString("vote_average").equals(voteAverage)) {
             float voteAverage = Float.parseFloat(movieObject.getString("vote_average"));
@@ -1180,14 +1163,14 @@ public class DetailActivity extends BaseActivity {
                     if (lastEpisode != null) {
                         seasonNumber = lastEpisode.getInt("season_number");
                         episodeNumber = lastEpisode.getInt("episode_number");
-                        String name = lastEpisode.getString("name");
+                        episodeName = lastEpisode.getString("name");
                         double voteAverage = lastEpisode.getDouble("vote_average");
                         String overview = lastEpisode.getString("overview");
                         String episodeAirDate = lastEpisode.getString("air_date");
 
                         binding.seasonNo.setText( "S:" + seasonNumber);
                         binding.episodeNo.setText( "E:" + episodeNumber);
-                        binding.episodeName.setText( name );
+                        binding.episodeName.setText( episodeName );
                         binding.ratingAverage.setText(String.format(Locale.getDefault(), "%.2f/10", voteAverage));
                         binding.episodeOverview.setText( overview );
                         try {
@@ -1391,7 +1374,6 @@ public class DetailActivity extends BaseActivity {
         final LinearLayout showDetails, editShowDetails;
         showDetails = binding.showDetails;
         editShowDetails = binding.editShowDetails;
-        ImageView editIcon = binding.editIcon;
 
         final EditText episodesSeenView = binding.episodesSeen;
         final EditText timesWatchedView = binding.timesWatched;
@@ -1418,7 +1400,7 @@ public class DetailActivity extends BaseActivity {
                 }
             });
 
-            editIcon.setImageResource(R.drawable.ic_check);
+            binding.editIcon.setText( "Done" );
 
             // Listen for changes to the categories.
             Spinner categoriesView = binding.categories;
@@ -1573,7 +1555,7 @@ public class DetailActivity extends BaseActivity {
                 }
             });
 
-            editIcon.setImageResource( R.drawable.ic_edit );
+            binding.editIcon.setText( "Edit" );
         }
     }
 
