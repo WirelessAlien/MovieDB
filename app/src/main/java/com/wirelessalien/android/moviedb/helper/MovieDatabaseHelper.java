@@ -36,10 +36,12 @@ import android.widget.ArrayAdapter;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.data.EpisodeDbDetails;
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener;
 
 import org.json.JSONArray;
@@ -54,6 +56,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -83,6 +86,8 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PERSONAL_EPISODES = "personal_episodes";
     public static final String COLUMN_EPISODE_NUMBER = "episode_number";
     public static final String COLUMN_SEASON_NUMBER = "season_number";
+    public static final String COLUMN_EPISODE_WATCH_DATE = "episode_watch_date";
+    public static final String COLUMN_EPISODE_RATING = "episode_rating";
     public static final String COLUMN_CATEGORIES = "watched";
     public static final String COLUMN_MOVIE = "movie";
     public static final int CATEGORY_WATCHING = 2;
@@ -93,7 +98,7 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "movies.db";
     private static final String DATABASE_FILE_NAME = "movies";
     private static final String DATABASE_FILE_EXT = ".db";
-    private static final int DATABASE_VERSION = 12;
+    private static final int DATABASE_VERSION = 13;
 
 
     // Initialize the database object.
@@ -366,9 +371,12 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
         database.execSQL(DATABASE_CREATE);
 
         String CREATE_EPISODES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_EPISODES + "(" +
-                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_MOVIES_ID + " INTEGER NOT NULL, " +
-               COLUMN_SEASON_NUMBER + " INTEGER NOT NULL, " +
-                COLUMN_EPISODE_NUMBER + " INTEGER NOT NULL);";
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_MOVIES_ID + " INTEGER NOT NULL, " +
+                COLUMN_SEASON_NUMBER + " INTEGER NOT NULL, " +
+                COLUMN_EPISODE_NUMBER + " INTEGER NOT NULL, " +
+                COLUMN_EPISODE_RATING + " INTEGER, " +
+                COLUMN_EPISODE_WATCH_DATE + " TEXT);";
         database.execSQL(CREATE_EPISODES_TABLE);
     }
 
@@ -379,7 +387,7 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                 + oldVersion + " to " + newVersion +
                 ", database will be temporarily exported to a JSON string and imported after the upgrade.");
 
-        if (oldVersion < newVersion) {
+        if (oldVersion < 12) {
             // Create a new table named episodes
             String CREATE_EPISODES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_EPISODES + "(" +
                     COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_MOVIES_ID + " INTEGER NOT NULL, " +
@@ -387,7 +395,60 @@ public class MovieDatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_EPISODE_NUMBER + " INTEGER NOT NULL);";
             database.execSQL(CREATE_EPISODES_TABLE);
         }
+
+        //alter episode table to add COLUMN_EPISODE_RATING and COLUMN_EPISODE_WATCH_DATE
+        if (oldVersion < 13) {
+            String ALTER_EPISODES_TABLE = "ALTER TABLE " + TABLE_EPISODES + " ADD COLUMN " + COLUMN_EPISODE_RATING + " INTEGER;";
+            database.execSQL(ALTER_EPISODES_TABLE);
+            ALTER_EPISODES_TABLE = "ALTER TABLE " + TABLE_EPISODES + " ADD COLUMN " + COLUMN_EPISODE_WATCH_DATE + " TEXT;";
+            database.execSQL(ALTER_EPISODES_TABLE);
+        }
+
         onCreate(database);
+    }
+
+    public void addOrUpdateEpisode(int movieId, int seasonNumber, int episodeNumber, @Nullable Integer rating, @Nullable String watchDate) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_MOVIES_ID, movieId);
+        values.put(COLUMN_SEASON_NUMBER, seasonNumber);
+        values.put(COLUMN_EPISODE_NUMBER, episodeNumber);
+        // Only add rating and watch date if they are not null
+        if (rating != null) {
+            values.put(COLUMN_EPISODE_RATING, rating);
+        }
+        if (watchDate != null) {
+            values.put(COLUMN_EPISODE_WATCH_DATE, watchDate);
+        }
+
+        // Check if the episode already exists
+        boolean exists = isEpisodeInDatabase(movieId, seasonNumber, Collections.singletonList(episodeNumber));
+        if (exists) {
+            // Update existing episode
+            String whereClause = COLUMN_MOVIES_ID + "=? AND " + COLUMN_SEASON_NUMBER + "=? AND " + COLUMN_EPISODE_NUMBER + "=?";
+            String[] whereArgs = new String[]{String.valueOf(movieId), String.valueOf(seasonNumber), String.valueOf(episodeNumber)};
+            db.update(TABLE_EPISODES, values, whereClause, whereArgs);
+        } else {
+            // Insert new episode
+            db.insert(TABLE_EPISODES, null, values);
+        }
+    }
+
+    public EpisodeDbDetails getEpisodeDetails(int movieId, int seasonNumber, int episodeNumber) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_EPISODE_RATING, COLUMN_EPISODE_WATCH_DATE};
+        String selection = COLUMN_MOVIES_ID + " = ? AND " + COLUMN_SEASON_NUMBER + " = ? AND " + COLUMN_EPISODE_NUMBER + " = ?";
+        String[] selectionArgs = {String.valueOf(movieId), String.valueOf(seasonNumber), String.valueOf(episodeNumber)};
+        Cursor cursor = db.query(TABLE_EPISODES, columns, selection, selectionArgs, null, null, null);
+
+        EpisodeDbDetails details = null;
+        if (cursor.moveToFirst()) {
+            Integer rating = cursor.isNull(0) ? null : cursor.getInt(0);
+            String watchDate = cursor.getString(1);
+            details = new EpisodeDbDetails(rating, watchDate);
+        }
+        cursor.close();
+        return details;
     }
 
     public void addEpisodeNumber(int movieId, int seasonNumber, List<Integer> episodeNumbers) {

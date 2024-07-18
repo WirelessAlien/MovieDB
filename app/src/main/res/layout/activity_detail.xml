@@ -159,7 +159,6 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             app:drawableLeftCompat="@drawable/ic_dot"
-                            app:drawableRightCompat="@drawable/ic_dot"
                             android:visibility="gone" />
                         </com.google.android.flexbox.FlexboxLayout>
 

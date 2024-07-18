@@ -46,14 +46,42 @@
                 android:layout_height="wrap_content"
                 style="@style/Widget.Material3.CardView.Elevated"
                 card_view:cardCornerRadius="5dp">
-                <com.wirelessalien.android.moviedb.view.WideRatioImageView
-                    android:id="@+id/image"
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:adjustViewBounds="true"
-                    android:contentDescription="@string/image_description"
-                    android:scaleType="fitXY" />
+                    android:layout_height="wrap_content">
+                    <com.wirelessalien.android.moviedb.view.WideRatioImageView
+                        android:id="@+id/image"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/image_description"
+                        android:scaleType="fitXY" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/rateBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBottom="@id/image"
+                        android:layout_toStartOf="@id/watched"
+                        app:icon="@drawable/ic_thumb_up_border"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/watched"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBottom="@id/image"
+                        android:layout_alignParentEnd="true"
+                        app:icon="@drawable/ic_visibility"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/editDetails"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBottom="@id/image"
+                        android:layout_toStartOf="@id/rateBtn"
+                        app:icon="@drawable/ic_edit"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+                </RelativeLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -112,7 +140,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="12"
-                    android:layout_marginStart="5dp"
                     android:layout_toEndOf="@id/averageRating"
                     app:drawableLeftCompat="@drawable/ic_dot" />
                 <TextView
@@ -120,7 +147,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/runtime"
-                    android:text="13-02-2008"
+                    android:text="00-00-0000"
                     app:drawableLeftCompat="@drawable/ic_dot" />
                 </RelativeLayout>
 
@@ -145,32 +172,35 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/episodeCountLayout">
-                    <ImageButton
-                        android:id="@+id/rateBtn"
+                    <com.google.android.flexbox.FlexboxLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_toStartOf="@id/watched"
-                        android:src="@drawable/ic_thumb_up_border"
-                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
-                    <ImageButton
-                        android:id="@+id/watched"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:src="@drawable/ic_visibility"
-                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
-                    <RatingBar
+                        app:flexWrap="wrap"
+                        android:layout_marginStart="-8dp"
+                        app:flexDirection="row">
+                    <TextView
                         android:id="@+id/rating"
-                        style="?android:attr/ratingBarStyleSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:numStars="5"
-                        android:rating="3.5"
-                        android:paddingBottom="5dp"/>
+                        app:drawableLeftCompat="@drawable/ic_dot"
+                        android:text="TMDb Rating"/>
+                    <TextView
+                        android:id="@+id/watchedDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/rating"
+                        android:text="@string/watched_on_not_set"
+                        app:drawableLeftCompat="@drawable/ic_dot" />
+                    <TextView
+                        android:id="@+id/episodeDbRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/watchedDate"
+                        android:text="@string/episode_rating_tmdb_not_set"
+                        app:drawableLeftCompat="@drawable/ic_dot" />
+                    </com.google.android.flexbox.FlexboxLayout>
                 </RelativeLayout>
             </RelativeLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
-
 </LinearLayout>

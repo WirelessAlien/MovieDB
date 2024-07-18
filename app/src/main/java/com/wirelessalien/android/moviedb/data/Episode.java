@@ -96,4 +96,11 @@ public class Episode {
         this.posterPath = posterPath;
     }
 
+    public void setWatchDate(String date) {
+
+    }
+
+    public void setRating(double episodeRating) {
+
+    }
 }

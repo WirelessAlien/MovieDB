@@ -279,4 +279,8 @@
     <string name="rate_movie">Rate</string>
     <string name="edit">Edit</string>
     <string name="done">Done</string>
+    <string name="episode_rating_tmdb_not_set">Rating (TMDb): Not set</string>
+    <string name="watched_on">"Watched on: %1$s"</string>
+    <string name="rating_db">Rating (Db): %1$s</string>
+    <string name="watched_on_not_set">Watched On: Not set</string>
 </resources>
