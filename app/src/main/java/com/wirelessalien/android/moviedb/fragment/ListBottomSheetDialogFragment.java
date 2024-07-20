@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.fragment;
 
 import android.app.Activity;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -67,14 +68,14 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
     private EditText newListName, listDescription;
     private MaterialRadioButton privateList;
     private final int movieId;
-    private final Activity activity;
+    private final Context context;
     private final String mediaType;
     private final boolean fetchList;
     private ListDataAdapter listDataAdapter;
-    public ListBottomSheetDialogFragment(int movieId, String mediaType, Activity activity, boolean fetchList) {
+    public ListBottomSheetDialogFragment(int movieId, String mediaType, Context context, boolean fetchList) {
         this.movieId = movieId;
         this.mediaType = mediaType;
-        this.activity = activity;
+        this.context = context;
         this.fetchList = fetchList;
     }
 
@@ -100,7 +101,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
         recyclerView.setAdapter(listDataAdapter);
 
         infoButton.setOnClickListener( v -> {
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
             builder.setTitle( R.string.lists_state_info_title);
             builder.setMessage( R.string.list_state_info);
             builder.setPositiveButton("Refresh", (dialog, which) -> {
@@ -116,7 +117,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
             String description = listDescription.getText().toString();
             boolean isPublic = !privateList.isChecked(); // when checked private radio button, the value is false else true
 
-            new CreateListThreadTMDb(listName, description, isPublic, activity).start();
+            new CreateListThreadTMDb(listName, description, isPublic, context).start();
             dismiss();
         });
 
@@ -126,7 +127,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
         if (fetchList) {
             CompletableFuture.runAsync(() -> {
-                ListDatabaseHelper listdatabaseHelper = new ListDatabaseHelper(activity);
+                ListDatabaseHelper listdatabaseHelper = new ListDatabaseHelper(context);
                 SQLiteDatabase listdb = listdatabaseHelper.getReadableDatabase();
 
                 Cursor cursor = listdb.query(
@@ -150,10 +151,12 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
                 }
                 cursor.close();
 
-                activity.runOnUiThread(() -> {
-                    ListDataAdapter adapter = new ListDataAdapter(listData, activity,null);
-                    recyclerView.setAdapter(adapter);
-                });
+                if (context instanceof Activity) {
+                    ((Activity) context).runOnUiThread( () -> {
+                        ListDataAdapter adapter = new ListDataAdapter( listData, context, null );
+                        recyclerView.setAdapter( adapter );
+                    } );
+                }
             });
         }
     }
@@ -161,7 +164,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
     private boolean checkIfMovieInList(int movieId, String listName) {
         String selection = ListDatabaseHelper.COLUMN_MOVIE_ID + " = ? AND " + ListDatabaseHelper.COLUMN_LIST_NAME + " = ?";
         String[] selectionArgs = { String.valueOf(movieId), listName };
-        ListDatabaseHelper listdatabaseHelper = new ListDatabaseHelper(activity);
+        ListDatabaseHelper listdatabaseHelper = new ListDatabaseHelper(context);
         SQLiteDatabase listdb = listdatabaseHelper.getReadableDatabase();
 
         String[] projection = {
@@ -181,23 +184,23 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
     //fetch list function
     public void fetchList() {
-        ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper( activity);
+        ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper( context);
         SQLiteDatabase db = listDatabaseHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + ListDatabaseHelper.TABLE_LISTS, null);
         if (cursor.getCount() > 0) {
             new Handler( Looper.getMainLooper());
 
-            AlertDialog progressDialog = new MaterialAlertDialogBuilder(activity)
+            AlertDialog progressDialog = new MaterialAlertDialogBuilder(context)
                     .setView(R.layout.dialog_progress)
                     .setCancelable(false)
                     .create();
             progressDialog.show();
 
-            FetchListThreadTMDb fetchListThreadTMDb = new FetchListThreadTMDb(activity, listData -> {
+            FetchListThreadTMDb fetchListThreadTMDb = new FetchListThreadTMDb(context, listData -> {
                 for (ListData data : listData) {
                     listDatabaseHelper.addList(data.getId(), data.getName());
 
-                    ListDetailsThreadTMDb listDetailsThreadTMDb = new ListDetailsThreadTMDb(data.getId(), activity, listDetailsData -> {
+                    ListDetailsThreadTMDb listDetailsThreadTMDb = new ListDetailsThreadTMDb(data.getId(), context, listDetailsData -> {
 
                         for (JSONObject item : listDetailsData) {
                             try {
@@ -208,7 +211,7 @@ public class ListBottomSheetDialogFragment extends BottomSheetDialogFragment {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 progressDialog.dismiss();
-                                Toast.makeText(activity, R.string.error_occurred_in_list_data, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, R.string.error_occurred_in_list_data, Toast.LENGTH_SHORT).show();
                             }
                         }
                     });

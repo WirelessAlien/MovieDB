@@ -139,6 +139,12 @@
 
         <CheckBoxPreference
             android:defaultValue="false"
+            android:key="key_hide_account_data_tab"
+            android:title="@string/hide_the_account_tab"
+            app:iconSpaceReserved="false"/>
+
+        <CheckBoxPreference
+            android:defaultValue="false"
             android:key="key_hide_person_tab"
             android:title="@string/title_hide_person_tab"
             app:iconSpaceReserved="false"/>

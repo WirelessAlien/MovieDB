@@ -20,7 +20,7 @@
 
 package com.wirelessalien.android.moviedb.adapter;
 
-import android.app.Activity;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,12 +40,12 @@ import java.util.List;
 public class ListDataAdapter extends RecyclerView.Adapter<ListDataAdapter.ViewHolder> {
     private final List<ListDetailsData> listData;
     private final ListDataAdapter.OnItemClickListener onItemClickListener;
-    private final Activity activity;
+    private final Context context;
 
-    public ListDataAdapter(List<ListDetailsData> listDetailsData, Activity activity, ListDataAdapter.OnItemClickListener onItemClickListener) {
+    public ListDataAdapter(List<ListDetailsData> listDetailsData, Context context, ListDataAdapter.OnItemClickListener onItemClickListener) {
         this.listData = listDetailsData;
         this.onItemClickListener = onItemClickListener;
-        this.activity = activity;
+        this.context = context;
     }
 
     @NonNull
@@ -68,9 +68,9 @@ public class ListDataAdapter extends RecyclerView.Adapter<ListDataAdapter.ViewHo
             if (pos != RecyclerView.NO_POSITION) {
                 ListDetailsData listData = this.listData.get(pos);
                 if (isChecked) {
-                    new AddToListThreadTMDb(listData.getMovieId(), listData.getListId(), listData.getMediaType(), activity).start();
+                    new AddToListThreadTMDb(listData.getMovieId(), listData.getListId(), listData.getMediaType(), context).start();
                 } else {
-                    new DeleteFromListThreadTMDb(listData.getMovieId(), listData.getListId(), listData.getMediaType(), activity, pos, null, null).start();
+                    new DeleteFromListThreadTMDb(listData.getMovieId(), listData.getListId(), listData.getMediaType(), context, pos, null, null).start();
                 }
             }
         });

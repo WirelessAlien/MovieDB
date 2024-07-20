@@ -33,10 +33,4 @@
         android:orderInCategory="100"
         android:title="@string/login"
         app:showAsAction="always" />
-    <item
-        android:id="@+id/action_list"
-        android:icon="@drawable/ic_list_add"
-        android:title="@string/lists"
-        app:showAsAction="never" />
-
 </menu>

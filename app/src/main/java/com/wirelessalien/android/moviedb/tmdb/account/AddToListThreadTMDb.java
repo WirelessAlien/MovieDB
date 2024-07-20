@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -51,16 +52,16 @@ public class AddToListThreadTMDb extends Thread {
     private final String accessToken;
     private final int mediaId;
     private final int listId;
-    private final Activity activity;
+    private final Context context;
     private final String type; // "movie" or "tv"
 
-    public AddToListThreadTMDb(int mediaId, int listId, String type, Activity activity) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+    public AddToListThreadTMDb(int mediaId, int listId, String type, Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.accessToken = preferences.getString("access_token", "");
         this.mediaId = mediaId;
         this.listId = listId;
         this.type = type;
-        this.activity = activity;
+        this.context = context;
     }
 
     @Override
@@ -92,7 +93,7 @@ public class AddToListThreadTMDb extends Thread {
             success = jsonResponse.getBoolean("success");
 
             if (success) {
-                ListDatabaseHelper dbHelper = new ListDatabaseHelper(activity);
+                ListDatabaseHelper dbHelper = new ListDatabaseHelper(context);
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
 
                 // Query the database to get the list name
@@ -122,12 +123,14 @@ public class AddToListThreadTMDb extends Thread {
         }
 
         final boolean finalSuccess = success;
-        activity.runOnUiThread(() -> {
-            if (finalSuccess) {
-                Toast.makeText(activity, R.string.media_added_to_list, Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(activity, R.string.failed_to_add_media_to_list, Toast.LENGTH_SHORT).show();
-            }
-        });
+        if (context instanceof Activity) {
+            ((Activity) context).runOnUiThread( () -> {
+                if (finalSuccess) {
+                    Toast.makeText( context, R.string.media_added_to_list, Toast.LENGTH_SHORT ).show();
+                } else {
+                    Toast.makeText( context, R.string.failed_to_add_media_to_list, Toast.LENGTH_SHORT ).show();
+                }
+            } );
+        }
     }
 }

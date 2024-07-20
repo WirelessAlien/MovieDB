@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
@@ -38,13 +39,13 @@ public class ListDetailsThreadTMDb extends Thread {
 
     private final int listId;
     private final String accessToken;
-    private final Activity activity;
+    private final Context context;
     private final OnFetchListDetailsListener listener;
 
-    public ListDetailsThreadTMDb(int listId, Activity activity, OnFetchListDetailsListener listener) {
+    public ListDetailsThreadTMDb(int listId, Context context, OnFetchListDetailsListener listener) {
         this.listId = listId;
-        this.activity = activity;
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.context = context;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.accessToken = preferences.getString("access_token", "");
         this.listener = listener;
     }
@@ -76,7 +77,9 @@ public class ListDetailsThreadTMDb extends Thread {
                     listDetailsData.add(item);
                 }
 
-                activity.runOnUiThread(() -> listener.onFetchListDetails(listDetailsData));
+                if (context instanceof Activity) {
+                    ((Activity) context).runOnUiThread( () -> listener.onFetchListDetails( listDetailsData ) );
+                }
 
                 // Check if there are more pages
                 int totalPages = jsonResponse.getInt("total_pages");

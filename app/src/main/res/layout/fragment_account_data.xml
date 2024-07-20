@@ -18,25 +18,23 @@
   ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_movie"
-        android:icon="@drawable/movie_selector"
-        android:title="@string/movie_tab_title" />
-    <item
-        android:id="@+id/nav_series"
-        android:icon="@drawable/tv_selector"
-        android:title="@string/series_tab_title" />
-    <item
-        android:id="@+id/nav_saved"
-        android:icon="@drawable/saved_selector"
-        android:title="@string/saved_tab_title" />
-    <item
-        android:id="@+id/nav_account_data"
-        android:icon="@drawable/ic_account"
-        android:title="@string/account_data_tab_title" />
-    <item
-        android:id="@+id/nav_person"
-        android:icon="@drawable/people_selector"
-        android:title="@string/person_tab_title" />
-</menu>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        app:tabGravity="fill"
+        app:tabMode="fixed" />
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -49,8 +50,8 @@ public class FetchListThreadTMDb {
         void onListFetch(List<ListData> listData);
     }
 
-    public FetchListThreadTMDb(Activity activity, OnListFetchListener listener) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+    public FetchListThreadTMDb(Context context, OnListFetchListener listener) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.accessToken = preferences.getString("access_token", "");
         this.accountId = preferences.getString("account_id", "");
         this.listener = listener;

@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
@@ -46,19 +47,19 @@ public class DeleteFromListThreadTMDb extends Thread {
     private final String accessToken;
     private final int mediaId;
     private final int listId;
-    private final Activity activity;
+    private final Context context;
     private final String type; // "movie" or "tv"
     private final int position; // position of the item in the list
     private final ArrayList<JSONObject> showList; // reference to the show list
     private final ShowBaseAdapter adapter; // reference to the adapter
 
-    public DeleteFromListThreadTMDb(int mediaId, int listId, String type, Activity activity, int position, ArrayList<JSONObject> showList, ShowBaseAdapter adapter) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+    public DeleteFromListThreadTMDb(int mediaId, int listId, String type, Context context, int position, ArrayList<JSONObject> showList, ShowBaseAdapter adapter) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.accessToken = preferences.getString("access_token", "");
         this.mediaId = mediaId;
         this.listId = listId;
         this.type = type;
-        this.activity = activity;
+        this.context = context;
         this.position = position;
         this.showList = showList;
         this.adapter = adapter;
@@ -93,7 +94,7 @@ public class DeleteFromListThreadTMDb extends Thread {
             success = jsonResponse.getBoolean("success");
 
             if (success) {
-                try (ListDatabaseHelper dbHelper = new ListDatabaseHelper(activity)) {
+                try (ListDatabaseHelper dbHelper = new ListDatabaseHelper(context)) {
                     dbHelper.deleteData(mediaId, listId);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -105,16 +106,18 @@ public class DeleteFromListThreadTMDb extends Thread {
         }
 
         final boolean finalSuccess = success;
-        activity.runOnUiThread(() -> {
-            if (finalSuccess) {
-                Toast.makeText(activity, R.string.media_removed_from_list, Toast.LENGTH_SHORT).show();
-                if (showList != null) {
-                    showList.remove(position);
-                    adapter.notifyItemRemoved(position);
+        if (context instanceof Activity) {
+            ((Activity) context).runOnUiThread( () -> {
+                if (finalSuccess) {
+                    Toast.makeText( context, R.string.media_removed_from_list, Toast.LENGTH_SHORT ).show();
+                    if (showList != null) {
+                        showList.remove( position );
+                        adapter.notifyItemRemoved( position );
+                    }
+                } else {
+                    Toast.makeText( context, R.string.failed_to_remove_media_from_list, Toast.LENGTH_SHORT ).show();
                 }
-            } else {
-                Toast.makeText(activity, R.string.failed_to_remove_media_from_list, Toast.LENGTH_SHORT).show();
-            }
-        });
+            } );
+        }
     }
 }

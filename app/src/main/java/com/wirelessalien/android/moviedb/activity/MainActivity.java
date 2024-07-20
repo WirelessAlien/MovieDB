@@ -67,6 +67,7 @@ import com.wirelessalien.android.moviedb.data.ListData;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.fragment.LoginFragment;
+import com.wirelessalien.android.moviedb.fragment.MyListsFragment;
 import com.wirelessalien.android.moviedb.fragment.PersonFragment;
 import com.wirelessalien.android.moviedb.fragment.ShowFragment;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
@@ -244,10 +245,13 @@ public class MainActivity extends BaseActivity {
                 mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(1));
                 return true;
             } else if (itemId == R.id.nav_saved) {
-                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(2));
+                mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 2 ) );
+                return true;
+            } else if (itemId == R.id.nav_account_data) {
+                mViewPager.setCurrentItem( (mSectionsPagerAdapter.getCorrectedPosition( 3 )) );
                 return true;
             } else if (itemId == R.id.nav_person) {
-                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(3));
+                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(4));
                 return true;
             }
             return false;
@@ -260,7 +264,8 @@ public class MainActivity extends BaseActivity {
                     case 0 -> bottomNavigationView.setSelectedItemId( R.id.nav_movie );
                     case 1 -> bottomNavigationView.setSelectedItemId( R.id.nav_series );
                     case 2 -> bottomNavigationView.setSelectedItemId( R.id.nav_saved );
-                    case 3 -> bottomNavigationView.setSelectedItemId( R.id.nav_person );
+                    case 3 -> bottomNavigationView.setSelectedItemId( R.id.nav_account_data );
+                    case 4 -> bottomNavigationView.setSelectedItemId( R.id.nav_person );
                 }
             }
         });
@@ -269,12 +274,14 @@ public class MainActivity extends BaseActivity {
         menu.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
         menu.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
         menu.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
+        menu.findItem(R.id.nav_account_data).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_DATA_PREFERENCE, false));
         menu.findItem(R.id.nav_person).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE, false));
 
         prefListener = (prefs, key) -> {
             if (key.equals(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE) ||
                     key.equals(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) ||
                     key.equals(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE) ||
+                    key.equals(SectionsPagerAdapter.HIDE_ACCOUNT_DATA_PREFERENCE) ||
                     key.equals(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE)) {
                 mSectionsPagerAdapter = new SectionsPagerAdapter(MainActivity.this, MainActivity.this);
                 mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -283,6 +290,7 @@ public class MainActivity extends BaseActivity {
                 menu1.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
                 menu1.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
                 menu1.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
+                menu1.findItem(R.id.nav_account_data).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_DATA_PREFERENCE, false));
                 menu1.findItem(R.id.nav_person).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE, false));
             }
         };
@@ -502,10 +510,6 @@ public class MainActivity extends BaseActivity {
             loginFragment.show(getSupportFragmentManager(), "login");
         }
 
-        if (id == R.id.action_list) {
-            Intent intent = new Intent(getApplicationContext(), MyListsActivity.class);
-            startActivity(intent);
-        }
         return super.onOptionsItemSelected(item);
     }
 

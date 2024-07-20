@@ -21,18 +21,16 @@
 package com.wirelessalien.android.moviedb.tmdb.account;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper;
 
 import org.json.JSONObject;
-
-import java.io.IOException;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -46,15 +44,15 @@ public class CreateListThreadTMDb extends Thread {
     private final String accessToken;
     private final boolean isPublic;
     private final String description;
-    private final Activity activity;
+    private final Context context;
 
-    public CreateListThreadTMDb(String listName, String description, boolean isPublic, Activity activity) {
+    public CreateListThreadTMDb(String listName, String description, boolean isPublic, Context context) {
         this.listName = listName;
         this.description = description;
         this.isPublic = isPublic;
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.accessToken = preferences.getString("access_token", "");
-        this.activity = activity;
+        this.context = context;
     }
 
     @Override
@@ -85,7 +83,7 @@ public class CreateListThreadTMDb extends Thread {
             success = jsonResponse.getBoolean("success");
 
             if (success) {
-                ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper(activity);
+                ListDatabaseHelper listDatabaseHelper = new ListDatabaseHelper(context);
                 listDatabaseHelper.addList(jsonResponse.getInt("id"), listName);
             }
 
@@ -94,12 +92,14 @@ public class CreateListThreadTMDb extends Thread {
         }
 
         final boolean finalSuccess = success;
-        activity.runOnUiThread(() -> {
-            if (finalSuccess) {
-                Toast.makeText(activity, R.string.list_created_successfully, Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(activity, R.string.failed_to_create_list, Toast.LENGTH_SHORT).show();
-            }
-        });
+        if (context instanceof Activity) {
+            ((Activity) context).runOnUiThread( () -> {
+                if (finalSuccess) {
+                    Toast.makeText( context, R.string.list_created_successfully, Toast.LENGTH_SHORT ).show();
+                } else {
+                    Toast.makeText( context, R.string.failed_to_create_list, Toast.LENGTH_SHORT ).show();
+                }
+            } );
+        }
     }
 }
