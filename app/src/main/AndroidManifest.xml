@@ -74,7 +74,6 @@
         <activity android:name=".activity.ExportActivity" />
         <activity android:name=".activity.ImportActivity" />
         <activity android:name=".activity.TVSeasonDetailsActivity"/>
-        <activity android:name=".fragment.MyListsFragment"/>
         <activity android:name=".activity.MyListDetailsActivity"/>
         <activity android:name=".activity.MovieImageActivity"/>
     </application>
