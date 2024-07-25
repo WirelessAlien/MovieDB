@@ -97,7 +97,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
 
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE)
-                || key.equals(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE)
+                || key.equals(SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE )
                 || key.equals(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE)
                 || key.equals(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE)) {
             ((SettingsActivity) requireActivity()).mTabsPreferenceChanged = true;

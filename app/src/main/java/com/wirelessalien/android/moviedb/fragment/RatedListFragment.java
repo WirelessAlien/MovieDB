@@ -55,7 +55,7 @@ public class RatedListFragment extends BaseFragment {
 
     private String mListType;
 
-    private int visibleThreshold = 3; // Three times the amount of items in a row
+    private int visibleThreshold; // Three times the amount of items in a row
     private int currentPage = 0;
 
     private int previousTotal = 0;

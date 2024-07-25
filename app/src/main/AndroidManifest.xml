@@ -76,6 +76,7 @@
         <activity android:name=".activity.TVSeasonDetailsActivity"/>
         <activity android:name=".activity.MyListDetailsActivity"/>
         <activity android:name=".activity.MovieImageActivity"/>
+        <activity android:name=".activity.PersonActivity"/>
     </application>
 
     <queries>

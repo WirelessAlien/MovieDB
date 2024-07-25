@@ -52,7 +52,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Optional;
 
 public class PersonFragment extends BaseFragment {
 
@@ -103,7 +102,7 @@ public class PersonFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        preferences = PreferenceManager.getDefaultSharedPreferences( getContext() );
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate( R.layout.fragment_person, container, false);
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
@@ -185,7 +184,7 @@ public class PersonFragment extends BaseFragment {
         // Create the adapter
         mPersonAdapter = new PersonBaseAdapter(mPersonArrayList);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity());
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         visibleThreshold *= preferences.getInt(GRID_SIZE_PREFERENCE, 3);
 
         // Get the persons
@@ -290,8 +289,8 @@ public class PersonFragment extends BaseFragment {
         @Override
         public void run() {
             requireActivity().runOnUiThread(() -> {
-                Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                progressBar.ifPresent(bar -> bar.setVisibility(View.VISIBLE));
+                ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.VISIBLE);
             });
 
             String line;
@@ -318,17 +317,9 @@ public class PersonFragment extends BaseFragment {
                     bufferedReader.close();
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
-                    requireActivity().runOnUiThread(() -> {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    });
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
-                requireActivity().runOnUiThread(() -> {
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                });
             }
 
             String response = stringBuilder.toString();
@@ -350,14 +341,14 @@ public class PersonFragment extends BaseFragment {
                             // Reload the adapter (with the new page).
                             mPersonAdapter.notifyDataSetChanged();
                         }
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
                     });
                 } catch (JSONException je) {
                     je.printStackTrace();
                     requireActivity().runOnUiThread(() -> {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
                     });
                 }
             }
@@ -382,10 +373,6 @@ public class PersonFragment extends BaseFragment {
             if (response != null) {
                 requireActivity().runOnUiThread(() -> onPostExecute(response));
             }
-            requireActivity().runOnUiThread(() -> {
-                Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                progressBar.ifPresent(bar -> bar.setVisibility(View.VISIBLE));
-            });
         }
 
         private String doInBackground() {
@@ -414,17 +401,9 @@ public class PersonFragment extends BaseFragment {
                     return stringBuilder.toString();
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
-                    requireActivity().runOnUiThread(() -> {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    });
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
-                requireActivity().runOnUiThread(() -> {
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                });
             }
 
             // Loading the dataset failed, return null.
@@ -462,12 +441,12 @@ public class PersonFragment extends BaseFragment {
                     mSearchView = true;
                     mPersonGridView.setAdapter(mSearchPersonAdapter);
                     mPersonGridView.scrollToPosition(position);
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                    progressBar.setVisibility(View.GONE);
                 } catch (JSONException je) {
                     je.printStackTrace();
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                    ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                    progressBar.setVisibility(View.GONE);
                 }
             }
         }

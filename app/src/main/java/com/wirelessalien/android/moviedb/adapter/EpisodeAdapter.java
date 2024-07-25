@@ -146,14 +146,14 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
             EpisodeDbDetails details = db.getEpisodeDetails(tvShowId, seasonNumber, episode.getEpisodeNumber());
             if (details != null) {
                 if (details.rating != null) {
-                    holder.binding.episodeDbRating.setText(context.getString( R.string.rating_db) + details.rating + "/10");
+                    holder.binding.episodeDbRating.setText(context.getString( R.string.rating_db) + " " + details.rating + "/10");
                 }
                 if (details.watchDate != null) {
                     SimpleDateFormat originalFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
                     try {
                         Date date = originalFormat.parse(details.watchDate);
                         String formattedDate = DateFormat.getDateInstance( DateFormat.DEFAULT).format(date);
-                        holder.binding.watchedDate.setText(context.getString( R.string.watched_on) + formattedDate);
+                        holder.binding.watchedDate.setText(context.getString( R.string.watched_on) + " " + formattedDate);
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }

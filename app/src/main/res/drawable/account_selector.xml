@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~     This file is part of Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
@@ -18,24 +18,7 @@
   ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.wirelessalien.android.moviedb.activity.MainActivity">
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_people"
-        android:orderInCategory="101"
-        android:title="@string/person_tab_title"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_login"
-        android:icon="@drawable/ic_account_border"
-        android:orderInCategory="100"
-        android:title="@string/login"
-        app:showAsAction="always" />
-</menu>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:drawable="@drawable/ic_account" />
+    <item android:state_checked="false" android:drawable="@drawable/ic_account_border" />
+</selector>

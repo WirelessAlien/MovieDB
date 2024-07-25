@@ -25,7 +25,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -67,7 +66,6 @@ import com.wirelessalien.android.moviedb.data.ListData;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.fragment.LoginFragment;
-import com.wirelessalien.android.moviedb.fragment.MyListsFragment;
 import com.wirelessalien.android.moviedb.fragment.PersonFragment;
 import com.wirelessalien.android.moviedb.fragment.ShowFragment;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
@@ -96,8 +94,6 @@ public class MainActivity extends BaseActivity {
     private final static int REQUEST_CODE_ASK_PERMISSIONS_EXPORT = 123;
     private final static int REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124;
     private final static String LIVE_SEARCH_PREFERENCE = "key_live_search";
-    private final static String REWATCHED_FIELD_CHANGE_PREFERENCE = "key_rewatched_field_change";
-    private final static String PREVIOUS_APPLICATION_VERSION_PREFERENCE = "key_application_version";
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager2 mViewPager;
@@ -158,83 +154,14 @@ public class MainActivity extends BaseActivity {
         setSupportActionBar(toolbar);
 
         api_read_access_token = ConfigHelper.getConfigValue(this, "api_read_access_token");
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         mViewPager = findViewById(R.id.container);
         mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
 
         ViewPager2 mViewPager = findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        int versionNumber;
-        try {
-            versionNumber = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-            versionNumber = -1;
-        }
-
-        // The rewatched field has changed to watched, notify users that make use of the database
-        // of this change and also tell them that the value is automatically increased by one.
-        if (!preferences.getBoolean(REWATCHED_FIELD_CHANGE_PREFERENCE, false) && preferences.getInt(PREVIOUS_APPLICATION_VERSION_PREFERENCE, versionNumber) < 190) {
-            File dbFile = getDatabasePath( MovieDatabaseHelper.getDatabaseFileName());
-
-            // If there is a database.
-            if (dbFile.exists()) {
-                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
-                builder.setMessage(getString(R.string.watched_upgrade_dialog_message))
-                        .setTitle(getString(R.string.watched_upgrade_dialog_title));
-
-                builder.setPositiveButton(getString(R.string.watched_upgrade_dialog_positive),
-                        (dialog, id) -> {
-                            // Don't change the values of shows that haven't been watched and have a
-                            // rewatch value of zero.
-                            MovieDatabaseHelper databaseHelper
-                                    = new MovieDatabaseHelper(getApplicationContext());
-                            SQLiteDatabase database = databaseHelper.getWritableDatabase();
-                            databaseHelper.onCreate(database);
-
-                            Cursor cursor = database.rawQuery("SELECT * FROM " +
-                                    MovieDatabaseHelper.TABLE_MOVIES, null);
-                            // Go through all rows in the database.
-                            cursor.moveToFirst();
-                            while (!cursor.isAfterLast()) {
-                                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))) {
-                                    int rewatchedValue = cursor.getInt(cursor.getColumnIndexOrThrow
-                                            (MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED));
-                                    // In case of a value of zero, check if the show is watched.
-                                    if (rewatchedValue != 0 || cursor.getInt( cursor.getColumnIndexOrThrow(
-                                            MovieDatabaseHelper.COLUMN_CATEGORIES ) ) == 1) {
-                                        ContentValues watchedValues = new ContentValues();
-                                        watchedValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
-                                                (rewatchedValue + 1));
-                                        database.update(MovieDatabaseHelper.TABLE_MOVIES, watchedValues,
-                                                MovieDatabaseHelper.COLUMN_MOVIES_ID + "="
-                                                        + cursor.getInt(cursor.getColumnIndexOrThrow
-                                                        (MovieDatabaseHelper.COLUMN_MOVIES_ID)), null);
-                                    }
-                                }
-                                cursor.moveToNext();
-                            }
-
-                            database.close();
-                        } );
-
-                builder.setNegativeButton(getString(R.string.watched_upgrade_dialog_negative), (dialog, id) -> {
-                    // Don't do anything.
-                } );
-
-                builder.show();
-
-                preferences.edit().putBoolean(REWATCHED_FIELD_CHANGE_PREFERENCE, true).apply();
-            }
-        }
-
-        if (versionNumber != -1) {
-            preferences.edit().putInt(PREVIOUS_APPLICATION_VERSION_PREFERENCE, versionNumber).apply();
-        }
-
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -245,13 +172,10 @@ public class MainActivity extends BaseActivity {
                 mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(1));
                 return true;
             } else if (itemId == R.id.nav_saved) {
-                mViewPager.setCurrentItem( mSectionsPagerAdapter.getCorrectedPosition( 2 ) );
+                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(2));
                 return true;
-            } else if (itemId == R.id.nav_account_data) {
-                mViewPager.setCurrentItem( (mSectionsPagerAdapter.getCorrectedPosition( 3 )) );
-                return true;
-            } else if (itemId == R.id.nav_person) {
-                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(4));
+            } else if (itemId == R.id.nav_account) {
+                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(3));
                 return true;
             }
             return false;
@@ -264,8 +188,7 @@ public class MainActivity extends BaseActivity {
                     case 0 -> bottomNavigationView.setSelectedItemId( R.id.nav_movie );
                     case 1 -> bottomNavigationView.setSelectedItemId( R.id.nav_series );
                     case 2 -> bottomNavigationView.setSelectedItemId( R.id.nav_saved );
-                    case 3 -> bottomNavigationView.setSelectedItemId( R.id.nav_account_data );
-                    case 4 -> bottomNavigationView.setSelectedItemId( R.id.nav_person );
+                    case 3 -> bottomNavigationView.setSelectedItemId( R.id.nav_account );
                 }
             }
         });
@@ -274,15 +197,13 @@ public class MainActivity extends BaseActivity {
         menu.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
         menu.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
         menu.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
-        menu.findItem(R.id.nav_account_data).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_DATA_PREFERENCE, false));
-        menu.findItem(R.id.nav_person).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE, false));
+        menu.findItem(R.id.nav_account ).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE, false));
 
         prefListener = (prefs, key) -> {
             if (key.equals(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE) ||
                     key.equals(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) ||
                     key.equals(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE) ||
-                    key.equals(SectionsPagerAdapter.HIDE_ACCOUNT_DATA_PREFERENCE) ||
-                    key.equals(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE)) {
+                    key.equals(SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE )) {
                 mSectionsPagerAdapter = new SectionsPagerAdapter(MainActivity.this, MainActivity.this);
                 mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -290,8 +211,7 @@ public class MainActivity extends BaseActivity {
                 menu1.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
                 menu1.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
                 menu1.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
-                menu1.findItem(R.id.nav_account_data).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_DATA_PREFERENCE, false));
-                menu1.findItem(R.id.nav_person).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_PERSON_PREFERENCE, false));
+                menu1.findItem(R.id.nav_account ).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE, false));
             }
         };
 
@@ -508,6 +428,11 @@ public class MainActivity extends BaseActivity {
         if (id == R.id.action_login) {
             LoginFragment loginFragment = new LoginFragment();
             loginFragment.show(getSupportFragmentManager(), "login");
+        }
+
+        if (id == R.id.action_people) {
+            Intent intent = new Intent(getApplicationContext(), PersonActivity.class);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);

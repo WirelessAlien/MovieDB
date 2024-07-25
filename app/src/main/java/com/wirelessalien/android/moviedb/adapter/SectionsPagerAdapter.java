@@ -31,32 +31,20 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
-import com.wirelessalien.android.moviedb.fragment.PersonFragment;
 import com.wirelessalien.android.moviedb.fragment.ShowFragment;
-
-import java.util.ArrayList;
 
 
 public class SectionsPagerAdapter extends FragmentStateAdapter {
     public final static String HIDE_MOVIES_PREFERENCE = "key_hide_movies_tab";
     public final static String HIDE_SERIES_PREFERENCE = "key_hide_series_tab";
     public final static String HIDE_SAVED_PREFERENCE = "key_hide_saved_tab";
-    public final static String HIDE_ACCOUNT_DATA_PREFERENCE = "key_hide_account_data_tab";
-    public final static String HIDE_PERSON_PREFERENCE = "key_hide_person_tab";
-
+    public final static String HIDE_ACCOUNT_PREFERENCE = "key_hide_account_tab";
     public final static String MOVIE = "movie";
     public final static String TV = "tv";
-
-    private static int NUM_ITEMS = 5;
+    private static int NUM_ITEMS = 4;
     private final SharedPreferences preferences;
-    public final String movieTabTitle;
-    public final String seriesTabTitle;
-    public final String savedTabTitle;
-    public final String personTabTitle;
-    public final String accountDataTabTitle;
     private final SparseArray<Fragment> fragmentList = new SparseArray<>();
 
 
@@ -73,7 +61,7 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
 
         // Instantiate NUM_ITEMS again to prevent decreasing further than intended when
         // recreating SectionPagerAdapter but keeping the old NUM_ITEMS value.
-        NUM_ITEMS = 5;
+        NUM_ITEMS = 4;
 
         if (preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false)) {
             NUM_ITEMS--;
@@ -87,19 +75,9 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
             NUM_ITEMS--;
         }
 
-        if (preferences.getBoolean( HIDE_ACCOUNT_DATA_PREFERENCE, false )) {
+        if (preferences.getBoolean( HIDE_ACCOUNT_PREFERENCE, false)) {
             NUM_ITEMS--;
         }
-
-        if (preferences.getBoolean(HIDE_PERSON_PREFERENCE, false)) {
-            NUM_ITEMS--;
-        }
-
-        movieTabTitle = context.getResources().getString( R.string.movie_tab_title);
-        seriesTabTitle = context.getResources().getString(R.string.series_tab_title);
-        savedTabTitle = context.getResources().getString(R.string.saved_tab_title);
-        accountDataTabTitle = context.getResources().getString(R.string.account_data_tab_title);
-        personTabTitle = context.getResources().getString(R.string.person_tab_title);
     }
 
     @NonNull
@@ -110,7 +88,6 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
             case 1 -> ShowFragment.newInstance( TV );
             case 2 -> ListFragment.newInstance();
             case 3 -> AccountDataFragment.newInstance();
-            case 4 -> PersonFragment.newInstance();
             default -> ShowFragment.newInstance( MOVIE );
         };
         fragmentList.put(position, fragment);
@@ -133,25 +110,31 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
      * @return the position of the case that the switch goes to.
      */
     public int getCorrectedPosition(int position) {
-        ArrayList<Integer> visibleTabs = new ArrayList<>();
+        int index = 0;
+        index += preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false) ? 8 : 0;
+        index += preferences.getBoolean(HIDE_SERIES_PREFERENCE, false) ? 4 : 0;
+        index += preferences.getBoolean(HIDE_SAVED_PREFERENCE, false) ? 2 : 0;
+        index += preferences.getBoolean( HIDE_ACCOUNT_PREFERENCE, false) ? 1 : 0;
 
-        if (!preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false)) {
-            visibleTabs.add(0); // Movie tab index
-        }
-        if (!preferences.getBoolean(HIDE_SERIES_PREFERENCE, false)) {
-            visibleTabs.add(1); // Series tab index
-        }
-        if (!preferences.getBoolean(HIDE_SAVED_PREFERENCE, false)) {
-            visibleTabs.add(2); // Saved tab index
-        }
-        if (!preferences.getBoolean(HIDE_ACCOUNT_DATA_PREFERENCE, false)) {
-            visibleTabs.add(3); // Account Data tab index
-        }
-        if (!preferences.getBoolean(HIDE_PERSON_PREFERENCE, false)) {
-            visibleTabs.add(4); // Person tab index
-        }
-
-        // Return the corrected position if it exists, otherwise return -1 indicating the tab should not be displayed
-        return position < visibleTabs.size() ? visibleTabs.get(position) : -1;
+        int[][] corpos = {
+                {0, 1, 2, 3},    // MOV SER SAV PER
+                {0, 1, 2, -1},   // MOV SER SAV ---
+                {0, 1, 3, -1},   // MOV SER PER ---
+                {0, 1, -1, -1},  // MOV SER --- ---
+                {0, 2, 3, -1},   // MOV SAV PER ---
+                {0, 2, -1, -1},  // MOV SAV --- ---
+                {0, 3, -1, -1},  // MOV PER --- ---
+                {0, -1, -1, -1}, // MOV --- --- ---
+                {1, 2, 3, -1},   // SER SAV PER ---
+                {1, 2, -1, -1},  // SER SAV --- ---
+                {1, 3, -1, -1},  // SER PER --- ---
+                {1, -1, -1, -1}, // SER --- --- ---
+                {2, 3, -1, -1},  // SAV PER --- ---
+                {2, -1, -1, -1}, // SAV --- --- ---
+                {3, -1, -1, -1}, // PER --- --- ---
+                {-1, -1, -1, -1},// --- --- --- ---
+        };
+        // magic!
+        return corpos[index][position];
     }
 }

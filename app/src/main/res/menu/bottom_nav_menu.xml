@@ -32,11 +32,7 @@
         android:icon="@drawable/saved_selector"
         android:title="@string/saved_tab_title" />
     <item
-        android:id="@+id/nav_account_data"
-        android:icon="@drawable/ic_account"
+        android:id="@+id/nav_account"
+        android:icon="@drawable/account_selector"
         android:title="@string/account_data_tab_title" />
-    <item
-        android:id="@+id/nav_person"
-        android:icon="@drawable/people_selector"
-        android:title="@string/person_tab_title" />
 </menu>

@@ -98,7 +98,7 @@
     <string name="movie_tab_title">MOVIES</string>
     <string name="series_tab_title">SERIES</string>
     <string name="saved_tab_title">SAVED</string>
-    <string name="person_tab_title">PEOPLE</string>
+    <string name="person_tab_title">People</string>
 
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Saved as: "</string>
@@ -280,10 +280,11 @@
     <string name="edit">Edit</string>
     <string name="done">Done</string>
     <string name="episode_rating_tmdb_not_set">Rating (TMDb): Not set</string>
-    <string name="watched_on">"Watched on: %1$s"</string>
-    <string name="rating_db">Rating (Db): %1$s</string>
+    <string name="episode_rating_db_not_set">Rating (Db): Not set</string>
+    <string name="watched_on">Watched on: </string>
+    <string name="rating_db">Rating (Db): </string>
     <string name="watched_on_not_set">Watched On: Not set</string>
-    <string name="account_data_tab_title">Account</string>
+    <string name="account_data_tab_title">ACCOUNT</string>
     <string name="hide_the_account_tab">Hide the \'Account\' tab</string>
-    <string name="loading_in_progress">Please wait, loading in progress...</string>
+    <string name="loading_in_progress">Please wait, loading in progress…</string>
 </resources>

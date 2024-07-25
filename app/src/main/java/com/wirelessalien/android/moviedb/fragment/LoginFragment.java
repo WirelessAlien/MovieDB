@@ -108,6 +108,7 @@ public class LoginFragment extends BottomSheetDialogFragment {
             loginButton.setVisibility(View.VISIBLE);
             logoutButton.setVisibility(View.GONE);
             loginStatus.setText( R.string.not_logged_in);
+            nameTextView.setVisibility(View.GONE);
         });
 
         loginButton.setOnClickListener(v -> {
@@ -130,6 +131,7 @@ public class LoginFragment extends BottomSheetDialogFragment {
                 if (isAdded()) {
                     requireActivity().runOnUiThread( () -> {
                         // If both username and name are available, display name. Otherwise, display whichever is available.
+                        nameTextView.setVisibility( View.VISIBLE);
                         if (name != null && !name.isEmpty()) {
                             nameTextView.setText(name);
                         } else if (username != null && !username.isEmpty()) {
@@ -147,7 +149,6 @@ public class LoginFragment extends BottomSheetDialogFragment {
             });
             getAccountIdThread.start();
         }
-
         return view;
     }
 }

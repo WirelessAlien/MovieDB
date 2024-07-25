@@ -56,10 +56,8 @@ import okhttp3.Response;
 public class WatchlistFragment extends BaseFragment {
 
     private String mListType;
-
-    private int visibleThreshold = 3; // Three times the amount of items in a row
+    private int visibleThreshold;
     private int currentPage = 0;
-
     private int previousTotal = 0;
     private boolean loading = true;
     private int pastVisibleItems;

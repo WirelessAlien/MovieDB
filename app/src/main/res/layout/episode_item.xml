@@ -196,7 +196,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_toEndOf="@id/watchedDate"
-                        android:text="@string/episode_rating_tmdb_not_set"
+                        android:text="@string/episode_rating_db_not_set"
                         app:drawableLeftCompat="@drawable/ic_dot" />
                     </com.google.android.flexbox.FlexboxLayout>
                 </RelativeLayout>
