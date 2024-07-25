@@ -667,7 +667,7 @@
                         android:layout_marginTop="10dp"
                         android:ellipsize="end"
                         android:maxLines="2"
-                        android:text="Overview of the episode" />
+                        android:text="@string/overview_of_the_episode" />
 
                     <RelativeLayout
                         android:layout_width="wrap_content"
@@ -875,9 +875,28 @@
                 android:layout_height="wrap_content"
                 android:text="@string/status"
                 android:paddingStart="16dp"
-                android:paddingBottom="16dp"
                 android:layout_below="@id/statusText"
                 android:textSize="15sp" />
+            <TextView
+                android:id="@+id/keywordText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Keywords"
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/statusDataText"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/keywordsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="11dp"
+                android:layout_marginBottom="20dp"
+                android:layout_below="@id/keywordText"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start"/>
         </RelativeLayout>
 
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
@@ -905,6 +924,6 @@
         android:layout_margin="16dp"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
-        android:contentDescription="@string/share_link_button"
+        android:contentDescription="@string/save_to_database"
         android:src="@drawable/ic_star_border" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

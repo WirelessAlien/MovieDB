@@ -205,7 +205,7 @@
     <string name="overview">Overview</string>
     <string name="other_details">Other Details</string>
     <string name="country">Country</string>
-    <string name="revenue">Revenue</string>
+    <string name="revenue">Budget / Revenue</string>
     <string name="status">Status</string>
     <string name="add_to_favourite">Add to favourite</string>
     <string name="add_rating">Add rating</string>
@@ -287,4 +287,7 @@
     <string name="account_data_tab_title">ACCOUNT</string>
     <string name="hide_the_account_tab">Hide the \'Account\' tab</string>
     <string name="loading_in_progress">Please wait, loading in progress…</string>
+    <string name="overview_of_the_episode">Overview of the episode</string>
+    <string name="save_to_database">Save to database</string>
+    <string name="budget">Budget</string>
 </resources>

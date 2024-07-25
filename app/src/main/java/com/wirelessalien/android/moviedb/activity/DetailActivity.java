@@ -42,6 +42,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableString;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
@@ -70,7 +71,9 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -1280,28 +1283,45 @@ public class DetailActivity extends BaseActivity {
                 binding.countryDataText.setText(countries.toString());
             }
 
+
+            String formattedRevenue;
             if (movieObject.has("revenue")) {
                 long revenue = Long.parseLong(movieObject.getString("revenue"));
-                String formattedRevenue;
-                if (revenue >= 1_000_000_000) {
-                    formattedRevenue = String.format(Locale.US, "$%.1fB", revenue / 1_000_000_000.0);
-                } else if (revenue >= 1_000_000) {
-                    formattedRevenue = String.format(Locale.US, "$%.1fM", revenue / 1_000_000.0);
-                } else if (revenue >= 1_000) {
-                    formattedRevenue = String.format(Locale.US, "$%.1fK", revenue / 1_000.0);
-                } else {
-                    formattedRevenue = String.format(Locale.US, "$%d", revenue);
-                }
-                binding.revenueDataText.setText(formattedRevenue);
+                formattedRevenue = formatCurrency(revenue);
             } else {
-                binding.revenueDataText.setText( R.string.unknown);
+                formattedRevenue = getString(R.string.unknown);
             }
+
+            String formattedBudget;
+            if (movieObject.has("budget")) {
+                long budget = Long.parseLong(movieObject.getString("budget"));
+                formattedBudget = formatCurrency(budget);
+            } else {
+                formattedBudget = getString(R.string.unknown);
+            }
+
+            String combinedText = formattedBudget + " / " + formattedRevenue;
+
+            binding.revenueDataText.setText(combinedText);
 
             cursor.close();
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
+    private String formatCurrency(long value) {
+        if (value >= 1_000_000_000) {
+            return String.format(Locale.US, "$%.1fB", value / 1_000_000_000.0);
+        } else if (value >= 1_000_000) {
+            return String.format(Locale.US, "$%.1fM", value / 1_000_000.0);
+        } else if (value >= 1_000) {
+            return String.format(Locale.US, "$%.1fK", value / 1_000.0);
+        } else {
+            return String.format(Locale.US, "$%d", value);
+        }
+    }
+
 
     public class GetVideosThread extends Thread {
 
@@ -2035,7 +2055,7 @@ public class DetailActivity extends BaseActivity {
             OkHttpClient client = new OkHttpClient();
 
             String type = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
-            String additionalEndpoint = (isMovie) ? "release_dates,external_ids" : "content_ratings,external_ids";
+            String additionalEndpoint = (isMovie) ? "release_dates,external_ids,keywords" : "content_ratings,external_ids,keywords";
             String url;
             if (missingOverview) {
                 url = "https://api.themoviedb.org/3/" + type +
@@ -2075,6 +2095,7 @@ public class DetailActivity extends BaseActivity {
                     } else {
                         setMovieData(movieData);
                     }
+                    showKeywords(movieData);
                     if (movieData.has("number_of_seasons")) {
                         numSeason = movieData.getInt("number_of_seasons");
                     }
@@ -2169,6 +2190,45 @@ public class DetailActivity extends BaseActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+
+        private void showKeywords(JSONObject movieData) {
+            try {
+                JSONObject keywordsObject = movieData.getJSONObject("keywords");
+                JSONArray keywordsArray = keywordsObject.getJSONArray("keywords");
+
+                FlexboxLayout keywordsLayout = findViewById(R.id.keywordsLayout);
+                keywordsLayout.removeAllViews();
+
+                for (int i = 0; i < keywordsArray.length(); i++) {
+                    JSONObject keyword = keywordsArray.getJSONObject(i);
+                    String keywordName = keyword.getString("name");
+
+                    MaterialCardView cardView = new MaterialCardView(context);
+                    cardView.setRadius(5f);
+                    cardView.setCardBackgroundColor( Color.TRANSPARENT );
+                    cardView.setStrokeWidth( 2 );
+                    cardView.setContentPadding(5, 5, 5, 5);
+
+                    TextView keywordTextView = new TextView(context);
+                    keywordTextView.setText(keywordName);
+                    keywordTextView.setPadding(8, 4, 8, 4);
+                    keywordTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+
+                    cardView.addView(keywordTextView);
+
+                    FlexboxLayout.LayoutParams params = new FlexboxLayout.LayoutParams(
+                            FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                            FlexboxLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    params.setMargins(8, 8, 8, 8);
+                    cardView.setLayoutParams(params);
+
+                    keywordsLayout.addView(cardView);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
     }
