@@ -154,6 +154,7 @@ public class ShowFragment extends BaseFragment {
         showShowList(fragmentView);
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
         fab.setImageResource(R.drawable.ic_filter_list);
+        fab.setEnabled( true );
         fab.setOnClickListener( view -> {
             // Start the FilterActivity
             filterRequestLauncher.launch(new Intent());
@@ -167,6 +168,7 @@ public class ShowFragment extends BaseFragment {
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
         fab.setVisibility( View.VISIBLE );
         fab.setImageResource(R.drawable.ic_filter_list);
+        fab.setEnabled( true );
         fab.setOnClickListener( view -> {
             // Start the FilterActivity
             filterRequestLauncher.launch(new Intent());

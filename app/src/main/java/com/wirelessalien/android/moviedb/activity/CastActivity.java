@@ -95,6 +95,8 @@ public class CastActivity extends BaseActivity {
     // Indicate whether the network items have loaded.
     private boolean mActorMoviesLoaded = false;
     private boolean mActorDetailsLoaded = false;
+    private int darkMutedColor;
+    private int lightMutedColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,18 +198,26 @@ public class CastActivity extends BaseActivity {
                         // Set the loaded bitmap to your ImageView before generating the Palette
                         binding.actorImage.setImageBitmap( bitmap );
 
-                        Palette.from( bitmap ).generate( new Palette.PaletteAsyncListener() {
-                            public void onGenerated(Palette palette) {
+                        Palette.from( bitmap ).generate( palette -> {
 
-                                int mutedColor = palette.getMutedColor( Color.TRANSPARENT );
-                                GradientDrawable gradientDrawable = new GradientDrawable(
+                            darkMutedColor = palette.getDarkMutedColor(palette.getMutedColor(Color.TRANSPARENT));
+                            lightMutedColor = palette.getLightMutedColor(palette.getMutedColor(Color.TRANSPARENT));
+
+                            GradientDrawable gradientDrawable;
+                            if (isDarkTheme) {
+                                gradientDrawable = new GradientDrawable(
                                         GradientDrawable.Orientation.TL_BR,
-                                        new int[]{mutedColor, color} );
-
-                                binding.getRoot().setBackground( gradientDrawable );
-
-                                binding.appBarLayout.setBackgroundColor( Color.TRANSPARENT );
+                                        new int[]{darkMutedColor, color}
+                                );
+                            } else {
+                                gradientDrawable = new GradientDrawable(
+                                        GradientDrawable.Orientation.TL_BR,
+                                        new int[]{lightMutedColor, color}
+                                );
                             }
+
+                            binding.getRoot().setBackground( gradientDrawable );
+                            binding.appBarLayout.setBackgroundColor( Color.TRANSPARENT );
                         } );
 
                         Animation animation = AnimationUtils.loadAnimation(

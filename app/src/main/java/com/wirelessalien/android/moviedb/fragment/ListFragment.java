@@ -135,6 +135,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         showShowList(fragmentView);
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
         fab.setImageResource(R.drawable.ic_filter_list);
+        fab.setEnabled( true );
         fab.setOnClickListener( view -> {
             Intent intent = new Intent(requireContext().getApplicationContext(), FilterActivity.class);
             intent.putExtra("categories", true);
@@ -167,6 +168,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
         fab.setImageResource(R.drawable.ic_filter_list);
         fab.setVisibility( View.VISIBLE );
+        fab.setEnabled( true );
         fab.setOnClickListener( view -> {
             Intent intent = new Intent(requireContext().getApplicationContext(), FilterActivity.class);
             intent.putExtra("categories", true);

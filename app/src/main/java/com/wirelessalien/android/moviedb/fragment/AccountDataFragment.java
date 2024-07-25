@@ -36,6 +36,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.squareup.picasso.Picasso;
 import com.wirelessalien.android.moviedb.R;
@@ -51,6 +52,8 @@ public class AccountDataFragment extends BaseFragment {
     private TabLayout tabLayout;
     private String sessionId;
     private String accountId;
+    private ImageView loginBtn;
+    private FloatingActionButton fab;
 
     public AccountDataFragment() {
         // Required empty public constructor
@@ -73,18 +76,22 @@ public class AccountDataFragment extends BaseFragment {
         nameTextView = view.findViewById(R.id.userName);
         avatar = view.findViewById(R.id.profileImage);
         tabLayout = view.findViewById(R.id.tabs);
-        ImageView loginBtn = view.findViewById( R.id.loginLogoutBtn );
+        loginBtn = view.findViewById( R.id.loginLogoutBtn );
+        fab = requireActivity().findViewById(R.id.fab);
 
         sessionId = preferences.getString( "access_token", null );
         accountId = preferences.getString( "account_id", null );
 
         if (sessionId == null || accountId == null) {
             loginBtn.setEnabled( false );
+            fab.setEnabled( false );
         } else {
             loginBtn.setOnClickListener( v -> {
                 String url = "https://www.themoviedb.org/settings/profile";
                 openLinkInBrowser(url);
             });
+            loginBtn.setEnabled( true );
+            fab.setEnabled( true );
         }
 
         setupTabs();
@@ -99,6 +106,23 @@ public class AccountDataFragment extends BaseFragment {
         if (item != null) {
             item.setVisible(false);
             item.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (sessionId == null || accountId == null) {
+            loginBtn.setEnabled( false );
+            fab.setEnabled( false );
+        } else {
+            loginBtn.setOnClickListener( v -> {
+                String url = "https://www.themoviedb.org/settings/profile";
+                openLinkInBrowser(url);
+            });
+            loginBtn.setEnabled( true );
+            fab.setEnabled( true );
         }
     }
 
@@ -176,5 +200,4 @@ public class AccountDataFragment extends BaseFragment {
             getAccountIdThread.start();
         }
     }
-
 }

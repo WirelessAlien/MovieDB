@@ -53,12 +53,10 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.GridLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.Spinner;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -165,7 +163,8 @@ public class DetailActivity extends BaseActivity {
     private boolean added = false;
     private SpannableString showTitle;
     private Palette palette;
-    private int mutedColor;
+    private int darkMutedColor;
+    private int lightMutedColor;
     private ActivityDetailBinding binding;
     private final NotifyingScrollView.OnScrollChangedListener
             mOnScrollChangedListener = new NotifyingScrollView
@@ -453,28 +452,43 @@ public class DetailActivity extends BaseActivity {
                         binding.movieImage.setImageBitmap(bitmap);
 
                         palette = Palette.from(bitmap).generate();
-                        mutedColor = palette.getMutedColor(Color.TRANSPARENT);
+                        darkMutedColor = palette.getDarkMutedColor(palette.getMutedColor(Color.TRANSPARENT));
+                        lightMutedColor = palette.getLightMutedColor(palette.getMutedColor(Color.TRANSPARENT));
 
-                        GradientDrawable gradientDrawable = new GradientDrawable(
-                                GradientDrawable.Orientation.TL_BR,
-                                new int[]{mutedColor, color});
+                        GradientDrawable gradientDrawable;
+                        int mutedColor;
+                        if (isDarkTheme) {
+                            gradientDrawable = new GradientDrawable(
+                                    GradientDrawable.Orientation.TL_BR,
+                                    new int[]{darkMutedColor, color}
+                            );
+                            mutedColor = darkMutedColor;
+                        } else {
+                            gradientDrawable = new GradientDrawable(
+                                    GradientDrawable.Orientation.TL_BR,
+                                    new int[]{lightMutedColor, color}
+                            );
+                            mutedColor = lightMutedColor;
+                        }
 
                         binding.getRoot().setBackground(gradientDrawable);
                         binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT);
                         ColorStateList colorStateList = ColorStateList.valueOf(mutedColor);
-                        binding.fab.setBackgroundTintList(colorStateList);
-                        binding.certificationCv.setBackgroundColor( Color.TRANSPARENT );
-                        binding.releaseDateCv.setBackgroundColor( Color.TRANSPARENT );
-                        binding.runtimeCv.setBackgroundColor( Color.TRANSPARENT );
-                        binding.genreCv.setBackgroundColor( Color.TRANSPARENT );
-                        binding.ratingCv.setBackgroundColor( Color.TRANSPARENT );
-                        binding.allEpisodeBtn.setBackgroundTintList( colorStateList );
-                        binding.lastEpisodeCard.setStrokeWidth( 5 );
-                        binding.lastEpisodeCard.setCardBackgroundColor( Color.TRANSPARENT );
-                        binding.fabSave.setBackgroundTintList( colorStateList );
-                        binding.toolbar.setBackgroundColor(Color.TRANSPARENT );
-                        binding.collapsingToolbar.setContentScrimColor( mutedColor );
 
+                        if (mutedColor != Color.TRANSPARENT) {
+                            binding.fab.setBackgroundTintList(colorStateList);
+                            binding.certificationCv.setBackgroundColor( Color.TRANSPARENT );
+                            binding.releaseDateCv.setBackgroundColor( Color.TRANSPARENT );
+                            binding.runtimeCv.setBackgroundColor( Color.TRANSPARENT );
+                            binding.genreCv.setBackgroundColor( Color.TRANSPARENT );
+                            binding.ratingCv.setBackgroundColor( Color.TRANSPARENT );
+                            binding.allEpisodeBtn.setBackgroundTintList( colorStateList );
+                            binding.lastEpisodeCard.setStrokeWidth( 5 );
+                            binding.lastEpisodeCard.setCardBackgroundColor( Color.TRANSPARENT );
+                            binding.fabSave.setBackgroundTintList( colorStateList );
+                            binding.toolbar.setBackgroundColor(Color.TRANSPARENT );
+                            binding.collapsingToolbar.setContentScrimColor( mutedColor );
+                        }
 
                         Animation animation = AnimationUtils.loadAnimation(
                                 getApplicationContext(), R.anim.slide_in_right);

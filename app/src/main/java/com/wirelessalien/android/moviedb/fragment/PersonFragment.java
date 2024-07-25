@@ -106,6 +106,7 @@ public class PersonFragment extends BaseFragment {
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate( R.layout.fragment_person, container, false);
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
+        fab.setEnabled( true );
         fab.setImageResource(R.drawable.ic_star);
         fab.setOnClickListener (v -> {
             if (!isShowingDatabasePeople) {
@@ -161,6 +162,7 @@ public class PersonFragment extends BaseFragment {
         super.onResume();
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
         fab.setImageResource(R.drawable.ic_star);
+        fab.setEnabled( true );
         fab.setOnClickListener (v -> {
             if (!isShowingDatabasePeople) {
                 // Show people from the database
