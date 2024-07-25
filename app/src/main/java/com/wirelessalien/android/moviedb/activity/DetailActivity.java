@@ -2096,6 +2096,7 @@ public class DetailActivity extends BaseActivity {
                         setMovieData(movieData);
                     }
                     showKeywords(movieData);
+
                     if (movieData.has("number_of_seasons")) {
                         numSeason = movieData.getInt("number_of_seasons");
                     }
@@ -2196,7 +2197,7 @@ public class DetailActivity extends BaseActivity {
         private void showKeywords(JSONObject movieData) {
             try {
                 JSONObject keywordsObject = movieData.getJSONObject("keywords");
-                JSONArray keywordsArray = keywordsObject.getJSONArray("keywords");
+                JSONArray keywordsArray = (isMovie) ? keywordsObject.getJSONArray("keywords") : keywordsObject.getJSONArray("results");;
 
                 FlexboxLayout keywordsLayout = findViewById(R.id.keywordsLayout);
                 keywordsLayout.removeAllViews();
@@ -2229,6 +2230,8 @@ public class DetailActivity extends BaseActivity {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+                FlexboxLayout keywordsLayout = findViewById(R.id.keywordsLayout);
+                keywordsLayout.setVisibility( View.GONE );
             }
         }
     }
