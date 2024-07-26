@@ -290,4 +290,8 @@
     <string name="overview_of_the_episode">Overview of the episode</string>
     <string name="save_to_database">Save to database</string>
     <string name="budget">Budget</string>
+    <string name="save">Save</string>
+    <string name="choose_date">Choose Date</string>
+    <string name="error_adding_episode_to_database">Error adding episode to database</string>
+    <string name="login_is_required_to_use_tmdb_based_sync">Login is required to use TMDB based sync.</string>
 </resources>

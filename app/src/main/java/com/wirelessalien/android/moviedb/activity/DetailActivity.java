@@ -20,7 +20,6 @@
 
 package com.wirelessalien.android.moviedb.activity;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.UiModeManager;
 import android.content.ComponentName;
@@ -51,7 +50,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
@@ -74,6 +72,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -413,7 +412,7 @@ public class DetailActivity extends BaseActivity {
                 boolean isToastShown = preferences.getBoolean( "isToastShown", false );
 
                 if (!isToastShown) {
-                    runOnUiThread( () -> Toast.makeText( getApplicationContext(), "Login is required to use TMDB based sync.", Toast.LENGTH_SHORT ).show() );
+                    runOnUiThread( () -> Toast.makeText( getApplicationContext(), R.string.login_is_required_to_use_tmdb_based_sync, Toast.LENGTH_SHORT ).show() );
 
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean( "isToastShown", true );
@@ -873,7 +872,7 @@ public class DetailActivity extends BaseActivity {
                         values.put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, j );
                         long newRowId = database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values);
                         if (newRowId == -1) {
-                            Toast.makeText(this, "Error adding episode to database", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.error_adding_episode_to_database, Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -1708,65 +1707,53 @@ public class DetailActivity extends BaseActivity {
     }
 
     public void selectDate(final View view) {
-        final MaterialAlertDialogBuilder dateDialog = new MaterialAlertDialogBuilder(this);
+        MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker();
+        builder.setTitleText("Select a date");
 
-        LayoutInflater inflater = getLayoutInflater();
-        // Suppress the warning because DialogView is supposed to have a null root view
-        // because the parent is not known at the inflation time.
-        @SuppressLint("InflateParams") final View dialogView = inflater.inflate(R.layout.date_change_dialog, null);
-        dateDialog.setView(dialogView);
-        dateDialog.setTitle("Select a date:");
+        MaterialDatePicker<Long> datePicker = builder.build();
+        datePicker.show(getSupportFragmentManager(), datePicker.toString());
 
-        final DatePicker datePicker = dialogView.findViewById(R.id.movieDatePicker);
-
-        // Set the date in the date picker to the previous selected date.
-        Date date = (view.getTag().equals("start_date")) ? startDate : finishDate;
-        if (date != null) {
+        datePicker.addOnPositiveButtonClickListener(selection -> {
+            // Get the date from the MaterialDatePicker.
             Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-            datePicker.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-        }
-
-        dateDialog.setPositiveButton("Save", (dialog, which) -> {
-            // Get the date from the DatePicker.
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-            String dateFormat = parseDateToString(calendar.getTime(), null, null);
+            calendar.setTimeInMillis(selection);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+            String dateFormat = sdf.format(calendar.getTime());
 
             // Save the date to the database and update the view
             ContentValues movieValues = new ContentValues();
 
             if (view.getTag().equals("start_date")) {
-                movieValues.put(MovieDatabaseHelper
-                        .COLUMN_PERSONAL_START_DATE, dateFormat);
+                movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateFormat);
 
                 Button button = findViewById(R.id.startDateButton);
                 button.setText(dateFormat);
-                binding.movieStartDate.setText(getString(R.string.change_start_date_2) +
-                        dateFormat);
+
+                // Convert the date to DateFormat.DEFAULT
+                DateFormat dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT);
+                String formattedDate = dateFormatDefault.format(calendar.getTime());
+
+                binding.movieStartDate.setText(getString(R.string.change_start_date_2) + formattedDate);
                 startDate = calendar.getTime();
 
             } else {
-                movieValues.put(MovieDatabaseHelper
-                        .COLUMN_PERSONAL_FINISH_DATE, dateFormat);
+                movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateFormat);
 
                 Button button = findViewById(R.id.endDateButton);
                 button.setText(dateFormat);
-                binding.movieFinishDate.setText(getString(R.string.change_finish_date_2)
-                        + dateFormat);
+
+                // Convert the date to DateFormat.DEFAULT
+                DateFormat dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT);
+                String formattedDate = dateFormatDefault.format(calendar.getTime());
+
+                binding.movieFinishDate.setText(getString(R.string.change_finish_date_2) + formattedDate);
                 finishDate = calendar.getTime();
             }
 
             database = databaseHelper.getWritableDatabase();
             databaseHelper.onCreate(database);
-            database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues,
-                    MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
-            dialog.dismiss();
-        } );
-
-        dateDialog.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss() );
-
-        dateDialog.show();
+            database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
+        });
     }
 
     private void fadeOutAndHideAnimation(final View view) {
