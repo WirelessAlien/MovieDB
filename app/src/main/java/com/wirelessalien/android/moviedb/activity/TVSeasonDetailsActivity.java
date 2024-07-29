@@ -20,30 +20,13 @@
 
 package com.wirelessalien.android.moviedb.activity;
 
-import static com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper.TABLE_MOVIES;
-
-import android.content.ContentValues;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.RatingBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -52,25 +35,13 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter;
-import com.wirelessalien.android.moviedb.data.Episode;
 import com.wirelessalien.android.moviedb.fragment.SeasonDetailsFragment;
-import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper;
-import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
-import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetailsThread;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.text.ParseException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public class TVSeasonDetailsActivity extends AppCompatActivity {
 

@@ -68,6 +68,7 @@ import androidx.palette.graphics.Palette;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -78,18 +79,18 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
+import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
+import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
-import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToFavouritesThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlistThreadTMDb;
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteRatingThreadTMDb;
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateThreadTMDb;
 import com.wirelessalien.android.moviedb.view.NotifyingScrollView;
@@ -108,7 +109,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -137,15 +137,14 @@ public class DetailActivity extends BaseActivity {
     private ArrayList<JSONObject> castArrayList;
     private ArrayList<JSONObject> crewArrayList;
     private SimilarMovieBaseAdapter similarMovieAdapter;
+    private ViewPager2 episodeViewPager;
+    private EpisodePagerAdapter episodePagerAdapter;
     private ArrayList<JSONObject> similarMovieArrayList;
     private String sessionId;
     private String accountId;
     private SQLiteDatabase database;
     private MovieDatabaseHelper databaseHelper;
     private int movieId;
-    private int seasonNumber;
-    private int episodeNumber;
-    private String episodeName;
     private JSONArray seasons;
     private Target target;
     private String voteAverage;
@@ -177,7 +176,7 @@ public class DetailActivity extends BaseActivity {
             if (t == 0) {
                 getSupportActionBar().setTitle("");
             } else {
-                if (showTitle != null) {
+                if (showTitle != null && Math.abs(t - lastScrollY) > scrollThreshold) {
                     getSupportActionBar().setTitle(showTitle);
                 }
             }
@@ -199,8 +198,6 @@ public class DetailActivity extends BaseActivity {
     private boolean mMovieDetailsLoaded = false;
     private boolean mSimilarMoviesLoaded = false;
     private boolean mCastAndCrewLoaded = false;
-    private boolean mExternalDataLoaded = false;
-    private boolean mReleaseDatesLoaded = false;
     private boolean mVideosLoaded = false;
 
     /**
@@ -253,8 +250,11 @@ public class DetailActivity extends BaseActivity {
         getSupportActionBar().setTitle("");
 
 
+        episodeViewPager = findViewById(R.id.episodeViewPager);
+        episodePagerAdapter = new EpisodePagerAdapter(this);
         // Make the transparency dependent on how far the user scrolled down.
         binding.scrollView.setOnScrollChangedListener(mOnScrollChangedListener);
+        binding.scrollView.scrollTo(0, 0);
 
         // Create a variable with the application context that can be used
         // when data is retrieved.
@@ -316,14 +316,14 @@ public class DetailActivity extends BaseActivity {
             binding.favouriteButton.setEnabled(false);
             binding.ratingBtn.setEnabled(false);
             binding.addToList.setEnabled(false);
-            binding.episodeRateBtn.setEnabled(false);
+//            binding.episodeRateBtn.setEnabled(false);
         } else {
             // Enable the buttons
             binding.watchListButton.setEnabled(true);
             binding.favouriteButton.setEnabled(true);
             binding.ratingBtn.setEnabled(true);
             binding.addToList.setEnabled(true);
-            binding.episodeRateBtn.setEnabled(true);
+//            binding.episodeRateBtn.setEnabled(true);
         }
 
         // Get the movieObject from the intent that contains the necessary
@@ -485,8 +485,6 @@ public class DetailActivity extends BaseActivity {
                             binding.genreCv.setBackgroundColor( Color.TRANSPARENT );
                             binding.ratingCv.setBackgroundColor( Color.TRANSPARENT );
                             binding.allEpisodeBtn.setBackgroundTintList( colorStateList );
-                            binding.lastEpisodeCard.setStrokeWidth( 5 );
-                            binding.lastEpisodeCard.setCardBackgroundColor( Color.TRANSPARENT );
                             binding.fabSave.setBackgroundTintList( colorStateList );
                             binding.toolbar.setBackgroundColor(Color.TRANSPARENT );
                             binding.collapsingToolbar.setContentScrimColor( mutedColor );
@@ -668,7 +666,7 @@ public class DetailActivity extends BaseActivity {
             showName = jMovieObject.optString( "name" );
         }
         if (isMovie) {
-            binding.lastEpisodeCard.setVisibility( View.GONE );
+            binding.episodeViewPager.setVisibility( View.GONE );
             binding.allEpisodeBtn.setVisibility( View.GONE );
             binding.episodeText.setVisibility( View.GONE );
         }
@@ -680,90 +678,6 @@ public class DetailActivity extends BaseActivity {
             iiintent.putExtra( "tvShowName", showName);
             startActivity( iiintent );
         } );
-
-        if (!isMovie) {
-            if (jMovieObject.has("last_episode_to_air")) {
-                JSONObject lastEpisode = null;
-                try {
-                    lastEpisode = jMovieObject.getJSONObject("last_episode_to_air");
-                } catch (JSONException ignored) {
-
-                }
-                try {
-                    seasonNumber = lastEpisode.getInt( "season_number" );
-                } catch (JSONException ignored) {
-
-                }
-                try {
-                    episodeNumber = lastEpisode.getInt("episode_number");
-                } catch (JSONException ignored) {
-
-                }
-                try {
-                    episodeName = lastEpisode.getString("name");
-                } catch (JSONException ignored) {
-
-                }
-            }
-        }
-
-        if (!isMovie) {
-            MovieDatabaseHelper db = new MovieDatabaseHelper(context);
-            if (db.isEpisodeInDatabase(movieId, seasonNumber, Collections.singletonList( episodeNumber ) )) {
-                binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility_fill );
-            } else {
-                binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility );
-            }
-        }
-
-        binding.episodeRateBtn.setOnClickListener(v -> {
-            BottomSheetDialog dialog = new BottomSheetDialog(mActivity);
-            LayoutInflater inflater = LayoutInflater.from(mActivity);
-            View dialogView = inflater.inflate(R.layout.rating_dialog, null);
-            dialog.setContentView(dialogView);
-            dialog.show();
-
-            RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
-            Button submitButton = dialogView.findViewById(R.id.btnSubmit);
-            Button cancelButton = dialogView.findViewById(R.id.btnCancel);
-            Button deleteButton = dialogView.findViewById(R.id.btnDelete);
-            TextView episodeTitle = dialogView.findViewById(R.id.tvTitle);
-
-            episodeTitle.setText(  "S:" + seasonNumber + " " + "E:" + episodeNumber + " " + episodeName);
-
-            submitButton.setOnClickListener(v1 -> CompletableFuture.runAsync(() -> {
-                double rating = ratingBar.getRating();
-                new AddEpisodeRatingThreadTMDb(movieId, seasonNumber, episodeNumber, rating, context).start();
-                mActivity.runOnUiThread(dialog::dismiss);
-            }));
-
-            deleteButton.setOnClickListener(v12 -> CompletableFuture.runAsync(() -> {
-                new DeleteEpisodeRatingThreadTMDb(movieId, seasonNumber, episodeNumber, context).start();
-                mActivity.runOnUiThread(dialog::dismiss);
-            }));
-
-            cancelButton.setOnClickListener(v12 -> dialog.dismiss());
-        });
-
-
-
-        binding.episodeWathchBtn.setOnClickListener( v -> {
-            if (database == null) {
-                databaseHelper = new MovieDatabaseHelper(getApplicationContext());
-                database = databaseHelper.getWritableDatabase();
-                databaseHelper.onCreate(database);
-            }
-
-            if (database != null) {
-                if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, Collections.singletonList( episodeNumber ) )) {
-                    databaseHelper.removeEpisodeNumber(movieId, seasonNumber, Collections.singletonList( episodeNumber ) );
-                    binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility );
-                } else {
-                    databaseHelper.addEpisodeNumber(movieId, seasonNumber, Collections.singletonList( episodeNumber ) );
-                    binding.episodeWathchBtn.setImageResource( R.drawable.ic_visibility_fill );
-                }
-            }
-        });
 
         binding.moreImageBtn.setOnClickListener( v -> {
             Intent imageintent = new Intent( getApplicationContext(), MovieImageActivity.class );
@@ -1180,35 +1094,21 @@ public class DetailActivity extends BaseActivity {
             }
 
             if (!isMovie) {
-                if (movieObject.has("last_episode_to_air")) {
-                    JSONObject lastEpisode = movieObject.getJSONObject("last_episode_to_air");
-                    if (lastEpisode != null) {
-                        seasonNumber = lastEpisode.getInt("season_number");
-                        episodeNumber = lastEpisode.getInt("episode_number");
-                        episodeName = lastEpisode.getString("name");
-                        double voteAverage = lastEpisode.getDouble("vote_average");
-                        String overview = lastEpisode.getString("overview");
-                        String episodeAirDate = lastEpisode.getString("air_date");
+                JSONObject lastEpisode = movieObject.optJSONObject("last_episode_to_air");
+                JSONObject nextEpisode = movieObject.optJSONObject("next_episode_to_air");
 
-                        binding.seasonNo.setText( "S:" + seasonNumber);
-                        binding.episodeNo.setText( "E:" + episodeNumber);
-                        binding.episodeName.setText( episodeName );
-                        binding.ratingAverage.setText(String.format(Locale.getDefault(), "%.2f/10", voteAverage));
-                        binding.episodeOverview.setText( overview );
-                        try {
-                            SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                            Date date = originalFormat.parse(episodeAirDate);
+                // Clear the adapter's fragments before adding new ones or it duplicates them.
+                episodePagerAdapter.clearFragments();
 
-                            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
-                            String formattedDate = dateFormat.format(date);
-
-                            binding.episodeAirDate.setText(formattedDate);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                            binding.episodeAirDate.setText(episodeAirDate);
-                        }
-                    }
+                if (lastEpisode != null) {
+                    episodePagerAdapter.addFragment(LastEpisodeFragment.newInstance(lastEpisode, "Latest Episode"), 0);
                 }
+
+                if (nextEpisode != null) {
+                    episodePagerAdapter.addFragment(LastEpisodeFragment.newInstance(nextEpisode, "Next Episode"), 1);
+                }
+
+                episodeViewPager.setAdapter(episodePagerAdapter);
             }
 
             if (movieObject.has("tagline")) {
@@ -2184,7 +2084,7 @@ public class DetailActivity extends BaseActivity {
         private void showKeywords(JSONObject movieData) {
             try {
                 JSONObject keywordsObject = movieData.getJSONObject("keywords");
-                JSONArray keywordsArray = (isMovie) ? keywordsObject.getJSONArray("keywords") : keywordsObject.getJSONArray("results");;
+                JSONArray keywordsArray = (isMovie) ? keywordsObject.getJSONArray("keywords") : keywordsObject.getJSONArray("results");
 
                 FlexboxLayout keywordsLayout = findViewById(R.id.keywordsLayout);
                 keywordsLayout.removeAllViews();

@@ -294,4 +294,6 @@
     <string name="choose_date">Choose Date</string>
     <string name="error_adding_episode_to_database">Error adding episode to database</string>
     <string name="login_is_required_to_use_tmdb_based_sync">Login is required to use TMDB based sync.</string>
+    <string name="most_recent">Most Recent</string>
+    <string name="overview_not_available">Overview is not added to the episode, will be added when available.</string>
 </resources>
