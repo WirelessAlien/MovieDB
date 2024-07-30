@@ -168,138 +168,98 @@
                         android:id="@+id/dateDetailsLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:columnCount="2"
+                        android:columnCount="1"
                         android:orientation="horizontal">
 
-                        <!-- Show Category Row -->
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
                             android:layout_gravity="fill"
-                            android:gravity="center_vertical"
-                            android:text="@string/show_category" />
+                            android:hint="@string/show_category">
 
-                        <Spinner
-                            android:id="@+id/categories"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:entries="@array/categories" />
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/categories"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="10dp"
+                                android:inputType="none"
+                                android:focusable="true"
+                                android:clickable="true"
+                                android:entries="@array/categories" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                        <!-- Start Date Row -->
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:gravity="center_vertical"
-                            android:text="@string/start_date" />
+                        <GridLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:columnCount="2"
+                            android:layout_marginTop="5dp"
+                            android:orientation="horizontal">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/startDateButton"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            app:cornerRadius="5dp"
-                            android:drawableEnd="@drawable/ic_calendar"
-                            android:drawablePadding="5dip"
-                            android:onClick="selectDate"
-                            android:tag="start_date" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/startDateButton"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                app:cornerRadius="5dp"
+                                android:layout_marginEnd="5dp"
+                                android:drawableEnd="@drawable/ic_calendar"
+                                android:drawablePadding="5dip"
+                                android:onClick="selectDate"
+                                android:tag="start_date" />
 
-                        <!-- Finish Date Row -->
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:gravity="center_vertical"
-                            android:text="@string/finish_date" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/endDateButton"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:layout_marginStart="5dp"
+                                app:cornerRadius="5dp"
+                                android:drawableEnd="@drawable/ic_calendar"
+                                android:drawablePadding="5dip"
+                                android:onClick="selectDate"
+                                android:tag="end_date" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/endDateButton"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            app:cornerRadius="5dp"
-                            android:drawableEnd="@drawable/ic_calendar"
-                            android:drawablePadding="5dip"
-                            android:onClick="selectDate"
-                            android:tag="end_date" />
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:layout_gravity="fill"
+                                android:layout_marginEnd="5dp"
+                                android:hint="@string/times_watched"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                        <!-- Times Watched Row -->
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:gravity="center_vertical"
-                            android:text="@string/times_watched" />
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/timesWatched"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:digits="0123456789"
+                                    android:gravity="center_vertical"
+                                    android:inputType="number"
+                                    android:text="@string/times_watched_default" />
+                            </com.google.android.material.textfield.TextInputLayout>
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/timesWatched"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:digits="0123456789"
-                            android:gravity="center_vertical"
-                            android:hint="@string/times_watched_default"
-                            android:inputType="number"
-                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                            android:text="@string/times_watched_default" />
-
-                        <!-- Episodes Seen Row (Initially Hidden) -->
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="5dip"
-                            android:text="@string/episodes_seen"
-                            android:visibility="gone" />
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/episodesSeen"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:digits="0123456789"
-                            android:gravity="center_vertical"
-                            android:hint="@string/episodes_seen_default"
-                            android:inputType="number"
-                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                            android:text="@string/episodes_seen_default"
-                            android:visibility="gone" />
-
-                        <!-- Rating Row -->
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:gravity="center_vertical"
-                            android:text="@string/rating" />
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/showRating"
-                            android:layout_width="0dp"
-                            android:layout_height="50dp"
-                            android:layout_columnWeight="1"
-                            android:layout_gravity="fill"
-                            android:digits="0123456789"
-                            android:gravity="center_vertical"
-                            android:hint="@string/show_rating_default"
-                            android:inputType="number"
-                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                            android:text="@string/show_rating_default" />
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_columnWeight="1"
+                                android:layout_marginStart="5dp"
+                                android:layout_gravity="fill"
+                                android:hint="@string/rating"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/showRating"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:digits="0123456789"
+                                    android:gravity="center_vertical"
+                                    android:inputType="number"
+                                    android:text="@string/show_rating_default" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </GridLayout>
                     </GridLayout>
                 </LinearLayout>
             </RelativeLayout>
@@ -557,7 +517,7 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginEnd="16dp"
                     android:layout_centerVertical="true"
-                    android:text="Most Recent"
+                    android:text="@string/episodes"
                     android:textSize="20sp"
                     android:textStyle="bold" />
                 <com.google.android.material.button.MaterialButton
