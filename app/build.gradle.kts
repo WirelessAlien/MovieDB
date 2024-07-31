@@ -11,8 +11,8 @@ android {
         applicationId = "com.wirelessalien.android.moviedb"
         minSdk = 24
         targetSdk = 33
-        versionCode = 4
-        versionName = "0.8"
+        versionCode = 5
+        versionName = "0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
