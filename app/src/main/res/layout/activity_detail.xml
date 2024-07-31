@@ -183,7 +183,7 @@
                                 android:layout_height="wrap_content"
                                 android:padding="10dp"
                                 android:inputType="none"
-                                android:focusable="true"
+                                android:focusable="false"
                                 android:clickable="true"
                                 android:entries="@array/categories" />
                         </com.google.android.material.textfield.TextInputLayout>

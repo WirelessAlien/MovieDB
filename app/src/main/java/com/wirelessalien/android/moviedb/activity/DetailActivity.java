@@ -715,7 +715,7 @@ public class DetailActivity extends BaseActivity {
             } else {
                 final ContentValues showValues = new ContentValues();
 
-                // Only show the dialog is the user specified so in the preferences.
+                // Only show the dialog if the user specified so in the preferences.
                 if (preferences.getBoolean(SHOW_SAVE_DIALOG_PREFERENCE, false)) {
 
                     // Ask in which category the show should be placed.
@@ -731,6 +731,8 @@ public class DetailActivity extends BaseActivity {
                         if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
                             addSeasonsAndEpisodesToDatabase();
                         }
+
+                        binding.editIcon.setVisibility(View.VISIBLE);
                     });
 
                     categoriesDialog.show();
@@ -738,6 +740,8 @@ public class DetailActivity extends BaseActivity {
                     // If no dialog is shown, add the show to the default category.
                     showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, MovieDatabaseHelper.CATEGORY_WATCHING);
                     addMovieToDatabase(showValues);
+
+                    binding.editIcon.setVisibility(View.VISIBLE);
                 }
             }
         });
