@@ -86,39 +86,7 @@
                 android:tag="finish_date_order"
                 android:text="@string/finish_date"
                 android:visibility="gone"/>
-            <TextView
-                android:id="@+id/accountText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/account"
-                android:textStyle="bold"
-                android:layout_margin="5dip"/>
-            <TextView
-                android:id="@+id/accountDescText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/other_filters_don_t_work_with_this_option"
-                android:layout_margin="5dip"/>
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/favorite"
-                android:layout_width="wrap_content"
-                android:tag="favorite"
-                android:text="@string/favourite"
-                android:layout_height="wrap_content"/>
 
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/watchlist"
-                android:layout_width="wrap_content"
-                android:tag="watchlist"
-                android:text="@string/watchlist"
-                android:layout_height="wrap_content"/>
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rated"
-                android:layout_width="wrap_content"
-                android:tag="rated"
-                android:text="@string/rated"
-                android:layout_height="wrap_content"/>
         </RadioGroup>
 
         <View
@@ -292,7 +260,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:drawableEnd="@drawable/ic_calendar"
-                        android:drawablePadding="5dip"
+                        android:drawablePadding="5dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         app:cornerRadius="5dp"
                         android:onClick="selectDate"
                         android:tag="start_date" />
@@ -314,7 +283,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:drawableEnd="@drawable/ic_calendar"
-                        android:drawablePadding="5dip"
+                        android:drawablePadding="5dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         app:cornerRadius="5dp"
                         android:onClick="selectDate"
                         android:tag="end_date" />

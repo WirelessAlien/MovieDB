@@ -102,7 +102,7 @@ public class PersonFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        preferences = PreferenceManager.getDefaultSharedPreferences( getContext() );
+        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate( R.layout.fragment_person, container, false);
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
@@ -186,7 +186,7 @@ public class PersonFragment extends BaseFragment {
         // Create the adapter
         mPersonAdapter = new PersonBaseAdapter(mPersonArrayList);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         visibleThreshold *= preferences.getInt(GRID_SIZE_PREFERENCE, 3);
 
         // Get the persons
