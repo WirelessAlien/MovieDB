@@ -92,8 +92,6 @@ public class ShowFragment extends BaseFragment {
     private int pastVisibleItems;
     private int visibleItemCount;
     private int totalItemCount;
-    private String currentListType = "";
-
     private boolean mShowListLoaded = false;
 
     public ShowFragment() {
@@ -209,18 +207,6 @@ public class ShowFragment extends BaseFragment {
                 case "best_rated" -> filterParameter = "sort_by=vote_average.desc";
                 case "release_date" -> filterParameter = "sort_by=release_date.desc";
                 case "alphabetic_order" -> filterParameter = "sort_by=original_title.desc";
-                case "favorite" -> {
-                    new FavoriteListThread(mListType, 1).start();
-                    return;
-                }
-                case "watchlist" -> {
-                    new WatchListThread(mListType, 1).start();
-                    return;
-                }
-                case "rated" -> {
-                    new RatedThread(mListType, 1).start();
-                    return;
-                }
                 default ->
                     // This will also be selected when 'most_popular' is checked.
                         filterParameter = "sort_by=popularity.desc";
@@ -374,16 +360,8 @@ public class ShowFragment extends BaseFragment {
                         } else {
                             // Check if the previous request returned any data
                             if (mShowArrayList.size() > 0) {
-                                switch (currentListType) {
-                                    case "favorite" ->
-                                            new FavoriteListThread(mListType, Integer.parseInt(String.valueOf(currentPage))).start();
-                                    case "watchlist" ->
-                                            new WatchListThread(mListType, Integer.parseInt(String.valueOf(currentPage))).start();
-                                    case "rated" ->
-                                            new RatedThread(mListType, Integer.parseInt(String.valueOf(currentPage))).start();
-                                    default ->
-                                            new ShowListThread(new String[]{mListType, Integer.toString(currentPage)}).start();
-                                }
+                                new ShowListThread(new String[]{mListType, Integer.toString(currentPage)}).start();
+
                             }
                         }
                         loading = true;
@@ -579,7 +557,6 @@ public class ShowFragment extends BaseFragment {
                             }
                         }
                         mShowListLoaded = true;
-                        currentListType = "";
                         Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
                         progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
                     } catch (JSONException je) {
@@ -592,306 +569,6 @@ public class ShowFragment extends BaseFragment {
             });
         }
     }
-
-    //get users favorite movies when filter
-    private class FavoriteListThread extends Thread {
-        private final Handler handler;
-        private final String listType;
-        private final int page;
-
-        public FavoriteListThread(String listType, int page) {
-            handler = new Handler(Looper.getMainLooper());
-            this.listType = listType;
-            this.page = page;
-        }
-
-        @Override
-        public void run() {
-            if (!isAdded()) {
-                return;
-            }
-            handler.post(() -> {
-                if (isAdded()) {
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.VISIBLE));
-                }
-            });
-
-            String access_token = preferences.getString("access_token", "");
-            String accountId = preferences.getString("account_id", "");
-            String url = "https://api.themoviedb.org/4/account/" + accountId + "/" + listType + "/favorites?page=" + page;
-
-            OkHttpClient client = new OkHttpClient();
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer " + access_token)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                String responseBody = null;
-                if (response.body() != null) {
-                    responseBody = response.body().string();
-                }
-                handleResponse(responseBody);
-            } catch (IOException e) {
-                e.printStackTrace();
-                handler.post(() -> {
-                    if (isAdded()) {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                });
-            }
-            loading = false;
-        }
-
-        private void handleResponse(String response) {
-            handler.post( () -> {
-                if (isAdded() && response != null && !response.isEmpty()) {
-                    // Keep the user at the same position in the list.
-                    int position;
-                    try {
-                        position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
-                    } catch (NullPointerException npe) {
-                        position = 0;
-                    }
-
-                    // Clear the array list before adding new movies to it.
-                    if (Objects.equals(currentListType, "") || Objects.equals(currentListType, "watchlist") || Objects.equals(currentListType, "rated")) {
-                        mShowArrayList.clear();
-                    }
-
-                    // Convert the JSON webpage to JSONObjects
-                    // Add the JSONObjects to the list with movies/series.
-                    try {
-                        JSONObject reader = new JSONObject(response);
-                        JSONArray arrayData = reader.getJSONArray("results");
-                        for (int i = 0; i < arrayData.length(); i++) {
-                            JSONObject websiteData = arrayData.getJSONObject(i);
-                            mShowArrayList.add(websiteData);
-                        }
-
-                        // Reload the adapter (with the new page)
-                        // and set the user to his old position.
-                        if (mShowView != null) {
-                            mShowView.setAdapter( mShowAdapter );
-                            mShowView.scrollToPosition( position );
-                        }
-                        currentListType = "favorite";
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    } catch (JSONException je) {
-                        je.printStackTrace();
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                }
-            } );
-        }
-    }
-
-    private class WatchListThread extends Thread {
-        private final Handler handler;
-        private final String listType;
-        private final int page;
-
-        public WatchListThread(String listType, int page) {
-            handler = new Handler(Looper.getMainLooper());
-            this.listType = listType;
-            this.page = page;
-        }
-
-        @Override
-        public void run() {
-            if (!isAdded()) {
-                return;
-            }
-            handler.post(() -> {
-                if (isAdded()) {
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.VISIBLE));
-                }
-            });
-
-            String access_token = preferences.getString("access_token", "");
-            String accountId = preferences.getString("account_id", "");
-            String url = "https://api.themoviedb.org/4/account/" + accountId + "/" + listType + "/watchlist?page=" + page;
-
-            OkHttpClient client = new OkHttpClient();
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer " + access_token)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                String responseBody = null;
-                if (response.body() != null) {
-                    responseBody = response.body().string();
-                }
-                handleResponse(responseBody);
-            } catch (IOException e) {
-                e.printStackTrace();
-                handler.post(() -> {
-                    if (isAdded()) {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                });
-            }
-        }
-
-        private void handleResponse(String response) {
-            handler.post(() -> {
-                if (isAdded() && response != null && !response.isEmpty()) {
-                    // Keep the user at the same position in the list.
-                    int position;
-                    try {
-                        position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
-                    } catch (NullPointerException npe) {
-                        position = 0;
-                    }
-
-                    // Clear the array list before adding new movies to it.
-                    if (Objects.equals(currentListType, "") || Objects.equals(currentListType, "rated") || Objects.equals(currentListType, "favorite")) {
-                        mShowArrayList.clear();
-                    }
-
-                    // Convert the JSON webpage to JSONObjects
-                    // Add the JSONObjects to the list with movies/series.
-                    try {
-                        JSONObject reader = new JSONObject(response);
-                        JSONArray arrayData = reader.getJSONArray("results");
-                        for (int i = 0; i < arrayData.length(); i++) {
-                            JSONObject websiteData = arrayData.getJSONObject(i);
-                            mShowArrayList.add(websiteData);
-                        }
-
-                        // Reload the adapter (with the new page)
-                        // and set the user to his old position.
-                        if (mShowView != null) {
-                            mShowView.setAdapter( mShowAdapter );
-                            mShowView.scrollToPosition( position );
-                        }
-                        currentListType = "watchlist";
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    } catch (JSONException je) {
-                        je.printStackTrace();
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                }
-                loading = false;
-            });
-        }
-    }
-
-    private class RatedThread extends Thread {
-        private final Handler handler;
-        private final String listType;
-        private final int page;
-
-        public RatedThread(String listType, int page) {
-            handler = new Handler(Looper.getMainLooper());
-            this.listType = listType;
-            this.page = page;
-        }
-
-        @Override
-        public void run() {
-            if (!isAdded()) {
-                return;
-            }
-            handler.post(() -> {
-                if (isAdded()) {
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.VISIBLE));
-                }
-            });
-
-            // Load the webpage with the list of rated movies/series.
-            String access_token = preferences.getString("access_token", "");
-            String accountId = preferences.getString("account_id", "");
-            String url = "https://api.themoviedb.org/4/account/" + accountId + "/" + listType + "/rated?page=" + page;
-
-            OkHttpClient client = new OkHttpClient();
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer " + access_token)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                String responseBody = null;
-                if (response.body() != null) {
-                    responseBody = response.body().string();
-                }
-                handleResponse(responseBody);
-            } catch (IOException e) {
-                e.printStackTrace();
-                handler.post(() -> {
-                    if (isAdded()) {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                });
-            }
-        }
-
-        private void handleResponse(String response) {
-            handler.post(() -> {
-                if (isAdded() && response != null && !response.isEmpty()) {
-                    // Keep the user at the same position in the list.
-                    int position;
-                    try {
-                        position = mShowLinearLayoutManager.findFirstVisibleItemPosition();
-                    } catch (NullPointerException npe) {
-                        position = 0;
-                    }
-
-                    // Clear the array list before adding new movies to it.
-                    if (Objects.equals(currentListType, "") || Objects.equals(currentListType, "watchlist") || Objects.equals(currentListType, "favorite")) {
-                        mShowArrayList.clear();
-                    }
-
-                    // Convert the JSON webpage to JSONObjects
-                    // Add the JSONObjects to the list with movies/series.
-                    try {
-                        JSONObject reader = new JSONObject(response);
-                        JSONArray arrayData = reader.getJSONArray("results");
-                        for (int i = 0; i < arrayData.length(); i++) {
-                            JSONObject websiteData = arrayData.getJSONObject(i);
-                            mShowArrayList.add(websiteData);
-                        }
-
-                        // Reload the adapter (with the new page)
-                        // and set the user to his old position.
-                        if (mShowView != null) {
-                            mShowView.setAdapter( mShowAdapter );
-                            mShowView.scrollToPosition( position );
-                        }
-                        currentListType = "rated";
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    } catch (JSONException je) {
-                        je.printStackTrace();
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                }
-                loading = false;
-            });
-        }
-    }
-
 
     /**
      * Uses Thread to retrieve the list with shows that fulfill the search query
