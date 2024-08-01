@@ -27,6 +27,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,6 +53,7 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.wirelessalien.android.moviedb.R;
@@ -203,19 +205,6 @@ public class FilterActivity extends AppCompatActivity {
             dateViewLayout.setVisibility(View.GONE);
         }
 
-        //account
-        if (!intent.getBooleanExtra( "account", true )) {
-            RadioButton watchlistBtn = findViewById( R.id.watchlist );
-            RadioButton favoriteBtn = findViewById( R.id.favorite );
-            RadioButton rateBtn = findViewById( R.id.rated );
-            TextView accountText = findViewById( R.id.accountText );
-            TextView accountDescText = findViewById( R.id.accountDescText );
-            watchlistBtn.setVisibility( View.GONE );
-            favoriteBtn.setVisibility( View.GONE );
-            rateBtn.setVisibility( View.GONE );
-            accountText.setVisibility( View.GONE );
-            accountDescText.setVisibility( View.GONE );
-        }
 
         if (!intent.getBooleanExtra("keywords", true)) {
             View separator = findViewById(R.id.genreViewSeparator);
@@ -548,7 +537,7 @@ public class FilterActivity extends AppCompatActivity {
         } else {
             // Set the date to 2000.
             // TODO: Set the date in the user locale.
-            button.setText("2000-01-01");
+            button.setText("");
         }
 
         // If any genres were included last time, select them as included in advance.
@@ -586,18 +575,6 @@ public class FilterActivity extends AppCompatActivity {
             EditText withoutKeywordsView = findViewById(R.id.withoutKeywords);
             withoutKeywordsView.setText(withoutKeywords);
         }
-
-        boolean isFavoriteChecked = sharedPreferences.getBoolean("favorite", false);
-        MaterialRadioButton favoriteRadioButton = findViewById(R.id.favorite);
-        favoriteRadioButton.setChecked(isFavoriteChecked);
-
-        boolean isWatchlistChecked = sharedPreferences.getBoolean("watchlist", false);
-        MaterialRadioButton watchlistRadioButton = findViewById( R.id.watchlist );
-        watchlistRadioButton.setChecked( isWatchlistChecked );
-
-        boolean isRatedChecked = sharedPreferences.getBoolean("rated", false);
-        MaterialRadioButton ratedRadioButton = findViewById( R.id.rated );
-        ratedRadioButton.setChecked( isRatedChecked );
     }
 
     /**
@@ -640,86 +617,54 @@ public class FilterActivity extends AppCompatActivity {
      * @param view the button that is being pressed.
      */
     public void selectDate(final View view) {
-        final MaterialAlertDialogBuilder dateDialog = new MaterialAlertDialogBuilder(this);
+        MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker();
+        builder.setTitleText("Select a date");
 
-        // Create a DatePicker dialog.
-        LayoutInflater inflater = getLayoutInflater();
-        // Suppress the warning because DialogView is supposed to have a null root view
-        // because the parent is not known at the inflation time.
-        @SuppressLint("InflateParams") final View dialogView = inflater.inflate(R.layout.date_change_dialog, null);
-        dateDialog.setView(dialogView);
-        dateDialog.setTitle("Select a date: ");
-
-        SharedPreferences sharedPreferences
-                = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
         final SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
-
-        final DatePicker datePicker = dialogView.findViewById(R.id.movieDatePicker);
 
         // Retrieve the date from SharedPreferences and set it in the DatePicker.
         if (view.getTag().equals("start_date")) {
-            String startDate;
-            if ((startDate = sharedPreferences.getString(FILTER_START_DATE, null)) != null) {
-                setDatePickerDate(datePicker, startDate);
+            String startDate = sharedPreferences.getString(FILTER_START_DATE, null);
+            if (startDate != null) {
+                builder.setSelection(parseDateToMillis(startDate));
+            }
+        } else if (view.getTag().equals("end_date")) {
+            String endDate = sharedPreferences.getString(FILTER_END_DATE, null);
+            if (endDate != null) {
+                builder.setSelection(parseDateToMillis(endDate));
             }
         }
 
-        if (view.getTag().equals("end_date")) {
-            String endDate;
-            if ((endDate = sharedPreferences.getString(FILTER_END_DATE, null)) != null) {
-                setDatePickerDate(datePicker, endDate);
-            }
-        }
-
-        // Save the date to SharedPreferences.
-        dateDialog.setPositiveButton("Save", (dialog, which) -> {
-            // Get the date from the DatePicker.
+        MaterialDatePicker<Long> datePicker = builder.build();
+        datePicker.addOnPositiveButtonClickListener(selection -> {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-            String dateFormat = simpleDateFormat.format(new Date(calendar.getTimeInMillis()));
+            String dateFormat = simpleDateFormat.format(new Date(selection));
 
             if (view.getTag().equals("start_date")) {
                 prefsEditor.putString(FILTER_START_DATE, dateFormat);
+                Button button = findViewById(R.id.startDateButton);
+                button.setText(dateFormat);
             } else {
                 prefsEditor.putString(FILTER_END_DATE, dateFormat);
+                Button button = findViewById(R.id.endDateButton);
+                button.setText(dateFormat);
             }
 
             prefsEditor.apply();
+        });
 
-            // Set the new date in the button.
-            if (view.getTag().equals("start_date")) {
-                Button button = findViewById(R.id.startDateButton);
-                // TODO: Set the date in the user locale.
-                button.setText(dateFormat);
-            } else {
-                Button button = findViewById(R.id.endDateButton);
-                // TODO: Set the date in the user locale.
-                button.setText(dateFormat);
-            }
-        } );
-
-        dateDialog.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss() );
-
-        dateDialog.show();
+        datePicker.show(getSupportFragmentManager(), datePicker.toString());
     }
 
-    /**
-     * Set the string date in the DatePicker.
-     *
-     * @param datePicker the DatePicker that needs to get a date assigned.
-     * @param date       the string of the date (yyyy-MM-dd) that needs to be assigned to the DatePicker.
-     */
-    private void setDatePickerDate(DatePicker datePicker, String date) {
+    private long parseDateToMillis(String date) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         try {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(simpleDateFormat.parse(date));
-            datePicker.init(calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH), null);
+            Date parsedDate = simpleDateFormat.parse(date);
+            return parsedDate != null ? parsedDate.getTime() : 0;
         } catch (ParseException e) {
             e.printStackTrace();
+            return 0;
         }
     }
 
