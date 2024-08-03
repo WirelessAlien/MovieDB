@@ -208,7 +208,7 @@ public class RatedListFragment extends BaseFragment {
         private final int page;
 
         public RatedListThread(String listType, int page) {
-            handler = new Handler( Looper.getMainLooper());
+            handler = new Handler(Looper.getMainLooper());
             this.listType = listType;
             this.page = page;
         }
@@ -249,14 +249,10 @@ public class RatedListFragment extends BaseFragment {
                 handleResponse(responseBody);
             } catch (IOException e) {
                 e.printStackTrace();
-                handler.post(() -> {
-                    if (isAdded()) {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                });
+                hideProgressBar();
             } finally {
                 isLoadingData = false;
+                hideProgressBar();
             }
         }
 
@@ -271,7 +267,6 @@ public class RatedListFragment extends BaseFragment {
                         position = 0;
                     }
 
-
                     // Convert the JSON webpage to JSONObjects
                     // Add the JSONObjects to the list with movies/series.
                     try {
@@ -285,19 +280,26 @@ public class RatedListFragment extends BaseFragment {
                         // Reload the adapter (with the new page)
                         // and set the user to his old position.
                         if (mShowView != null) {
-                            mShowView.setAdapter( mShowAdapter );
-                            mShowView.scrollToPosition( position );
+                            mShowView.setAdapter(mShowAdapter);
+                            mShowView.scrollToPosition(position);
                         }
                         mShowListLoaded = true;
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        hideProgressBar();
                     } catch (JSONException je) {
                         je.printStackTrace();
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        hideProgressBar();
                     }
                 }
                 loading = false;
+            });
+        }
+
+        private void hideProgressBar() {
+            handler.post(() -> {
+                if (isAdded()) {
+                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
+                    progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                }
             });
         }
     }

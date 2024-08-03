@@ -433,62 +433,53 @@ public class ShowFragment extends BaseFragment {
                     }
                 });
 
-            listType = params[0];
-            page = Integer.parseInt(params[1]);
-            if (params.length > 2) {
-                missingOverview = params[2].equalsIgnoreCase("true");
-            }
-
-            try {
-                String api_key = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_read_access_token");
-                URL url;
-                if (missingOverview) {
-                    url = new URL("https://api.themoviedb.org/3/discover/"
-                            + listType + "?" + filterParameter + "&page="
-                            + page);
-                } else {
-                    url = new URL("https://api.themoviedb.org/3/discover/"
-                            + listType + "?" + filterParameter + "&page="
-                            + page + getLanguageParameter(getContext()));
+                listType = params[0];
+                page = Integer.parseInt(params[1]);
+                if (params.length > 2) {
+                    missingOverview = params[2].equalsIgnoreCase("true");
                 }
 
-                OkHttpClient client = new OkHttpClient();
-
-                Request request = new Request.Builder()
-                        .url(url)
-                        .get()
-                        .addHeader("Content-Type", "application/json;charset=utf-8")
-                        .addHeader("Authorization", "Bearer " + api_key)
-                        .build();
-
-                try (Response response = client.newCall(request).execute()) {
-                    String responseBody = null;
-                    if (response.body() != null) {
-                        responseBody = response.body().string();
+                try {
+                    String api_key = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_read_access_token");
+                    URL url;
+                    if (missingOverview) {
+                        url = new URL("https://api.themoviedb.org/3/discover/"
+                                + listType + "?" + filterParameter + "&page="
+                                + page);
+                    } else {
+                        url = new URL("https://api.themoviedb.org/3/discover/"
+                                + listType + "?" + filterParameter + "&page="
+                                + page + getLanguageParameter(getContext()));
                     }
-                    handleResponse(responseBody);
-                } catch (IOException e) {
-                    e.printStackTrace();
+
+                    OkHttpClient client = new OkHttpClient();
+
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .get()
+                            .addHeader("Content-Type", "application/json;charset=utf-8")
+                            .addHeader("Authorization", "Bearer " + api_key)
+                            .build();
+
+                    try (Response response = client.newCall(request).execute()) {
+                        String responseBody = null;
+                        if (response.body() != null) {
+                            responseBody = response.body().string();
+                        }
+                        handleResponse(responseBody);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        hideProgressBar();
+                    }
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                    hideProgressBar();
+                } finally {
+                    hideProgressBar();
                 }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-                handler.post( () -> {
-                    if (isAdded()) {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                } );
-            } finally {
-                // Ensure the ProgressBar is hidden in the UI thread
-                handler.post( () -> {
-                    if (isAdded()) {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    }
-                } );
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+                hideProgressBar();
             }
         }
 
@@ -557,15 +548,22 @@ public class ShowFragment extends BaseFragment {
                             }
                         }
                         mShowListLoaded = true;
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        hideProgressBar();
                     } catch (JSONException je) {
                         je.printStackTrace();
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        hideProgressBar();
                     }
                 }
                 loading = false;
+            });
+        }
+
+        private void hideProgressBar() {
+            handler.post(() -> {
+                if (isAdded()) {
+                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
+                    progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                }
             });
         }
     }

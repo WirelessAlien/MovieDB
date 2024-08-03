@@ -319,9 +319,11 @@ public class PersonFragment extends BaseFragment {
                     bufferedReader.close();
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
+                    hideProgressBar();
                 }
             } catch (IOException ioe) {
                 ioe.printStackTrace();
+                hideProgressBar();
             }
 
             String response = stringBuilder.toString();
@@ -343,17 +345,22 @@ public class PersonFragment extends BaseFragment {
                             // Reload the adapter (with the new page).
                             mPersonAdapter.notifyDataSetChanged();
                         }
-                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
-                        progressBar.setVisibility(View.GONE);
+                        hideProgressBar();
                     });
                 } catch (JSONException je) {
                     je.printStackTrace();
-                    requireActivity().runOnUiThread(() -> {
-                        ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
-                        progressBar.setVisibility(View.GONE);
-                    });
+                    hideProgressBar();
                 }
+            } else {
+                hideProgressBar();
             }
+        }
+
+        private void hideProgressBar() {
+            requireActivity().runOnUiThread(() -> {
+                ProgressBar progressBar = requireActivity().findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.GONE);
+            });
         }
     }
 
