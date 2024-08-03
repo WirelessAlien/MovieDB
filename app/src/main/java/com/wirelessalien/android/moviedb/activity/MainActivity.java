@@ -97,6 +97,7 @@ public class MainActivity extends BaseActivity {
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager2 mViewPager;
+    BottomNavigationView bottomNavigationView;
     // Variables used for searching
     private MenuItem mSearchAction;
     private boolean isSearchOpened = false;
@@ -156,7 +157,7 @@ public class MainActivity extends BaseActivity {
         api_read_access_token = ConfigHelper.getConfigValue(this, "api_read_access_token");
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
         mViewPager = findViewById(R.id.container);
         mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
 
