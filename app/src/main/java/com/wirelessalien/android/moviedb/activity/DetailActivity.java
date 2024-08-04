@@ -49,10 +49,8 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
@@ -1348,62 +1346,54 @@ public class DetailActivity extends BaseActivity {
                     R.array.categories, android.R.layout.simple_dropdown_item_1line);
             categoriesView.setAdapter(adapter);
 
-// Disable text input
+            // Disable text input
             categoriesView.setInputType( InputType.TYPE_NULL);
             categoriesView.setKeyListener(null);
 
-// Show dropdown on click
-            categoriesView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    categoriesView.showDropDown();
-                }
-            });
+            // Show dropdown on click
+            categoriesView.setOnClickListener( v -> categoriesView.showDropDown() );
 
-            categoriesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    // Save the category to the database
-                    ContentValues showValues = new ContentValues();
-                    database = databaseHelper.getWritableDatabase();
-                    Cursor cursor = database.rawQuery("SELECT * FROM " +
-                            MovieDatabaseHelper.TABLE_MOVIES +
-                            " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                            "=" + movieId + " LIMIT 1", null);
-                    cursor.moveToFirst();
+            categoriesView.setOnItemClickListener( (parent, view1, position, id) -> {
+                // Save the category to the database
+                ContentValues showValues = new ContentValues();
+                database = databaseHelper.getWritableDatabase();
+                Cursor cursor = database.rawQuery("SELECT * FROM " +
+                        MovieDatabaseHelper.TABLE_MOVIES +
+                        " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
+                        "=" + movieId + " LIMIT 1", null);
+                cursor.moveToFirst();
 
-                    // Check if the show is already watched and if the user changed the category.
-                    if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_CATEGORIES))
-                            != getCategoryNumber(position)) {
+                // Check if the show is already watched and if the user changed the category.
+                if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(
+                        MovieDatabaseHelper.COLUMN_CATEGORIES))
+                        != getCategoryNumber(position)) {
 
-                        // If the user hasn't set their own watched value, automatically set it.
-                        int timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(
-                                MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED));
-                        if (timesWatchedCount == 0) {
-                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
-                                    1);
-                            timesWatchedView.setText("1");
-                        }
-
-                        // Fetch seasons data and add to database if category is changed to "watched"
-                        MovieDetailsThread movieDetailsThread = new MovieDetailsThread();
-                        movieDetailsThread.start();
-                        try {
-                            movieDetailsThread.join();
-                            addSeasonsAndEpisodesToDatabase();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                    // If the user hasn't set their own watched value, automatically set it.
+                    int timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(
+                            MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED));
+                    if (timesWatchedCount == 0) {
+                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
+                                1);
+                        timesWatchedView.setText("1");
                     }
 
-                    showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES,
-                            getCategoryNumber(position));
-                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
-                    database.close();
+                    // Fetch seasons data and add to database if category is changed to "watched"
+                    MovieDetailsThread movieDetailsThread = new MovieDetailsThread();
+                    movieDetailsThread.start();
+                    try {
+                        movieDetailsThread.join();
+                        addSeasonsAndEpisodesToDatabase();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-            });
+
+                showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES,
+                        getCategoryNumber(position));
+                database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues,
+                        MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null);
+                database.close();
+            } );
 
             // Listen to changes to the EditText.
             timesWatchedView.setOnFocusChangeListener((v, hasFocus) -> {
@@ -1462,18 +1452,14 @@ public class DetailActivity extends BaseActivity {
                 }
 
                 @Override
-                public void onAnimationEnd(Animation animation) {
-
-                }
+                public void onAnimationEnd(Animation animation) {}
 
                 @Override
-                public void onAnimationRepeat(Animation animation) {
-
-                }
+                public void onAnimationRepeat(Animation animation) {}
             });
 
-            binding.editIcon.setIcon( ContextCompat.getDrawable( this, R.drawable.ic_edit ));
-            binding.editIcon.setText( R.string.edit );
+            binding.editIcon.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_edit));
+            binding.editIcon.setText(R.string.edit);
         }
     }
 
@@ -1491,19 +1477,13 @@ public class DetailActivity extends BaseActivity {
         } else {
             cursor.moveToFirst();
 
-            MaterialAutoCompleteTextView categories = binding.categories;
-            Button startDateButton = binding.startDateButton;
-            Button endDateButton = binding.endDateButton;
-            EditText timesWatched = binding.timesWatched;
-            EditText showRating = binding.showRating;
-
             int category = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES));
             switch (category) {
-                case MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> categories.setText(categories.getAdapter().getItem(1).toString(), false);
-                case MovieDatabaseHelper.CATEGORY_WATCHED -> categories.setText(categories.getAdapter().getItem(2).toString(), false);
-                case MovieDatabaseHelper.CATEGORY_ON_HOLD -> categories.setText(categories.getAdapter().getItem(3).toString(), false);
-                case MovieDatabaseHelper.CATEGORY_DROPPED -> categories.setText(categories.getAdapter().getItem(4).toString(), false);
-                default -> categories.setText(categories.getAdapter().getItem(0).toString(), false);
+                case MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> binding.categories.setText(binding.categories.getAdapter().getItem(1).toString(), false);
+                case MovieDatabaseHelper.CATEGORY_WATCHED -> binding.categories.setText(binding.categories.getAdapter().getItem(2).toString(), false);
+                case MovieDatabaseHelper.CATEGORY_ON_HOLD -> binding.categories.setText(binding.categories.getAdapter().getItem(3).toString(), false);
+                case MovieDatabaseHelper.CATEGORY_DROPPED -> binding.categories.setText(binding.categories.getAdapter().getItem(4).toString(), false);
+                default -> binding.categories.setText(binding.categories.getAdapter().getItem(0).toString(), false);
             }
 
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
@@ -1512,12 +1492,12 @@ public class DetailActivity extends BaseActivity {
                 try {
                     startDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(startDateString);
                     // Use DateFormat.getDateInstance() for default system date format
-                    startDateButton.setText(DateFormat.getDateInstance().format(startDate));
+                    binding.startDateButton.setText(DateFormat.getDateInstance().format(startDate));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
             } else {
-                startDateButton.setText(R.string.start_date);
+                binding.startDateButton.setText(R.string.start_date);
             }
 
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
@@ -1526,27 +1506,27 @@ public class DetailActivity extends BaseActivity {
                 try {
                     finishDate = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(finishDateString);
                     // Use DateFormat.getDateInstance() for default system date format
-                    endDateButton.setText(DateFormat.getDateInstance().format(finishDate));
+                    binding.endDateButton.setText(DateFormat.getDateInstance().format(finishDate));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
             } else {
-                endDateButton.setText(R.string.finish_date);
+                binding.endDateButton.setText(R.string.finish_date);
             }
 
             if (!cursor.isNull(cursor.getColumnIndexOrThrow
                     (MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
                     && !cursor.getString(cursor.getColumnIndexOrThrow(
                     MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)).equals("")) {
-                timesWatched.setText(cursor.getString(cursor.getColumnIndexOrThrow(
+                binding.timesWatched.setText(cursor.getString(cursor.getColumnIndexOrThrow(
                         MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
                 )));
             } else {
                 if (cursor.getInt(cursor.getColumnIndexOrThrow(
                         MovieDatabaseHelper.COLUMN_CATEGORIES)) == 1) {
-                    timesWatched.setText("1");
+                    binding.timesWatched.setText("1");
                 } else {
-                    timesWatched.setText("0");
+                    binding.timesWatched.setText("0");
                 }
             }
 
@@ -1554,7 +1534,7 @@ public class DetailActivity extends BaseActivity {
                     MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
                     && !cursor.getString(cursor.getColumnIndexOrThrow(
                     MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).equals("")) {
-                showRating.setText(cursor.getString(cursor.getColumnIndexOrThrow(
+                binding.showRating.setText(cursor.getString(cursor.getColumnIndexOrThrow(
                         MovieDatabaseHelper.COLUMN_PERSONAL_RATING
                 )));
             }
@@ -1671,26 +1651,6 @@ public class DetailActivity extends BaseActivity {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy", locale);
             return simpleDateFormat.parse(date);
         }
-    }
-
-    /**
-     * Parses a date to a string.
-     * @param date the date to be parsed.
-     * @param format the format of the resulting string, nullable.
-     * @param locale the date locale, nullable.
-     * @return a string containing the date in the given format.
-     */
-    private static String parseDateToString(Date date, String format, Locale locale) {
-        if (format == null) {
-            format = "dd-MM-yyyy";
-        }
-
-        if (locale == null) {
-            locale = Locale.US;
-        }
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format, locale);
-        return simpleDateFormat.format(date);
     }
 
     // Load the list of actors.
@@ -2012,6 +1972,7 @@ public class DetailActivity extends BaseActivity {
                     } else {
                         //if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
                         binding.imdbLink.setText("IMDB");
+                        binding.imdbLink.setTextColor(ContextCompat.getColor(context, R.color.md_theme_primary));
                         binding.imdbLink.setOnClickListener(v -> {
                             String url = "https://www.imdb.com/title/" + imdbId;
                             CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
