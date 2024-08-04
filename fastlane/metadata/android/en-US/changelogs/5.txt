@@ -1,0 +1,9 @@
+Feature:
+ -Specific account tab
+ -Episode watch date, rating (local db)
+Other:
+ -Improved dynamic color in details page
+ -Fix #15
+ -Fix #20
+ -Minor UI change
+ -A few small improvement and fixes
