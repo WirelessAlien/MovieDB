@@ -1899,6 +1899,7 @@ public class DetailActivity extends BaseActivity {
                         setMovieData(movieData);
                     }
                     showKeywords(movieData);
+                    showExternalIds(movieData);
 
                     if (movieData.has("number_of_seasons")) {
                         numSeason = movieData.getInt("number_of_seasons");
@@ -1962,39 +1963,46 @@ public class DetailActivity extends BaseActivity {
                             handler.post( () -> binding.certification.setText( finalUsRating + " (US)" ) );
                         }
                     }
-
-                    JSONObject externalIdsObject = movieData.getJSONObject( "external_ids" );
-
-                    String imdbId = externalIdsObject.getString("imdb_id");
-                    //if imdbId is not available, set the text to "IMDB (not available)"
-                    if (imdbId.equals("null")) {
-                        binding.imdbLink.setText( R.string.imdb_not_available);
-                    } else {
-                        //if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
-                        binding.imdbLink.setText("IMDB");
-                        binding.imdbLink.setTextColor(ContextCompat.getColor(context, R.color.md_theme_primary));
-                        binding.imdbLink.setOnClickListener(v -> {
-                            String url = "https://www.imdb.com/title/" + imdbId;
-                            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                            CustomTabsIntent customTabsIntent = builder.build();
-                            // Check if there is any package available to handle the CustomTabsIntent
-                            if (customTabsIntent.intent.resolveActivity(getPackageManager()) != null) {
-                                customTabsIntent.launchUrl(context, Uri.parse(url));
-                            } else {
-                                // If no package is available to handle the CustomTabsIntent, launch the URL in a web browser
-                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                                if (browserIntent.resolveActivity(getPackageManager()) != null) {
-                                    startActivity(browserIntent);
-                                } else {
-                                    Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        });
-                    }
                     mMovieDetailsLoaded = true;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+
+        private void showExternalIds(JSONObject movieData) {
+            try {
+                JSONObject externalIdsObject = movieData.getJSONObject("external_ids");
+
+                String imdbId = externalIdsObject.getString("imdb_id");
+                // if imdbId is not available, set the text to "IMDB (not available)"
+                if (imdbId.equals("null")) {
+                    binding.imdbLink.setText(R.string.imdb_not_available);
+                } else {
+                    // if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
+                    binding.imdbLink.setText("IMDB");
+                    binding.imdbLink.setTextColor(ContextCompat.getColor(context, R.color.md_theme_primary));
+                    binding.imdbLink.setOnClickListener(v -> {
+                        String url = "https://www.imdb.com/title/" + imdbId;
+                        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                        CustomTabsIntent customTabsIntent = builder.build();
+                        // Check if there is any package available to handle the CustomTabsIntent
+                        if (customTabsIntent.intent.resolveActivity(getPackageManager()) != null) {
+                            customTabsIntent.launchUrl(context, Uri.parse(url));
+                        } else {
+                            // If no package is available to handle the CustomTabsIntent, launch the URL in a web browser
+                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            if (browserIntent.resolveActivity(getPackageManager()) != null) {
+                                startActivity(browserIntent);
+                            } else {
+                                Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+                }
+                mMovieDetailsLoaded = true;
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
 
