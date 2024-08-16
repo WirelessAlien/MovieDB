@@ -154,6 +154,11 @@
             android:summary="@string/summary_api_language"
             app:iconSpaceReserved="false"/>
 
+        <EditTextPreference
+            android:key="key_search_engine"
+            android:title="@string/search_engine"
+            android:summary="@string/search_engine_key_summary"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/experimental"

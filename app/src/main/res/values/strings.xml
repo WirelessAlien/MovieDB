@@ -296,4 +296,6 @@
     <string name="login_is_required_to_use_tmdb_based_sync">Login is required to use TMDB based sync.</string>
     <string name="most_recent">Most Recent</string>
     <string name="overview_not_available">Overview is not added to the episode, will be added when available.</string>
+    <string name="search_engine">Search Engine</string>
+    <string name="search_engine_key_summary">Search Engine to use for searching movies from the app (default is Google)</string>
 </resources>

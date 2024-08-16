@@ -672,17 +672,33 @@
                 android:textSize="16sp"
                 android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/imdbLink"
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/externalLinkTitle"
-                android:layout_centerVertical="true"
                 android:paddingStart="16dp"
-                android:text="IMDB"
-                android:linksClickable="true"
-                android:autoLink="web"
-                android:textSize="15sp"/>
+                android:id="@+id/externalIdRl"
+                android:layout_below="@id/externalLinkTitle">
+                <TextView
+                    android:id="@+id/imdbLink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="IMDB"
+                    android:linksClickable="true"
+                    android:autoLink="web"
+                    android:textSize="15sp"/>
+                <TextView
+                    android:id="@+id/googleLink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="GOOGLE"
+                    android:layout_marginStart="10dp"
+                    android:linksClickable="true"
+                    android:layout_toEndOf="@id/imdbLink"
+                    android:autoLink="web"
+                    android:textSize="15sp"/>
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/revenueText"
@@ -692,7 +708,7 @@
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
-                android:layout_below="@id/imdbLink"
+                android:layout_below="@id/externalIdRl"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
             <TextView

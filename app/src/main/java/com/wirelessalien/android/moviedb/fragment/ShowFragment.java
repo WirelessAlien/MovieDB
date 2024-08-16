@@ -65,7 +65,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 
 import okhttp3.OkHttpClient;
@@ -107,40 +106,40 @@ public class ShowFragment extends BaseFragment {
     public static ShowFragment newInstance(String listType) {
         ShowFragment fragment = new ShowFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_LIST_TYPE, listType);
-        fragment.setArguments(args);
+        args.putString( ARG_LIST_TYPE, listType );
+        fragment.setArguments( args );
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        API_KEY = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_key");
+        super.onCreate( savedInstanceState );
+        API_KEY = ConfigHelper.getConfigValue( requireContext().getApplicationContext(), "api_key" );
 
         if (getArguments() != null) {
-            mListType = getArguments().getString(ARG_LIST_TYPE);
+            mListType = getArguments().getString( ARG_LIST_TYPE );
         } else {
             // Movie is the default case.
             mListType = SectionsPagerAdapter.MOVIE;
         }
 
-        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        int gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3);
+        preferences = PreferenceManager.getDefaultSharedPreferences( requireContext() );
+        int gridSizePreference = preferences.getInt( GRID_SIZE_PREFERENCE, 3 );
         visibleThreshold = gridSizePreference * gridSizePreference;
 
-        createShowList(mListType);
+        createShowList( mListType );
     }
 
     @Override
     public void doNetworkWork() {
         if (!mGenreListLoaded) {
-            Handler handler = new Handler( Looper.getMainLooper());
-            GenreListThread genreListThread = new GenreListThread(mListType, handler);
+            Handler handler = new Handler( Looper.getMainLooper() );
+            GenreListThread genreListThread = new GenreListThread( mListType, handler );
             genreListThread.start();
         }
 
         if (!mShowListLoaded) {
-            new ShowListThread( new String[]{mListType, "1"}).start();
+            new ShowListThread( new String[]{mListType, "1"} ).start();
         }
     }
 
@@ -148,14 +147,14 @@ public class ShowFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View fragmentView = inflater.inflate( R.layout.fragment_show, container, false);
-        showShowList(fragmentView);
+        View fragmentView = inflater.inflate( R.layout.fragment_show, container, false );
+        showShowList( fragmentView );
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
-        fab.setImageResource(R.drawable.ic_filter_list);
+        fab.setImageResource( R.drawable.ic_filter_list );
         fab.setEnabled( true );
         fab.setOnClickListener( view -> {
             // Start the FilterActivity
-            filterRequestLauncher.launch(new Intent());
+            filterRequestLauncher.launch( new Intent() );
         } );
         return fragmentView;
     }
@@ -165,11 +164,11 @@ public class ShowFragment extends BaseFragment {
         super.onResume();
         FloatingActionButton fab = requireActivity().findViewById( R.id.fab );
         fab.setVisibility( View.VISIBLE );
-        fab.setImageResource(R.drawable.ic_filter_list);
+        fab.setImageResource( R.drawable.ic_filter_list );
         fab.setEnabled( true );
         fab.setOnClickListener( view -> {
             // Start the FilterActivity
-            filterRequestLauncher.launch(new Intent());
+            filterRequestLauncher.launch( new Intent() );
         } );
     }
 
@@ -188,10 +187,10 @@ public class ShowFragment extends BaseFragment {
 
     ActivityResultLauncher<Intent> filterRequestLauncher = registerForActivityResult( filterRequestContract,
             result -> {
-        if (result) {
-            filterShows();
-        }
-    });
+                if (result) {
+                    filterShows();
+                }
+            } );
 
     /**
      * Filters the list of shows based on the preferences set in FilterActivity.
@@ -199,10 +198,10 @@ public class ShowFragment extends BaseFragment {
     private void filterShows() {
         // Get the parameters from the filter activity and reload the adapter
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences
-                (FilterActivity.FILTER_PREFERENCES, Context.MODE_PRIVATE);
+                ( FilterActivity.FILTER_PREFERENCES, Context.MODE_PRIVATE );
 
         String sortPreference;
-        if ((sortPreference = sharedPreferences.getString(FilterActivity.FILTER_SORT, null)) != null)
+        if ((sortPreference = sharedPreferences.getString( FilterActivity.FILTER_SORT, null )) != null)
             switch (sortPreference) {
                 case "best_rated" -> filterParameter = "sort_by=vote_average.desc";
                 case "release_date" -> filterParameter = "sort_by=release_date.desc";
@@ -215,7 +214,7 @@ public class ShowFragment extends BaseFragment {
 
         // Add the dates as constraints to the new API call.
         String datePreference;
-        if ((datePreference = sharedPreferences.getString(FilterActivity.FILTER_DATES, null)) != null) {
+        if ((datePreference = sharedPreferences.getString( FilterActivity.FILTER_DATES, null )) != null) {
             switch (datePreference) {
                 case "in_theater" -> {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd", Locale.US );
@@ -247,12 +246,12 @@ public class ShowFragment extends BaseFragment {
 
         // Add the genres to be included as constraints to the API call.
         ArrayList<String> withGenres = FilterActivity.convertStringToArrayList
-                (sharedPreferences.getString
-                        (FilterActivity.FILTER_WITH_GENRES, null), ", ");
+                ( sharedPreferences.getString
+                        ( FilterActivity.FILTER_WITH_GENRES, null ), ", " );
         if (withGenres != null && !withGenres.isEmpty()) {
             filterParameter += "&with_genres=";
             for (int i = 0; i < withGenres.size(); i++) {
-                filterParameter += withGenres.get(i);
+                filterParameter += withGenres.get( i );
 
                 if (!((i + 1) == withGenres.size())) {
                     filterParameter += ",";
@@ -262,12 +261,12 @@ public class ShowFragment extends BaseFragment {
 
         // Add the genres to be excluded as constraints to the API call.
         ArrayList<String> withoutGenres = FilterActivity.convertStringToArrayList
-                (sharedPreferences.getString
-                        (FilterActivity.FILTER_WITHOUT_GENRES, null), ", ");
+                ( sharedPreferences.getString
+                        ( FilterActivity.FILTER_WITHOUT_GENRES, null ), ", " );
         if (withoutGenres != null && !withoutGenres.isEmpty()) {
             filterParameter += "&without_genres=";
             for (int i = 0; i < withoutGenres.size(); i++) {
-                filterParameter += withoutGenres.get(i);
+                filterParameter += withoutGenres.get( i );
 
                 if (!((i + 1) == withoutGenres.size())) {
                     filterParameter += ",";
@@ -278,18 +277,18 @@ public class ShowFragment extends BaseFragment {
         // Add keyword-IDs as the constraints to the API call.
         String withKeywords;
         if (!(withKeywords = sharedPreferences.getString
-                (FilterActivity.FILTER_WITH_KEYWORDS, "")).equals("")) {
+                ( FilterActivity.FILTER_WITH_KEYWORDS, "" )).equals( "" )) {
             filterParameter += "&with_keywords=" + withKeywords;
         }
 
         String withoutKeywords;
         if (!(withoutKeywords = sharedPreferences.getString
-                (FilterActivity.FILTER_WITHOUT_KEYWORDS, "")).equals("")) {
+                ( FilterActivity.FILTER_WITHOUT_KEYWORDS, "" )).equals( "" )) {
             filterParameter += "&without_keywords=" + withoutKeywords;
         }
 
         filterChanged = true;
-        new ShowListThread( new String[]{mListType, "1"}).start();
+        new ShowListThread( new String[]{mListType, "1"} ).start();
     }
 
     /**
@@ -302,13 +301,13 @@ public class ShowFragment extends BaseFragment {
         // Create a MovieBaseAdapter and load the first page
         mShowArrayList = new ArrayList<>();
         mShowGenreList = new HashMap<>();
-        mShowAdapter = new ShowBaseAdapter(mShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false);
+        mShowAdapter = new ShowBaseAdapter( mShowArrayList, mShowGenreList,
+                preferences.getBoolean( SHOWS_LIST_PREFERENCE, false ), false );
 
         ((BaseActivity) requireActivity()).checkNetwork();
 
         // Use persistent filtering if it is enabled.
-        if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
+        if (preferences.getBoolean( PERSISTENT_FILTERING_PREFERENCE, false )) {
             filterShows();
         }
     }
@@ -319,10 +318,10 @@ public class ShowFragment extends BaseFragment {
      * @param fragmentView the view to attach the ListView to.
      */
     void showShowList(final View fragmentView) {
-        super.showShowList(fragmentView);
+        super.showShowList( fragmentView );
 
         // Dynamically load new pages when user scrolls down.
-        mShowView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mShowView.addOnScrollListener( new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0 && recyclerView.getScrollState() != RecyclerView.SCROLL_STATE_IDLE) { // Check for scroll down and if user is actively scrolling.
@@ -344,9 +343,9 @@ public class ShowFragment extends BaseFragment {
                     }
 
                     int threshold = visibleThreshold;
-                    if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
+                    if (preferences.getBoolean( SHOWS_LIST_PREFERENCE, true )) {
                         // It is a grid view, so the threshold should be bigger.
-                        int gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3);
+                        int gridSizePreference = preferences.getInt( GRID_SIZE_PREFERENCE, 3 );
                         threshold = gridSizePreference * gridSizePreference;
                     }
 
@@ -355,12 +354,12 @@ public class ShowFragment extends BaseFragment {
                     if (!loading && (visibleItemCount + pastVisibleItems + threshold) >= totalItemCount) {
                         // Load the next page of the content in the background.
                         if (mSearchView) {
-                            mSearchThread = new SearchListThread( mListType, currentSearchPage, mSearchQuery, false);
+                            mSearchThread = new SearchListThread( mListType, currentSearchPage, mSearchQuery, false );
                             mSearchThread.start();
                         } else {
                             // Check if the previous request returned any data
                             if (mShowArrayList.size() > 0) {
-                                new ShowListThread(new String[]{mListType, Integer.toString(currentPage)}).start();
+                                new ShowListThread( new String[]{mListType, Integer.toString( currentPage )} ).start();
 
                             }
                         }
@@ -369,7 +368,7 @@ public class ShowFragment extends BaseFragment {
                     }
                 }
             }
-        });
+        } );
     }
 
     /**
@@ -382,15 +381,15 @@ public class ShowFragment extends BaseFragment {
     public void search(String query) {
         // Create a separate adapter for the search results.
         mSearchShowArrayList = new ArrayList<>();
-        mSearchShowAdapter = new ShowBaseAdapter(mSearchShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false);
+        mSearchShowAdapter = new ShowBaseAdapter( mSearchShowArrayList, mShowGenreList,
+                preferences.getBoolean( SHOWS_LIST_PREFERENCE, false ), false );
 
         // Cancel old AsyncTask if it exists.
         currentSearchPage = 1;
         if (mSearchThread != null) {
             mSearchThread.interrupt();
         }
-        mSearchThread = new SearchListThread(mListType, 1, query, false);
+        mSearchThread = new SearchListThread( mListType, 1, query, false );
         mSearchThread.start();
 
         mSearchQuery = query;
@@ -401,7 +400,7 @@ public class ShowFragment extends BaseFragment {
      */
     public void cancelSearch() {
         mSearchView = false;
-        mShowView.setAdapter(mShowAdapter);
+        mShowView.setAdapter( mShowAdapter );
     }
 
     /**
@@ -416,7 +415,7 @@ public class ShowFragment extends BaseFragment {
         private final String[] params;
 
         public ShowListThread(String[] params) {
-            handler = new Handler(Looper.getMainLooper());
+            handler = new Handler( Looper.getMainLooper() );
             this.params = params;
         }
 
@@ -426,47 +425,47 @@ public class ShowFragment extends BaseFragment {
                 if (!isAdded()) {
                     return;
                 }
-                handler.post(() -> {
+                handler.post( () -> {
                     if (isAdded()) {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.VISIBLE));
+                        Optional<ProgressBar> progressBar = Optional.ofNullable( requireActivity().findViewById( R.id.progressBar ) );
+                        progressBar.ifPresent( bar -> bar.setVisibility( View.VISIBLE ) );
                     }
-                });
+                } );
 
                 listType = params[0];
-                page = Integer.parseInt(params[1]);
+                page = Integer.parseInt( params[1] );
                 if (params.length > 2) {
-                    missingOverview = params[2].equalsIgnoreCase("true");
+                    missingOverview = params[2].equalsIgnoreCase( "true" );
                 }
 
                 try {
-                    String api_key = ConfigHelper.getConfigValue(requireContext().getApplicationContext(), "api_read_access_token");
+                    String api_key = ConfigHelper.getConfigValue( requireContext().getApplicationContext(), "api_read_access_token" );
                     URL url;
                     if (missingOverview) {
-                        url = new URL("https://api.themoviedb.org/3/discover/"
+                        url = new URL( "https://api.themoviedb.org/3/discover/"
                                 + listType + "?" + filterParameter + "&page="
-                                + page);
+                                + page );
                     } else {
-                        url = new URL("https://api.themoviedb.org/3/discover/"
+                        url = new URL( "https://api.themoviedb.org/3/discover/"
                                 + listType + "?" + filterParameter + "&page="
-                                + page + getLanguageParameter(getContext()));
+                                + page + getLanguageParameter( getContext() ) );
                     }
 
                     OkHttpClient client = new OkHttpClient();
 
                     Request request = new Request.Builder()
-                            .url(url)
+                            .url( url )
                             .get()
-                            .addHeader("Content-Type", "application/json;charset=utf-8")
-                            .addHeader("Authorization", "Bearer " + api_key)
+                            .addHeader( "Content-Type", "application/json;charset=utf-8" )
+                            .addHeader( "Authorization", "Bearer " + api_key )
                             .build();
 
-                    try (Response response = client.newCall(request).execute()) {
+                    try (Response response = client.newCall( request ).execute()) {
                         String responseBody = null;
                         if (response.body() != null) {
                             responseBody = response.body().string();
                         }
-                        handleResponse(responseBody);
+                        handleResponse( responseBody );
                     } catch (IOException e) {
                         e.printStackTrace();
                         hideProgressBar();
@@ -484,7 +483,7 @@ public class ShowFragment extends BaseFragment {
         }
 
         private void handleResponse(String response) {
-            handler.post(() -> {
+            handler.post( () -> {
                 if (isAdded() && response != null && !response.isEmpty()) {
                     // Keep the user at the same position in the list.
                     int position;
@@ -508,14 +507,14 @@ public class ShowFragment extends BaseFragment {
                     // Convert the JSON data from the webpage into JSONObjects
                     ArrayList<JSONObject> tempMovieArrayList = new ArrayList<>();
                     try {
-                        JSONObject reader = new JSONObject(response);
-                        JSONArray arrayData = reader.getJSONArray("results");
+                        JSONObject reader = new JSONObject( response );
+                        JSONArray arrayData = reader.getJSONArray( "results" );
                         for (int i = 0; i < arrayData.length(); i++) {
-                            JSONObject websiteData = arrayData.getJSONObject(i);
+                            JSONObject websiteData = arrayData.getJSONObject( i );
                             if (missingOverview) {
-                                tempMovieArrayList.add(websiteData);
+                                tempMovieArrayList.add( websiteData );
                             } else {
-                                mShowArrayList.add(websiteData);
+                                mShowArrayList.add( websiteData );
                             }
                         }
 
@@ -523,18 +522,18 @@ public class ShowFragment extends BaseFragment {
                         // Therefore, load the same list but in English.
                         // After that, iterate through the translated list
                         // and fill in any missing parts.
-                        if (!Locale.getDefault().getLanguage().equals("en") &&
+                        if (!Locale.getDefault().getLanguage().equals( "en" ) &&
                                 !missingOverview) {
-                            new ShowListThread(new String[]{listType, Integer.toString(page), "true"}).start();
+                            new ShowListThread( new String[]{listType, Integer.toString( page ), "true"} ).start();
                         }
 
                         // If the overview is missing, add the overview from the English version.
                         if (missingOverview) {
                             for (int i = mShowArrayList.size() - tempMovieArrayList.size(); i < mShowArrayList.size(); i++) {
-                                JSONObject movieObject = mShowArrayList.get(i);
-                                if (movieObject.getString("overview").equals("")) {
-                                    movieObject.put("overview", tempMovieArrayList.
-                                            get(i - (mShowArrayList.size() - tempMovieArrayList.size())).getString("overview"));
+                                JSONObject movieObject = mShowArrayList.get( i );
+                                if (movieObject.getString( "overview" ).equals( "" )) {
+                                    movieObject.put( "overview", tempMovieArrayList.
+                                            get( i - (mShowArrayList.size() - tempMovieArrayList.size()) ).getString( "overview" ) );
                                 }
                             }
                         }
@@ -542,9 +541,9 @@ public class ShowFragment extends BaseFragment {
                         // Reload the adapter (with the new page)
                         // and set the user to his old position.
                         if (mShowView != null) {
-                            mShowView.setAdapter(mShowAdapter);
+                            mShowView.setAdapter( mShowAdapter );
                             if (page != 1) {
-                                mShowView.scrollToPosition(position);
+                                mShowView.scrollToPosition( position );
                             }
                         }
                         mShowListLoaded = true;
@@ -555,16 +554,16 @@ public class ShowFragment extends BaseFragment {
                     }
                 }
                 loading = false;
-            });
+            } );
         }
 
         private void hideProgressBar() {
-            handler.post(() -> {
+            handler.post( () -> {
                 if (isAdded()) {
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                    Optional<ProgressBar> progressBar = Optional.ofNullable( requireActivity().findViewById( R.id.progressBar ) );
+                    progressBar.ifPresent( bar -> bar.setVisibility( View.GONE ) );
                 }
-            });
+            } );
         }
     }
 
@@ -591,10 +590,10 @@ public class ShowFragment extends BaseFragment {
         @Override
         public void run() {
             if (isAdded()) {
-                requireActivity().runOnUiThread(() -> {
-                    Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                    progressBar.ifPresent(bar -> bar.setVisibility(View.VISIBLE));
-                });
+                requireActivity().runOnUiThread( () -> {
+                    Optional<ProgressBar> progressBar = Optional.ofNullable( requireActivity().findViewById( R.id.progressBar ) );
+                    progressBar.ifPresent( bar -> bar.setVisibility( View.VISIBLE ) );
+                } );
 
                 String line;
                 StringBuilder stringBuilder = new StringBuilder();
@@ -603,54 +602,54 @@ public class ShowFragment extends BaseFragment {
                 try {
                     URL url;
                     if (missingOverview) {
-                        url = new URL("https://api.themoviedb.org/3/search/" +
+                        url = new URL( "https://api.themoviedb.org/3/search/" +
                                 listType + "?query=" + query + "&page=" + page +
-                                "&api_key=" + API_KEY);
+                                "&api_key=" + API_KEY );
                     } else {
-                        url = new URL("https://api.themoviedb.org/3/search/" +
+                        url = new URL( "https://api.themoviedb.org/3/search/" +
                                 listType + "?&query=" + query + "&page=" + page +
-                                "&api_key=" + API_KEY + getLanguageParameter(getContext()));
+                                "&api_key=" + API_KEY + getLanguageParameter( getContext() ) );
                     }
 
                     URLConnection urlConnection = url.openConnection();
                     try {
                         BufferedReader bufferedReader = new BufferedReader(
                                 new InputStreamReader(
-                                        urlConnection.getInputStream()));
+                                        urlConnection.getInputStream() ) );
 
                         // Create one long string of the webpage.
                         while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
+                            stringBuilder.append( line ).append( "\n" );
                         }
 
                         // Close connection and return the data from the webpage.
                         bufferedReader.close();
                         String response = stringBuilder.toString();
-                        handleResponse(response);
+                        handleResponse( response );
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
-                        requireActivity().runOnUiThread(() -> {
-                            Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                            progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                        });
+                        requireActivity().runOnUiThread( () -> {
+                            Optional<ProgressBar> progressBar = Optional.ofNullable( requireActivity().findViewById( R.id.progressBar ) );
+                            progressBar.ifPresent( bar -> bar.setVisibility( View.GONE ) );
+                        } );
                     }
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
-                    requireActivity().runOnUiThread(() -> {
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
-                    });
+                    requireActivity().runOnUiThread( () -> {
+                        Optional<ProgressBar> progressBar = Optional.ofNullable( requireActivity().findViewById( R.id.progressBar ) );
+                        progressBar.ifPresent( bar -> bar.setVisibility( View.GONE ) );
+                    } );
                 }
 
-                if (!Locale.getDefault().getLanguage().equals("en") && !missingOverview && attemptCount < MAX_ATTEMPTS) {
+                if (!Locale.getDefault().getLanguage().equals( "en" ) && !missingOverview && attemptCount < MAX_ATTEMPTS) {
                     attemptCount++;
-                    new SearchListThread(listType, page, query, true).start();
+                    new SearchListThread( listType, page, query, true ).start();
                 }
             }
         }
 
         private void handleResponse(String response) {
-            requireActivity().runOnUiThread(() -> {
+            requireActivity().runOnUiThread( () -> {
                 // Keep the user at the same position in the list.
                 int position;
                 try {
@@ -667,17 +666,17 @@ public class ShowFragment extends BaseFragment {
 
                 // Convert the JSON webpage to JSONObjects
                 // Add the JSONObjects to the list with movies/series.
-                if (!(response == null || response.equals(""))) {
+                if (!(response == null || response.equals( "" ))) {
                     ArrayList<JSONObject> tempSearchMovieArrayList = new ArrayList<>();
                     try {
-                        JSONObject reader = new JSONObject(response);
-                        JSONArray arrayData = reader.getJSONArray("results");
+                        JSONObject reader = new JSONObject( response );
+                        JSONArray arrayData = reader.getJSONArray( "results" );
                         for (int i = 0; i < arrayData.length(); i++) {
-                            JSONObject websiteData = arrayData.getJSONObject(i);
+                            JSONObject websiteData = arrayData.getJSONObject( i );
                             if (missingOverview) {
-                                tempSearchMovieArrayList.add(websiteData);
+                                tempSearchMovieArrayList.add( websiteData );
                             } else {
-                                mSearchShowArrayList.add(websiteData);
+                                mSearchShowArrayList.add( websiteData );
                             }
                         }
 
@@ -685,16 +684,16 @@ public class ShowFragment extends BaseFragment {
                         // Therefore, load the same list but in English.
                         // After that, iterate through the translated list
                         // and fill in any missing parts.
-                        if (!Locale.getDefault().getLanguage().equals("en") && !missingOverview) {
-                            new SearchListThread(listType, page, query, true).start();
+                        if (!Locale.getDefault().getLanguage().equals( "en" ) && !missingOverview) {
+                            new SearchListThread( listType, page, query, true ).start();
                         }
 
                         if (missingOverview) {
                             for (int i = 0; i < mSearchShowArrayList.size(); i++) {
-                                JSONObject movieObject = mSearchShowArrayList.get(i);
-                                if (movieObject.getString("overview").equals("")) {
-                                    if(i < tempSearchMovieArrayList.size()) {
-                                        movieObject.put("overview", tempSearchMovieArrayList.get(i).getString("overview"));
+                                JSONObject movieObject = mSearchShowArrayList.get( i );
+                                if (movieObject.getString( "overview" ).equals( "" )) {
+                                    if (i < tempSearchMovieArrayList.size()) {
+                                        movieObject.put( "overview", tempSearchMovieArrayList.get( i ).getString( "overview" ) );
                                     }
                                 }
                             }
@@ -704,18 +703,18 @@ public class ShowFragment extends BaseFragment {
                         // and set the user to his old position.
                         mSearchView = true;
                         if (mShowView != null) {
-                            mShowView.setAdapter(mSearchShowAdapter);
-                            mShowView.scrollToPosition(position);
+                            mShowView.setAdapter( mSearchShowAdapter );
+                            mShowView.scrollToPosition( position );
                         }
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        Optional<ProgressBar> progressBar = Optional.ofNullable( requireActivity().findViewById( R.id.progressBar ) );
+                        progressBar.ifPresent( bar -> bar.setVisibility( View.GONE ) );
                     } catch (JSONException je) {
                         je.printStackTrace();
-                        Optional<ProgressBar> progressBar = Optional.ofNullable(requireActivity().findViewById(R.id.progressBar));
-                        progressBar.ifPresent(bar -> bar.setVisibility(View.GONE));
+                        Optional<ProgressBar> progressBar = Optional.ofNullable( requireActivity().findViewById( R.id.progressBar ) );
+                        progressBar.ifPresent( bar -> bar.setVisibility( View.GONE ) );
                     }
                 }
-            });
+            } );
         }
     }
 }

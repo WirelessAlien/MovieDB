@@ -130,6 +130,8 @@ public class DetailActivity extends BaseActivity {
     private final static String DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity";
     private static final String HD_IMAGE_SIZE = "key_hq_images";
 
+    private static final String SEARCH_ENGINE_PREFERENCE = "key_search_engine";
+
     private String API_KEY;
     private String api_read_access_token;
     private CastBaseAdapter castAdapter;
@@ -741,6 +743,36 @@ public class DetailActivity extends BaseActivity {
 
                     binding.editIcon.setVisibility(View.VISIBLE);
                 }
+            }
+        });
+
+        String searchEngineUrl = preferences.getString(SEARCH_ENGINE_PREFERENCE, "https://www.google.com/search?q=");
+
+        String searchEngineText;
+        if (searchEngineUrl.contains("bing")) {
+            searchEngineText = "BING";
+        } else if (searchEngineUrl.contains("duckduckgo")) {
+            searchEngineText = "DUCKDUCKGO";
+        } else if (searchEngineUrl.contains("yandex")) {
+            searchEngineText = "YANDEX";
+        } else {
+            searchEngineText = "SEARCH";
+        }
+        binding.googleLink.setText(searchEngineText);
+        binding.googleLink.setTextColor(ContextCompat.getColor( context, R.color.md_theme_primary));
+
+        binding.googleLink.setOnClickListener(v -> {
+            String title = (jMovieObject.has("title")) ? "title" : "name";
+            String url = searchEngineUrl + jMovieObject.optString(title);
+
+            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+            CustomTabsIntent customTabIntent = builder.build();
+
+            if (customTabIntent.intent.resolveActivity(getPackageManager()) != null) {
+                customTabIntent.launchUrl(this, Uri.parse(url));
+            } else {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
             }
         });
     }
