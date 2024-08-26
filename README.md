@@ -1,6 +1,6 @@
 <br/>
 <div align="center">
-<a href="https://github.com/ShaanCoding/ReadME-Generator">
+<a href="https://github.com/WirelessAlien/MovieDb">
 <img src="https://github.com/WirelessAlien/MovieDB/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="Logo" width="80" height="80">
 </a>
 <h3 align="center">Movie DB</h3>
