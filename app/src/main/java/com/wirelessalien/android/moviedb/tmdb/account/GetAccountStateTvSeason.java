@@ -20,10 +20,10 @@
 
 package com.wirelessalien.android.moviedb.tmdb.account;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.preference.PreferenceManager;
 
@@ -39,16 +39,22 @@ import okhttp3.Response;
 
 public class GetAccountStateTvSeason extends Thread {
 
+    public interface OnDataFetchedListener {
+        void onDataFetched(Map<Integer, Double> episodeRatings);
+    }
+
     private final int seasonId;
     private final int seriesId;
     private final String accessToken;
     private final Map<Integer, Double> episodeRatings = new HashMap<>();
+    private final OnDataFetchedListener listener;
 
-    public GetAccountStateTvSeason(int seriesId, int seasonId, Context context) {
+    public GetAccountStateTvSeason(int seriesId, int seasonId, Context context, OnDataFetchedListener listener) {
         this.seasonId = seasonId;
         this.seriesId = seriesId;
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences( context );
-        this.accessToken = preferences.getString( "access_token", "" );
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.accessToken = preferences.getString("access_token", "");
+        this.listener = listener;
     }
 
     @Override
@@ -80,12 +86,12 @@ public class GetAccountStateTvSeason extends Thread {
                 episodeRatings.put(episodeNumber, rating);
             }
 
+            if (listener != null) {
+                new Handler( Looper.getMainLooper()).post(() -> listener.onDataFetched(episodeRatings));
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public double getEpisodeRating(int episodeNumber) {
-        return episodeRatings.getOrDefault(episodeNumber, 0.0);
     }
 }

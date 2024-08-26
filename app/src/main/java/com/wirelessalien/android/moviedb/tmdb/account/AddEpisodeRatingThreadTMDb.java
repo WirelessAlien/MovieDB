@@ -59,7 +59,8 @@ public class AddEpisodeRatingThreadTMDb extends Thread {
 
     @Override
     public void run() {
-        boolean success = false;
+        boolean success1 = false;
+        boolean success2 = false;
         try {
             OkHttpClient client = new OkHttpClient();
             MediaType mediaType = MediaType.parse("application/json;charset=utf-8");
@@ -78,15 +79,16 @@ public class AddEpisodeRatingThreadTMDb extends Thread {
             Response response = client.newCall(request).execute();
             String responseBody = response.body().string();
             JSONObject jsonResponse = new JSONObject(responseBody);
-            Log.d("AddEpisodeRatingThreadTMDb", jsonResponse.toString());
             int statusCode = jsonResponse.getInt("status_code");
-            success = statusCode == 1;
+            success1 = statusCode == 1;
+            success2 = statusCode == 12;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        final boolean finalSuccess = success;
+        final boolean finalSuccess = success1 || success2;
+
         ((Activity) context).runOnUiThread(() -> {
             if (finalSuccess) {
                 Toast.makeText(context, R.string.rating_added_successfully, Toast.LENGTH_SHORT).show();
