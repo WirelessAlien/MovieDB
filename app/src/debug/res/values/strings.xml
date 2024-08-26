@@ -19,5 +19,5 @@
   -->
 
 <resources>
-    <string name="app_name">Movie DB Debug</string>
+    <string name="app_name" translatable="false">Movie DB Debug</string>
 </resources>

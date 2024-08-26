@@ -958,8 +958,8 @@ public class DetailActivity extends BaseActivity {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 // Set the rating to the personal rating of the user.
-                binding.rating.setText(cursor.getFloat(cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) +"/10");
+                String localizedTen = String.format(Locale.getDefault(), "%d", 10);
+                binding.rating.setText(String.format(Locale.getDefault(), "%.2f/%s", cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)), localizedTen));
 
                 // If the database has a start date, use it, otherwise print unknown.
                 SimpleDateFormat dbDateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
@@ -1079,7 +1079,8 @@ public class DetailActivity extends BaseActivity {
             } else if (movieObject.has("vote_average") &&
                 !movieObject.getString("vote_average").equals(voteAverage)) {
             float voteAverage = Float.parseFloat(movieObject.getString("vote_average"));
-            binding.rating.setText(String.format(Locale.getDefault(), "%.2f/10", voteAverage));
+            String localizedTen = String.format(Locale.getDefault(), "%d", 10);
+            binding.rating.setText(String.format(Locale.getDefault(), "%.2f/%s", voteAverage, localizedTen));
         }
 
             // If the overview (summary) is different in the new dataset, change it.
@@ -1471,7 +1472,8 @@ public class DetailActivity extends BaseActivity {
                     database.close();
 
                     // Update the view
-                    binding.rating.setText((float) rating + "/10");
+                    String localizedTen = String.format(Locale.getDefault(), "%d", 10);
+                    binding.rating.setText(String.format(Locale.getDefault(), "%.2f/%s", (float) rating, localizedTen));
                 }
             } );
         } else {
@@ -1585,7 +1587,7 @@ public class DetailActivity extends BaseActivity {
             // Get the date from the MaterialDatePicker.
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(selection);
-            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
             String dateFormat = sdf.format(calendar.getTime());
 
             // Save the date to the database and update the view

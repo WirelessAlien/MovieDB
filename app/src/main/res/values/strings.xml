@@ -256,7 +256,7 @@
     <string name="load_hd_images">Load HD images</string>
     <string name="load_hd_image_summary">The movie posters, episode images, cast images will be loaded with 780+ resolution.</string>
     <string name="runtime_minutes">%1$d minutes</string>
-    <string name="average_rating">%1$.1f/10</string>
+    <string name="average_rating" translatable="false">%1$.1f/%2$s</string>
     <string name="other_filters_don_t_work_with_this_option">Other filters don\'t work with this option</string>
     <string name="account">Account</string>
     <string name="rated">Rated</string>
@@ -298,4 +298,6 @@
     <string name="overview_not_available">Overview is not added to the episode, will be added when available.</string>
     <string name="search_engine">Search Engine</string>
     <string name="search_engine_key_summary">Search Engine to use for searching movies from the app (default is Google)</string>
+    <string name="home">HOME</string>
+    <string name="rating_tmdb">"Rating (TMDb): "</string>
 </resources>

@@ -56,8 +56,10 @@ import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateTvSeason;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeViewHolder> {
@@ -66,18 +68,19 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
     private final Context context;
     int tvShowId;
     int seasonNumber;
-    private final GetAccountStateTvSeason accountState;
+    private Map<Integer, Double> episodeRatings = new HashMap<>();
     private static final String HD_IMAGE_SIZE = "key_hq_images";
-
 
     public EpisodeAdapter(Context context, List<Episode> episodes, int seasonNumber, int tvShowId) {
         this.context = context;
         this.episodes = episodes;
-        PreferenceManager.getDefaultSharedPreferences( context );
         this.tvShowId = tvShowId;
         this.seasonNumber = seasonNumber;
-        this.accountState = new GetAccountStateTvSeason(tvShowId, seasonNumber, context);
-        this.accountState.start();
+
+        new GetAccountStateTvSeason(tvShowId, seasonNumber, context, ratings -> {
+            episodeRatings = ratings;
+            notifyDataSetChanged();
+        } ).start();
     }
 
     public List<Episode> getEpisodes() {
@@ -100,23 +103,34 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
         String imageSize = loadHDImage ? "w780" : "w500";
         Episode episode = episodes.get(position);
         holder.binding.title.setText(episode.getName());
-        holder.binding.episodeNumber.setText( "(" + episode.getEpisodeNumber() + ")");
+        holder.binding.episodeNumber.setText("(" + episode.getEpisodeNumber() + ")");
         holder.binding.description.setText(episode.getOverview());
-        holder.binding.date.setText(episode.getAirDate());
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date parsedDate = inputFormat.parse(episode.getAirDate());
+            if (parsedDate != null) {
+                DateFormat outputFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
+                String formattedDate = outputFormat.format(parsedDate);
+                holder.binding.date.setText(formattedDate);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            holder.binding.date.setText(episode.getAirDate());
+        }
         holder.binding.runtime.setText(context.getString(R.string.runtime_minutes, episode.getRuntime()));
-        holder.binding.averageRating.setText(context.getString(R.string.average_rating, episode.getVoteAverage()));
+        holder.binding.averageRating.setText(context.getString(R.string.average_rating, episode.getVoteAverage(), String.format(Locale.getDefault(), "%d", 10)));
         Picasso.get()
                 .load("https://image.tmdb.org/t/p/" + imageSize + episode.getPosterPath())
                 .placeholder(R.color.md_theme_surface)
                 .into(holder.binding.image);
 
-        holder.itemView.setBackgroundColor( Color.TRANSPARENT );
+        holder.itemView.setBackgroundColor(Color.TRANSPARENT);
 
-        double rating = accountState.getEpisodeRating(episode.getEpisodeNumber());
+        double rating = episodeRatings.getOrDefault(episode.getEpisodeNumber(), 0.0);
         if (rating == 0) {
-            holder.binding.rating.setText( R.string.episode_rating_tmdb_not_set);
+            holder.binding.rating.setText(R.string.episode_rating_tmdb_not_set);
         } else {
-            holder.binding.rating.setText("Rating (TMDb): " + String.format(Locale.getDefault(), "%.1f/10", rating));
+            holder.binding.rating.setText(context.getString(R.string.rating_tmdb) + String.format(Locale.getDefault(), "%.1f/" + String.format(Locale.getDefault(), "%d", 10), rating));
         }
 
         try (MovieDatabaseHelper db = new MovieDatabaseHelper(context)) {
@@ -146,14 +160,15 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
             EpisodeDbDetails details = db.getEpisodeDetails(tvShowId, seasonNumber, episode.getEpisodeNumber());
             if (details != null) {
                 if (details.rating != null) {
-                    holder.binding.episodeDbRating.setText(context.getString( R.string.rating_db) + " " + details.rating + "/10");
+                    String formattedRating = String.format(Locale.getDefault(), "%d/%d", details.rating, 10);
+                    holder.binding.episodeDbRating.setText(context.getString(R.string.rating_db) + " " + formattedRating);
                 }
-                if (details.watchDate != null) {
+                if (details.watchDate != null && !details.watchDate.equals("00-00-0000")) {
                     SimpleDateFormat originalFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
                     try {
                         Date date = originalFormat.parse(details.watchDate);
-                        String formattedDate = DateFormat.getDateInstance( DateFormat.DEFAULT).format(date);
-                        holder.binding.watchedDate.setText(context.getString( R.string.watched_on) + " " + formattedDate);
+                        String formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(date);
+                        holder.binding.watchedDate.setText(context.getString(R.string.watched_on) + " " + formattedDate);
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
@@ -198,7 +213,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
                 MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker().build();
                 datePicker.show(((FragmentActivity) context).getSupportFragmentManager(), datePicker.toString());
                 datePicker.addOnPositiveButtonClickListener(selection -> {
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH);
                     String selectedDate = sdf.format(new Date(selection));
                     dateTextView.setText(selectedDate);
                 });

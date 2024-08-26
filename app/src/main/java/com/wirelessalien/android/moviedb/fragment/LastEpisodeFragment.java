@@ -106,7 +106,7 @@ public class LastEpisodeFragment extends Fragment {
                 binding.seasonNo.setText("S: " + seasonNumber);
                 binding.episodeNo.setText("E: " + episodeNumber);
                 binding.episodeName.setText(episodeName);
-                binding.ratingAverage.setText(String.format( Locale.getDefault(), "%.2f/10", episodeDetails.getDouble("vote_average")));
+                binding.ratingAverage.setText(String.format(Locale.getDefault(), "%.2f/%s", episodeDetails.getDouble("vote_average"), String.format(Locale.getDefault(), "%d", 10)));
                 String overview = episodeDetails.getString("overview");
                 if (overview.isEmpty()) {
                     binding.episodeOverview.setText(R.string.overview_not_available);
