@@ -62,6 +62,7 @@ import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
 import androidx.palette.graphics.Palette;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -176,10 +177,10 @@ public class DetailActivity extends BaseActivity {
         final int scrollThreshold = 50;
         public void onScrollChanged(int t) {
             if (t == 0) {
-                getSupportActionBar().setTitle("");
+                binding.toolbar.setTitle("");
             } else {
                 if (showTitle != null && Math.abs(t - lastScrollY) > scrollThreshold) {
-                    getSupportActionBar().setTitle(showTitle);
+                    binding.toolbar.setTitle(showTitle);
                 }
             }
             if (Math.abs(t - lastScrollY) > scrollThreshold) {
@@ -242,6 +243,8 @@ public class DetailActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityDetailBinding.inflate(getLayoutInflater());
+
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         API_KEY = ConfigHelper.getConfigValue(getApplicationContext(), "api_key");
         api_read_access_token = ConfigHelper.getConfigValue(getApplicationContext(), "api_read_access_token");
@@ -436,6 +439,15 @@ public class DetailActivity extends BaseActivity {
             color = Color.WHITE;
         }
 
+        GradientDrawable foregroundGradientDrawable;
+        foregroundGradientDrawable = new GradientDrawable(
+                GradientDrawable.Orientation.BOTTOM_TOP,
+                new int[]{Color.BLACK, Color.TRANSPARENT}
+        );
+
+
+        binding.movieImage.setForeground(foregroundGradientDrawable);
+
         if (preferences.getBoolean( DYNAMIC_COLOR_DETAILS_ACTIVITY, false )) {
             if (jMovieObject.has( "backdrop_path" ) && binding.movieImage.getDrawable() == null) {
                 boolean loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false);
@@ -495,6 +507,8 @@ public class DetailActivity extends BaseActivity {
                         Animation animation = AnimationUtils.loadAnimation(
                                 getApplicationContext(), R.anim.slide_in_right);
                         binding.movieImage.startAnimation(animation);
+
+
                     }
 
                     @Override
@@ -748,20 +762,7 @@ public class DetailActivity extends BaseActivity {
 
         String searchEngineUrl = preferences.getString(SEARCH_ENGINE_PREFERENCE, "https://www.google.com/search?q=");
 
-        String searchEngineText;
-        if (searchEngineUrl.contains("bing")) {
-            searchEngineText = "BING";
-        } else if (searchEngineUrl.contains("duckduckgo")) {
-            searchEngineText = "DUCKDUCKGO";
-        } else if (searchEngineUrl.contains("yandex")) {
-            searchEngineText = "YANDEX";
-        } else {
-            searchEngineText = "SEARCH";
-        }
-        binding.googleLink.setText(searchEngineText);
-        binding.googleLink.setTextColor(ContextCompat.getColor( context, R.color.md_theme_primary));
-
-        binding.googleLink.setOnClickListener(v -> {
+        binding.searchBtn.setOnClickListener(v -> {
             String title = (jMovieObject.has("title")) ? "title" : "name";
             String url = searchEngineUrl + jMovieObject.optString(title);
 
@@ -1169,6 +1170,17 @@ public class DetailActivity extends BaseActivity {
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
+                }
+            }
+
+            if (movieObject.has("homepage")) {
+                String homepage = movieObject.getString("homepage");
+                if (!homepage.equals(binding.homepage.getText().toString())) {
+                    binding.homepage.setOnClickListener(v -> {
+                        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                        CustomTabsIntent customTabsIntent = builder.build();
+                        customTabsIntent.launchUrl(this, Uri.parse(homepage));
+                    });
                 }
             }
 
@@ -2011,12 +2023,10 @@ public class DetailActivity extends BaseActivity {
                 String imdbId = externalIdsObject.getString("imdb_id");
                 // if imdbId is not available, set the text to "IMDB (not available)"
                 if (imdbId.equals("null")) {
-                    binding.imdbLink.setText(R.string.imdb_not_available);
+                    binding.imdbBtn.setEnabled(false);
                 } else {
                     // if imdbId is available, set the text to "IMDB" and set an onClickListener to open the IMDB page
-                    binding.imdbLink.setText("IMDB");
-                    binding.imdbLink.setTextColor(ContextCompat.getColor(context, R.color.md_theme_primary));
-                    binding.imdbLink.setOnClickListener(v -> {
+                    binding.imdbBtn.setOnClickListener(v -> {
                         String url = "https://www.imdb.com/title/" + imdbId;
                         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
                         CustomTabsIntent customTabsIntent = builder.build();

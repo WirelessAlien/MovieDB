@@ -70,7 +70,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:layout_gravity="top"
+                android:background="@android:color/transparent"
                 app:layout_collapseMode="pin" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
@@ -449,8 +449,10 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
+                android:alpha="0.8"
+                android:textAllCaps="true"
                 android:text="@string/overview"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
             <View
                 android:id="@+id/forthDivider"
@@ -545,8 +547,10 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/cast_title"
+                android:alpha="0.8"
+                android:textAllCaps="true"
                 android:textStyle="bold"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <View
                 android:id="@+id/secondDivider"
@@ -573,8 +577,10 @@
                 android:layout_below="@id/castRecyclerView"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
+                android:alpha="0.8"
                 android:text="@string/crew_title"
-                android:textSize="20sp"
+                android:textSize="16sp"
+                android:textAllCaps="true"
                 android:textStyle="bold" />
 
             <View
@@ -603,12 +609,14 @@
                 android:paddingTop="16dp"
                 android:paddingStart="16dp"
                 android:textStyle="bold"
+                android:alpha="0.8"
+                android:textAllCaps="true"
                 android:text="@string/recommendations_title"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
             <View
                 android:id="@+id/seventhDivider"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="1dp"
                 android:layout_below="@id/similarMovieTitle"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
@@ -620,16 +628,75 @@
                 android:paddingStart="6dp"
                 android:layout_below="@id/seventhDivider"
                 android:scrollbars="none" />
+            <TextView
+                android:id="@+id/linkLTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/movieRecyclerView"
+                android:layout_marginEnd="16dp"
+                android:paddingTop="16dp"
+                android:paddingStart="16dp"
+                android:textStyle="bold"
+                android:alpha="0.8"
+                android:textAllCaps="true"
+                android:text="@string/links"
+                android:textSize="16sp" />
+            <View
+                android:id="@+id/linkRlDivider1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_below="@id/linkLTitle"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="?android:attr/listDivider"/>
 
+            <RelativeLayout
+                android:id="@+id/linkRL"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="16dp"
+                android:layout_below="@id/linkRlDivider1">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/searchBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/imdbBtn"
+                    app:icon="@drawable/ic_explore"
+                    android:text="Search"
+                    app:iconGravity="top"
+                    style="@style/Widget.Material3.Button.IconButton"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/imdbBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/homepage"
+                    app:iconGravity="top"
+                    android:text="Imdb"
+                    app:icon="@drawable/ic_open_in_new"
+                    style="@style/Widget.Material3.Button.IconButton"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/homepage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Homepage"
+                    app:iconGravity="top"
+                    app:icon="@drawable/ic_house"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_alignParentStart="true"/>
+            </RelativeLayout>
             <TextView
                 android:id="@+id/otherText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/other_details"
                 android:paddingStart="16dp"
-                android:paddingTop="16dp"
-                android:layout_below="@id/movieRecyclerView"
-                android:textSize="20sp"
+                android:layout_marginTop="16dp"
+                android:layout_below="@id/linkRL"
+                android:textSize="16sp"
+                android:textAllCaps="true"
+                android:alpha="0.8"
                 android:textStyle="bold"/>
             <View
                 android:id="@+id/sixthDivider"
@@ -661,46 +728,6 @@
                 android:textSize="15sp"/>
 
             <TextView
-                android:id="@+id/externalLinkTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/countryDataText"
-                android:paddingStart="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="10dp"
-                android:text="@string/external_link"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:id="@+id/externalIdRl"
-                android:layout_below="@id/externalLinkTitle">
-                <TextView
-                    android:id="@+id/imdbLink"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="IMDB"
-                    android:linksClickable="true"
-                    android:autoLink="web"
-                    android:textSize="15sp"/>
-                <TextView
-                    android:id="@+id/googleLink"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="GOOGLE"
-                    android:layout_marginStart="10dp"
-                    android:linksClickable="true"
-                    android:layout_toEndOf="@id/imdbLink"
-                    android:autoLink="web"
-                    android:textSize="15sp"/>
-            </RelativeLayout>
-
-            <TextView
                 android:id="@+id/revenueText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -708,7 +735,7 @@
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
-                android:layout_below="@id/externalIdRl"
+                android:layout_below="@id/countryDataText"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
             <TextView
