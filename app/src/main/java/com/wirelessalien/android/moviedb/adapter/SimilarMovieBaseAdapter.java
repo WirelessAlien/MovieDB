@@ -106,11 +106,11 @@ public class SimilarMovieBaseAdapter extends RecyclerView.Adapter<SimilarMovieBa
             holder.movieTitle.setText(movieData.getString(title));
 
             // Either show the poster or an icon indicating that the poster is not available.
-            if (movieData.getString("poster_path") == null) {
+            if (movieData.getString("backdrop_path") == null) {
                 holder.movieImage.setImageDrawable( ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_broken_image, null));
             } else {
                 Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize +
-                        movieData.getString("poster_path"))
+                        movieData.getString("backdrop_path"))
                         .into(holder.movieImage);
             }
 

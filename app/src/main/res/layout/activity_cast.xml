@@ -112,8 +112,10 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:textStyle="bold"
+                android:alpha="0.8"
+                android:textAllCaps="true"
                 android:text="@string/cast_movie_title"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <View
                 android:id="@+id/secondDivider"
@@ -140,8 +142,10 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:textStyle="bold"
+                android:alpha="0.8"
+                android:textAllCaps="true"
                 android:text="@string/crew_movie_title"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
             <View
                 android:id="@+id/thirdDivider"

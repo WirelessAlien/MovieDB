@@ -37,7 +37,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
+        android:theme="@style/Theme.MovieDB.Splash"
         android:name=".App"
         tools:ignore="GoogleAppIndexingWarning"
         tools:targetApi="s">
@@ -65,16 +65,46 @@
                     android:scheme="com.wirelessalien.android.moviedb" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.DetailActivity"/>
-        <activity android:name=".activity.CastActivity"/>
-        <activity android:name=".activity.SettingsActivity" />
-        <activity android:name=".activity.FilterActivity" />
-        <activity android:name=".activity.ExportActivity" />
-        <activity android:name=".activity.ImportActivity" />
-        <activity android:name=".activity.TVSeasonDetailsActivity"/>
-        <activity android:name=".activity.MyListDetailsActivity"/>
-        <activity android:name=".activity.MovieImageActivity"/>
-        <activity android:name=".activity.PersonActivity"/>
+
+        <activity android:name=".activity.DetailActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.CastActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.SettingsActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.FilterActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.ExportActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.ImportActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.TVSeasonDetailsActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.MyListDetailsActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.MovieImageActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.PersonActivity"
+            android:theme="@style/AppTheme">
+        </activity>
     </application>
 
     <queries>

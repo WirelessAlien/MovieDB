@@ -76,10 +76,8 @@ public class BaseActivity extends AppCompatActivity {
         String userPickedLanguage = preferences.getString(API_LANGUAGE_PREFERENCE, null);
         if (userPickedLanguage != null && !userPickedLanguage.isEmpty()) {
             return languageParameter + userPickedLanguage;
-        } else if (!Locale.getDefault().getLanguage().equals("en")) {
-            return languageParameter + Locale.getDefault().getLanguage();
         }
-        return "";
+        return languageParameter + "en-US";
     }
 
     @SuppressWarnings("EmptyMethod")
