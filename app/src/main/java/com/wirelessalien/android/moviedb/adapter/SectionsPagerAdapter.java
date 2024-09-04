@@ -32,6 +32,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment;
+import com.wirelessalien.android.moviedb.fragment.HomeFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.fragment.ShowFragment;
 
@@ -87,7 +88,7 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
             case 0 -> ShowFragment.newInstance( MOVIE );
             case 1 -> ShowFragment.newInstance( TV );
             case 2 -> ListFragment.newInstance();
-            case 3 -> AccountDataFragment.newInstance();
+            case 3 -> HomeFragment.newInstance();
             default -> ShowFragment.newInstance( MOVIE );
         };
         fragmentList.put(position, fragment);
