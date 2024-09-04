@@ -1,6 +1,6 @@
 <br/>
 <div align="center">
-<a href="https://github.com/ShaanCoding/ReadME-Generator">
+<a href="https://github.com/WirelessAlien/MovieDb">
 <img src="https://github.com/WirelessAlien/MovieDB/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="Logo" width="80" height="80">
 </a>
 <h3 align="center">Movie DB</h3>
@@ -80,6 +80,12 @@ Don't forget to give the project a star! Thanks again!
 ## License
 
 Distributed under the GPL-3 License. See [GPL-3 License](https://www.gnu.org/licenses/gpl-3.0.txt) for more information.
+
+## Donate 
+
+<noscript><a href="https://liberapay.com/WirelessAlien/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>  
+
+<a href="https://www.buymeacoffee.com/wirelessalien" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## Acknowledgments
 
