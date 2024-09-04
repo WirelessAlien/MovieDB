@@ -18,26 +18,7 @@
   ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item
-        android:id="@+id/nav_home"
-        android:icon="@drawable/home_selector"
-        android:title="@string/home" />
-    <item
-        android:id="@+id/nav_movie"
-        android:icon="@drawable/movie_selector"
-        android:title="@string/movie_tab_title" />
-    <item
-        android:id="@+id/nav_series"
-        android:icon="@drawable/tv_selector"
-        android:title="@string/series_tab_title" />
-    <item
-        android:id="@+id/nav_saved"
-        android:icon="@drawable/saved_selector"
-        android:title="@string/saved_tab_title" />
-    <item
-        android:id="@+id/nav_account"
-        android:icon="@drawable/account_selector"
-        android:title="@string/account_data_tab_title" />
-</menu>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:drawable="@drawable/ic_home" />
+    <item android:state_checked="false" android:drawable="@drawable/ic_home_border" />
+</selector>

@@ -48,6 +48,7 @@
         <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowTranslucentStatus">true</item>
         <item name="preferenceTheme">@style/AppPreferenceThemeOverlay</item>
     </style>
 
@@ -58,4 +59,15 @@
     <style name="AppSwitchPreference" parent="@style/Preference.SwitchPreferenceCompat.Material">
         <item name="widgetLayout">@layout/preference_material_switch</item>
     </style>
+
+    <style name="Theme.MovieDB.Splash" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background color -->
+        <item name="windowSplashScreenBackground">@color/colorBackground</item>
+        <!-- Set the splash screen icon -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
+        <!-- Set the theme to be applied after the splash screen -->
+        <item name="postSplashScreenTheme">@style/AppTheme</item>
+
+    </style>
+
 </resources>

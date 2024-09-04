@@ -48,6 +48,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
@@ -63,7 +65,9 @@ import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.ReleaseReminderService;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.data.ListData;
+import com.wirelessalien.android.moviedb.fragment.AccountDataFragment;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
+import com.wirelessalien.android.moviedb.fragment.HomeFragment;
 import com.wirelessalien.android.moviedb.fragment.ListFragment;
 import com.wirelessalien.android.moviedb.fragment.LoginFragment;
 import com.wirelessalien.android.moviedb.fragment.PersonFragment;
@@ -94,9 +98,13 @@ public class MainActivity extends BaseActivity {
     private final static int REQUEST_CODE_ASK_PERMISSIONS_EXPORT = 123;
     private final static int REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124;
     private final static String LIVE_SEARCH_PREFERENCE = "key_live_search";
+    public final static String HIDE_MOVIES_PREFERENCE = "key_hide_movies_tab";
+    public final static String HIDE_SERIES_PREFERENCE = "key_hide_series_tab";
+    public final static String HIDE_SAVED_PREFERENCE = "key_hide_saved_tab";
+    public final static String HIDE_ACCOUNT_PREFERENCE = "key_hide_account_tab";
+    public final static String MOVIE = "movie";
+    public final static String TV = "tv";
 
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-    private ViewPager2 mViewPager;
     BottomNavigationView bottomNavigationView;
     // Variables used for searching
     private MenuItem mSearchAction;
@@ -112,44 +120,51 @@ public class MainActivity extends BaseActivity {
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen.installSplashScreen( this );
         super.onCreate(savedInstanceState);
         setContentView( R.layout.activity_main);
 
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         context = this;
 
-        String fileName = "Crash_Log.txt";
-        File crashLogFile = new File(getFilesDir(), fileName);
-        if (crashLogFile.exists()) {
-            StringBuilder crashLog = new StringBuilder();
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(crashLogFile));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    crashLog.append(line);
-                    crashLog.append('\n');
+        new Thread(() -> {
+            String fileName = "Crash_Log.txt";
+            File crashLogFile = new File(getFilesDir(), fileName);
+            if (crashLogFile.exists()) {
+                StringBuilder crashLog = new StringBuilder();
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader(crashLogFile));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        crashLog.append(line);
+                        crashLog.append('\n');
+                    }
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                runOnUiThread(() -> {
+                    new MaterialAlertDialogBuilder(this)
+                            .setTitle("Crash Log")
+                            .setMessage(crashLog.toString())
+                            .setPositiveButton("Copy", (dialog, which) -> {
+                                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                                ClipData clip = ClipData.newPlainText("Movie DB Crash Log", crashLog.toString());
+                                clipboard.setPrimaryClip(clip);
+                                Toast.makeText(MainActivity.this, R.string.crash_log_copied, Toast.LENGTH_SHORT).show();
+                            })
+                            .setNegativeButton("Close", null)
+                            .show();
+
+                    crashLogFile.delete();
+                });
             }
 
-            new MaterialAlertDialogBuilder(this)
-                    .setTitle("Crash Log")
-                    .setMessage(crashLog.toString())
-                    .setPositiveButton("Copy", (dialog, which) -> {
-                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        ClipData clip = ClipData.newPlainText("Movie DB Crash Log", crashLog.toString());
-                        clipboard.setPrimaryClip(clip);
-                        Toast.makeText(MainActivity.this, R.string.crash_log_copied, Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Close", null)
-                    .show();
-
-            crashLogFile.delete();
-        }
-
-        // Set the default preference values.
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+            // Set the default preference values.
+            PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        }).start();
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -158,65 +173,52 @@ public class MainActivity extends BaseActivity {
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        mViewPager = findViewById(R.id.container);
-        mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
-
-        ViewPager2 mViewPager = findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.nav_movie) {
-                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(0));
-                return true;
+            Fragment selectedFragment = null;
+            if (itemId == R.id.nav_home) {
+                selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_movie) {
+                selectedFragment = ShowFragment.newInstance(MOVIE);
             } else if (itemId == R.id.nav_series) {
-                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(1));
-                return true;
+                selectedFragment = ShowFragment.newInstance(TV);
             } else if (itemId == R.id.nav_saved) {
-                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(2));
-                return true;
+                selectedFragment = ListFragment.newInstance();
             } else if (itemId == R.id.nav_account) {
-                mViewPager.setCurrentItem(mSectionsPagerAdapter.getCorrectedPosition(3));
+                selectedFragment = new AccountDataFragment();
+            }
+            if (selectedFragment != null) {
+                getSupportFragmentManager().beginTransaction().replace(R.id.container, selectedFragment).commit();
                 return true;
             }
             return false;
         });
 
-        mViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                switch (mSectionsPagerAdapter.getCorrectedPosition( position )) {
-                    case 0 -> bottomNavigationView.setSelectedItemId( R.id.nav_movie );
-                    case 1 -> bottomNavigationView.setSelectedItemId( R.id.nav_series );
-                    case 2 -> bottomNavigationView.setSelectedItemId( R.id.nav_saved );
-                    case 3 -> bottomNavigationView.setSelectedItemId( R.id.nav_account );
-                }
-            }
-        });
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.container, new HomeFragment()).commit();
+        }
 
         Menu menu = bottomNavigationView.getMenu();
-        menu.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
-        menu.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
-        menu.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
-        menu.findItem(R.id.nav_account ).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE, false));
+        menu.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false));
+        menu.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(HIDE_SERIES_PREFERENCE, false));
+        menu.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(HIDE_SAVED_PREFERENCE, false));
+        menu.findItem(R.id.nav_account).setVisible(!preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false));
 
         prefListener = (prefs, key) -> {
-            if (key.equals(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE) ||
-                    key.equals(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) ||
-                    key.equals(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE) ||
-                    key.equals(SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE )) {
-                mSectionsPagerAdapter = new SectionsPagerAdapter(MainActivity.this, MainActivity.this);
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-
+            if (key.equals(HIDE_MOVIES_PREFERENCE) ||
+                    key.equals(HIDE_SERIES_PREFERENCE) ||
+                    key.equals(HIDE_SAVED_PREFERENCE) ||
+                    key.equals(HIDE_ACCOUNT_PREFERENCE)) {
                 Menu menu1 = bottomNavigationView.getMenu();
-                menu1.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE, false));
-                menu1.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SERIES_PREFERENCE, false));
-                menu1.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_SAVED_PREFERENCE, false));
-                menu1.findItem(R.id.nav_account ).setVisible(!preferences.getBoolean(SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE, false));
+                menu1.findItem(R.id.nav_movie).setVisible(!preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false));
+                menu1.findItem(R.id.nav_series).setVisible(!preferences.getBoolean(HIDE_SERIES_PREFERENCE, false));
+                menu1.findItem(R.id.nav_saved).setVisible(!preferences.getBoolean(HIDE_SAVED_PREFERENCE, false));
+                menu1.findItem(R.id.nav_account).setVisible(!preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false));
             }
         };
 
-        // Register the listener
+// Register the listener
         preferences.registerOnSharedPreferenceChangeListener(prefListener);
 
         FloatingActionButton fab = findViewById( R.id.fab );
@@ -270,7 +272,7 @@ public class MainActivity extends BaseActivity {
         Intent nIntent = getIntent();
         if (nIntent != null && nIntent.hasExtra("tab_index")) {
             int tabIndex = nIntent.getIntExtra("tab_index", 0);
-            mViewPager.setCurrentItem(tabIndex);
+            bottomNavigationView.setSelectedItemId(tabIndex);
         }
 
         String access_token = preferences.getString("access_token", null);
@@ -379,6 +381,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+
     @Override
     public void onBackPressed() {
         // When search is opened and the user presses back,
@@ -387,7 +390,9 @@ public class MainActivity extends BaseActivity {
             handleMenuSearch();
             return;
         }
+
         super.onBackPressed();
+        Log.d("MainActivity", "onBackPressed: Super");
     }
 
     @Override
@@ -441,7 +446,8 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment mCurrentFragment = fragmentManager.findFragmentById(R.id.container);
 
         if (mCurrentFragment != null) {
             mCurrentFragment.onActivityResult(requestCode, resultCode, data);
@@ -450,8 +456,7 @@ public class MainActivity extends BaseActivity {
         }
 
         if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_SETTINGS_PAGER_CHANGED) {
-            mSectionsPagerAdapter = new SectionsPagerAdapter(this, this);
-            mViewPager.setAdapter(mSectionsPagerAdapter);
+            // Handle settings change if needed
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -525,7 +530,8 @@ public class MainActivity extends BaseActivity {
 
     private void searchInFragment(String query) {
         // This is a hack
-        Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment mCurrentFragment = fragmentManager.findFragmentById(R.id.container);
 
         if (mCurrentFragment != null) {
             if (mCurrentFragment instanceof ShowFragment) {
@@ -548,7 +554,8 @@ public class MainActivity extends BaseActivity {
      */
     private void cancelSearchInFragment() {
         // This is a hack
-        Fragment mCurrentFragment = mSectionsPagerAdapter.getFragment(mViewPager.getCurrentItem());
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment mCurrentFragment = fragmentManager.findFragmentById(R.id.container);
 
         if (mCurrentFragment != null) {
             if (mCurrentFragment instanceof ShowFragment) {

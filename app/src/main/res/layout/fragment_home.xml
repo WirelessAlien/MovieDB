@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~     This file is part of Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     Movie DB is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     Movie DB is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.wirelessalien.android.moviedb.fragment.HomeFragment">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/searchBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.search.SearchBar
+                android:id="@+id/searchbar"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:hint="@string/search_movie_show"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/peopleBtn"
+                app:shapeAppearance="?attr/shapeAppearanceCornerSmall"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/peopleBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                app:icon="@drawable/ic_people_group"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginEnd="12dp"
+                app:layout_constraintStart_toEndOf="@id/searchbar"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/trendingViewPager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_below="@id/searchBarLayout"/>
+
+        <TextView
+            android:id="@+id/nowPlaying"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:layout_marginStart="16dp"
+            android:layout_below="@id/trendingViewPager"
+            android:textStyle="bold"
+            android:text="Now Playing" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/nowPlayingRecyclerView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/nowPlaying"
+            android:minHeight="230dp"
+            android:clipToPadding="false"
+            android:padding="10dip"
+            android:scrollbars="none" />
+        <TextView
+            android:id="@+id/airingToday"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_below="@id/nowPlayingRecyclerView"
+            android:layout_marginStart="16dp"
+            android:text="Airing Today" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/nowPlayingTVRecyclerView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:minHeight="230dp"
+            android:layout_below="@id/airingToday"
+            android:padding="10dip"
+            android:scrollbars="none" />
+        <TextView
+            android:id="@+id/upcomingMovie"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_below="@id/nowPlayingTVRecyclerView"
+            android:layout_marginStart="16dp"
+            android:text="Upcoming " />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/upcomingMovieRecyclerView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:minHeight="230dp"
+            android:layout_below="@id/upcomingMovie"
+            android:padding="10dip"
+            android:scrollbars="none" />
+
+        <TextView
+            android:id="@+id/upcomingTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_below="@id/upcomingMovieRecyclerView"
+            android:layout_marginStart="16dp"
+            android:text="On The Air" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/upcomingTVRecyclerView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:minHeight="230dp"
+            android:layout_below="@id/upcomingTv"
+            android:padding="10dip"
+            android:scrollbars="none" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="85dp"
+            android:layout_below="@id/upcomingTVRecyclerView"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+
+</androidx.core.widget.NestedScrollView>

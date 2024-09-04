@@ -300,4 +300,6 @@
     <string name="search_engine_key_summary">Search Engine to use for searching movies from the app (default is Google)</string>
     <string name="home">HOME</string>
     <string name="rating_tmdb">"Rating (TMDb): "</string>
+    <string name="links">Links</string>
+    <string name="search_movie_show">Search Movie, Show...</string>
 </resources>
