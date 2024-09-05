@@ -72,12 +72,25 @@ public class BaseActivity extends AppCompatActivity {
     public static String getLanguageParameter(Context context) {
         String languageParameter = "&language=";
 
+        String language = Locale.getDefault().getLanguage();
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         String userPickedLanguage = preferences.getString(API_LANGUAGE_PREFERENCE, null);
         if (userPickedLanguage != null && !userPickedLanguage.isEmpty()) {
             return languageParameter + userPickedLanguage;
         }
-        return languageParameter + "en-US";
+        return languageParameter + language;
+    }
+
+    public static String getLanguageParameter2(Context context) {
+        String languageParameter = "?language=";
+
+        String language = Locale.getDefault().getLanguage();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String userPickedLanguage = preferences.getString(API_LANGUAGE_PREFERENCE, null);
+        if (userPickedLanguage != null && !userPickedLanguage.isEmpty()) {
+            return languageParameter + userPickedLanguage;
+        }
+        return languageParameter + language;
     }
 
     @SuppressWarnings("EmptyMethod")

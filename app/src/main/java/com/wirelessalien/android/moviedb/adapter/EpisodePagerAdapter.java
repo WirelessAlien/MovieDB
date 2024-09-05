@@ -47,7 +47,11 @@ public class EpisodePagerAdapter extends FragmentStateAdapter {
     }
 
     public void addFragment(Fragment fragment, int position) {
-        fragmentList.add(position, fragment);
+        if (position < 0 || position > fragmentList.size()) {
+            fragmentList.add(fragment);
+        } else {
+            fragmentList.add(position, fragment);
+        }
     }
 
     public void clearFragments() {

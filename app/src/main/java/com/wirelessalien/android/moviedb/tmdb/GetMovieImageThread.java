@@ -37,6 +37,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -91,7 +92,7 @@ public class GetMovieImageThread extends Thread {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("GetMovieImageThread", e.getMessage());
+            Log.e("GetMovieImageThread", Objects.requireNonNull( e.getMessage() ) );
         }
     }
 }

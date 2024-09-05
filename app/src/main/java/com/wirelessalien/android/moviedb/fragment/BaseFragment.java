@@ -150,7 +150,7 @@ public class BaseFragment extends Fragment {
             try {
                 URL url = new URL("https://api.themoviedb.org/3/genre/"
                         + mGenreType + "/list?api_key=" +
-                        API_KEY + BaseActivity.getLanguageParameter(getContext()));
+                        API_KEY);
 
                 URLConnection urlConnection = url.openConnection();
                 try {

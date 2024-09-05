@@ -20,6 +20,8 @@
 
 package com.wirelessalien.android.moviedb.tmdb;
 
+import static com.wirelessalien.android.moviedb.activity.BaseActivity.getLanguageParameter;
+
 import android.content.Context;
 
 import com.wirelessalien.android.moviedb.data.Episode;
@@ -28,13 +30,13 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class TVSeasonDetailsThread extends Thread {
 
@@ -45,30 +47,29 @@ public class TVSeasonDetailsThread extends Thread {
     private String seasonOverview;
     private String seasonPosterPath;
     private double seasonVoteAverage;
+    Context context;
     private final String apiKey;
 
     public TVSeasonDetailsThread(int tvShowId, int seasonNumber, Context context) {
         this.tvShowId = tvShowId;
         this.seasonNumber = seasonNumber;
+        this.context = context;
         this.apiKey = ConfigHelper.getConfigValue(context,"api_key");
     }
 
     @Override
     public void run() {
         try {
-            URL url = new URL("https://api.themoviedb.org/3/tv/" + tvShowId + "/season/" + seasonNumber + "?api_key=" + apiKey);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
+            String baseUrl = "https://api.themoviedb.org/3/tv/" + tvShowId + "/season/" + seasonNumber + "?api_key=" + apiKey;
+            String urlWithLanguage = baseUrl + getLanguageParameter(context);
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-            String line;
-            StringBuilder builder = new StringBuilder();
+            JSONObject jsonResponse = fetchSeasonDetails(urlWithLanguage);
 
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
+            // Check if overview is empty
+            if (jsonResponse.getString("overview").isEmpty()) {
+                jsonResponse = fetchSeasonDetails(baseUrl);
             }
 
-            JSONObject jsonResponse = new JSONObject(builder.toString());
             seasonName = jsonResponse.getString("name");
             seasonOverview = jsonResponse.getString("overview");
             seasonPosterPath = jsonResponse.getString("poster_path");
@@ -83,12 +84,7 @@ public class TVSeasonDetailsThread extends Thread {
                 String overview = episodeJson.getString("overview");
                 String airDate = episodeJson.getString("air_date");
                 int episodeNumber = episodeJson.getInt("episode_number");
-                int runtime;
-                if (!episodeJson.isNull("runtime")) {
-                    runtime = episodeJson.getInt("runtime");
-                } else {
-                    runtime = 0;
-                }
+                int runtime = episodeJson.isNull("runtime") ? 0 : episodeJson.getInt("runtime");
                 String posterPath = episodeJson.getString("still_path");
                 double voteAverage = episodeJson.getDouble("vote_average");
 
@@ -100,27 +96,49 @@ public class TVSeasonDetailsThread extends Thread {
         }
     }
 
+    private JSONObject fetchSeasonDetails(String urlString) throws Exception {
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url(urlString)
+                .get()
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            String responseBody = null;
+            if (response.body() != null) {
+                responseBody = response.body().string();
+            }
+            if (responseBody != null) {
+                return new JSONObject( responseBody );
+            }
+        }
+        return null;
+    }
+
     public List<Episode> getEpisodes() {
         return episodes;
     }
 
-    public String getSeasonName() {
-        return seasonName;
-    }
+//    public String getSeasonName() {
+//        return seasonName;
+//    }
+//
+//    public String getSeasonOverview() {
+//        return seasonOverview;
+//    }
 
-    public String getSeasonOverview() {
-        return seasonOverview;
-    }
-
-    public String getSeasonPosterPath() {
-        return seasonPosterPath;
-    }
+//    public String getSeasonPosterPath() {
+//        return seasonPosterPath;
+//    }
 
     public int getSeasonNumber() {
         return seasonNumber;
     }
 
-    public double getSeasonVoteAverage() {
-        return seasonVoteAverage;
-    }
+//    public double getSeasonVoteAverage() {
+//        return seasonVoteAverage;
+//    }
 }

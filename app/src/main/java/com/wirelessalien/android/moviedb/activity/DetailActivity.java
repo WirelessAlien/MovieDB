@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.activity;
 
 import android.app.Activity;
 import android.app.UiModeManager;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -885,6 +886,7 @@ public class DetailActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         LinearLayout editShowDetails = binding.editShowDetails;
 
         if (editShowDetails.getVisibility() != View.GONE) {
@@ -896,7 +898,7 @@ public class DetailActivity extends BaseActivity {
             binding.showRating.clearFocus();
         }
 
-        setResult(RESULT_CANCELED);
+        setResult( RESULT_CANCELED );
         finish();
     }
 
@@ -1090,10 +1092,6 @@ public class DetailActivity extends BaseActivity {
                             .getText().toString()) && !movieObject.getString("overview")
                     .equals("") && !movieObject.getString("overview").equals("null")) {
                 binding.movieDescription.setText(movieObject.getString("overview"));
-                if (movieObject.getString("overview").equals("")) {
-                    MovieDetailsThread movieDetailsThread = new MovieDetailsThread("true");
-                    movieDetailsThread.start();
-                }
             }
 
             // Set the genres
@@ -1177,9 +1175,19 @@ public class DetailActivity extends BaseActivity {
                 String homepage = movieObject.getString("homepage");
                 if (!homepage.equals(binding.homepage.getText().toString())) {
                     binding.homepage.setOnClickListener(v -> {
-                        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-                        CustomTabsIntent customTabsIntent = builder.build();
-                        customTabsIntent.launchUrl(this, Uri.parse(homepage));
+                        if (homepage != null && !homepage.isEmpty()) {
+                            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                            CustomTabsIntent customTabsIntent = builder.build();
+                            try {
+                                customTabsIntent.launchUrl(this, Uri.parse(homepage));
+                            } catch (ActivityNotFoundException e) {
+                                // Fallback to open the URL in a regular browser
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(homepage));
+                                startActivity(browserIntent);
+                            }
+                        } else {
+                            Toast.makeText(this, R.string.invalid_url, Toast.LENGTH_SHORT).show();
+                        }
                     });
                 }
             }
@@ -1673,32 +1681,6 @@ public class DetailActivity extends BaseActivity {
         }
     }
 
-    /**
-     * Parses a string to a date.
-     * @param date the string containing only a date.
-     * @return the date parsed from the String.
-     * @throws ParseException thrown when parsing the date string failed.
-     */
-    private static Date parseDateString(String date, String format, Locale locale) throws ParseException {
-        if (format == null) {
-            format = "dd-MM-yyyy";
-        }
-
-        if (locale == null) {
-            locale = Locale.US;
-        }
-        try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format, locale);
-            return simpleDateFormat.parse(date);
-        } catch (ParseException pe) {
-            // Try parsing an old format.
-            // Note: normally this shouldn't be hardcoded, but right now I think it is more
-            // important to get all the dates to be consistent.
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yy", locale);
-            return simpleDateFormat.parse(date);
-        }
-    }
-
     // Load the list of actors.
     private class CastListThread extends Thread {
 
@@ -1887,34 +1869,38 @@ public class DetailActivity extends BaseActivity {
 
     // Load the movie details.
     public class MovieDetailsThread extends Thread {
-        private boolean missingOverview;
         private final Handler handler = new Handler(Looper.getMainLooper());
-        private final String[] params;
 
-        public MovieDetailsThread(String... params) {
-            this.params = params;
+        public MovieDetailsThread() {
         }
 
         @Override
         public void run() {
-            if (params.length > 0) {
-                missingOverview = params[0].equalsIgnoreCase("true");
-            }
-
             OkHttpClient client = new OkHttpClient();
 
             String type = (isMovie) ? SectionsPagerAdapter.MOVIE : SectionsPagerAdapter.TV;
             String additionalEndpoint = (isMovie) ? "release_dates,external_ids,keywords" : "content_ratings,external_ids,keywords";
-            String url;
-            if (missingOverview) {
-                url = "https://api.themoviedb.org/3/" + type +
-                        "/" + movieId + "?append_to_response=" + additionalEndpoint;
-            } else {
-                url = "https://api.themoviedb.org/3/" + type +
-                        "/" + movieId + "?append_to_response=" + additionalEndpoint
-                        + getLanguageParameter(getApplicationContext());
-            }
+            String baseUrl = "https://api.themoviedb.org/3/" + type + "/" + movieId + "?append_to_response=" + additionalEndpoint;
+            String urlWithLanguage = baseUrl + getLanguageParameter(getApplicationContext());
 
+            try {
+                // First request with language parameter
+                JSONObject movieData = fetchMovieDetails(client, urlWithLanguage);
+
+                // Check if overview is empty
+                if (movieData.getString("overview").isEmpty()) {
+                    // Second request without language parameter
+                    movieData = fetchMovieDetails(client, baseUrl);
+                }
+
+                JSONObject finalMovieData = movieData;
+                handler.post(() -> onPostExecute(finalMovieData));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private JSONObject fetchMovieDetails(OkHttpClient client, String url) throws IOException, JSONException {
             Request request = new Request.Builder()
                     .url(url)
                     .get()
@@ -1922,28 +1908,16 @@ public class DetailActivity extends BaseActivity {
                     .addHeader("Authorization", "Bearer " + api_read_access_token)
                     .build();
 
-            try {
-                Response response = client.newCall(request).execute();
+            try (Response response = client.newCall(request).execute()) {
                 String responseBody = response.body().string();
-                handler.post(() -> onPostExecute(responseBody));
-            } catch (IOException e) {
-                e.printStackTrace();
+                return new JSONObject(responseBody);
             }
         }
 
-        private void onPostExecute(String response) {
-            if (response != null && !response.isEmpty()) {
-                // Send the dataset to setMovieData to change the data where needed.
+        private void onPostExecute(JSONObject movieData) {
+            if (movieData != null) {
                 try {
-                    JSONObject movieData = new JSONObject(response);
-                    // If the translation is missing, only change the overview.
-                    // Doing this with setMovieData would change everything to English.
-                    // To prevent that, we use this if-statement.
-                    if (missingOverview) {
-                        binding.movieDescription.setText(movieData.getString("overview"));
-                    } else {
-                        setMovieData(movieData);
-                    }
+                    setMovieData(movieData);
                     showKeywords(movieData);
                     showExternalIds(movieData);
 
