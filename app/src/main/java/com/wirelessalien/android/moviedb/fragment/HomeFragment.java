@@ -20,6 +20,8 @@
 
 package com.wirelessalien.android.moviedb.fragment;
 
+import static com.wirelessalien.android.moviedb.activity.BaseActivity.getLanguageParameter2;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,14 +43,10 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.CompositePageTransformer;
-import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.carousel.CarouselLayoutManager;
 import com.google.android.material.carousel.CarouselSnapHelper;
-import com.google.android.material.carousel.FullScreenCarouselStrategy;
-import com.google.android.material.carousel.HeroCarouselStrategy;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.search.SearchBar;
 import com.google.android.material.search.SearchView;
@@ -66,7 +64,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -92,7 +89,6 @@ public class HomeFragment extends BaseFragment {
     private NowPlayingMovieAdapter mTVShowAdapter;
     private NowPlayingMovieAdapter mUpcomingMovieAdapter;
     private NowPlayingMovieAdapter mUpcomingTVAdapter;
-    private ViewPager2 viewPager;
     private RecyclerView trandingRv;
     private SearchBar searchBar;
     private SearchView searchView;
@@ -305,8 +301,7 @@ public class HomeFragment extends BaseFragment {
         CompletableFuture.supplyAsync(() -> {
             String response = null;
             try {
-                String language = Locale.getDefault().getLanguage();
-                URL url = new URL("https://api.themoviedb.org/3/movie/now_playing?language=" + language + "&page=1");
+                URL url = new URL("https://api.themoviedb.org/3/movie/now_playing" + getLanguageParameter2(requireContext())+ "&page=1");
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .url(url)
@@ -359,8 +354,7 @@ public class HomeFragment extends BaseFragment {
         CompletableFuture.supplyAsync(() -> {
             String response = null;
             try {
-                String language = Locale.getDefault().getLanguage();
-                URL url = new URL("https://api.themoviedb.org/3/tv/airing_today?language=" + language + "&page=1");
+                URL url = new URL("https://api.themoviedb.org/3/tv/airing_today" + getLanguageParameter2(requireContext()) + "&page=1");
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .url(url)
@@ -414,8 +408,7 @@ public class HomeFragment extends BaseFragment {
         CompletableFuture.supplyAsync(() -> {
             String response = null;
             try {
-                String language = Locale.getDefault().getLanguage();
-                URL url = new URL("https://api.themoviedb.org/3/tv/on_the_air?language=" + language + "&page=1");
+                URL url = new URL("https://api.themoviedb.org/3/tv/on_the_air" + getLanguageParameter2(requireContext()) + "&page=1");
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .url(url)
@@ -469,8 +462,7 @@ public class HomeFragment extends BaseFragment {
         CompletableFuture.supplyAsync(() -> {
             String response = null;
             try {
-                String language = Locale.getDefault().getLanguage();
-                URL url = new URL("https://api.themoviedb.org/3/movie/upcoming?language=" + language + "&page=1");
+                URL url = new URL("https://api.themoviedb.org/3/movie/upcoming" + getLanguageParameter2(requireContext()) + "&page=1");
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .url(url)
@@ -525,8 +517,7 @@ public class HomeFragment extends BaseFragment {
         CompletableFuture.supplyAsync(() -> {
             String response = null;
             try {
-                String language = Locale.getDefault().getLanguage();
-                URL url = new URL("https://api.themoviedb.org/3/trending/all/day?language=" + language);
+                URL url = new URL("https://api.themoviedb.org/3/trending/all/day" + getLanguageParameter2(requireContext()));
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .url(url)

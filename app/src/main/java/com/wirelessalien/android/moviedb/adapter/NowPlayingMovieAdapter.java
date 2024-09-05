@@ -95,6 +95,13 @@ public class NowPlayingMovieAdapter extends RecyclerView.Adapter<NowPlayingMovie
 
         Context context = holder.showView.getContext();
 
+        if (showData == null) {
+            // Handle the null case, e.g., set default values or hide the view.
+            holder.showTitle.setText(R.string.title);
+            holder.showImage.setBackgroundColor(ResourcesCompat.getColor(holder.showView.getContext().getResources(), R.color.md_theme_primary, null));
+            holder.showDate.setText("");
+            return;
+        }
         // Fills the views with show details.
         try {
             // Load the thumbnail with Picasso.

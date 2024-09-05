@@ -28,9 +28,9 @@
         android:id="@+id/cardView"
         android:layout_width="120dp"
         android:layout_height="230dp"
-        app:cardCornerRadius="5dip"
+        app:cardCornerRadius="5dp"
         style="@style/Widget.Material3.CardView.Elevated"
-        android:layout_margin="5dip">
+        android:layout_margin="5dp">
 
         <RelativeLayout
             android:layout_width="wrap_content"

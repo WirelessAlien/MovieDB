@@ -23,9 +23,14 @@ package com.wirelessalien.android.moviedb.adapter;
 import static com.google.android.material.animation.AnimationUtils.lerp;
 
 import android.annotation.SuppressLint;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.icu.text.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,15 +39,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.palette.graphics.Palette;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.carousel.MaskableFrameLayout;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.activity.DetailActivity;
 
@@ -116,10 +124,54 @@ public class TrendingPagerAdapter extends RecyclerView.Adapter<TrendingPagerAdap
 
             String imageSize = loadHDImage ? "w780" : "w500";
 
-            if (showData.getString(KEY_IMAGE).equals("null")) {
-                holder.showImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
-            } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_IMAGE)).into(holder.showImage);
+            UiModeManager uiModeManager = (UiModeManager) context.getSystemService(Context.UI_MODE_SERVICE);
+            boolean isDarkTheme = uiModeManager.getNightMode() == UiModeManager.MODE_NIGHT_YES;
+
+
+            try {
+                if (showData.getString( KEY_IMAGE ).equals( "null" )) {
+                    holder.showImage.setImageDrawable( ResourcesCompat.getDrawable( context.getResources(), (R.drawable.ic_broken_image), null ) );
+                } else {
+                    String imageUrl = "https://image.tmdb.org/t/p/" + imageSize + showData.getString( KEY_IMAGE );
+                    holder.target = new Target() {
+                        @Override
+                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                            holder.showImage.setImageBitmap(bitmap);
+
+                            Palette palette = Palette.from(bitmap).generate();
+                            int darkMutedColor = palette.getDarkMutedColor(palette.getMutedColor(Color.BLACK));
+                            int lightMutedColor = palette.getLightMutedColor(palette.getMutedColor(Color.WHITE));
+
+                            GradientDrawable foregroundGradientDrawable;
+                            if (isDarkTheme) {
+                                foregroundGradientDrawable = new GradientDrawable(
+                                        GradientDrawable.Orientation.BOTTOM_TOP,
+                                        new int[]{darkMutedColor, darkMutedColor, Color.TRANSPARENT, Color.TRANSPARENT}
+                                );
+                            } else {
+                                foregroundGradientDrawable = new GradientDrawable(
+                                        GradientDrawable.Orientation.BOTTOM_TOP,
+                                        new int[]{lightMutedColor, lightMutedColor, lightMutedColor, Color.TRANSPARENT}
+                                );
+                            }
+
+                            holder.movieInfo.setBackground(foregroundGradientDrawable);
+                        }
+
+                        @Override
+                        public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                            holder.showImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
+                        }
+
+                        @Override
+                        public void onPrepareLoad(Drawable placeHolderDrawable) {
+                            holder.showImage.setImageDrawable(placeHolderDrawable);
+                        }
+                    };
+                    Picasso.get().load( imageUrl ).into( holder.target );
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
 
             // Check if the object has "title" if not,
@@ -187,12 +239,15 @@ public class TrendingPagerAdapter extends RecyclerView.Adapter<TrendingPagerAdap
         final TextView showTitle;
         final ImageView showImage;
         final TextView showDate;
+        RelativeLayout movieInfo;
+        Target target;
 
         ShowItemViewHolder(View itemView) {
             super(itemView);
             showView = itemView.findViewById(R.id.cardView2);
             showTitle = itemView.findViewById(R.id.movieTitle);
             showImage = itemView.findViewById(R.id.movieImage);
+            movieInfo = itemView.findViewById(R.id.movieInfo);
 
             // Only used if presented in a list.
             showDate = itemView.findViewById(R.id.date);
