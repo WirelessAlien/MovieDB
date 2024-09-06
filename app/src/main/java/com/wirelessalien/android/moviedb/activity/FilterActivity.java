@@ -27,8 +27,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +34,6 @@ import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -45,8 +42,8 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
-import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
@@ -54,8 +51,6 @@ import androidx.core.content.res.ResourcesCompat;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.wirelessalien.android.moviedb.R;
 
 import org.json.JSONArray;
@@ -70,7 +65,6 @@ import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
@@ -178,6 +172,15 @@ public class FilterActivity extends AppCompatActivity {
             android.os.Process.killProcess(android.os.Process.myPid());
         });
         Intent intent = getIntent();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                saveFilterPreferences();
+                setResult(RESULT_OK);
+                finish();
+            }
+        });
 
         // Show different types of sorting depending on the activity that the user came from.
         if (intent.getBooleanExtra("categories", false)) {
@@ -335,13 +338,6 @@ public class FilterActivity extends AppCompatActivity {
         return super.onOptionsItemSelected( item );
     }
 
-    @Override
-    public void onBackPressed() {
-        saveFilterPreferences();
-        setResult(RESULT_OK);
-        this.finish();
-    }
-
     /**
      * Replace all current filter preferences with the new ones (which can be equal to the old value).
      */
@@ -474,8 +470,7 @@ public class FilterActivity extends AppCompatActivity {
      */
     @SuppressLint("SetTextI18n")
     private void retrieveFilterPreferences() {
-        SharedPreferences sharedPreferences
-                = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
 
         withGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITH_GENRES, null), ", ");
         withoutGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITHOUT_GENRES, null), ", ");
@@ -483,17 +478,17 @@ public class FilterActivity extends AppCompatActivity {
         // Select the criterion to sort by.
         String sortTag = sharedPreferences.getString(FILTER_SORT, null);
         if (sortTag != null) {
-            selectRadioButtonByTag(sortTag, findViewById(R.id.sortSelection) );
+            selectRadioButtonByTag(sortTag, findViewById(R.id.sortSelection));
         } else {
             // Select the default button.
-            selectRadioButtonByTag("most_popular", findViewById(R.id.sortSelection) );
+            selectRadioButtonByTag("most_popular", findViewById(R.id.sortSelection));
         }
 
         // Select the categories to filter (if any) the local database on.
         String categoriesTags = sharedPreferences.getString(FILTER_CATEGORIES, null);
         if (categoriesTags != null && !categoriesTags.equals("[]")) {
             ArrayList<String> categoryTagArray = convertStringToArrayList(categoriesTags, ", ");
-            selectCheckBoxByTag(categoryTagArray, findViewById(R.id.categoryCheckBoxesLayout) );
+            selectCheckBoxByTag(categoryTagArray, findViewById(R.id.categoryCheckBoxesLayout));
         }
 
         String showMovieTag = sharedPreferences.getString(FILTER_SHOW_MOVIE, "");
@@ -507,15 +502,14 @@ public class FilterActivity extends AppCompatActivity {
         }
         selectCheckBoxByTag(showMovieTagList, findViewById(R.id.mediaCheckBoxesLayout));
 
-
         // Select the dates that the shows were filtered on last time (if any).
         String dateTag = sharedPreferences.getString(FILTER_DATES, null);
         if (dateTag != null) {
             CheckBox checkBox;
             if (dateTag.equals("in_theater")) {
-                checkBox = findViewById( R.id.theaterCheckBox );
+                checkBox = findViewById(R.id.theaterCheckBox);
             } else {
-                checkBox = findViewById( R.id.twoDatesCheckBox );
+                checkBox = findViewById(R.id.twoDatesCheckBox);
             }
             checkBox.setChecked(true);
         }
@@ -546,8 +540,10 @@ public class FilterActivity extends AppCompatActivity {
                 int id = withGenres.get(i);
 
                 Chip genreChip = findViewById(id);
-                Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_check, null);
-                genreChip.setChipIcon(drawable);
+                if (genreChip != null) {
+                    Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_check, null);
+                    genreChip.setChipIcon(drawable);
+                }
             }
         }
 
@@ -557,8 +553,10 @@ public class FilterActivity extends AppCompatActivity {
                 int id = withoutGenres.get(i);
 
                 Chip genreChip = findViewById(id);
-                Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_close, null);
-                genreChip.setChipIcon(drawable);
+                if (genreChip != null) {
+                    Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_close, null);
+                    genreChip.setChipIcon(drawable);
+                }
             }
         }
 
