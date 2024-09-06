@@ -20,14 +20,13 @@
 
 package com.wirelessalien.android.moviedb.activity;
 
-import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.PopupWindow;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.flexbox.AlignContent;
 import com.google.android.flexbox.AlignItems;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexWrap;
@@ -53,7 +52,7 @@ public class MovieImageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView( R.layout.activity_movie_image);
+        setContentView(R.layout.activity_movie_image);
 
         movieId = getIntent().getIntExtra("movieId", 0);
         type = getIntent().getBooleanExtra("isMovie", true) ? "movie" : "tv";
@@ -64,21 +63,24 @@ public class MovieImageActivity extends AppCompatActivity {
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(this);
         layoutManager.setFlexWrap(FlexWrap.WRAP);
         layoutManager.setFlexDirection(FlexDirection.ROW);
-        layoutManager.setAlignItems( AlignItems.STRETCH);
-        layoutManager.setJustifyContent( JustifyContent.SPACE_EVENLY );
+        layoutManager.setAlignItems(AlignItems.STRETCH);
+        layoutManager.setJustifyContent(JustifyContent.SPACE_EVENLY);
         recyclerView.setLayoutManager(layoutManager);
-        RecyclerView.Adapter<MovieImageAdapter.ViewHolder> adapter = new MovieImageAdapter( this, movieImages);
+        RecyclerView.Adapter<MovieImageAdapter.ViewHolder> adapter = new MovieImageAdapter(this, movieImages);
         recyclerView.setAdapter(adapter);
 
         new GetMovieImageThread(movieId, type, this, recyclerView).start();
-    }
 
-    @Override
-    public void onBackPressed() {
-        if (popupWindow != null && popupWindow.isShowing()) {
-            popupWindow.dismiss();
-        } else {
-            super.onBackPressed();
-        }
+        // Handle back button press
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (popupWindow != null && popupWindow.isShowing()) {
+                    popupWindow.dismiss();
+                } else {
+                    finish();
+                }
+            }
+        });
     }
 }

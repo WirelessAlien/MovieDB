@@ -22,20 +22,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.wirelessalien.android.moviedb.activity.MainActivity">
-
     <item
-        android:id="@+id/action_people"
-        android:title="@string/person_tab_title"
+        android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:icon="@drawable/ic_settings"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_people_group"
-        app:showAsAction="always" />
+        app:showAsAction="always"/>
     <item
         android:id="@+id/action_login"
         android:icon="@drawable/ic_account_border"
         android:title="@string/login"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
+
 </menu>

@@ -64,6 +64,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 /**
  * This class displays information about person objects.
  */
@@ -512,82 +516,55 @@ public class CastActivity extends BaseActivity {
     private class ActorDetailsThread extends Thread {
 
         private final String API_KEY = ConfigHelper.getConfigValue(getApplicationContext(), "api_key");
-        private boolean missingOverview;
-        private final Handler handler = new Handler( Looper.getMainLooper());
-
-        private final String param;
+        private final Handler handler = new Handler(Looper.getMainLooper());
 
         // Constructor accepting a parameter
         public ActorDetailsThread(String param) {
-            this.param = param;
         }
         public ActorDetailsThread() {
-            this.param = null;
         }
+
         @Override
         public void run() {
-            String response = doInBackground();
-            handler.post(() -> onPostExecute(response));
-        }
+            OkHttpClient client = new OkHttpClient();
 
-        private String doInBackground() {
-            String line;
-            StringBuilder stringBuilder = new StringBuilder();
+            String baseUrl = "https://api.themoviedb.org/3/person/" + actorId + "?api_key=" + API_KEY;
+            String urlWithLanguage = baseUrl + getLanguageParameter(getApplicationContext());
 
-            // Load the webpage with the person's details.
             try {
-                URL url;
-                if (missingOverview) {
-                    url = new URL("https://api.themoviedb.org/3/person/" +
-                            actorId + "?api_key=" + API_KEY);
-                } else {
-                    url = new URL("https://api.themoviedb.org/3/person/" +
-                            actorId + "?api_key=" + API_KEY + getLanguageParameter(getApplicationContext()));
+                // First request with language parameter
+                JSONObject actorData = fetchActorDetails(client, urlWithLanguage);
+
+                // Check if biography is empty
+                if (actorData.getString("biography").isEmpty()) {
+                    // Second request without language parameter
+                    actorData = fetchActorDetails(client, baseUrl);
                 }
-                URLConnection urlConnection = url.openConnection();
 
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(
-                            new InputStreamReader(
-                                    urlConnection.getInputStream()));
-
-                    // Create one long string of the webpage.
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close();
-                    return stringBuilder.toString();
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
-                }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+                JSONObject finalActorData = actorData;
+                handler.post(() -> onPostExecute(finalActorData));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            // Loading the dataset failed, return null.
-            return null;
         }
 
-        private void onPostExecute(String response) {
-            if (response != null && !response.isEmpty()) {
-                // Send all the actor data to setActorData.
-                try {
-                    actorData = new JSONObject(response);
-                    if (missingOverview && actorData.has("biography") && !actorData.getString("biography").equals("")) {
-                        binding.actorBiography.setText(actorData.getString("biography"));
-                    } else if (missingOverview && (actorData.optString("biography") == null
-                            || (actorData.has("biography") && actorData.get("biography").equals("")))) {
-                        binding.actorBiography.setText(getString(R.string.no_biography)
-                                + actorData.getString("name") + ".");
-                    } else {
-                        setActorData(actorData);
-                    }
-                    mActorDetailsLoaded = true;
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+        private JSONObject fetchActorDetails(OkHttpClient client, String url) throws IOException, JSONException {
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+                String responseBody = response.body().string();
+                return new JSONObject(responseBody);
+            }
+        }
+
+        private void onPostExecute(JSONObject actorData) {
+            if (actorData != null) {
+                setActorData(actorData);
             }
         }
     }

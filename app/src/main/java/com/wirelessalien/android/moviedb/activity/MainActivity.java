@@ -42,6 +42,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -53,7 +54,6 @@ import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
-import androidx.viewpager2.widget.ViewPager2;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
@@ -63,7 +63,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.ReleaseReminderService;
-import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
 import com.wirelessalien.android.moviedb.data.ListData;
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment;
 import com.wirelessalien.android.moviedb.fragment.BaseFragment;
@@ -128,43 +127,38 @@ public class MainActivity extends BaseActivity {
 
         context = this;
 
-        new Thread(() -> {
-            String fileName = "Crash_Log.txt";
-            File crashLogFile = new File(getFilesDir(), fileName);
-            if (crashLogFile.exists()) {
-                StringBuilder crashLog = new StringBuilder();
-                try {
-                    BufferedReader reader = new BufferedReader(new FileReader(crashLogFile));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        crashLog.append(line);
-                        crashLog.append('\n');
-                    }
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        String fileName = "Crash_Log.txt";
+        File crashLogFile = new File(getFilesDir(), fileName);
+        if (crashLogFile.exists()) {
+            StringBuilder crashLog = new StringBuilder();
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(crashLogFile));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    crashLog.append(line);
+                    crashLog.append('\n');
                 }
-
-                runOnUiThread(() -> {
-                    new MaterialAlertDialogBuilder(this)
-                            .setTitle("Crash Log")
-                            .setMessage(crashLog.toString())
-                            .setPositiveButton("Copy", (dialog, which) -> {
-                                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                                ClipData clip = ClipData.newPlainText("Movie DB Crash Log", crashLog.toString());
-                                clipboard.setPrimaryClip(clip);
-                                Toast.makeText(MainActivity.this, R.string.crash_log_copied, Toast.LENGTH_SHORT).show();
-                            })
-                            .setNegativeButton("Close", null)
-                            .show();
-
-                    crashLogFile.delete();
-                });
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            // Set the default preference values.
-            PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        }).start();
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Crash Log")
+                    .setMessage(crashLog.toString())
+                    .setPositiveButton("Copy", (dialog, which) -> {
+                        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        ClipData clip = ClipData.newPlainText("Movie DB Crash Log", crashLog.toString());
+                        clipboard.setPrimaryClip(clip);
+                        Toast.makeText(MainActivity.this, R.string.crash_log_copied, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Close", null)
+                    .show();
+            crashLogFile.delete();
+        }
+
+        // Set the default preference values.
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -229,6 +223,16 @@ public class MainActivity extends BaseActivity {
             fab.setLayoutParams(params);
         });
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (isSearchOpened) {
+                    handleMenuSearch();
+                } else {
+                    finish();
+                }
+            }
+        });
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.POST_NOTIFICATIONS)) {
@@ -381,20 +385,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-
-    @Override
-    public void onBackPressed() {
-        // When search is opened and the user presses back,
-        // execute a custom action (removing search query or stop searching)
-        if (isSearchOpened) {
-            handleMenuSearch();
-            return;
-        }
-
-        super.onBackPressed();
-        Log.d("MainActivity", "onBackPressed: Super");
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -436,11 +426,6 @@ public class MainActivity extends BaseActivity {
             loginFragment.show(getSupportFragmentManager(), "login");
         }
 
-        if (id == R.id.action_people) {
-            Intent intent = new Intent(getApplicationContext(), PersonActivity.class);
-            startActivity(intent);
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -453,10 +438,6 @@ public class MainActivity extends BaseActivity {
             mCurrentFragment.onActivityResult(requestCode, resultCode, data);
         } else {
             super.onActivityResult(requestCode, resultCode, data);
-        }
-
-        if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_SETTINGS_PAGER_CHANGED) {
-            // Handle settings change if needed
         }
 
         super.onActivityResult(requestCode, resultCode, data);

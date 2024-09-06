@@ -58,6 +58,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
@@ -777,6 +778,24 @@ public class DetailActivity extends BaseActivity {
                 startActivity(browserIntent);
             }
         });
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                LinearLayout editShowDetails = binding.editShowDetails;
+
+                if (editShowDetails.getVisibility() != View.GONE) {
+                    // Clear the focus (in case it has the focus)
+                    // so the content will be saved when the user leaves.
+                    binding.categories.clearFocus();
+                    binding.timesWatched.clearFocus();
+                    binding.showRating.clearFocus();
+                }
+
+                setResult(RESULT_CANCELED);
+                finish();
+            }
+        });
     }
 
     @Override
@@ -882,24 +901,6 @@ public class DetailActivity extends BaseActivity {
 
         // Update the ListFragment to include the newly added show.
         ListFragment.databaseUpdate();
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        LinearLayout editShowDetails = binding.editShowDetails;
-
-        if (editShowDetails.getVisibility() != View.GONE) {
-            // Clear the focus (in case it has the focus)
-            // so the content will be saved when the user leaves.
-
-            binding.categories.clearFocus();
-            binding.timesWatched.clearFocus();
-            binding.showRating.clearFocus();
-        }
-
-        setResult( RESULT_CANCELED );
-        finish();
     }
 
     /**

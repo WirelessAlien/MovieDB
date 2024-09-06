@@ -26,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -60,17 +61,17 @@ public class PersonActivity extends BaseActivity {
             transaction.add(R.id.fragment_container, personFragment, "PersonFragment");
             transaction.commit();
         }
-    }
 
-    @Override
-    public void onBackPressed() {
-        // When search is opened and the user presses back,
-        // execute a custom action (removing search query or stop searching)
-        if (isSearchOpened) {
-            handleMenuSearch();
-            return;
-        }
-        super.onBackPressed();
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (isSearchOpened) {
+                    handleMenuSearch();
+                } else {
+                    finish();
+                }
+            }
+        });
     }
 
     @Override

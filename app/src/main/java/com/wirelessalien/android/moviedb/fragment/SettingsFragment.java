@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.fragment;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.preference.Preference;
@@ -40,6 +41,7 @@ public class SettingsFragment extends PreferenceFragmentCompat
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         // Load the preferences from an XML resource
         setPreferencesFromResource(R.xml.preferences, rootKey);
+
 
         // Find the preference and set an OnPreferenceClickListener
         NumberPickerPreference numberPickerPreference = findPreference("key_grid_size_number");
@@ -63,6 +65,12 @@ public class SettingsFragment extends PreferenceFragmentCompat
                 return true;
             });
         }
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        view.setFitsSystemWindows(true);
     }
 
     @Override
