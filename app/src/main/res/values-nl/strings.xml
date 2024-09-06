@@ -20,21 +20,14 @@
 
 <resources>
     <!-- BaseActivity -->
-    <string name="no_permission_dialog_message">Je moet schrijftoegang naar de externe opslag toestaan</string>
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Annuleren</string>
-    <string name="action_filter">Filter</string>
 
     <!-- MainActivity -->
-    <string name="watched_upgrade_dialog_title">Herkeken veld verandering</string>
-    <string name="watched_upgrade_dialog_message">Het \'herkeken\' veld voor opgeslagen shows is veranderd naar \'gekeken.\' Dat betekent dat bij alle shows (die gezien zijn) de gekeken waarde met één omhoog moet om de originele betekenis te behouden. Wil je de waarde automatisch met één verhogen?\n\nOpmerking: als een show niet als \'gezien\' ingedeeld is en een herkeken waarde van nul heeft, dan zal het niet van waarde veranderen.</string>
-    <string name="watched_upgrade_dialog_positive">Ja</string>
-    <string name="watched_upgrade_dialog_negative">Nee</string>
 
     <!-- CastActivity (quotes zijn er om de spaties af te dwingen) -->
     <string name="place_of_birth">"Geboorteplaats: "</string>
     <string name="birthday">"Geboortedatum: "</string>
-    <string name="no_biography">"We hebben geen biografie voor "</string>
     <string name="cast_movie_title">Onderdeel van de cast in</string>
     <string name="crew_movie_title">Onderdeel van de crew in</string>
 
@@ -91,16 +84,10 @@
     <string name="movie_tab_title">FILMS</string>
     <string name="series_tab_title">SERIES</string>
     <string name="saved_tab_title">OPGESLAGEN</string>
-    <string name="person_tab_title">MENSEN</string>
 
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Opgeslagen als: "</string>
-    <string name="write_to_external_storage_failed">Het is niet mogelijk om naar de externe opslag te schrijven.</string>
     <string name="choose_export_file">Kies het bestandsformaat om in te exporteren:</string>
-    <string-array name="export_import_formats">
-        <item>Databank</item>
-        <item>JSON</item>
-    </string-array>
     <string name="choose_file">Kies het te importeren bestand:</string>
     <string name="import_cancel">Annuleren</string>
     <string name="file_not_found_exception">Het bestand kan niet gevonden worden!</string>
@@ -113,7 +100,6 @@
     <string name="action_import">Importeren</string>
 
     <!-- options_menu -->
-    <string name="action_search">Search</string>
 
     <!-- save_menu -->
     <string name="action_save">Opslaan</string>
@@ -137,10 +123,8 @@
     <string name="title_hide_movies_tab">Verberg het \'Films\' tabblad</string>
     <string name="title_hide_series_tab">Verberg het \'Series\' tabblad</string>
     <string name="title_hide_saved_tab">Verberg het \'Opgeslagen\' tabblad</string>
-    <string name="title_hide_person_tab">Verberg het \'Mensen\' tabblad</string>
     <string name="title_api_language">API Taal</string>
     <string name="summary_api_language">Stel de taal van de API gegevens in (standaard taal wordt gebruikt indien leeg).</string>
-    <string name="title_source_code">Broncode</string>
     <string name="text_tmdb_credits">Dit product gebruikt de TMDb API maar is niet goedgekeurd of gecertificeerd bij TMDb.</string>
 
     <string name="action_settings">Instellingen</string>
@@ -148,7 +132,6 @@
 
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Er is geen internetverbinding</string>
-    <string name="tmdb_server_unreachable">De TMDb services zijn niet bereikbaar</string>
 
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Opent of sluit geavanceerd</string>

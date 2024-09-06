@@ -23,21 +23,14 @@
 <resources>
 
     <!-- MainActivity -->
-    <string name="watched_upgrade_dialog_title">Modification du champ revue</string>
-    <string name="watched_upgrade_dialog_message">Le champ « revue » des œuvres sauvegardées est devenu « vue ». Cela signifie qu\'il faut incrémenter la valeur de « vue » par un pour qu\'il garde son sens de départ pour toutes les œuvres (vues). Voulez-vous les augmenter automatiquement de un ?\n\nRemarque : si une œuvre n\'a pas été notée comme « vue » et que sa valeur de « revue » est zéro, elle ne sera pas modifiée.</string>
-    <string name="watched_upgrade_dialog_positive">Oui</string>
-    <string name="watched_upgrade_dialog_negative">Non</string>
 
     <!-- BaseActivity -->
-    <string name="no_permission_dialog_message">Vous devez permettre l\'écriture sur le support externe</string>
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Annuler</string>
-    <string name="action_filter">Filtrer</string>
 
     <!-- CastActivity (quotes are to enforce spaces) -->
     <string name="place_of_birth">"Lieu de naissance : "</string>
     <string name="birthday">"Date de naissance : "</string>
-    <string name="no_biography">"Nous n\'avons pas la biographie de "</string>
     <string name="cast_movie_title">A joué dans</string>
     <string name="crew_movie_title">Membre des équipes de</string>
 
@@ -89,16 +82,10 @@
     <string name="movie_tab_title">FILMS</string>
     <string name="series_tab_title">SÉRIES</string>
     <string name="saved_tab_title">ENREGISTRÉES</string>
-    <string name="person_tab_title">PERSONNES</string>
 
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
-    <string name="write_to_external_storage_failed">Impossible d\'écrire sur le support externe.</string>
     <string name="choose_export_file">Choisissez un format de fichier d\'export</string>
-    <string-array name="export_import_formats">
-        <item index="0">Base de données</item>
-        <item index="1">JSON</item>
-    </string-array>
     <string name="choose_file">Choisissez le fichier à importer :</string>
     <string name="import_cancel">Annuler</string>
     <string name="file_not_found_exception">Le fichier est introuvable !</string>
@@ -111,7 +98,6 @@
     <string name="action_import">Importer</string>
 
     <!-- options_menu -->
-    <string name="action_search">Rechercher</string>
 
     <!-- save_menu -->
     <string name="action_save">Sauvegarder</string>
@@ -135,15 +121,12 @@
     <string name="title_hide_movies_tab">Cacher l\'onglet « Films »</string>
     <string name="title_hide_series_tab">Cacher l\'onglet « Séries »</string>
     <string name="title_hide_saved_tab">Cacher l\'onglet « Enregistrées »</string>
-    <string name="title_hide_person_tab">Cacher l\'onglet « Personnes »</string>
     <string name="title_api_language">API Language</string>
     <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
-    <string name="title_source_code">Code source</string>
     <string name="text_tmdb_credits">Ce produit utilise l\'API TMDb mais n\'est pas reconnu ni certifié par TMDb.</string>
 
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Pas de connexion internet</string>
-    <string name="tmdb_server_unreachable">Could not connect with TMDb services</string>
 
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Collapses or expands the view</string>

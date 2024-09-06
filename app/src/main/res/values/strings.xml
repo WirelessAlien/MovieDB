@@ -23,21 +23,14 @@
     <string name="app_name" translatable="false">Movie DB</string>
 
     <!-- MainActivity -->
-    <string name="watched_upgrade_dialog_title">Rewatched field change</string>
-    <string name="watched_upgrade_dialog_message">The \'rewatched\' field for saved shows has changed to \'watched.\' That means that all (watched) shows need their watched value increased by one to retain the original meaning. Do you want to automatically increase the value by one?\n\nNote: if the show is not marked as \'watched\' and has a rewatch value of zero, it\'ll not be changed.</string>
-    <string name="watched_upgrade_dialog_positive">Yes</string>
-    <string name="watched_upgrade_dialog_negative">No</string>
 
     <!-- BaseActivity -->
-    <string name="no_permission_dialog_message">You need to allow write access to the external storage</string>
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Cancel</string>
-    <string name="action_filter">Filter</string>
 
     <!-- CastActivity (quotes are to enforce the spaces) -->
     <string name="place_of_birth">"Place of Birth: "</string>
     <string name="birthday">"Birthday: "</string>
-    <string name="no_biography">"We don't have a biography for "</string>
     <string name="cast_movie_title">Part of the cast in</string>
     <string name="crew_movie_title">Part of the crew in</string>
 
@@ -52,7 +45,6 @@
     <string name="times_watched">"Times watched: "</string>
     <string name="times_watched_default" translatable="false">1</string>
     <string name="episodes_seen">"Episodes seen: "</string>
-    <string name="episodes_seen_default" translatable="false">0</string>
     <string name="rating">"Rating: "</string>
     <string name="show_rating_default" translatable="false">0</string>
     <string name="change_start_date_2">"Start date: "</string>
@@ -98,16 +90,10 @@
     <string name="movie_tab_title">MOVIES</string>
     <string name="series_tab_title">SERIES</string>
     <string name="saved_tab_title">SAVED</string>
-    <string name="person_tab_title">People</string>
 
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Saved as: "</string>
-    <string name="write_to_external_storage_failed">It\'s not possible to write to the external storage.</string>
     <string name="choose_export_file">Choose export file format:</string>
-    <string-array name="export_import_formats">
-        <item>Database</item>
-        <item>JSON</item>
-    </string-array>
     <string name="choose_file">Choose which file to import:</string>
     <string name="import_cancel">Cancel</string>
     <string name="file_not_found_exception">The file cannot be found!</string>
@@ -120,7 +106,6 @@
     <string name="action_import">Import</string>
 
     <!-- options_menu -->
-    <string name="action_search">Search</string>
 
     <!-- save_menu -->
     <string name="action_save">Save</string>
@@ -144,17 +129,14 @@
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
     <string name="title_hide_series_tab">Hide the \'Series\' tab</string>
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
-    <string name="title_hide_person_tab">Hide the \'People\' tab</string>
     <string name="title_api_language">API Language</string>
     <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
-    <string name="title_source_code">Source Code</string>
     <string name="text_tmdb_credits">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
 
     <string name="action_settings">Settings</string>
 
     <!-- (General) Toasts -->
     <string name="no_internet_connection">There is no Internet connection</string>
-    <string name="tmdb_server_unreachable">Could not connect with TMDb services</string>
 
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Collapses or expands the view</string>
@@ -167,7 +149,6 @@
     <string name="lists">Lists</string>
     <string name="episodes">Episodes:</string>
     <string name="delete">Delete</string>
-    <string name="submit">Submit</string>
     <string name="cancel">Cancel</string>
     <string name="description">Description</string>
     <string name="list_name">List Name</string>
@@ -177,7 +158,6 @@
     <string name="enter_list_name">Enter List Name</string>
     <string name="select_directory">Select Directory</string>
     <string name="export">Export</string>
-    <string name="external_link">External Link</string>
     <string name="login_successful">Login successful</string>
     <string name="experimental">Experimental</string>
     <string name="dynamic_color_preference_summary">The color of the details page will shown dynamically based on the color of the movie or cast image</string>
@@ -197,7 +177,6 @@
     <string name="logout">Logout</string>
     <string name="user_name">User Name</string>
     <string name="private_list">Private</string>
-    <string name="play_trailer">Play Trailer</string>
     <string name="watchlist">WatchList</string>
     <string name="add_to_list">List</string>
     <string name="favourite">Favourite</string>
@@ -212,8 +191,6 @@
     <string name="get_notified_for_episode">You will get notified when episodes of %1$s release</string>
     <string name="error_reminder_episode">Error saving reminder for %1$s</string>
     <string name="removed_from_reminder">%1$s is removed from reminder</string>
-    <string name="episodes_count">Episodes: %1$d</string>
-    <string name="air_date">Air Date: %1$s</string>
     <string name="crash_log_copied">Crash log copied to clipboard</string>
     <string name="permission_required">Permission required</string>
     <string name="permission_required_description">This permission is needed to show notifications, Don\'t worry we won\'t send you spam notifications.</string>
@@ -222,11 +199,8 @@
     <string name="notification_for_movie_released">Get notified when a movie is released.</string>
     <string name="aired_episodes">Aired Episodes</string>
     <string name="notification_for_episode_air">Get notified when an episode is aired.</string>
-    <string name="not_set_btn">Not set</string>
     <string name="not_rated">Not Rated</string>
-    <string name="imdb_not_available">IMDB (not available)</string>
     <string name="unknown">Unknown</string>
-    <string name="_00h_00m">00h 00m</string>
     <string name="no_description">No description</string>
     <string name="logged_out_successfully">Logged out successfully</string>
     <string name="rating_delete_success">Rating deleted successfully</string>
@@ -257,8 +231,6 @@
     <string name="load_hd_image_summary">The movie posters, episode images, cast images will be loaded with 780+ resolution.</string>
     <string name="runtime_minutes">%1$d minutes</string>
     <string name="average_rating" translatable="false">%1$.1f/%2$s</string>
-    <string name="other_filters_don_t_work_with_this_option">Other filters don\'t work with this option</string>
-    <string name="account">Account</string>
     <string name="rated">Rated</string>
     <string name="movie">Movie</string>
     <string name="tv_show">TV Show</string>
@@ -275,7 +247,6 @@
     <string name="export_info">The application allows for the exportation of files in either \"db\" or \"json\" formats. Please note, however, that only the \"db\" format is supported for subsequent import operations.</string>
     <string name="directory_path">Path: %1$s</string>
     <string name="no_browser_available">No application can handle this request. Please install a web browser.</string>
-    <string name="category_prompt">Select a Category</string>
     <string name="rate_movie">Rate</string>
     <string name="edit">Edit</string>
     <string name="done">Done</string>
@@ -287,14 +258,11 @@
     <string name="account_data_tab_title">ACCOUNT</string>
     <string name="hide_the_account_tab">Hide the \'Account\' tab</string>
     <string name="loading_in_progress">Please wait, loading in progress…</string>
-    <string name="overview_of_the_episode">Overview of the episode</string>
     <string name="save_to_database">Save to database</string>
-    <string name="budget">Budget</string>
     <string name="save">Save</string>
     <string name="choose_date">Choose Date</string>
     <string name="error_adding_episode_to_database">Error adding episode to database</string>
     <string name="login_is_required_to_use_tmdb_based_sync">Login is required to use TMDB based sync.</string>
-    <string name="most_recent">Most Recent</string>
     <string name="overview_not_available">Overview is not added to the episode, will be added when available.</string>
     <string name="search_engine">Search Engine</string>
     <string name="search_engine_key_summary">Search Engine to use for searching movies from the app (default is Google)</string>

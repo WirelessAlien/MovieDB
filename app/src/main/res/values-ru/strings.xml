@@ -20,21 +20,14 @@
 
 <resources>
     <!-- BaseActivity -->
-    <string name="no_permission_dialog_message">Необходимо разрешить запись на внешнее хранилище.</string>
     <string name="no_permission_dialog_ok">Хорошо</string>
     <string name="no_permission_dialog_cancel">Отмена</string>
-    <string name="action_filter">Фильтровать</string>
 
     <!-- MainActivity -->
-    <string name="watched_upgrade_dialog_title">Изменение перепросмотров</string>
-    <string name="watched_upgrade_dialog_message">Все \'перепросмотренные\' позиции теперь обозначаются как \'просмотренные.\' Сделовательно, все просмотры фильма или серии необходимо увеличить на единицу, чтобы сохранить прежний смысл. Хотите ли Вы автоматически сделать это?\n\nПримечание: если фильм не был добавлен в \'просмотренные\' и не был перепросмотрен, то изменений не произойдет.</string>
-    <string name="watched_upgrade_dialog_positive">Да</string>
-    <string name="watched_upgrade_dialog_negative">Нет</string>
 
     <!-- CastActivity (quotes are to enforce the spaces) -->
     <string name="place_of_birth">"Место рождения: "</string>
     <string name="birthday">"Дата рождения: "</string>
-    <string name="no_biography">"Биография отсутствует: "</string>
     <string name="cast_movie_title">Играл в</string>
     <string name="crew_movie_title">Участвовал в создании</string>
 
@@ -92,16 +85,10 @@
     <string name="movie_tab_title">ФИЛЬМЫ</string>
     <string name="series_tab_title">СЕРИАЛЫ</string>
     <string name="saved_tab_title">СПИСКИ</string>
-    <string name="person_tab_title">ЗВЕЗДЫ</string>
 
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Сохранен как: "</string>
-    <string name="write_to_external_storage_failed">Запись на внешний накопитель невозможна.</string>
     <string name="choose_export_file">Выберите формат экспорта:</string>
-    <string-array name="export_import_formats">
-        <item>Database</item>
-        <item>JSON</item>
-    </string-array>
     <string name="choose_file">Выберите файл для импорта:</string>
     <string name="import_cancel">Отмена</string>
     <string name="file_not_found_exception">Файл не найден!</string>
@@ -114,7 +101,6 @@
     <string name="action_import">Импорт</string>
 
     <!-- options_menu -->
-    <string name="action_search">Поиск</string>
 
     <!-- save_menu -->
     <string name="action_save">Сохранить</string>
@@ -138,17 +124,14 @@
     <string name="title_hide_movies_tab">Скрыть вкладку \'Фильмы\'</string>
     <string name="title_hide_series_tab">Скрыть вкладку \'Сериалы\'</string>
     <string name="title_hide_saved_tab">Скрыть вкладку \'Списки\'</string>
-    <string name="title_hide_person_tab">Скрыть вкладку \'Звезды\'</string>
     <string name="title_api_language">Язык API</string>
     <string name="summary_api_language">Выберите язык для полученных через API данных (по-умолчанию используется системная локаль).</string>
-    <string name="title_source_code">Исходный код</string>
     <string name="text_tmdb_credits">Данный продукт использует TMDb API, но не одобрен или не сертифицирован TMDb.</string>
 
     <string name="action_settings">Настройки</string>
 
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Интернет-соединение отстутствует</string>
-    <string name="tmdb_server_unreachable">Невозможно подключиться к сервисам TMDb</string>
 
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Свернуть или развернуть</string>

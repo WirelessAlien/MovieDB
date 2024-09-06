@@ -23,6 +23,4 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
     <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="appbar_padding_top">8dp</dimen>
-    <dimen name="viewpager_padding">30dp</dimen>
 </resources>

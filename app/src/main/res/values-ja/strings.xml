@@ -21,21 +21,14 @@
 
 <resources>
     <!-- BaseAcitivty -->
-    <string name="no_permission_dialog_message">You need to allow write access to the external storage</string>
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">キャンセル</string>
-    <string name="action_filter">Filter</string>
 
     <!-- MainActivity -->
-    <string name="watched_upgrade_dialog_title">Rewatched field change</string>
-    <string name="watched_upgrade_dialog_message">The \'rewatched\' field for saved shows has changed to \'watched.\' That means that all (watched) shows need their watched value increased by one to retain the original meaning. Do you want to automatically increase the value by one?\n\nNote: if the show is not marked as \'watched\' and has a rewatch value of zero, it\'ll not be changed.</string>
-    <string name="watched_upgrade_dialog_positive">Yes</string>
-    <string name="watched_upgrade_dialog_negative">No</string>
 
     <!-- CastActivity (quotes are to enforce the spaces) -->
     <string name="place_of_birth">"誕生地: "</string>
     <string name="birthday">"誕生日: "</string>
-    <string name="no_biography">"バイオグラフィーがありません "</string>
     <string name="cast_movie_title">Part of the cast in</string>
     <string name="crew_movie_title">Part of the crew in</string>
 
@@ -93,16 +86,10 @@
     <string name="movie_tab_title">MOVIES</string>
     <string name="series_tab_title">SERIES</string>
     <string name="saved_tab_title">SAVED</string>
-    <string name="person_tab_title">PEOPLE</string>
 
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Saved as: "</string>
-    <string name="write_to_external_storage_failed">It\'s not possible to write to the external storage.</string>
     <string name="choose_export_file">Choose export file format:</string>
-    <string-array name="export_import_formats">
-        <item>Database</item>
-        <item>JSON</item>
-    </string-array>
     <string name="choose_file">Choose which file to import:</string>
     <string name="import_cancel">Cancel</string>
     <string name="file_not_found_exception">The file cannot be found!</string>
@@ -115,7 +102,6 @@
     <string name="action_import">Import</string>
 
     <!-- options_menu -->
-    <string name="action_search">Search</string>
 
     <!-- save_menu -->
     <string name="action_save">Save</string>
@@ -139,17 +125,14 @@
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
     <string name="title_hide_series_tab">Hide the \'Series\' tab</string>
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
-    <string name="title_hide_person_tab">Hide the \'People\' tab</string>
     <string name="title_api_language">API Language</string>
     <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
-    <string name="title_source_code">ソースコード</string>
     <string name="text_tmdb_credits">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
 
     <string name="action_settings">設定</string>
 
     <!-- (General) Toasts -->
     <string name="no_internet_connection">There is no Internet connection</string>
-    <string name="tmdb_server_unreachable">Could not connect with TMDb services</string>
 
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Collapses or expands the view</string>
