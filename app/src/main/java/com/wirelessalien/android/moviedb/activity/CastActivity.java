@@ -29,6 +29,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.icu.text.DateFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -62,7 +63,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -101,6 +107,8 @@ public class CastActivity extends BaseActivity {
     private boolean mActorDetailsLoaded = false;
     private int darkMutedColor;
     private int lightMutedColor;
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -377,9 +385,28 @@ public class CastActivity extends BaseActivity {
             }
 
             // If the birthday is different in the new dataset, change it.
+            DateFormat localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
             if (actorObject.has("birthday") && !actorObject.getString("birthday").equals(binding.actorBirthday
                     .getText().toString())) {
-                binding.actorBirthday.setText(getString(R.string.birthday) + actorObject.getString("birthday"));
+                Date birthday = sdf.parse(actorObject.getString("birthday"));
+                String birthdayString = localFormat.format(birthday);
+                if (actorObject.isNull("deathday")) {
+                    Date currentDate = new Date();
+                    long currentAge = Math.floorDiv(TimeUnit.DAYS.convert(Math.abs(currentDate.getTime() - birthday.getTime()), TimeUnit.MILLISECONDS), 365);
+                    binding.actorBirthday.setText(getString(R.string.birthday) + birthdayString + " (" + currentAge + " " + getString(R.string.years) + ")");
+                } else {
+                    binding.actorBirthday.setText(getString(R.string.birthday) + birthdayString);
+                }
+            }
+
+            // If the deathday is different in the new dataset, change it.
+            if (actorObject.has("deathday") && !actorObject.getString("deathday").equals(binding.actorDeathday
+                    .getText().toString()) && !(actorObject.isNull("deathday"))) {
+                Date birthday = sdf.parse(actorObject.getString("birthday"));
+                Date deathday = sdf.parse(actorObject.getString("deathday"));
+                String deathdayString = localFormat.format(deathday);
+                long ageAtDeath = Math.floorDiv(TimeUnit.DAYS.convert(Math.abs(deathday.getTime() - birthday.getTime()), TimeUnit.MILLISECONDS), 365);
+                binding.actorDeathday.setText(getString(R.string.deathday) + deathdayString + " (" + ageAtDeath + " " + getString(R.string.years) + ")");
             }
 
             // If the biography is different in the new dataset, change it.
@@ -391,7 +418,7 @@ public class CastActivity extends BaseActivity {
             if (actorObject.getString("biography").equals("")) {
                 new ActorDetailsThread("true").start();
             }
-        } catch (JSONException e) {
+        } catch (JSONException | ParseException e) {
             e.printStackTrace();
         }
     }
@@ -564,6 +591,9 @@ public class CastActivity extends BaseActivity {
 
         private void onPostExecute(JSONObject actorData) {
             if (actorData != null) {
+                if (actorData.isNull("deathday")) {
+                    binding.actorDeathday.setVisibility(View.GONE);
+                }
                 setActorData(actorData);
             }
         }
