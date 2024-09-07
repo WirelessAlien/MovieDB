@@ -31,6 +31,8 @@
     <!-- CastActivity (quotes are to enforce the spaces) -->
     <string name="place_of_birth">"Place of Birth: "</string>
     <string name="birthday">"Birthday: "</string>
+    <string name="deathday">"Day of death: "</string>
+    <string name="years">"years old"</string>
     <string name="cast_movie_title">Part of the cast in</string>
     <string name="crew_movie_title">Part of the crew in</string>
 
