@@ -165,12 +165,12 @@ public class CastActivity extends BaseActivity {
 
             // Set the adapter with the (still) empty ArrayList.
             castMovieArrayList = new ArrayList<>();
-            castMovieAdapter = new ShowBaseAdapter(castMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
+            castMovieAdapter = new ShowBaseAdapter(castMovieArrayList, null, ShowBaseAdapter.MView.ROLES, false);
             binding.castMovieRecyclerView.setAdapter(castMovieAdapter);
 
             // Set the adapter with the (still) empty ArrayList.
             crewMovieArrayList = new ArrayList<>();
-            crewMovieAdapter = new ShowBaseAdapter(crewMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
+            crewMovieAdapter = new ShowBaseAdapter(crewMovieArrayList, null, ShowBaseAdapter.MView.ROLES, false);
             binding.crewMovieRecyclerView.setAdapter(crewMovieAdapter);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -495,7 +495,7 @@ public class CastActivity extends BaseActivity {
 
                         // Set a new adapter so the RecyclerView
                         // shows the new items.
-                        castMovieAdapter = new ShowBaseAdapter(castMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
+                        castMovieAdapter = new ShowBaseAdapter(castMovieArrayList, null, ShowBaseAdapter.MView.ROLES, false);
                         binding.castMovieRecyclerView.setAdapter(castMovieAdapter);
                     }
 
@@ -522,7 +522,7 @@ public class CastActivity extends BaseActivity {
 
                         // Set a new adapter so the RecyclerView
                         // shows the new items.
-                        crewMovieAdapter = new ShowBaseAdapter(crewMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
+                        crewMovieAdapter = new ShowBaseAdapter(crewMovieArrayList, null, ShowBaseAdapter.MView.ROLES, false);
                         binding.crewMovieRecyclerView.setAdapter(crewMovieAdapter);
                         mActorMoviesLoaded = true;
                     }

@@ -70,6 +70,8 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
     public static final String KEY_DATE_SERIES = "first_air_date";
     public static final String KEY_GENRES = "genre_ids";
     public static final String KEY_RELEASE_DATE = "release_date";
+    public static final String KEY_CHARACTER = "character";
+    public static final String KEY_CREW_JOB = "job";
     private static final String HD_IMAGE_SIZE = "key_hq_images";
 
     private static final String KEY_CATEGORIES = MovieDatabaseHelper.COLUMN_CATEGORIES;
@@ -81,7 +83,8 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
     public enum MView {
         GRID,
         LIST,
-        RECOMMENDATIONS
+        RECOMMENDATIONS,
+        ROLES
     }
     private MView mView;
 
@@ -128,9 +131,12 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
         } else if (mView == MView.LIST) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.show_card, parent, false);
-        } else {
+        } else if (mView == MView.RECOMMENDATIONS) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.movie_card, parent, false);
+        } else {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.role_card, parent, false);
         }
         return new ShowItemViewHolder(view);
     }
@@ -156,10 +162,12 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
                     Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_POSTER)).into(holder.showImage);
                 }
             } else {
-                if (showData.getString(KEY_IMAGE).equals("null")) {
+                if (showData.getString(KEY_IMAGE).equals("null") && showData.getString(KEY_POSTER).equals("null")) {
                     holder.showImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
-                } else {
+                } else if (!showData.getString(KEY_IMAGE).equals("null")) {
                     Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_IMAGE)).into(holder.showImage);
+                } else {
+                    Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_POSTER)).into(holder.showImage);
                 }
             }
 
@@ -198,8 +206,13 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             SimpleDateFormat originalFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             try {
                 Date date = originalFormat.parse(dateString);
-                DateFormat localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
-                dateString = localFormat.format(date);
+                if (mView == MView.GRID || mView == MView.LIST) {
+                    DateFormat localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
+                    dateString = localFormat.format(date);
+                } else {
+                    SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy");
+                    dateString = yearFormat.format(date);
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -242,6 +255,20 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
                 // Quickly fade in the poster when loaded.
                 Animation animation = AnimationUtils.loadAnimation(context, R.anim.fade_in_fast);
                 holder.showImage.startAnimation(animation);
+
+                // Add rating
+                if (showData.has(KEY_RATING)) {
+                    float voteAverage = Float.parseFloat(showData.getString(KEY_RATING));
+                    holder.showRatingText.setText(String.format(Locale.getDefault(), "★%.2f", voteAverage));
+                }
+            }  else if (mView == MView.ROLES) {
+                if (showData.has(KEY_CHARACTER)) {
+                    holder.showRole.setText(showData.getString(KEY_CHARACTER));
+                }
+
+                if (showData.has(KEY_CREW_JOB)) {
+                    holder.showRole.setText(showData.getString(KEY_CREW_JOB));
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -298,6 +325,8 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
         final TextView showDescription;
         final TextView showGenre;
         final RatingBar showRating;
+        final TextView showRatingText;
+        final TextView showRole;
         final View categoryColorView;
         final TextView showDate;
         final Button deleteButton;
@@ -308,6 +337,8 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             showTitle = itemView.findViewById(R.id.title);
             showImage = itemView.findViewById(R.id.image);
             categoryColorView = itemView.findViewById(R.id.categoryColor);
+            showRatingText = itemView.findViewById(R.id.ratingText);
+            showRole = itemView.findViewById(R.id.role);
 
             // Only used if presented in a list.
             showDescription = itemView.findViewById(R.id.description);
