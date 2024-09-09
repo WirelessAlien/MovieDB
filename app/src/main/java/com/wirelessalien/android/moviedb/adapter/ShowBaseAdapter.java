@@ -28,6 +28,8 @@ import android.icu.text.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -73,19 +75,25 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
     private static final String KEY_CATEGORIES = MovieDatabaseHelper.COLUMN_CATEGORIES;
     private final ArrayList<JSONObject> mShowArrayList;
     private final HashMap<String, String> mGenreHashMap;
-    private final boolean mGridView;
+//    private final boolean mGridView;
     private final boolean showDeleteButton;
     private String genreType;
+    public enum MView {
+        GRID,
+        LIST,
+        RECOMMENDATIONS
+    }
+    private MView mView;
 
     /**
      * Sets up the adapter with the necessary configurations.
      *
      * @param showList  the list of shows that will be shown.
      * @param genreList the mapping of ids to genres.
-     * @param gridView  if the user wants the shows displayed in a grid or a list.
+     * @param mView  how the shows should be displayed.
      */
     public ShowBaseAdapter(ArrayList<JSONObject> showList,
-                           HashMap<String, String> genreList, boolean gridView, boolean showDeleteButton) {
+                           HashMap<String, String> genreList, MView mView, boolean showDeleteButton) {
 
         this.showDeleteButton = showDeleteButton;
         // Get the right "type" of genres.
@@ -100,7 +108,7 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
         mShowArrayList = showList;
         mGenreHashMap = genreList;
 
-        mGridView = gridView;
+        this.mView = mView;
     }
 
     @Override
@@ -114,12 +122,15 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
     public ShowItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Create a new CardItem when needed.
         View view;
-        if (mGridView) {
+        if (mView == MView.GRID) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate( R.layout.show_grid_card, parent, false);
-        } else {
+        } else if (mView == MView.LIST) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.show_card, parent, false);
+        } else {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.movie_card, parent, false);
         }
         return new ShowItemViewHolder(view);
     }
@@ -138,11 +149,18 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             boolean loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false);
 
             String imageSize = loadHDImage ? "w780" : "w500";
-
-            if (showData.getString(KEY_POSTER).equals("null")) {
-                holder.showImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
+            if (mView == MView.GRID || mView == MView.LIST) {
+                if (showData.getString(KEY_POSTER).equals("null")) {
+                    holder.showImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
+                } else {
+                    Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_POSTER)).into(holder.showImage);
+                }
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_POSTER)).into(holder.showImage);
+                if (showData.getString(KEY_IMAGE).equals("null")) {
+                    holder.showImage.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), (R.drawable.ic_broken_image), null));
+                } else {
+                    Picasso.get().load("https://image.tmdb.org/t/p/" + imageSize + showData.getString(KEY_IMAGE)).into(holder.showImage);
+                }
             }
 
             // Check if the object has "title" if not,
@@ -154,19 +172,21 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             holder.showTitle.setText(name);
 
             // Set the right category color if available.
-            if (showData.has(KEY_CATEGORIES)) {
-                String categoryText = switch (showData.getInt( KEY_CATEGORIES )) {
-                    case 0 -> "Plan to watch";
-                    case 1 -> "Watched";
-                    case 2 -> "Watching";
-                    case 3 -> "On hold";
-                    case 4 -> "Dropped";
-                    default -> "Unknown";
-                };
-                ((TextView) holder.categoryColorView).setText(categoryText);
-                holder.categoryColorView.setVisibility(View.VISIBLE);
-            } else {
-                holder.categoryColorView.setVisibility(View.GONE);
+            if (mView == MView.GRID || mView == MView.LIST) {
+                if (showData.has(KEY_CATEGORIES)) {
+                    String categoryText = switch (showData.getInt(KEY_CATEGORIES)) {
+                        case 0 -> "Plan to watch";
+                        case 1 -> "Watched";
+                        case 2 -> "Watching";
+                        case 3 -> "On hold";
+                        case 4 -> "Dropped";
+                        default -> "Unknown";
+                    };
+                    ((TextView) holder.categoryColorView).setText(categoryText);
+                    holder.categoryColorView.setVisibility(View.VISIBLE);
+                } else {
+                    holder.categoryColorView.setVisibility(View.GONE);
+                }
             }
 
             // Check if the object has "title" if not,
@@ -187,7 +207,7 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             holder.showDate.setText(dateString);
 
             // Only if the shows are presented in a list.
-            if (!mGridView) {
+            if (mView == MView.LIST) {
                 holder.showDescription.setText(showData.getString(KEY_DESCRIPTION));
 
                 // Divide the rating in two so it fits in the five stars.
@@ -218,6 +238,10 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
                 // Remove the first ", " from the string and set the text.
                 holder.showGenre.setText(genreNames.substring(2));
 
+            } else if (mView == MView.RECOMMENDATIONS) {
+                // Quickly fade in the poster when loaded.
+                Animation animation = AnimationUtils.loadAnimation(context, R.anim.fade_in_fast);
+                holder.showImage.startAnimation(animation);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -233,25 +257,27 @@ public class ShowBaseAdapter extends RecyclerView.Adapter<ShowBaseAdapter.ShowIt
             view.getContext().startActivity(intent);
         } );
 
-        if (showDeleteButton) {
-            holder.deleteButton.setVisibility(View.VISIBLE);
-            holder.deleteButton.setOnClickListener(v -> {
-                int mediaId;
-                String type;
-                try {
-                    mediaId = showData.getInt(KEY_ID);
-                    type = showData.has(KEY_TITLE) ? "movie" : "tv";
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    return;
-                }
-                int listId = PreferenceManager.getDefaultSharedPreferences(context).getInt("listId", 0);
-                Activity activity = (Activity) context;
-                DeleteFromListThreadTMDb deleteThread = new DeleteFromListThreadTMDb(mediaId, listId, type, activity, position, mShowArrayList, this);
-                deleteThread.start();
-            });
-        } else {
-            holder.deleteButton.setVisibility(View.GONE);
+        if (mView == MView.GRID || mView == MView.LIST) {
+            if (showDeleteButton) {
+                holder.deleteButton.setVisibility(View.VISIBLE);
+                holder.deleteButton.setOnClickListener(v -> {
+                    int mediaId;
+                    String type;
+                    try {
+                        mediaId = showData.getInt(KEY_ID);
+                        type = showData.has(KEY_TITLE) ? "movie" : "tv";
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        return;
+                    }
+                    int listId = PreferenceManager.getDefaultSharedPreferences(context).getInt("listId", 0);
+                    Activity activity = (Activity) context;
+                    DeleteFromListThreadTMDb deleteThread = new DeleteFromListThreadTMDb(mediaId, listId, type, activity, position, mShowArrayList, this);
+                    deleteThread.start();
+                });
+            } else {
+                holder.deleteButton.setVisibility(View.GONE);
+            }
         }
     }
 

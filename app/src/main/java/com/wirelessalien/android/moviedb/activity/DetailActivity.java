@@ -84,7 +84,7 @@ import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter;
 import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter;
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter;
-import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
+import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter;
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding;
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment;
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment;
@@ -141,7 +141,7 @@ public class DetailActivity extends BaseActivity {
     private CastBaseAdapter crewAdapter;
     private ArrayList<JSONObject> castArrayList;
     private ArrayList<JSONObject> crewArrayList;
-    private SimilarMovieBaseAdapter similarMovieAdapter;
+    private ShowBaseAdapter similarMovieAdapter;
     private ViewPager2 episodeViewPager;
     private EpisodePagerAdapter episodePagerAdapter;
     private ArrayList<JSONObject> similarMovieArrayList;
@@ -355,8 +355,7 @@ public class DetailActivity extends BaseActivity {
 
             // Set the adapter with the (still) empty ArrayList.
             similarMovieArrayList = new ArrayList<>();
-            similarMovieAdapter = new SimilarMovieBaseAdapter(similarMovieArrayList,
-                    getApplicationContext());
+            similarMovieAdapter = new ShowBaseAdapter(similarMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
             binding.movieRecyclerView.setAdapter(similarMovieAdapter);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1855,8 +1854,7 @@ public class DetailActivity extends BaseActivity {
                     JSONObject movieData = similarMovieArray.getJSONObject(i);
                     similarMovieArrayList.add(movieData);
                 }
-                similarMovieAdapter = new SimilarMovieBaseAdapter(
-                        similarMovieArrayList, getApplicationContext());
+                similarMovieAdapter = new ShowBaseAdapter(similarMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
 
                 binding.movieRecyclerView.setAdapter(similarMovieAdapter);
                 mSimilarMoviesLoaded = false;
