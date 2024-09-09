@@ -49,7 +49,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 import com.wirelessalien.android.moviedb.R;
-import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter;
+import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter;
 import com.wirelessalien.android.moviedb.databinding.ActivityCastBinding;
 import com.wirelessalien.android.moviedb.helper.ConfigHelper;
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper;
@@ -86,9 +86,9 @@ public class CastActivity extends BaseActivity {
     private Context context;
     private JSONObject actorObject;
     private JSONObject actorData;
-    private SimilarMovieBaseAdapter castMovieAdapter;
+    private ShowBaseAdapter castMovieAdapter;
     private ArrayList<JSONObject> castMovieArrayList;
-    private SimilarMovieBaseAdapter crewMovieAdapter;
+    private ShowBaseAdapter crewMovieAdapter;
     private ArrayList<JSONObject> crewMovieArrayList;
     private ActivityCastBinding binding;
     private int actorId;
@@ -165,14 +165,12 @@ public class CastActivity extends BaseActivity {
 
             // Set the adapter with the (still) empty ArrayList.
             castMovieArrayList = new ArrayList<>();
-            castMovieAdapter = new SimilarMovieBaseAdapter(castMovieArrayList,
-                    getApplicationContext());
+            castMovieAdapter = new ShowBaseAdapter(castMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
             binding.castMovieRecyclerView.setAdapter(castMovieAdapter);
 
             // Set the adapter with the (still) empty ArrayList.
             crewMovieArrayList = new ArrayList<>();
-            crewMovieAdapter = new SimilarMovieBaseAdapter(crewMovieArrayList,
-                    getApplicationContext());
+            crewMovieAdapter = new ShowBaseAdapter(crewMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
             binding.crewMovieRecyclerView.setAdapter(crewMovieAdapter);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -497,8 +495,7 @@ public class CastActivity extends BaseActivity {
 
                         // Set a new adapter so the RecyclerView
                         // shows the new items.
-                        castMovieAdapter = new SimilarMovieBaseAdapter(
-                                castMovieArrayList, getApplicationContext());
+                        castMovieAdapter = new ShowBaseAdapter(castMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
                         binding.castMovieRecyclerView.setAdapter(castMovieAdapter);
                     }
 
@@ -525,8 +522,7 @@ public class CastActivity extends BaseActivity {
 
                         // Set a new adapter so the RecyclerView
                         // shows the new items.
-                        crewMovieAdapter = new SimilarMovieBaseAdapter(
-                                crewMovieArrayList, getApplicationContext());
+                        crewMovieAdapter = new ShowBaseAdapter(crewMovieArrayList, null, ShowBaseAdapter.MView.RECOMMENDATIONS, false);
                         binding.crewMovieRecyclerView.setAdapter(crewMovieAdapter);
                         mActorMoviesLoaded = true;
                     }

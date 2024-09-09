@@ -255,7 +255,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
     private void updateShowViewAdapter() {
         mShowArrayList = getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC");
         mShowAdapter = new ShowBaseAdapter(mShowArrayList, mShowGenreList,
-                                           preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false);
+                                           preferences.getBoolean(SHOWS_LIST_PREFERENCE, true) ? ShowBaseAdapter.MView.GRID : ShowBaseAdapter.MView.LIST, false);
         if (!mSearchView) {
             if (usedFilter) {
                 // Also change the backup.
@@ -586,10 +586,10 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         // Set a new adapter with the cloned (and filtered) ArrayList.
         if (mSearchView) {
             mShowView.setAdapter(new ShowBaseAdapter(mSearchShowArrayList, mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false));
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true) ? ShowBaseAdapter.MView.GRID : ShowBaseAdapter.MView.LIST, false));
         } else {
             mShowView.setAdapter(new ShowBaseAdapter(mShowArrayList, mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false));
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true) ? ShowBaseAdapter.MView.GRID : ShowBaseAdapter.MView.LIST, false));
         }
     }
 
@@ -601,7 +601,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
         mShowGenreList = new HashMap<>();
         mShowArrayList = getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC");
         mShowAdapter = new ShowBaseAdapter(mShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false);
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true) ? ShowBaseAdapter.MView.GRID : ShowBaseAdapter.MView.LIST, false);
 
         if (mShowView != null) {
             mShowView.setAdapter(mShowAdapter);
@@ -777,7 +777,7 @@ public class ListFragment extends BaseFragment implements AdapterDataChangedList
             mSearchShowArrayList = getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC");
             mSearchShowBackupArrayList = (ArrayList<JSONObject>) mSearchShowArrayList.clone();
             mSearchShowAdapter = new ShowBaseAdapter(mSearchShowArrayList, mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false);
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true) ? ShowBaseAdapter.MView.GRID : ShowBaseAdapter.MView.LIST, false);
             mShowView.setAdapter(mSearchShowAdapter);
 
             // Only use the filter if the user has gone to the FilterActivity in this session.

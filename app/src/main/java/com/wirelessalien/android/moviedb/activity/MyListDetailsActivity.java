@@ -109,7 +109,7 @@ public class MyListDetailsActivity extends AppCompatActivity implements ListDeta
             thread.start();
         });
 
-        adapter = new ShowBaseAdapter(new ArrayList<>(), null, false, true);
+        adapter = new ShowBaseAdapter(new ArrayList<>(), null, ShowBaseAdapter.MView.GRID, true);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class MyListDetailsActivity extends AppCompatActivity implements ListDeta
         ProgressBar progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.GONE);
 
-        adapter = new ShowBaseAdapter(listDetailsData, mShowGenreList, false, true);
+        adapter = new ShowBaseAdapter(listDetailsData, mShowGenreList, ShowBaseAdapter.MView.GRID, true);
         recyclerView.setAdapter(adapter);
     }
 }

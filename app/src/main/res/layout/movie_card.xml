@@ -44,7 +44,7 @@
                 app:cardCornerRadius="5dp">
 
             <ImageView
-                android:id="@+id/movieImage"
+                android:id="@+id/image"
                 android:layout_width="170dip"
                 android:layout_height="110dip"
                 android:layout_centerHorizontal="true"
@@ -53,7 +53,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
-                android:id="@+id/movieTitle"
+                android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/cardView2"
@@ -64,6 +64,19 @@
                 android:layout_centerVertical="true"
                 android:textAlignment="center"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/title"
+                android:layout_centerHorizontal="true"
+                android:layout_margin="5dp"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:textSize="11sp" />
         </RelativeLayout>
     </com.google.android.material.card.MaterialCardView>
 
