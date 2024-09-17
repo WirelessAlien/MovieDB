@@ -91,15 +91,31 @@
         app:icon="@drawable/ic_close"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/prev_btn"
+        android:id="@+id/download_btn"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-        android:layout_toStartOf="@id/next_btn"
         android:layout_alignParentBottom="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_toStartOf="@id/prev_btn"
         app:cornerRadius="5dp"
-        android:layout_margin="5dp"
-        app:icon="@drawable/ic_arrow_backward"/>
+        app:icon="@drawable/ic_download" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/prev_btn"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_toStartOf="@id/next_btn"
+        app:cornerRadius="5dp"
+        app:icon="@drawable/ic_arrow_backward" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/next_btn"

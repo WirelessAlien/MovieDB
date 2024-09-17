@@ -28,41 +28,51 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/select_directory_button"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cornerRadius="5dp"
-        android:layout_marginTop="30dp"
-        android:layout_gravity="center"
-        android:text="@string/select_directory" />
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/selected_directory_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/selected_directory"
-        android:scrollHorizontally="true"
-        android:textSize="16sp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/export_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        app:cornerRadius="5dp"
-        android:text="@string/export" />
+            <ImageView
+                android:layout_width="92dp"
+                android:layout_height="92dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="60dp"
+                android:src="@drawable/ic_export_db"/>
 
-    <TextView
-        android:id="@+id/info_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/export_info"
-        android:textSize="16sp"
-        android:layout_marginTop="16dp"
-        android:drawablePadding="5dp"
-        app:drawableStartCompat="@drawable/ic_info" />
+            <TextView
+                android:id="@+id/selected_directory_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/selected_directory"
+                android:scrollHorizontally="true"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/export_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cornerRadius="5dp"
+                android:text="@string/export" />
+
+            <TextView
+                android:id="@+id/info_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/export_info"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp"
+                android:drawablePadding="5dp"
+                app:drawableStartCompat="@drawable/ic_info" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>

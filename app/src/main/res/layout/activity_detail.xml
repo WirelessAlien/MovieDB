@@ -122,39 +122,46 @@
                         android:layout_marginStart="-8dp"
                         app:flexDirection="row"
                         app:flexWrap="wrap">
-                    <TextView
-                        android:id="@+id/movieStartDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        app:drawableLeftCompat="@drawable/ic_dot"
-                        android:visibility="gone" />
 
-                    <TextView
-                        android:id="@+id/movieFinishDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:visibility="gone"
-                        app:drawableLeftCompat="@drawable/ic_dot" />
+                        <TextView
+                            android:id="@+id/movieStartDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            app:drawableLeftCompat="@drawable/ic_dot"
+                            android:visibility="gone" />
 
-                    <TextView
-                        android:id="@+id/movieRewatched"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:drawableLeftCompat="@drawable/ic_dot"
-                        android:layout_centerVertical="true"
-                        android:visibility="gone" />
+                        <TextView
+                            android:id="@+id/movieFinishDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:visibility="gone"
+                            app:drawableLeftCompat="@drawable/ic_dot" />
 
-                    <TextView
-                        android:id="@+id/movieEpisodes"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        app:drawableLeftCompat="@drawable/ic_dot"
-                        android:visibility="gone" />
+                        <TextView
+                            android:id="@+id/movieRewatched"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:drawableLeftCompat="@drawable/ic_dot"
+                            android:layout_centerVertical="true"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/movieEpisodes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            app:drawableLeftCompat="@drawable/ic_dot"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/movieReviewText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:drawableLeftCompat="@drawable/ic_dot"
+                            android:visibility="gone" />
                     </com.google.android.flexbox.FlexboxLayout>
-
                 </LinearLayout>
 
                 <LinearLayout
@@ -254,12 +261,25 @@
                                     android:id="@+id/showRating"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:digits="0123456789"
                                     android:gravity="center_vertical"
-                                    android:inputType="number"
+                                    android:inputType="numberDecimal"
                                     android:text="@string/show_rating_default" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </GridLayout>
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="fill"
+                            android:layout_marginTop="5dp"
+                            android:hint="Review">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/movieReview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:inputType="text|textMultiLine"/>
+                        </com.google.android.material.textfield.TextInputLayout>
                     </GridLayout>
                 </LinearLayout>
             </RelativeLayout>

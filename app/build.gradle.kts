@@ -55,10 +55,14 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.browser:browser:1.8.0")
-    implementation("androidx.palette:palette:1.0.0")
+    implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
     implementation("androidx.work:work-runtime:2.9.1")
-    implementation("androidx.preference:preference:1.2.1")
+    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation("androidx.paging:paging-runtime:3.2.1")
+
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
 
