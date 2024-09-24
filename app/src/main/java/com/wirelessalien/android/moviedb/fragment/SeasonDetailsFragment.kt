@@ -23,7 +23,6 @@ import android.content.ContentValues
 import android.graphics.Color
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater

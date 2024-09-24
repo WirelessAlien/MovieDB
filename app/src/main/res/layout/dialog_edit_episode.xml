@@ -68,19 +68,19 @@
            android:text="@string/choose_date"/>
    </LinearLayout>
 
-    <RatingBar
-        android:id="@+id/episodeRatingBar"
-        android:layout_width="wrap_content"
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:layout_margin="16dp"
-        android:isIndicator="false"
-        android:numStars="10"
-        android:scaleX="1.5"
-        android:scaleY="1.5"
-        android:rating="0"
-        style="@style/Widget.AppCompat.RatingBar.Small"
-        android:stepSize="0.1" />
+        android:hint="Rating"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/episodeRating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:inputType="numberDecimal"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:id="@+id/ratingTextView"

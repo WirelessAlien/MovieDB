@@ -80,7 +80,7 @@
             android:layout_marginStart="16dp"
             android:layout_below="@id/trendingViewPager"
             android:textStyle="bold"
-            android:text="Now Playing" />
+            android:text="@string/now_playing" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/nowPlayingRecyclerView"
@@ -104,7 +104,7 @@
             android:textStyle="bold"
             android:layout_below="@id/nowPlayingRecyclerView"
             android:layout_marginStart="16dp"
-            android:text="Airing Today" />
+            android:text="@string/airing_today" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/nowPlayingTVRecyclerView"
@@ -128,7 +128,7 @@
             android:textStyle="bold"
             android:layout_below="@id/nowPlayingTVRecyclerView"
             android:layout_marginStart="16dp"
-            android:text="Upcoming " />
+            android:text="@string/upcoming" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/upcomingMovieRecyclerView"
@@ -153,7 +153,7 @@
             android:textStyle="bold"
             android:layout_below="@id/upcomingMovieRecyclerView"
             android:layout_marginStart="16dp"
-            android:text="On The Air" />
+            android:text="@string/on_the_air" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/upcomingTVRecyclerView"

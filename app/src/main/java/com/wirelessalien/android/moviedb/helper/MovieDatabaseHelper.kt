@@ -34,6 +34,7 @@ import android.widget.RadioButton
 import android.widget.Toast
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.ExportActivity
 import com.wirelessalien.android.moviedb.data.EpisodeDbDetails
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper.getExportDirectory
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
@@ -41,9 +42,11 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedOutputStream
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.FileReader
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -127,7 +130,7 @@ class MovieDatabaseHelper  // Initialize the database object.
             try {
                 rowObject.put("episodes", getEpisodesForMovie(movieId, database))
             } catch (e: JSONException) {
-                throw RuntimeException(e)
+                e.printStackTrace()
             }
             databaseSet.put(rowObject)
             cursor.moveToNext()
@@ -138,6 +141,38 @@ class MovieDatabaseHelper  // Initialize the database object.
         return databaseSet.toString()
     }
 
+    private fun getCSVExportString(database: SQLiteDatabase): String {
+        val selectQuery = """
+        SELECT m.*, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER, e.$COLUMN_EPISODE_RATING,
+               e.$COLUMN_EPISODE_WATCH_DATE, e.$COLUMN_EPISODE_REVIEW
+        FROM $TABLE_MOVIES m
+        LEFT JOIN $TABLE_EPISODES e ON m.$COLUMN_MOVIES_ID = e.$COLUMN_MOVIES_ID
+    """
+        val cursor = database.rawQuery(selectQuery, null)
+
+        val csvBuilder = StringBuilder()
+        val columnNames = cursor.columnNames
+
+        // Add column headers
+        csvBuilder.append(columnNames.joinToString(",") { "\"$it\"" }).append("\n")
+
+        // Add rows
+        cursor.moveToFirst()
+        while (!cursor.isAfterLast) {
+            val rowValues = mutableListOf<String>()
+            for (i in columnNames.indices) {
+                val value = cursor.getString(i) ?: "null"
+                val escapedValue = value.replace("\"", "\"\"")
+                rowValues.add("\"$escapedValue\"")
+            }
+            csvBuilder.append(rowValues.joinToString(",")).append("\n")
+            cursor.moveToNext()
+        }
+        cursor.close()
+
+        return csvBuilder.toString()
+    }
+
     /**
      * Writes the database in the chosen format to the downloads directory.
      *
@@ -145,53 +180,41 @@ class MovieDatabaseHelper  // Initialize the database object.
      */
     fun exportDatabase(context: Context) {
         val builder = MaterialAlertDialogBuilder(context)
-
-        // Inflate the custom layout
         val inflater = LayoutInflater.from(context)
         val customView = inflater.inflate(R.layout.export_dialog, null)
         val jsonRadioButton = customView.findViewById<RadioButton>(R.id.radio_json)
         val dbRadioButton = customView.findViewById<RadioButton>(R.id.radio_db)
-        builder.setView(customView) // Set the custom layout
+        val csvRadioButton = customView.findViewById<RadioButton>(R.id.radio_csv)
+        builder.setView(customView)
         builder.setTitle(context.resources.getString(R.string.choose_export_file))
-            .setPositiveButton("Export") { dialogInterface: DialogInterface?, i: Int ->
+            .setPositiveButton("Export") { _: DialogInterface?, _: Int ->
                 val exportDirectory = getExportDirectory(context)
                 if (exportDirectory != null) {
                     val data = Environment.getDataDirectory()
-                    val currentDBPath =
-                        "/data/" + context.packageName + "/databases/" + databaseFileName
+                    val currentDBPath = "/data/" + context.packageName + "/databases/" + databaseFileName
                     val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
                     if (jsonRadioButton.isChecked) {
-                        // Convert databaseSet to string and put in file
                         val fileContent = getJSONExportString(readableDatabase)
                         val fileExtension = ".json"
-
-                        // Write to file
-                        val fileName =
-                            DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                        val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                         try {
                             val file = File(exportDirectory, fileName)
                             val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))
                             bufferedOutputStream.write(fileContent.toByteArray())
                             bufferedOutputStream.flush()
                             bufferedOutputStream.close()
-                            Toast.makeText(
-                                context,
-                                context.resources.getString(R.string.write_to_external_storage_as) + fileName,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
                         } catch (e: IOException) {
                             e.printStackTrace()
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
                         }
                     } else if (dbRadioButton.isChecked) {
-                        // Write the .db file to selected directory
                         val fileExtension = ".db"
-                        val exportDBPath =
-                            DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                        val exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                         try {
                             val currentDB = File(data, currentDBPath)
                             val exportDB = File(exportDirectory, exportDBPath)
-                            val bufferedOutputStream =
-                                BufferedOutputStream(FileOutputStream(exportDB))
+                            val bufferedOutputStream = BufferedOutputStream(FileOutputStream(exportDB))
                             val fileChannel = FileInputStream(currentDB).channel
                             val buffer = ByteBuffer.allocate(fileChannel.size().toInt())
                             fileChannel.read(buffer)
@@ -201,22 +224,48 @@ class MovieDatabaseHelper  // Initialize the database object.
                             bufferedOutputStream.write(byteArray)
                             bufferedOutputStream.flush()
                             bufferedOutputStream.close()
-                            Toast.makeText(
-                                context,
-                                context.resources.getString(R.string.write_to_external_storage_as) + exportDBPath,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + exportDBPath, Toast.LENGTH_SHORT).show()
                         } catch (e: Exception) {
                             e.printStackTrace()
+                            if (context is ExportActivity) {
+                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false)
+                            }
+                        }
+                    } else if (csvRadioButton.isChecked) {
+                        val fileContent = getCSVExportString(readableDatabase)
+                        val fileExtension = ".csv"
+                        val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                        try {
+                            val file = File(exportDirectory, fileName)
+                            val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))
+                            bufferedOutputStream.write(fileContent.toByteArray())
+                            bufferedOutputStream.flush()
+                            bufferedOutputStream.close()
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
                         }
                     }
                 } else {
-                    // Show error message if no directory is selected
-                    Toast.makeText(context, "Failed to export the database", Toast.LENGTH_SHORT)
-                        .show()
+                    if (context is ExportActivity) {
+                        if (jsonRadioButton.isChecked) {
+                            val fileExtension = ".json"
+                            val fileName = DATABASE_FILE_NAME + SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US).format(Date()) + fileExtension
+                            context.promptUserToSaveFile(fileName, isJson = true, isCsv = false)
+                        } else if (dbRadioButton.isChecked) {
+                            val fileExtension = ".db"
+                            val fileName = DATABASE_FILE_NAME + SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US).format(Date()) + fileExtension
+                            context.promptUserToSaveFile(fileName, isJson = false, isCsv = false)
+                        } else if (csvRadioButton.isChecked) {
+                            val fileExtension = ".csv"
+                            val fileName = DATABASE_FILE_NAME + SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US).format(Date()) + fileExtension
+                            context.promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+                        }
+                    }
                 }
             }
-            .setNegativeButton("Cancel") { dialogInterface: DialogInterface, i: Int -> dialogInterface.cancel() }
+            .setNegativeButton("Cancel") { dialogInterface: DialogInterface, _: Int -> dialogInterface.cancel() }
         builder.show()
     }
 
@@ -288,6 +337,38 @@ class MovieDatabaseHelper  // Initialize the database object.
             listener.onAdapterDataChangedListener()
         }
         fileDialog.show()
+    }
+
+    fun importCSVToDatabase(database: SQLiteDatabase, csvFile: File) {
+        try {
+            val bufferedReader = BufferedReader(FileReader(csvFile))
+            var line: String? = bufferedReader.readLine() // Read header line
+            val columns = line?.split(",")?.map { it.trim('"') } ?: return
+
+            database.beginTransaction()
+            try {
+                while (bufferedReader.readLine().also { line = it } != null) {
+                    val values = line?.split(",")?.map { it.trim('"') } ?: continue
+                    val contentValues = ContentValues()
+
+                    for (i in columns.indices) {
+                        contentValues.put(columns[i], values[i])
+                    }
+
+                    if (columns.contains("episode_number")) {
+                        database.insert("episodes", null, contentValues)
+                    } else {
+                        database.insert("movies", null, contentValues)
+                    }
+                }
+                database.setTransactionSuccessful()
+            } finally {
+                database.endTransaction()
+            }
+            bufferedReader.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 
     override fun onCreate(database: SQLiteDatabase) {
@@ -603,5 +684,57 @@ class MovieDatabaseHelper  // Initialize the database object.
         private const val DATABASE_FILE_NAME = "movies"
         private const val DATABASE_FILE_EXT = ".db"
         private const val DATABASE_VERSION = 15
+
+
+        fun jSONExport(db: SQLiteDatabase): String {
+            val json = JSONObject()
+            val tables = arrayOf(TABLE_MOVIES, TABLE_EPISODES)
+            for (table in tables) {
+                val cursor = db.query(table, null, null, null, null, null, null)
+                val tableJson = JSONObject()
+                if (cursor.moveToFirst()) {
+                    do {
+                        val rowJson = JSONObject()
+                        for (i in 0 until cursor.columnCount) {
+                            rowJson.put(cursor.getColumnName(i), cursor.getString(i))
+                        }
+                        tableJson.put(cursor.position.toString(), rowJson)
+                    } while (cursor.moveToNext())
+                }
+                cursor.close()
+                json.put(table, tableJson)
+            }
+            return json.toString()
+        }
+
+        fun cSVExport(database: SQLiteDatabase): String {
+            val selectQuery = """
+        SELECT m.*, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER, e.$COLUMN_EPISODE_RATING,
+               e.$COLUMN_EPISODE_WATCH_DATE, e.$COLUMN_EPISODE_REVIEW
+        FROM $TABLE_MOVIES m
+        LEFT JOIN $TABLE_EPISODES e ON m.$COLUMN_MOVIES_ID = e.$COLUMN_MOVIES_ID
+    """
+            val cursor = database.rawQuery(selectQuery, null)
+
+            val csvBuilder = StringBuilder()
+            val columnNames = cursor.columnNames
+
+            csvBuilder.append(columnNames.joinToString(",") { "\"$it\"" }).append("\n")
+
+            cursor.moveToFirst()
+            while (!cursor.isAfterLast) {
+                val rowValues = mutableListOf<String>()
+                for (i in columnNames.indices) {
+                    val value = cursor.getString(i) ?: "null"
+                    val escapedValue = value.replace("\"", "\"\"")
+                    rowValues.add("\"$escapedValue\"")
+                }
+                csvBuilder.append(rowValues.joinToString(",")).append("\n")
+                cursor.moveToNext()
+            }
+            cursor.close()
+
+            return csvBuilder.toString()
+        }
     }
 }

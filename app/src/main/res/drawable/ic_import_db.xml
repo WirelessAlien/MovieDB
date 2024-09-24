@@ -1,0 +1,39 @@
+<!--
+  ~     This file is part of Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     Movie DB is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     Movie DB is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<vector android:height="192dp" android:viewportHeight="32"
+    android:viewportWidth="32" android:width="192dp" xmlns:android="http://schemas.android.com/apk/res/android"
+    android:tint="?attr/colorControlNormal">
+    <path android:fillColor="#000000" android:fillType="evenOdd"
+        android:pathData="m7,22.014a1,1 0,0 0,-1 1,1 1,0 0,0 1,1h4a1,1 0,0 0,1 -1,1 1,0 0,0 -1,-1z"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path android:fillColor="#000000" android:fillType="evenOdd"
+        android:pathData="m23,19.014a1,1 0,0 0,-1 1v3.586l-0.293,-0.293A1,1 0,0 0,21 23.014a1,1 0,0 0,-0.707 0.293,1 1,0 0,0 0,1.414l2,2a1,1 0,0 0,0.047 0.037,1 1,0 0,0 0.086,0.068 1,1 0,0 0,0.09 0.057,1 1,0 0,0 0.105,0.051 1,1 0,0 0,0.104 0.035,1 1,0 0,0 0.105,0.025 1,1 0,0 0,0.119 0.014,1 1,0 0,0 0.051,0.006 1,1 0,0 0,0.051 -0.006,1 1,0 0,0 0.119,-0.014 1,1 0,0 0,0.105 -0.025,1 1,0 0,0 0.104,-0.035 1,1 0,0 0,0.105 -0.051,1 1,0 0,0 0.09,-0.057 1,1 0,0 0,0.086 -0.068,1 1,0 0,0 0.047,-0.037l2,-2a1,1 0,0 0,0 -1.414,1 1,0 0,0 -1.414,0L24,23.6v-3.586a1,1 0,0 0,-1 -1z"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path android:fillColor="#000000" android:fillType="evenOdd"
+        android:pathData="m7,14.014a1,1 0,0 0,-1 1,1 1,0 0,0 1,1h4a1,1 0,0 0,1 -1,1 1,0 0,0 -1,-1z"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path android:fillColor="#000000" android:fillType="evenOdd"
+        android:pathData="m7,6.014a1,1 0,0 0,-1 1,1 1,0 0,0 1,1h4a1,1 0,0 0,1 -1,1 1,0 0,0 -1,-1z"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path android:fillColor="#000000" android:fillType="evenOdd"
+        android:pathData="m5,2.014c-1.645,0 -3,1.355 -3,3v4c0,0.766 0.297,1.467 0.777,2 -0.481,0.533 -0.777,1.234 -0.777,2v4c0,0.766 0.297,1.467 0.777,2 -0.481,0.533 -0.777,1.234 -0.777,2v4c0,1.645 1.355,3 3,3h13.111c1.264,1.236 2.99,2 4.889,2 3.854,0 7,-3.146 7,-7 0,-2.782 -1.639,-5.195 -4,-6.322v-3.678c0,-0.766 -0.297,-1.467 -0.777,-2 0.481,-0.533 0.777,-1.234 0.777,-2v-4c0,-1.645 -1.355,-3 -3,-3zM5,4.014h18c0.571,0 1,0.429 1,1v4c0,0.571 -0.429,1 -1,1h-18c-0.571,0 -1,-0.429 -1,-1v-4c0,-0.571 0.429,-1 1,-1zM5,12.014h18c0.571,0 1,0.429 1,1v3.072c-0.327,-0.047 -0.66,-0.072 -1,-0.072 -1.899,0 -3.625,0.764 -4.889,2L5,18.014c-0.571,0 -1,-0.429 -1,-1v-4c0,-0.571 0.429,-1 1,-1zM23,18.014c2.773,0 5,2.227 5,5 0,2.773 -2.227,5 -5,5 -1.441,0 -2.732,-0.602 -3.643,-1.568a1,1 0,0 0,-0.168 -0.186C18.447,25.388 18,24.256 18,23.014c0,-1.256 0.459,-2.4 1.217,-3.275a1,1 0,0 0,0.064 -0.076c0.913,-1.014 2.238,-1.648 3.719,-1.648zM5,20.014h11.678c-0.435,0.91 -0.678,1.927 -0.678,3 0,1.073 0.243,2.09 0.678,3L5,26.014c-0.571,0 -1,-0.429 -1,-1v-4c0,-0.571 0.429,-1 1,-1z"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+</vector>

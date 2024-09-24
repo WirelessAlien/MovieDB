@@ -506,16 +506,16 @@ class MainActivity : BaseActivity() {
             REQUEST_CODE_ASK_PERMISSIONS_EXPORT -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission Granted
-                    val databaseHelper = MovieDatabaseHelper(this)
-                    databaseHelper.exportDatabase(this)
+                    val intent = Intent(applicationContext, ExportActivity::class.java)
+                    startActivity(intent)
                 } // else: permission denied
             }
 
             REQUEST_CODE_ASK_PERMISSIONS_IMPORT -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission Granted
-                    val databaseHelper = MovieDatabaseHelper(this)
-                    databaseHelper.importDatabase(this, mAdapterDataChangedListener)
+                    val intent = Intent(applicationContext, ImportActivity::class.java)
+                    startActivity(intent)
                 } // else: permission denied
             }
 

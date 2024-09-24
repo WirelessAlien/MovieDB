@@ -38,7 +38,6 @@ import com.google.android.flexbox.JustifyContent
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.MovieImageAdapter
 import com.wirelessalien.android.moviedb.data.MovieImage
-import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.tmdb.GetMovieImage
 
 class MovieImageActivity : AppCompatActivity() {
@@ -82,15 +81,14 @@ class MovieImageActivity : AppCompatActivity() {
                 // Permission granted, proceed with the activity
                 initializeActivity()
             } else {
-                // Permission denied, request again
-                checkAndRequestPermission()
+                // Permission denied, close the activity
+                finish()
             }
         }
     }
 
     private fun initializeActivity() {
         setContentView(R.layout.activity_movie_image)
-        DirectoryHelper.createImageDirectory(this)
         movieId = intent.getIntExtra("movieId", 0)
         type = if (intent.getBooleanExtra("isMovie", true)) "movie" else "tv"
         movieImages = emptyList()

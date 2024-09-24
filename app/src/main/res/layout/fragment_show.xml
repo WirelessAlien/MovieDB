@@ -24,18 +24,16 @@
     android:layout_height="match_parent"
     tools:context="com.wirelessalien.android.moviedb.fragment.ShowFragment">
 
-    <RelativeLayout
-       android:layout_width="match_parent"
-       android:layout_height="match_parent">
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/showRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:padding="8dip"
-            tools:listitem="@layout/show_grid_card"
-            android:scrollbars="none" />
-    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/showRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        tools:listitem="@layout/show_grid_card"
+        android:scrollbars="none" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

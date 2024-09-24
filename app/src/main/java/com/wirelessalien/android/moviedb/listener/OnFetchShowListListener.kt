@@ -17,19 +17,11 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Movie DB.  If not, see <https://www.gnu.org/licenses/>.
  */
-package com.wirelessalien.android.moviedb.data
 
-class Episode(
-    var airDate: String,
-    var episodeNumber: Int,
-    var name: String,
-    var overview: String,
-    var runtime: Int,
-    var posterPath: String,
-    var voteAverage: Double
-) {
+package com.wirelessalien.android.moviedb.listener
 
-    fun setWatchDate(date: String?) {}
-    fun setRating(episodeRating: Float) {}
-    fun setReview(review: String?) {}
+import org.json.JSONObject
+
+interface OnFetchShowListListener {
+    fun onFetchShowList(showListData: ArrayList<JSONObject>?)
 }

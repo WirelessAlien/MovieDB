@@ -44,7 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AccountDataFragment : BaseFragment() {
-    override lateinit var preferences: SharedPreferences
+    private lateinit var sPreferences: SharedPreferences
     private lateinit var nameTextView: TextView
     private lateinit var avatar: CircleImageView
     private lateinit var tabLayout: TabLayout
@@ -53,19 +53,24 @@ class AccountDataFragment : BaseFragment() {
     private lateinit var loginBtn: ImageView
     private lateinit var fab: FloatingActionButton
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_account_data, container, false)
-        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        sPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         nameTextView = view.findViewById(R.id.userName)
         avatar = view.findViewById(R.id.profileImage)
         tabLayout = view.findViewById(R.id.tabs)
         loginBtn = view.findViewById(R.id.loginLogoutBtn)
         fab = requireActivity().findViewById(R.id.fab)
-        sessionId = preferences.getString("access_token", null)
-        accountId = preferences.getString("account_id", null)
+        sessionId = sPreferences.getString("access_token", null)
+        accountId = sPreferences.getString("account_id", null)
         if (sessionId == null || accountId == null) {
             loginBtn.isEnabled = false
             fab.isEnabled = false
@@ -154,7 +159,7 @@ class AccountDataFragment : BaseFragment() {
     }
 
     private fun loadAccountDetails() {
-        if (preferences.getString("access_token", null) != null) {
+        if (sPreferences.getString("access_token", null) != null) {
             val getAccountDetailsThread = GetAccountDetailsThread(context, object : GetAccountDetailsThread.AccountDataCallback {
                 override fun onAccountDataReceived(accountId: Int, name: String?, username: String?, avatarPath: String?, gravatar: String?) {
                     if (isAdded) {

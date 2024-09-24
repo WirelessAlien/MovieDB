@@ -292,6 +292,7 @@ class HomeFragment : BaseFragment() {
             try {
                 val reader = JSONObject(response)
                 val arrayData = reader.getJSONArray("results")
+                mHomeShowArrayList.clear()
                 for (i in 0 until arrayData.length()) {
                     val websiteData = arrayData.getJSONObject(i)
                     mHomeShowArrayList.add(websiteData)
@@ -344,6 +345,7 @@ class HomeFragment : BaseFragment() {
             try {
                 val reader = JSONObject(response)
                 val arrayData = reader.getJSONArray("results")
+                mTVShowArrayList.clear()
                 for (i in 0 until arrayData.length()) {
                     val websiteData = arrayData.getJSONObject(i)
                     mTVShowArrayList.add(websiteData)
@@ -396,6 +398,7 @@ class HomeFragment : BaseFragment() {
             try {
                 val reader = JSONObject(response)
                 val arrayData = reader.getJSONArray("results")
+                mUpcomingTVShowArrayList.clear()
                 for (i in 0 until arrayData.length()) {
                     val websiteData = arrayData.getJSONObject(i)
                     mUpcomingTVShowArrayList.add(websiteData)
@@ -501,9 +504,13 @@ class HomeFragment : BaseFragment() {
             try {
                 val reader = JSONObject(response)
                 val arrayData = reader.getJSONArray("results")
+                trendingArrayList.clear()
                 for (i in 0 until arrayData.length()) {
                     val websiteData = arrayData.getJSONObject(i)
-                    trendingArrayList.add(websiteData)
+                    val mediaType = websiteData.getString("media_type")
+                    if (mediaType == "movie" || mediaType == "tv") {
+                        trendingArrayList.add(websiteData)
+                    }
                 }
                 val adapter = trandingRv.adapter as TrendingPagerAdapter?
                 if (adapter != null) {

@@ -84,7 +84,8 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp">
 
 
             <RelativeLayout
@@ -213,7 +214,7 @@
                                 android:layout_marginEnd="5dp"
                                 android:drawableEnd="@drawable/ic_calendar"
                                 android:drawablePadding="5dip"
-                                android:onClick="selectDate"
+                                android:onClick="showDateSelectionDialog"
                                 android:tag="start_date" />
 
                             <com.google.android.material.button.MaterialButton
@@ -227,7 +228,7 @@
                                 app:cornerRadius="5dp"
                                 android:drawableEnd="@drawable/ic_calendar"
                                 android:drawablePadding="5dip"
-                                android:onClick="selectDate"
+                                android:onClick="showDateSelectionDialog"
                                 android:tag="end_date" />
 
                             <com.google.android.material.textfield.TextInputLayout
@@ -456,7 +457,7 @@
                         style="@style/Widget.Material3.Button.IconButton"
                         app:icon="@drawable/ic_edit"
                         app:iconGravity="textTop"
-                        android:text="Edit"
+                        android:text="@string/edit"
                         android:visibility="gone"/>
                 </LinearLayout>
             </HorizontalScrollView>
@@ -684,7 +685,7 @@
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@+id/imdbBtn"
                     app:icon="@drawable/ic_explore"
-                    android:text="Search"
+                    android:text="@string/search"
                     app:iconGravity="top"
                     style="@style/Widget.Material3.Button.IconButton"/>
                 <com.google.android.material.button.MaterialButton
@@ -700,7 +701,7 @@
                     android:id="@+id/homepage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Homepage"
+                    android:text="@string/homepage"
                     app:iconGravity="top"
                     app:icon="@drawable/ic_house"
                     style="@style/Widget.Material3.Button.IconButton"
@@ -789,7 +790,7 @@
                 android:id="@+id/keywordText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Keywords"
+                android:text="@string/keywords"
                 android:paddingStart="16dp"
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"

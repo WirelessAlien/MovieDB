@@ -34,15 +34,12 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
-import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
 import java.io.File
 
 object DirectoryHelper {
 
     fun getExportDirectory(context: Context): File? {
-
-        val exportDirectory: File
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
             val selection = "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?"
@@ -52,7 +49,7 @@ object DirectoryHelper {
 
             if (cursor != null && cursor.moveToFirst()) {
                 cursor.close()
-                return File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "MovieDB")
+                return File(Environment.getExternalStorageDirectory(), "Documents/MovieDB")
             }
 
             cursor?.close()
@@ -71,54 +68,28 @@ object DirectoryHelper {
             } catch (e: SQLiteConstraintException) {
                 Log.e("DirectoryHelper", "Directory already exists: ${e.message}")
             }
-            return File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "MovieDB")
+            return File(Environment.getExternalStorageDirectory(), "Documents/MovieDB")
         } else {
-            exportDirectory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "MovieDB")
+            val exportDirectory = File(Environment.getExternalStorageDirectory(), "Documents/MovieDB")
             if (!exportDirectory.exists()) {
                 if (!exportDirectory.mkdirs()) {
                     Toast.makeText(context, R.string.failed_to_create_directory, Toast.LENGTH_SHORT).show()
                     return null
                 }
             }
+            return exportDirectory
         }
-        return exportDirectory
     }
+
 
     //create image download directory
-    fun createImageDirectory(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // For Android 10 and above
-            val values = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, "MovieDB")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/MovieDB")
-                put(MediaStore.MediaColumns.MIME_TYPE, "vnd.android.document/directory")
-            }
-            try {
-                val uri = context.contentResolver.insert(MediaStore.Files.getContentUri("external"), values)
-                if (uri == null) {
-                    Toast.makeText(context, R.string.failed_to_create_directory, Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: SQLiteConstraintException) {
-                Log.e("DirectoryHelper", "Directory already exists: ${e.message}")
-            }
-        } else {
-            // For Android 9 and below
-            val directory = File(Environment.getExternalStorageDirectory(), "MovieDB")
-            if (!directory.exists()) {
-                if (!directory.mkdirs()) {
-                    Toast.makeText(context, R.string.failed_to_create_directory, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     fun downloadImage(context: Context, imageUrl: String?, fileName: String) {
         try {
             val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             val uri = Uri.parse(imageUrl)
             val request = DownloadManager.Request(uri)
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "MovieDB/$fileName")
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             val downloadId = downloadManager.enqueue(request)
 

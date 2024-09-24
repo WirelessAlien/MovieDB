@@ -22,7 +22,6 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.os.Handler
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -31,6 +30,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -119,83 +122,60 @@ open class BaseFragment : Fragment() {
     /**
      * Uses Thread to retrieve the id to genre mapping.
      */
-    internal inner class GenreListThread(
-        private val mGenreType: String,
-        private val handler: Handler
-    ) : Thread() {
-        override fun run() {
-            if (!isAdded) {
-                return
-            }
+    fun fetchGenreList(mGenreType: String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val response = fetchGenreListFromNetwork(mGenreType)
+            handleResponse(response, mGenreType)
+        }
+    }
+
+    private suspend fun fetchGenreListFromNetwork(mGenreType: String): String? {
+        return withContext(Dispatchers.IO) {
             var line: String?
             val stringBuilder = StringBuilder()
-
-            // Load the genre webpage.
             try {
-                val url = URL(
-                    "https://api.themoviedb.org/3/genre/"
-                            + mGenreType + "/list?api_key=" +
-                            API_KEY
-                )
+                val url = URL("https://api.themoviedb.org/3/genre/$mGenreType/list?api_key=$API_KEY")
                 val urlConnection = url.openConnection()
                 try {
-                    val bufferedReader = BufferedReader(
-                        InputStreamReader(
-                            urlConnection.getInputStream()
-                        )
-                    )
-
-                    // Create one long string of the webpage.
+                    val bufferedReader = BufferedReader(InputStreamReader(urlConnection.getInputStream()))
                     while (bufferedReader.readLine().also { line = it } != null) {
                         stringBuilder.append(line).append("\n")
                     }
-
-                    // Close connection and return the data from the webpage.
                     bufferedReader.close()
-                    val response = stringBuilder.toString()
-
-                    // Use handler to post the result back to the main thread
-                    handler.post { handleResponse(response) }
+                    stringBuilder.toString()
                 } catch (ioe: IOException) {
                     ioe.printStackTrace()
+                    null
                 }
             } catch (ioe: IOException) {
                 ioe.printStackTrace()
+                null
             }
         }
+    }
 
-        private fun handleResponse(response: String?) {
-            if (isAdded && !response.isNullOrEmpty()) {
-                // Save GenreList to sharedPreferences, this way it can be used anywhere.
-                val sharedPreferences = requireContext().applicationContext
-                    .getSharedPreferences("GenreList", Context.MODE_PRIVATE)
-                val prefsEditor = sharedPreferences.edit()
-
-                // Convert the JSON data from the webpage to JSONObjects in an ArrayList.
-                try {
-                    val reader = JSONObject(response)
-                    val genreArray = reader.getJSONArray("genres")
-                    var i = 0
-                    while (genreArray.optJSONObject(i) != null) {
-                        val websiteData = genreArray.getJSONObject(i)
-                        mShowGenreList[websiteData.getString("id")] =
-                            websiteData.getString("name")
-
-                        // Temporary fix until I find a way to handle this efficiently.
-                        prefsEditor.putString(
-                            websiteData.getString("id"),
-                            websiteData.getString("name")
-                        )
-                        prefsEditor.apply()
-                        i++
-                    }
-                    prefsEditor.putString(mGenreType + "GenreJSONArrayList", genreArray.toString())
-                    prefsEditor.commit()
-                    mShowAdapter.notifyDataSetChanged()
-                    mGenreListLoaded = true
-                } catch (je: JSONException) {
-                    je.printStackTrace()
+    private fun handleResponse(response: String?, mGenreType: String) {
+        if (isAdded && !response.isNullOrEmpty()) {
+            val sharedPreferences = requireContext().applicationContext
+                .getSharedPreferences("GenreList", Context.MODE_PRIVATE)
+            val prefsEditor = sharedPreferences.edit()
+            try {
+                val reader = JSONObject(response)
+                val genreArray = reader.getJSONArray("genres")
+                var i = 0
+                while (genreArray.optJSONObject(i) != null) {
+                    val websiteData = genreArray.getJSONObject(i)
+                    mShowGenreList[websiteData.getString("id")] = websiteData.getString("name")
+                    prefsEditor.putString(websiteData.getString("id"), websiteData.getString("name"))
+                    prefsEditor.apply()
+                    i++
                 }
+                prefsEditor.putString(mGenreType+ "GenreJSONArrayList", genreArray.toString())
+                prefsEditor.commit()
+                mShowAdapter.notifyDataSetChanged()
+                mGenreListLoaded = true
+            } catch (je: JSONException) {
+                je.printStackTrace()
             }
         }
     }

@@ -20,8 +20,6 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,6 +31,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
@@ -49,6 +51,7 @@ class RatedListFragment : BaseFragment() {
     private var pastVisibleItems = 0
     private var visibleItemCount = 0
     private var totalItemCount = 0
+    private val showIdSet = HashSet<Int>()
 
     @Volatile
     private var isLoadingData = false
@@ -63,7 +66,7 @@ class RatedListFragment : BaseFragment() {
 
     override fun doNetworkWork() {
         if (!mShowListLoaded) {
-            RatedListThread(mListType, 1).start()
+            loadRatedList(mListType, 1)
         }
     }
 
@@ -79,7 +82,7 @@ class RatedListFragment : BaseFragment() {
         } else {
             "movie"
         }
-        RatedListThread(mListType, 1).start()
+        loadRatedList(mListType, 1)
         showShowList(fragmentView)
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         updateFabIcon(fab, mListType)
@@ -95,7 +98,7 @@ class RatedListFragment : BaseFragment() {
         mShowArrayList.clear()
         currentPage = 1
         mListType = if ("movie" == mListType) "tv" else "movie"
-        RatedListThread(mListType, 1).start()
+        loadRatedList(mListType, 1)
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         updateFabIcon(fab, mListType)
     }
@@ -166,105 +169,86 @@ class RatedListFragment : BaseFragment() {
                     if (!loading && visibleItemCount + pastVisibleItems + threshold >= totalItemCount) {
                         // Load the next page of the content in the background.
                         if (mShowArrayList.size > 0) {
-                            RatedListThread(mListType, currentPage.toString().toInt()).start()
+                            currentPage++
+                            loadRatedList(mListType, currentPage)
                         }
                         loading = true
-                        currentPage++
                     }
                 }
             }
         })
     }
 
-    private inner class RatedListThread(private val listType: String?, private val page: Int) :
-        Thread() {
-        private val handler: Handler = Handler(Looper.getMainLooper())
-
-        override fun run() {
+    private fun loadRatedList(listType: String?, page: Int) {
+        CoroutineScope(Dispatchers.Main).launch {
             isLoadingData = true
             if (!isAdded) {
-                return
+                return@launch
             }
-            handler.post {
-                if (isAdded) {
-                    val progressBar =
-                        Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
-                    progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
+
+            val progressBar = Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
+            progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
+
+            val response = withContext(Dispatchers.IO) {
+                val access_token = preferences.getString("access_token", "")
+                val accountId = preferences.getString("account_id", "")
+                val url = "https://api.themoviedb.org/4/account/$accountId/$listType/rated?page=$page"
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Content-Type", "application/json;charset=utf-8")
+                    .addHeader("Authorization", "Bearer $access_token")
+                    .build()
+                try {
+                    client.newCall(request).execute().use { response ->
+                        response.body()?.string()
+                    }
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    null
                 }
             }
 
-            // Load the webpage with the list of rated movies/series.
-            val access_token = preferences.getString("access_token", "")
-            val accountId = preferences.getString("account_id", "")
-            val url = "https://api.themoviedb.org/4/account/$accountId/$listType/rated?page=$page"
-            val client = OkHttpClient()
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("Content-Type", "application/json;charset=utf-8")
-                .addHeader("Authorization", "Bearer $access_token")
-                .build()
+            handleResponse(response)
+            progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
+            isLoadingData = false
+        }
+    }
+
+    private fun handleResponse(response: String?) {
+        if (isAdded && !response.isNullOrEmpty()) {
+            val position: Int = try {
+                mShowLinearLayoutManager.findFirstVisibleItemPosition()
+            } catch (npe: NullPointerException) {
+                0
+            }
+
             try {
-                client.newCall(request).execute().use { response ->
-                    var responseBody: String? = null
-                    if (response.body() != null) {
-                        responseBody = response.body()!!.string()
-                    }
-                    handleResponse(responseBody)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                hideProgressBar()
-            } finally {
-                isLoadingData = false
-                hideProgressBar()
-            }
-        }
+                val reader = JSONObject(response)
+                val arrayData = reader.getJSONArray("results")
+                for (i in 0 until arrayData.length()) {
+                    val websiteData = arrayData.getJSONObject(i)
+                    val showId = websiteData.getInt("id")
 
-        private fun handleResponse(response: String?) {
-            handler.post {
-                if (isAdded && !response.isNullOrEmpty()) {
-                    // Keep the user at the same position in the list.
-                    val position: Int = try {
-                        mShowLinearLayoutManager.findFirstVisibleItemPosition()
-                    } catch (npe: NullPointerException) {
-                        0
-                    }
-
-                    // Convert the JSON webpage to JSONObjects
-                    // Add the JSONObjects to the list with movies/series.
-                    try {
-                        val reader = JSONObject(response)
-                        val arrayData = reader.getJSONArray("results")
-                        for (i in 0 until arrayData.length()) {
-                            val websiteData = arrayData.getJSONObject(i)
-                            mShowArrayList.add(websiteData)
+                    // Check if the ID is already in the set
+                    if (!showIdSet.contains(showId)) {
+                        if (websiteData.getString("overview").isEmpty()) {
+                            websiteData.put("overview", "Overview may not be available in the specified language.")
                         }
-
-                        // Reload the adapter (with the new page)
-                        // and set the user to his old position.
-                        mShowView.adapter = mShowAdapter
-                        mShowView.scrollToPosition(position)
-                        mShowListLoaded = true
-                        hideProgressBar()
-                    } catch (je: JSONException) {
-                        je.printStackTrace()
-                        hideProgressBar()
+                        mShowArrayList.add(websiteData)
+                        showIdSet.add(showId) // Add the ID to the set
                     }
                 }
-                loading = false
-            }
-        }
 
-        private fun hideProgressBar() {
-            handler.post {
-                if (isAdded) {
-                    val progressBar =
-                        Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
-                    progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
-                }
+                mShowView.adapter = mShowAdapter
+                mShowView.scrollToPosition(position)
+                mShowListLoaded = true
+            } catch (je: JSONException) {
+                je.printStackTrace()
             }
         }
+        loading = false
     }
 
     companion object {

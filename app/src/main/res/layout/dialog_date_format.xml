@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~     This file is part of Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
@@ -22,29 +21,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <RadioGroup
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnYear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cornerRadius="5dp"
+        android:text="@string/remember_only_the_year"/>
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_json"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="JSON" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnFullDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cornerRadius="5dp"
+        android:text="@string/remember_the_full_date"
+        android:layout_marginTop="8dp" />
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_db"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="DB" />
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_csv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CSV" />
-    </RadioGroup>
 </LinearLayout>

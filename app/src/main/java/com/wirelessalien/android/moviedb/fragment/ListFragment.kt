@@ -140,7 +140,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 return when (menuItem.itemId) {
                     R.id.action_export -> {
                         // Handle export action
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                             if (ActivityCompat.checkSelfPermission(
                                     requireContext(),
                                     Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -163,7 +163,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
                     R.id.action_import -> {
                         // Handle import action
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                             if (ActivityCompat.checkSelfPermission(
                                     requireContext(),
                                     Manifest.permission.READ_EXTERNAL_STORAGE
@@ -620,9 +620,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
         )
         mShowView.adapter = mShowAdapter
-        val handler = Handler(Looper.getMainLooper())
-        val genreListThread = GenreListThread("tv", handler)
-        genreListThread.start()
+        fetchGenreList("tv")
     }
 
     /**
