@@ -89,11 +89,11 @@ import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.databaseUpdate
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import com.wirelessalien.android.moviedb.tmdb.account.AddRatingThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.AddToFavouritesThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlistThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteRatingThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.AddRating
+import com.wirelessalien.android.moviedb.tmdb.account.AddToFavourites
+import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlist
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteRating
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountState
 import com.wirelessalien.android.moviedb.view.NotifyingScrollView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -328,7 +328,7 @@ class DetailActivity : BaseActivity() {
         lifecycleScope.launch {
             if (accountId != null && sessionId != null) {
                 val typeCheck = if (isMovie) "movie" else "tv"
-                val getAccountState = GetAccountStateThreadTMDb(movieId, typeCheck, mActivity)
+                val getAccountState = GetAccountState(movieId, typeCheck, mActivity)
 
                 withContext(Dispatchers.IO) {
                     getAccountState.fetchAccountState()
@@ -508,7 +508,7 @@ class DetailActivity : BaseActivity() {
             lifecycleScope.launch {
                 if (accountId != null) {
                     val typeCheck = if (isMovie) "movie" else "tv"
-                    val getAccountState = GetAccountStateThreadTMDb(movieId, typeCheck, mActivity)
+                    val getAccountState = GetAccountState(movieId, typeCheck, mActivity)
 
                     withContext(Dispatchers.IO) {
                         getAccountState.fetchAccountState()
@@ -523,7 +523,7 @@ class DetailActivity : BaseActivity() {
                                 R.drawable.ic_bookmark_border
                             )
                             withContext(Dispatchers.IO) {
-                                AddToWatchlistThreadTMDb(movieId, typeCheck, false, mActivity).addToWatchlist()
+                                AddToWatchlist(movieId, typeCheck, false, mActivity).addToWatchlist()
                             }
                         } else {
                             binding.watchListButton.icon = ContextCompat.getDrawable(
@@ -531,7 +531,7 @@ class DetailActivity : BaseActivity() {
                                 R.drawable.ic_bookmark
                             )
                             withContext(Dispatchers.IO) {
-                                AddToWatchlistThreadTMDb(movieId, typeCheck, true, mActivity).addToWatchlist()
+                                AddToWatchlist(movieId, typeCheck, true, mActivity).addToWatchlist()
                             }
                         }
                     }
@@ -557,7 +557,7 @@ class DetailActivity : BaseActivity() {
             lifecycleScope.launch {
                 if (accountId != null) {
                     val typeCheck = if (isMovie) "movie" else "tv"
-                    val getAccountState = GetAccountStateThreadTMDb(movieId, typeCheck, mActivity)
+                    val getAccountState = GetAccountState(movieId, typeCheck, mActivity)
 
                     withContext(Dispatchers.IO) {
                         getAccountState.fetchAccountState()
@@ -572,7 +572,7 @@ class DetailActivity : BaseActivity() {
                                 R.drawable.ic_favorite_border
                             )
                             withContext(Dispatchers.IO) {
-                                AddToFavouritesThreadTMDb(movieId, typeCheck, false, mActivity).addToFavourites()
+                                AddToFavourites(movieId, typeCheck, false, mActivity).addToFavourites()
                             }
                         } else {
                             binding.favouriteButton.icon = ContextCompat.getDrawable(
@@ -580,7 +580,7 @@ class DetailActivity : BaseActivity() {
                                 R.drawable.ic_favorite
                             )
                             withContext(Dispatchers.IO) {
-                                AddToFavouritesThreadTMDb(movieId, typeCheck, true, mActivity).addToFavourites()
+                                AddToFavourites(movieId, typeCheck, true, mActivity).addToFavourites()
                             }
                         }
                     }
@@ -607,7 +607,7 @@ class DetailActivity : BaseActivity() {
             movieTitle.text = showTitle
             lifecycleScope.launch {
                 val typeCheck = if (isMovie) "movie" else "tv"
-                val getAccountState = GetAccountStateThreadTMDb(movieId, typeCheck, mActivity)
+                val getAccountState = GetAccountState(movieId, typeCheck, mActivity)
 
                 withContext(Dispatchers.IO) {
                     getAccountState.fetchAccountState()
@@ -621,7 +621,7 @@ class DetailActivity : BaseActivity() {
                         val type = if (isMovie) "movie" else "tv"
                         val rating = ratingBar.rating.toDouble()
                         withContext(Dispatchers.IO) {
-                            AddRatingThreadTMDb(movieId, rating, type, mActivity).addRating()
+                            AddRating(movieId, rating, type, mActivity).addRating()
                         }
                         dialog.dismiss()
                     }
@@ -631,7 +631,7 @@ class DetailActivity : BaseActivity() {
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
                         withContext(Dispatchers.IO) {
-                            DeleteRatingThreadTMDb(movieId, type, mActivity).deleteRating()
+                            DeleteRating(movieId, type, mActivity).deleteRating()
                         }
                         dialog.dismiss()
                     }
@@ -1950,10 +1950,8 @@ class DetailActivity : BaseActivity() {
                 if (reader.getJSONArray("cast").length() <= 0) {
                     // This movie has no available cast,
                     // do not show the cast related views.
-                    val textView = mActivity.findViewById<TextView>(R.id.castTitle)
-                    val view = mActivity.findViewById<View>(R.id.secondDivider)
-                    textView.visibility = View.GONE
-                    view.visibility = View.GONE
+                    binding.castTitle.visibility = View.GONE
+                    binding.secondDivider.visibility = View.GONE
                     binding.castRecyclerView.visibility = View.GONE
                 } else {
                     val castArray = reader.getJSONArray("cast")
@@ -1975,10 +1973,8 @@ class DetailActivity : BaseActivity() {
                 if (reader.getJSONArray("crew").length() <= 0) {
                     // This movie has no available cast,
                     // do not show the cast related views.
-                    val textView = mActivity.findViewById<TextView>(R.id.crewTitle)
-                    val view = mActivity.findViewById<View>(R.id.thirdDivider)
-                    textView.visibility = View.GONE
-                    view.visibility = View.GONE
+                    binding.crewTitle.visibility = View.GONE
+                    binding.thirdDivider.visibility = View.GONE
                     binding.crewRecyclerView.visibility = View.GONE
                 } else {
                     val crewArray = reader.getJSONArray("crew")

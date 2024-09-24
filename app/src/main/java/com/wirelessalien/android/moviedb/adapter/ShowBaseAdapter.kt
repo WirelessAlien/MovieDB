@@ -38,7 +38,7 @@ import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromListThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -224,7 +224,7 @@ class ShowBaseAdapter(
                 val listId =
                     PreferenceManager.getDefaultSharedPreferences(context).getInt("listId", 0)
                 val activity = context as Activity
-                val deleteThread = DeleteFromListThreadTMDb(
+                val deleteThread = DeleteFromList(
                     mediaId,
                     listId,
                     type,

@@ -35,7 +35,7 @@ import okhttp3.RequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 
-class DeleteFromListThreadTMDb(
+class DeleteFromList(
     private val mediaId: Int,
     private val listId: Int,
     private val type: String,

@@ -49,8 +49,10 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
@@ -59,6 +61,8 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * This class displays information about person objects.
@@ -385,7 +389,7 @@ class CastActivity : BaseActivity() {
     }
 
     /**
-     * Thread that retrieves the shows that the person is credited
+     * Coroutine that retrieves the shows that the person is credited
      * for from the API.
      */
 
@@ -499,11 +503,20 @@ class CastActivity : BaseActivity() {
     }
 
     /**
-     * Thread that retrieves the details of the person from the API.
+     * Coroutine that retrieves the details of the person from the API.
      */
+    // Define a single instance of OkHttpClient
+    private val client: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
+            .build()
+    }
+
+    // Use a fixed thread pool for coroutines
+    private val coroutineDispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
+
     private fun fetchActorDetails() {
-        CoroutineScope(Dispatchers.IO).launch {
-            val client = OkHttpClient()
+        CoroutineScope(coroutineDispatcher).launch {
             val baseUrl = "https://api.themoviedb.org/3/person/$actorId?api_key=$API_KEY"
             val urlWithLanguage = baseUrl + getLanguageParameter(applicationContext)
             try {

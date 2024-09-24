@@ -37,7 +37,10 @@ import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.MovieImage
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper.downloadImage
-import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MovieImageAdapter(private val context: Context, private val movieImages: List<MovieImage>) :
     RecyclerView.Adapter<MovieImageAdapter.ViewHolder?>() {
@@ -86,14 +89,14 @@ class MovieImageAdapter(private val context: Context, private val movieImages: L
                     arrayOf("https://image.tmdb.org/t/p/original" + movieImages[position1[0]].getFilePath())
                 progressBar.visibility = View.VISIBLE
                 popupWindow.showAtLocation(v, Gravity.CENTER, 0, 0)
-                CompletableFuture.runAsync {
+                CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        val bitmap = Picasso.get().load(hDImageUrl).get()
-                        val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
-                        dialogImageView.post {
-                            dialogImageView.setImageDrawable(drawable)
-                            progressBar.visibility = View.GONE
+                        val bitmap = withContext(Dispatchers.IO) {
+                            Picasso.get().load(hDImageUrl).get()
                         }
+                        val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
+                        dialogImageView.setImageDrawable(drawable)
+                        progressBar.visibility = View.GONE
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -104,27 +107,27 @@ class MovieImageAdapter(private val context: Context, private val movieImages: L
                 dismissButton.setOnClickListener { popupWindow.dismiss() }
                 loadOriginalButton.setOnClickListener {
                     progressBar.visibility = View.VISIBLE
-                    CompletableFuture.runAsync {
+                    CoroutineScope(Dispatchers.Main).launch {
                         try {
-                            val bitmap = Picasso.get().load(originalImageUrl[0]).get()
-                            val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
-                            dialogImageView.post {
-                                dialogImageView.setImageDrawable(drawable)
-                                progressBar.visibility = View.GONE
+                            val bitmap = withContext(Dispatchers.IO) {
+                                Picasso.get().load(originalImageUrl[0]).get()
                             }
+                            val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
+                            dialogImageView.setImageDrawable(drawable)
+                            progressBar.visibility = View.GONE
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
                 }
 
-                //zoom in btn
+                // zoom in btn
                 zoomInButton.setOnClickListener {
                     dialogImageView.scaleX = dialogImageView.scaleX + 0.1f
                     dialogImageView.scaleY = dialogImageView.scaleY + 0.1f
                 }
 
-                //zoom out btn
+                // zoom out btn
                 zoomOutButton.setOnClickListener {
                     dialogImageView.scaleX = dialogImageView.scaleX - 0.1f
                     dialogImageView.scaleY = dialogImageView.scaleY - 0.1f
@@ -137,14 +140,14 @@ class MovieImageAdapter(private val context: Context, private val movieImages: L
                         originalImageUrl[0] =
                             "https://image.tmdb.org/t/p/original" + movieImages[position1[0]].getFilePath()
                         progressBar.visibility = View.VISIBLE
-                        CompletableFuture.runAsync {
+                        CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                val bitmap = Picasso.get().load(nextImageUrl).get()
-                                val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
-                                dialogImageView.post {
-                                    dialogImageView.setImageDrawable(drawable)
-                                    progressBar.visibility = View.GONE
+                                val bitmap = withContext(Dispatchers.IO) {
+                                    Picasso.get().load(nextImageUrl).get()
                                 }
+                                val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
+                                dialogImageView.setImageDrawable(drawable)
+                                progressBar.visibility = View.GONE
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
@@ -159,14 +162,14 @@ class MovieImageAdapter(private val context: Context, private val movieImages: L
                         originalImageUrl[0] =
                             "https://image.tmdb.org/t/p/original" + movieImages[position1[0]].getFilePath()
                         progressBar.visibility = View.VISIBLE
-                        CompletableFuture.runAsync {
+                        CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                val bitmap = Picasso.get().load(prevImageUrl).get()
-                                val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
-                                dialogImageView.post {
-                                    dialogImageView.setImageDrawable(drawable)
-                                    progressBar.visibility = View.GONE
+                                val bitmap = withContext(Dispatchers.IO) {
+                                    Picasso.get().load(prevImageUrl).get()
                                 }
+                                val drawable: Drawable = BitmapDrawable(context.resources, bitmap)
+                                dialogImageView.setImageDrawable(drawable)
+                                progressBar.visibility = View.GONE
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }

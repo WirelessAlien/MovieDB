@@ -120,7 +120,7 @@ open class BaseFragment : Fragment() {
     }
 
     /**
-     * Uses Thread to retrieve the id to genre mapping.
+     * Uses Coroutine to retrieve the id to genre mapping.
      */
     fun fetchGenreList(mGenreType: String) {
         CoroutineScope(Dispatchers.Main).launch {

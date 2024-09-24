@@ -33,7 +33,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 
-class TMDbAuthThreadV4(private val context: Context) {
+class TMDbAuthV4(private val context: Context) {
     private val apiKey: String? = getConfigValue(context, "api_read_access_token")
     private val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 

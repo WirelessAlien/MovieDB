@@ -469,7 +469,7 @@ class ShowFragment : BaseFragment() {
     }
 
     /**
-     * Uses Thread to retrieve the list with shows that fulfill the search query
+     * Uses Coroutine to retrieve the list with shows that fulfill the search query
      * (and are of the requested type which means that nothing will turn up if you
      * search for a series in the movies tab (and there are no movies with the same name).
      */

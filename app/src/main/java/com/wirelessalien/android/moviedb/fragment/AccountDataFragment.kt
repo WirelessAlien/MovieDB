@@ -37,7 +37,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetailsThread
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetails
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -160,7 +160,7 @@ class AccountDataFragment : BaseFragment() {
 
     private fun loadAccountDetails() {
         if (sPreferences.getString("access_token", null) != null) {
-            val getAccountDetailsThread = GetAccountDetailsThread(context, object : GetAccountDetailsThread.AccountDataCallback {
+            val getAccountDetails = GetAccountDetails(context, object : GetAccountDetails.AccountDataCallback {
                 override fun onAccountDataReceived(accountId: Int, name: String?, username: String?, avatarPath: String?, gravatar: String?) {
                     if (isAdded) {
                         requireActivity().runOnUiThread {
@@ -180,7 +180,7 @@ class AccountDataFragment : BaseFragment() {
             })
 
             CoroutineScope(Dispatchers.Main).launch {
-                getAccountDetailsThread.fetchAccountDetails()
+                getAccountDetails.fetchAccountDetails()
             }
         }
     }

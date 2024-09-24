@@ -31,30 +31,35 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 
-class AddRatingThreadTMDb(
+class AddToWatchlist(
     private val movieId: Int,
-    private val rating: Double,
     private val type: String,
+    private val trueOrFalse: Boolean,
     private val activity: Activity
 ) {
+    private val accountId: String?
     private val accessToken: String?
+    private val client: OkHttpClient
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
+        accountId = preferences.getString("account_id", "")
         accessToken = preferences.getString("access_token", "")
+        client = OkHttpClient()
     }
 
-    suspend fun addRating() {
+    suspend fun addToWatchlist() {
         var success = false
         try {
-            val client = OkHttpClient()
             val mediaType = MediaType.parse("application/json;charset=utf-8")
             val jsonParam = JSONObject().apply {
-                put("value", rating)
+                put("media_type", type)
+                put("media_id", movieId)
+                put("watchlist", trueOrFalse)
             }
             val body = RequestBody.create(mediaType, jsonParam.toString())
             val request = Request.Builder()
-                .url("https://api.themoviedb.org/3/$type/$movieId/rating")
+                .url("https://api.themoviedb.org/3/account/$accountId/watchlist")
                 .post(body)
                 .addHeader("accept", "application/json")
                 .addHeader("content-type", "application/json")
@@ -73,9 +78,9 @@ class AddRatingThreadTMDb(
         val finalSuccess = success
         activity.runOnUiThread {
             if (finalSuccess) {
-                Toast.makeText(activity, R.string.rating_added_successfully, Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.added_to_watchlist, Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(activity, R.string.failed_to_add_rating, Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.removed_from_watchlist, Toast.LENGTH_SHORT).show()
             }
         }
     }

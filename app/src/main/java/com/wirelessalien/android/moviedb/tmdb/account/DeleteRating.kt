@@ -31,7 +31,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
-class DeleteRatingThreadTMDb(
+class DeleteRating(
     private val movieId: Int,
     private val type: String,
     private val activity: Activity

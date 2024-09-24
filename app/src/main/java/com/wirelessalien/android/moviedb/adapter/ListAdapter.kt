@@ -28,7 +28,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.ListData
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteListThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,7 +90,7 @@ class ListAdapter(
             if (showDeleteButton) {
                 deleteButton.visibility = View.VISIBLE
                 deleteButton.setOnClickListener { v: View? ->
-                    val deleteListThread = DeleteListThreadTMDb(listData.id, itemView.context as Activity, object : DeleteListThreadTMDb.OnListDeletedListener {
+                    val deleteListThread = DeleteList(listData.id, itemView.context as Activity, object : DeleteList.OnListDeletedListener {
                         override fun onListDeleted() {
                             this@ListAdapter.listData.remove(listData)
                             notifyDataSetChanged()

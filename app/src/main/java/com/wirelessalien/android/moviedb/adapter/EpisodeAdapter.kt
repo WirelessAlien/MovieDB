@@ -34,7 +34,6 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.RatingBar
-import android.widget.RatingBar.OnRatingBarChangeListener
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -45,15 +44,14 @@ import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter.EpisodeViewHolder
 import com.wirelessalien.android.moviedb.data.Episode
 import com.wirelessalien.android.moviedb.databinding.EpisodeItemBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRatingThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRatingThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRating
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRating
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateTvSeason
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -321,7 +319,7 @@ class EpisodeAdapter(
             submitButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
                     val ratingS = ratingBar.rating.toDouble()
-                    AddEpisodeRatingThreadTMDb(
+                    AddEpisodeRating(
                         tvShowId,
                         seasonNumber,
                         episode.episodeNumber,
@@ -333,7 +331,7 @@ class EpisodeAdapter(
             }
             deleteButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
-                    DeleteEpisodeRatingThreadTMDb(
+                    DeleteEpisodeRating(
                         tvShowId,
                         seasonNumber,
                         episode.episodeNumber,

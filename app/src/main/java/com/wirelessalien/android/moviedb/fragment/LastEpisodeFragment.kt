@@ -36,8 +36,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.FragmentLastEpisodeBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRatingThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRatingThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRating
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRating
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +45,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
 import java.util.Locale
-import java.util.concurrent.CompletableFuture
 
 class LastEpisodeFragment : Fragment() {
     private var binding: FragmentLastEpisodeBinding? = null
@@ -129,7 +128,7 @@ class LastEpisodeFragment : Fragment() {
                     submitButton.setOnClickListener {
                         CoroutineScope(Dispatchers.Main).launch {
                             val rating = ratingBar.rating.toDouble()
-                            AddEpisodeRatingThreadTMDb(
+                            AddEpisodeRating(
                                 movieId,
                                 seasonNumber,
                                 episodeNumber,
@@ -142,7 +141,7 @@ class LastEpisodeFragment : Fragment() {
 
                     deleteButton.setOnClickListener {
                         CoroutineScope(Dispatchers.Main).launch {
-                            DeleteEpisodeRatingThreadTMDb(
+                            DeleteEpisodeRating(
                                 movieId,
                                 seasonNumber,
                                 episodeNumber,

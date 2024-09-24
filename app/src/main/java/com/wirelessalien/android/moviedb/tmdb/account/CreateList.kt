@@ -20,9 +20,11 @@
 package com.wirelessalien.android.moviedb.tmdb.account
 
 import android.app.Activity
+import android.content.Context
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType
@@ -31,35 +33,34 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 
-class AddToWatchlistThreadTMDb(
-    private val movieId: Int,
-    private val type: String,
-    private val trueOrFalse: Boolean,
-    private val activity: Activity
+class CreateList(
+    private val listName: String,
+    private val description: String,
+    private val isPublic: Boolean,
+    private val context: Context?
 ) {
-    private val accountId: String?
     private val accessToken: String?
-    private val client: OkHttpClient
 
     init {
-        val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
-        accountId = preferences.getString("account_id", "")
+        val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
         accessToken = preferences.getString("access_token", "")
-        client = OkHttpClient()
     }
 
-    suspend fun addToWatchlist() {
+    suspend fun createList() {
         var success = false
         try {
-            val mediaType = MediaType.parse("application/json;charset=utf-8")
+            val client = OkHttpClient()
+            val mediaType = MediaType.parse("application/json")
             val jsonParam = JSONObject().apply {
-                put("media_type", type)
-                put("media_id", movieId)
-                put("watchlist", trueOrFalse)
+                put("name", listName)
+                put("description", description)
+                put("iso_3166_1", "US")
+                put("iso_639_1", "en")
+                put("public", isPublic)
             }
             val body = RequestBody.create(mediaType, jsonParam.toString())
             val request = Request.Builder()
-                .url("https://api.themoviedb.org/3/account/$accountId/watchlist")
+                .url("https://api.themoviedb.org/4/list")
                 .post(body)
                 .addHeader("accept", "application/json")
                 .addHeader("content-type", "application/json")
@@ -68,19 +69,22 @@ class AddToWatchlistThreadTMDb(
             val response = withContext(Dispatchers.IO) {
                 client.newCall(request).execute()
             }
-            val responseBody = response.body()!!.string()
-            val jsonResponse = JSONObject(responseBody)
-            val statusCode = jsonResponse.getInt("status_code")
-            success = statusCode == 1
+            val jsonResponse = JSONObject(response.body()!!.string())
+            success = jsonResponse.getBoolean("success")
+            if (success) {
+                ListDatabaseHelper(context).addList(jsonResponse.getInt("id"), listName)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
         val finalSuccess = success
-        activity.runOnUiThread {
-            if (finalSuccess) {
-                Toast.makeText(activity, R.string.added_to_watchlist, Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(activity, R.string.removed_from_watchlist, Toast.LENGTH_SHORT).show()
+        if (context is Activity) {
+            context.runOnUiThread {
+                if (finalSuccess) {
+                    Toast.makeText(context, R.string.list_created_successfully, Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, R.string.failed_to_create_list, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

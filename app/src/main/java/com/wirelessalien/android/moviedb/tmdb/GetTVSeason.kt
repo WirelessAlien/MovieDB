@@ -30,7 +30,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-class TVSeasonThread(private val tvShowId: Int, context: Context?) : Thread() {
+class GetTVSeason(private val tvShowId: Int, context: Context?) : Thread() {
     private lateinit var seasons: MutableList<TVSeason>
     private var tvShowName: String? = null
     private val preferences: SharedPreferences

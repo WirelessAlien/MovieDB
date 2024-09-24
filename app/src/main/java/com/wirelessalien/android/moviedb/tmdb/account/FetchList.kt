@@ -19,73 +19,68 @@
  */
 package com.wirelessalien.android.moviedb.tmdb.account
 
-import android.app.Activity
 import android.content.Context
-import android.widget.Toast
 import androidx.preference.PreferenceManager
-import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
+import com.wirelessalien.android.moviedb.data.ListData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import org.json.JSONObject
 
-class CreateListThreadTMDb(
-    private val listName: String,
-    private val description: String,
-    private val isPublic: Boolean,
-    private val context: Context?
+
+class FetchList(
+    context: Context?,
+    private val listener: OnListFetchListener?
 ) {
     private val accessToken: String?
+    private val accountId: String?
+
+    interface OnListFetchListener {
+        fun onListFetch(listData: List<ListData>?)
+    }
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
         accessToken = preferences.getString("access_token", "")
+        accountId = preferences.getString("account_id", "")
     }
 
-    suspend fun createList() {
-        var success = false
-        try {
+    suspend fun fetchLists(): List<ListData>? {
+        return try {
             val client = OkHttpClient()
-            val mediaType = MediaType.parse("application/json")
-            val jsonParam = JSONObject().apply {
-                put("name", listName)
-                put("description", description)
-                put("iso_3166_1", "US")
-                put("iso_639_1", "en")
-                put("public", isPublic)
-            }
-            val body = RequestBody.create(mediaType, jsonParam.toString())
             val request = Request.Builder()
-                .url("https://api.themoviedb.org/4/list")
-                .post(body)
+                .url("https://api.themoviedb.org/4/account/$accountId/lists")
+                .get()
                 .addHeader("accept", "application/json")
-                .addHeader("content-type", "application/json")
                 .addHeader("Authorization", "Bearer $accessToken")
                 .build()
             val response = withContext(Dispatchers.IO) {
                 client.newCall(request).execute()
             }
-            val jsonResponse = JSONObject(response.body()!!.string())
-            success = jsonResponse.getBoolean("success")
-            if (success) {
-                ListDatabaseHelper(context).addList(jsonResponse.getInt("id"), listName)
+            val responseBody = withContext(Dispatchers.IO) {
+                response.body()?.string()
             }
+            val jsonResponse = JSONObject(responseBody!!)
+            val results = jsonResponse.getJSONArray("results")
+            val listData: MutableList<ListData> = ArrayList()
+            for (i in 0 until results.length()) {
+                val result = results.getJSONObject(i)
+                listData.add(
+                    ListData(
+                        result.getInt("id"),
+                        result.getString("name"),
+                        result.getString("description"),
+                        result.getInt("number_of_items"),
+                        result.getDouble("average_rating")
+                    )
+                )
+            }
+            listener?.onListFetch(listData)
+            listData
         } catch (e: Exception) {
             e.printStackTrace()
-        }
-        val finalSuccess = success
-        if (context is Activity) {
-            context.runOnUiThread {
-                if (finalSuccess) {
-                    Toast.makeText(context, R.string.list_created_successfully, Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, R.string.failed_to_create_list, Toast.LENGTH_SHORT).show()
-                }
-            }
+            null
         }
     }
 }

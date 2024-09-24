@@ -71,14 +71,11 @@ import com.wirelessalien.android.moviedb.fragment.PersonFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
-import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
-import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
-import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
-import com.wirelessalien.android.moviedb.tmdb.account.ListDetailsThreadTMDb
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
@@ -303,7 +300,7 @@ class MainActivity : BaseActivity() {
 
                 lifecycleScope.launch {
                     try {
-                        val fetchListCoroutineTMDb = FetchListThreadTMDb(this@MainActivity, object : FetchListThreadTMDb.OnListFetchListener {
+                        val fetchListCoroutineTMDb = FetchList(this@MainActivity, object : FetchList.OnListFetchListener {
                             override fun onListFetch(listData: List<ListData>?) {
                                 if (listData != null) {
                                     for (data in listData) {
@@ -379,9 +376,9 @@ class MainActivity : BaseActivity() {
                             object : GetAccessToken.OnTokenReceivedListener {
                                 override fun onTokenReceived(accessToken: String?) {
                                     lifecycleScope.launch {
-                                        val fetchListCoroutineTMDb = FetchListThreadTMDb(
+                                        val fetchListCoroutineTMDb = FetchList(
                                             this@MainActivity,
-                                            object : FetchListThreadTMDb.OnListFetchListener {
+                                            object : FetchList.OnListFetchListener {
                                                 override fun onListFetch(listData: List<ListData>?) {
                                                     val listDatabaseHelper = ListDatabaseHelper(this@MainActivity)
                                                     for (data in listData!!) {

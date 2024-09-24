@@ -33,7 +33,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 
-class LogoutThread(private val context: Context, private val handler: Handler) {
+class AccountLogout(private val context: Context, private val handler: Handler) {
     private val preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     suspend fun logout() {

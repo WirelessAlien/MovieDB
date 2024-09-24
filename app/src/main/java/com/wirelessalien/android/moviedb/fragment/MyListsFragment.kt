@@ -32,7 +32,7 @@ import com.wirelessalien.android.moviedb.activity.MyListDetailsActivity
 import com.wirelessalien.android.moviedb.adapter.ListAdapter
 import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.databinding.FragmentMyListsBinding
-import com.wirelessalien.android.moviedb.tmdb.account.FetchListThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import kotlinx.coroutines.launch
 
 class MyListsFragment : BaseFragment() {
@@ -56,7 +56,7 @@ class MyListsFragment : BaseFragment() {
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = listAdapter
         binding.progressBar.visibility = View.VISIBLE
-        val fetcher = FetchListThreadTMDb(context, null)
+        val fetcher = FetchList(context, null)
         requireActivity().lifecycleScope.launch {
             val listData = fetcher.fetchLists()
             requireActivity().runOnUiThread {

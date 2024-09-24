@@ -25,19 +25,18 @@ import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import org.json.JSONObject
 
-class DeleteListThreadTMDb(
-    private val listId: Int,
-    private val activity: Activity,
-    private val onListDeletedListener: OnListDeletedListener
+class AddRating(
+    private val movieId: Int,
+    private val rating: Double,
+    private val type: String,
+    private val activity: Activity
 ) {
-    interface OnListDeletedListener {
-        fun onListDeleted()
-    }
-
     private val accessToken: String?
 
     init {
@@ -45,31 +44,38 @@ class DeleteListThreadTMDb(
         accessToken = preferences.getString("access_token", "")
     }
 
-    suspend fun deleteList() {
+    suspend fun addRating() {
         var success = false
         try {
             val client = OkHttpClient()
+            val mediaType = MediaType.parse("application/json;charset=utf-8")
+            val jsonParam = JSONObject().apply {
+                put("value", rating)
+            }
+            val body = RequestBody.create(mediaType, jsonParam.toString())
             val request = Request.Builder()
-                .url("https://api.themoviedb.org/4/list/$listId")
-                .delete()
+                .url("https://api.themoviedb.org/3/$type/$movieId/rating")
+                .post(body)
                 .addHeader("accept", "application/json")
+                .addHeader("content-type", "application/json")
                 .addHeader("Authorization", "Bearer $accessToken")
                 .build()
             val response = withContext(Dispatchers.IO) {
                 client.newCall(request).execute()
             }
-            val jsonResponse = JSONObject(response.body()!!.string())
-            success = jsonResponse.getBoolean("success")
+            val responseBody = response.body()!!.string()
+            val jsonResponse = JSONObject(responseBody)
+            val statusCode = jsonResponse.getInt("status_code")
+            success = statusCode == 1
         } catch (e: Exception) {
             e.printStackTrace()
         }
         val finalSuccess = success
         activity.runOnUiThread {
             if (finalSuccess) {
-                Toast.makeText(activity, R.string.list_delete_success, Toast.LENGTH_SHORT).show()
-                onListDeletedListener.onListDeleted()
+                Toast.makeText(activity, R.string.rating_added_successfully, Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(activity, R.string.failed_to_delete_list, Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.failed_to_add_rating, Toast.LENGTH_SHORT).show()
             }
         }
     }

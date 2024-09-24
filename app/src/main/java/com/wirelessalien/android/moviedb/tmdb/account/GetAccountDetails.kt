@@ -31,7 +31,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
-class GetAccountDetailsThread(private val context: Context?, private val callback: AccountDataCallback?) {
+class GetAccountDetails(private val context: Context?, private val callback: AccountDataCallback?) {
     private val accountId: String?
     private var accountIdInt = 0
     private val accessToken: String?

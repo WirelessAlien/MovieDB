@@ -35,8 +35,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
-import com.wirelessalien.android.moviedb.tmdb.account.ListDetailsThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.ListDetailsThreadTMDb.OnFetchListDetailsListener
+import com.wirelessalien.android.moviedb.tmdb.account.GetListDetails
+import com.wirelessalien.android.moviedb.tmdb.account.GetListDetails.OnFetchListDetailsListener
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
@@ -135,7 +135,7 @@ class MyListDetailsActivity : AppCompatActivity(), OnFetchListDetailsListener {
 
     private fun loadListDetails(page: Int) {
         lifecycleScope.launch {
-            val listDetailsCoroutineTMDb = ListDetailsThreadTMDb(listId, this@MyListDetailsActivity, this@MyListDetailsActivity)
+            val listDetailsCoroutineTMDb = GetListDetails(listId, this@MyListDetailsActivity, this@MyListDetailsActivity)
             listDetailsCoroutineTMDb.fetchListDetails(page)
         }
     }

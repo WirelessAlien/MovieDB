@@ -29,8 +29,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.ListDetailsData
-import com.wirelessalien.android.moviedb.tmdb.account.AddToListThreadTMDb
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromListThreadTMDb
+import com.wirelessalien.android.moviedb.tmdb.account.AddToList
+import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -56,14 +56,14 @@ class ListDataAdapter(
                 val listData = listData[pos]
                 CoroutineScope(Dispatchers.Main).launch {
                     if (isChecked) {
-                        AddToListThreadTMDb(
+                        AddToList(
                             listData.movieId,
                             listData.listId,
                             listData.mediaType,
                             context
                         ).addToList()
                     } else {
-                        DeleteFromListThreadTMDb(
+                        DeleteFromList(
                             listData.movieId,
                             listData.listId,
                             listData.mediaType,

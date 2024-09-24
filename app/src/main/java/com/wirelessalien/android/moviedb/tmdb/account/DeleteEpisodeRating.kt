@@ -32,7 +32,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
-class DeleteEpisodeRatingThreadTMDb(
+class DeleteEpisodeRating(
     private val tvShowId: Int,
     private val seasonNumber: Int,
     private val episodeNumber: Int,

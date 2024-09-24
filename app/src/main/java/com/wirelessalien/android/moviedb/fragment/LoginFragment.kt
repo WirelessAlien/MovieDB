@@ -39,9 +39,9 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetailsThread
-import com.wirelessalien.android.moviedb.tmdb.account.LogoutThread
-import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthThreadV4
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetails
+import com.wirelessalien.android.moviedb.tmdb.account.AccountLogout
+import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthV4
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.coroutines.launch
 
@@ -97,7 +97,7 @@ class LoginFragment : BottomSheetDialogFragment() {
         }
         logoutButton.setOnClickListener {
             lifecycleScope.launch {
-                val logoutManager = LogoutThread(requireContext(), Handler(Looper.getMainLooper()))
+                val logoutManager = AccountLogout(requireContext(), Handler(Looper.getMainLooper()))
                 logoutManager.logout()
                 loginButton.visibility = View.VISIBLE
                 logoutButton.visibility = View.GONE
@@ -107,7 +107,7 @@ class LoginFragment : BottomSheetDialogFragment() {
         }
         loginButton.setOnClickListener {
             lifecycleScope.launch {
-                val authCoroutine = TMDbAuthThreadV4(requireContext())
+                val authCoroutine = TMDbAuthV4(requireContext())
                 val accessToken = authCoroutine.authenticate()
                 if (accessToken != null) {
                     preferences.edit().putString("access_token", accessToken).apply()
@@ -117,7 +117,7 @@ class LoginFragment : BottomSheetDialogFragment() {
 
         if (preferences.getString("access_token", null) != null) {
             lifecycleScope.launch {
-                val getAccountDetailsCoroutine = GetAccountDetailsThread(requireContext(), object : GetAccountDetailsThread.AccountDataCallback {
+                val getAccountDetailsCoroutine = GetAccountDetails(requireContext(), object : GetAccountDetails.AccountDataCallback {
                     override fun onAccountDataReceived(accountId: Int, name: String?, username: String?, avatarPath: String?, gravatar: String?) {
                         if (isAdded) {
                             requireActivity().runOnUiThread {

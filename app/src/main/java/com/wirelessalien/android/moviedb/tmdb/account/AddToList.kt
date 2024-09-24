@@ -39,7 +39,7 @@ import org.json.JSONObject
 import java.util.Date
 import java.util.Locale
 
-class AddToListThreadTMDb(
+class AddToList(
     private val mediaId: Int,
     private val listId: Int,
     private val type: String,

@@ -31,7 +31,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 
-class AddToFavouritesThreadTMDb(
+class AddToFavourites(
     private val movieId: Int,
     private val type: String,
     private val trueOrFalse: Boolean,

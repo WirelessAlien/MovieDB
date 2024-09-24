@@ -21,7 +21,6 @@ package com.wirelessalien.android.moviedb.tmdb.account
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,7 +28,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 
-class ListDetailsThreadTMDb(
+class GetListDetails(
     private val listId: Int,
     private val context: Context?,
     private val listener: OnFetchListDetailsListener
@@ -50,7 +49,6 @@ class ListDetailsThreadTMDb(
                 .addHeader("accept", "application/json")
                 .addHeader("Authorization", "Bearer $accessToken")
                 .build()
-            Log.d("ListDetailsThreadTMDb", "fetchListDetails: $request")
             val response = withContext(Dispatchers.IO) {
                 client.newCall(request).execute()
             }
