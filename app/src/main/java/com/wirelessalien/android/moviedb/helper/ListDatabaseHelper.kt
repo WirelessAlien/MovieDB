@@ -23,7 +23,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.Log
 
 class ListDatabaseHelper(context: Context?) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -93,6 +92,13 @@ class ListDatabaseHelper(context: Context?) :
             "$COLUMN_MOVIE_ID=$movieId AND $COLUMN_LIST_ID=$listId",
             null
         )
+        db.close()
+    }
+
+    fun deleteAllData() {
+        val db = this.writableDatabase
+        db.delete(TABLE_LIST_DATA, null, null)
+        db.delete(TABLE_LISTS, null, null)
         db.close()
     }
 

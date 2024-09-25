@@ -22,18 +22,16 @@ package com.wirelessalien.android.moviedb.tmdb.account
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Handler
-import android.util.Log
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
-
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class GetAccessToken(
     private val apiKey: String,
@@ -91,7 +89,6 @@ class GetAccessToken(
                 listener?.onTokenReceived(accessToken)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.e("GetAccessToken", e.message!!)
             }
         }
     }
