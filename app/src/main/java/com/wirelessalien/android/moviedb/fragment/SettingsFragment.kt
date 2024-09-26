@@ -19,10 +19,13 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.wirelessalien.android.moviedb.R
@@ -57,6 +60,24 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 Preference.OnPreferenceClickListener { preference: Preference? ->
                     // Show AboutFragment as a dialog
                     AboutFragment().show(parentFragmentManager, "about_dialog")
+                    true
+                }
+        }
+
+        val privacyKey = findPreference<Preference>("privacy_key")
+        if (privacyKey != null) {
+            privacyKey.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener { preference: Preference? ->
+                    val url = "https://sites.google.com/view/privacy-policy-showcase"
+                    try {
+                        val builder = CustomTabsIntent.Builder()
+                        val customTabsIntent = builder.build()
+                        customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
+                    } catch (e: Exception) {
+                        // Fallback to default browser if Chrome Custom Tabs is not available
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        startActivity(browserIntent)
+                    }
                     true
                 }
         }

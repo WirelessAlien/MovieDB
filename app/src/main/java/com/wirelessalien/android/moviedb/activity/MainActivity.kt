@@ -51,6 +51,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.work.OneTimeWorkRequest
@@ -216,6 +217,16 @@ class MainActivity : BaseActivity() {
             params.bottomMargin = bottomNavHeight + 16
             fab.layoutParams = params
         }
+
+        val fragmentContainerView = findViewById<FragmentContainerView>(R.id.container)
+        fragmentContainerView.viewTreeObserver.addOnGlobalLayoutListener {
+            val bottomNavHeight = bottomNavigationView.height
+            val params = fragmentContainerView.layoutParams as CoordinatorLayout.LayoutParams
+            params.bottomMargin = bottomNavHeight
+            fragmentContainerView.layoutParams = params
+        }
+
+
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (isSearchOpened) {

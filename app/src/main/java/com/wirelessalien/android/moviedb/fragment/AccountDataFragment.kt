@@ -19,38 +19,25 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
-import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
-import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetails
-import de.hdodenhof.circleimageview.CircleImageView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class AccountDataFragment : BaseFragment() {
     private lateinit var sPreferences: SharedPreferences
-    private lateinit var nameTextView: TextView
-    private lateinit var avatar: CircleImageView
     private lateinit var tabLayout: TabLayout
     private var sessionId: String? = null
     private var accountId: String? = null
-    private lateinit var loginBtn: ImageView
     private lateinit var fab: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,26 +51,12 @@ class AccountDataFragment : BaseFragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_account_data, container, false)
         sPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        nameTextView = view.findViewById(R.id.userName)
-        avatar = view.findViewById(R.id.profileImage)
         tabLayout = view.findViewById(R.id.tabs)
-        loginBtn = view.findViewById(R.id.loginLogoutBtn)
         fab = requireActivity().findViewById(R.id.fab)
         sessionId = sPreferences.getString("access_token", null)
         accountId = sPreferences.getString("account_id", null)
-        if (sessionId == null || accountId == null) {
-            loginBtn.isEnabled = false
-            fab.isEnabled = false
-        } else {
-            loginBtn.setOnClickListener {
-                val url = "https://www.themoviedb.org/settings/profile"
-                openLinkInBrowser(url)
-            }
-            loginBtn.isEnabled = true
-            fab.isEnabled = true
-        }
+        fab.isEnabled = !(sessionId == null || accountId == null)
         setupTabs()
-        loadAccountDetails()
         return view
     }
 
@@ -98,24 +71,7 @@ class AccountDataFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        if (sessionId == null || accountId == null) {
-            loginBtn.isEnabled = false
-            fab.isEnabled = false
-        } else {
-            loginBtn.setOnClickListener {
-                val url = "https://www.themoviedb.org/settings/profile"
-                openLinkInBrowser(url)
-            }
-            loginBtn.isEnabled = true
-            fab.isEnabled = true
-        }
-    }
-
-    private fun openLinkInBrowser(url: String) {
-        requireActivity().runOnUiThread {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            startActivity(browserIntent)
-        }
+        fab.isEnabled = !(sessionId == null || accountId == null)
     }
 
     private fun setupTabs() {
@@ -134,6 +90,7 @@ class AccountDataFragment : BaseFragment() {
                 }
                 if (selectedFragment != null) {
                     childFragmentManager.beginTransaction()
+                        .setReorderingAllowed(true)
                         .replace(R.id.fragment_container, selectedFragment)
                         .commit()
                 }
@@ -149,39 +106,14 @@ class AccountDataFragment : BaseFragment() {
         })
         if (sessionId == null || accountId == null) {
             childFragmentManager.beginTransaction()
+                .setReorderingAllowed(true)
                 .replace(R.id.fragment_container, LoginFragment())
                 .commit()
         } else {
             childFragmentManager.beginTransaction()
+                .setReorderingAllowed(true)
                 .replace(R.id.fragment_container, WatchlistFragment())
                 .commit()
-        }
-    }
-
-    private fun loadAccountDetails() {
-        if (sPreferences.getString("access_token", null) != null) {
-            val getAccountDetails = GetAccountDetails(context, object : GetAccountDetails.AccountDataCallback {
-                override fun onAccountDataReceived(accountId: Int, name: String?, username: String?, avatarPath: String?, gravatar: String?) {
-                    if (isAdded) {
-                        requireActivity().runOnUiThread {
-                            if (!name.isNullOrEmpty()) {
-                                nameTextView.text = name
-                            } else if (!username.isNullOrEmpty()) {
-                                nameTextView.text = username
-                            }
-                            if (!avatarPath.isNullOrEmpty()) {
-                                Picasso.get().load("https://image.tmdb.org/t/p/w200$avatarPath").into(avatar)
-                            } else if (!gravatar.isNullOrEmpty()) {
-                                Picasso.get().load("https://secure.gravatar.com/avatar/$gravatar.jpg?s=200").into(avatar)
-                            }
-                        }
-                    }
-                }
-            })
-
-            CoroutineScope(Dispatchers.Main).launch {
-                getAccountDetails.fetchAccountDetails()
-            }
         }
     }
 

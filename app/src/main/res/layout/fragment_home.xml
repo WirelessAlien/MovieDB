@@ -168,11 +168,6 @@
             android:layout_marginBottom="10dp"
             android:scrollbars="none" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="85dp"
-            android:layout_below="@id/upcomingTVRecyclerView"/>
-
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
