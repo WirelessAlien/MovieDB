@@ -26,6 +26,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.wirelessalien.android.moviedb.R
@@ -57,7 +58,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         val aboutPreference = findPreference<Preference>("about_key")
         if (aboutPreference != null) {
             aboutPreference.onPreferenceClickListener =
-                Preference.OnPreferenceClickListener { preference: Preference? ->
+                Preference.OnPreferenceClickListener {
                     // Show AboutFragment as a dialog
                     AboutFragment().show(parentFragmentManager, "about_dialog")
                     true
@@ -67,7 +68,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         val privacyKey = findPreference<Preference>("privacy_key")
         if (privacyKey != null) {
             privacyKey.onPreferenceClickListener =
-                Preference.OnPreferenceClickListener { preference: Preference? ->
+                Preference.OnPreferenceClickListener {
                     val url = "https://sites.google.com/view/privacy-policy-showcase"
                     try {
                         val builder = CustomTabsIntent.Builder()
@@ -81,6 +82,12 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                     true
                 }
         }
+
+        val searchEngineKey = findPreference<Preference>("key_search_engine") as EditTextPreference
+        searchEngineKey.setOnBindEditTextListener {
+            it.hint = "https://www.google.com/search?q="
+        }
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
