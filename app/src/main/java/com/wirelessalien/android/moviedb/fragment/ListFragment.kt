@@ -30,8 +30,6 @@ import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -93,6 +91,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             if (result.resultCode == Activity.RESULT_OK) {
                 usedFilter = true
                 filterAdapter()
+                updateShowViewAdapter()
             }
         }
 
@@ -200,6 +199,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             updateShowViewAdapter()
             mDatabaseUpdate = false
         }
+
+        if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
+            filterAdapter()
+        }
+
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.setImageResource(R.drawable.ic_filter_list)
         fab.visibility = View.VISIBLE
@@ -536,32 +540,32 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             ), ", "
         )
         if (withGenres != null && withGenres.isNotEmpty()) {
-            for (i in withGenres.indices) {
-                if (mSearchView) {
-                    for (j in mSearchShowArrayList.indices) {
-                        val showObject = mSearchShowArrayList[j]
-                        val idList = FilterActivity.convertStringToIntegerArrayList(
-                            showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                        )
-                        if (!idList.contains(withGenres[i])) {
-                            mSearchShowArrayList.removeAt(j)
-                        }
+            if (mSearchView) {
+                val iterator = mSearchShowArrayList.iterator()
+                while (iterator.hasNext()) {
+                    val showObject = iterator.next()
+                    val idList = FilterActivity.convertStringToIntegerArrayList(
+                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
+                    )
+                    if (!idList.containsAll(withGenres)) {
+                        iterator.remove()
                     }
-                } else {
-                    for (j in mShowArrayList.indices) {
-                        val showObject = mShowArrayList[j]
-                        val idList = FilterActivity.convertStringToIntegerArrayList(
-                            showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                        )
-                        if (!idList.contains(withGenres[i])) {
-                            mShowArrayList.removeAt(j)
-                        }
+                }
+            } else {
+                val iterator = mShowArrayList.iterator()
+                while (iterator.hasNext()) {
+                    val showObject = iterator.next()
+                    val idList = FilterActivity.convertStringToIntegerArrayList(
+                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
+                    )
+                    if (!idList.containsAll(withGenres)) {
+                        iterator.remove()
                     }
                 }
             }
         }
 
-        // Remove shows that contain certain genres from the list.
+// Remove shows that contain certain genres from the list.
         val withoutGenres = FilterActivity.convertStringToIntegerArrayList(
             sharedPreferences.getString(
                 FilterActivity.FILTER_WITHOUT_GENRES,
@@ -569,26 +573,26 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             ), ", "
         )
         if (withoutGenres != null && withoutGenres.isNotEmpty()) {
-            for (i in withoutGenres.indices) {
-                if (mSearchView) {
-                    for (j in mSearchShowArrayList.indices) {
-                        val showObject = mSearchShowArrayList[j]
-                        val idList = FilterActivity.convertStringToIntegerArrayList(
-                            showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                        )
-                        if (idList.contains(withoutGenres[i])) {
-                            mSearchShowArrayList.removeAt(j)
-                        }
+            if (mSearchView) {
+                val iterator = mSearchShowArrayList.iterator()
+                while (iterator.hasNext()) {
+                    val showObject = iterator.next()
+                    val idList = FilterActivity.convertStringToIntegerArrayList(
+                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
+                    )
+                    if (idList.any { withoutGenres.contains(it) }) {
+                        iterator.remove()
                     }
-                } else {
-                    for (j in mShowArrayList.indices) {
-                        val showObject = mShowArrayList[j]
-                        val idList = FilterActivity.convertStringToIntegerArrayList(
-                            showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                        )
-                        if (idList.contains(withoutGenres[i])) {
-                            mShowArrayList.removeAt(j)
-                        }
+                }
+            } else {
+                val iterator = mShowArrayList.iterator()
+                while (iterator.hasNext()) {
+                    val showObject = iterator.next()
+                    val idList = FilterActivity.convertStringToIntegerArrayList(
+                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
+                    )
+                    if (idList.any { withoutGenres.contains(it) }) {
+                        iterator.remove()
                     }
                 }
             }

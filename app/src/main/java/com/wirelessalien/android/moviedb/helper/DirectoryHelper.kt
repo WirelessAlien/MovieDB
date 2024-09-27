@@ -43,20 +43,20 @@ object DirectoryHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
             val selection = "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?"
-            val selectionArgs = arrayOf(Environment.DIRECTORY_DOCUMENTS + "/MovieDB", "MovieDB")
+            val selectionArgs = arrayOf(Environment.DIRECTORY_DOCUMENTS + "/ShowCase", "ShowCase")
             val cursor: Cursor? = context.contentResolver.query(
                 MediaStore.Files.getContentUri("external"), projection, selection, selectionArgs, null)
 
             if (cursor != null && cursor.moveToFirst()) {
                 cursor.close()
-                return File(Environment.getExternalStorageDirectory(), "Documents/MovieDB")
+                return File(Environment.getExternalStorageDirectory(), "Documents/ShowCase")
             }
 
             cursor?.close()
 
             val values = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, "MovieDB")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/MovieDB")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/ShowCase")
                 put(MediaStore.MediaColumns.MIME_TYPE, "vnd.android.document/directory")
             }
             try {
@@ -68,12 +68,11 @@ object DirectoryHelper {
             } catch (e: SQLiteConstraintException) {
                 Log.e("DirectoryHelper", "Directory already exists: ${e.message}")
             }
-            return File(Environment.getExternalStorageDirectory(), "Documents/MovieDB")
+            return File(Environment.getExternalStorageDirectory(), "Documents/ShowCase")
         } else {
-            val exportDirectory = File(Environment.getExternalStorageDirectory(), "Documents/MovieDB")
+            val exportDirectory = File(Environment.getExternalStorageDirectory(), "Documents/ShowCase")
             if (!exportDirectory.exists()) {
                 if (!exportDirectory.mkdirs()) {
-                    Toast.makeText(context, R.string.failed_to_create_directory, Toast.LENGTH_SHORT).show()
                     return null
                 }
             }

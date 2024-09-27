@@ -35,6 +35,7 @@ import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.MovieImageAdapter
 import com.wirelessalien.android.moviedb.data.MovieImage
@@ -81,10 +82,19 @@ class MovieImageActivity : AppCompatActivity() {
                 // Permission granted, proceed with the activity
                 initializeActivity()
             } else {
-                // Permission denied, close the activity
-                finish()
+                // Permission denied, show dialog and then close the activity
+                showPermissionDeniedDialog()
             }
         }
+    }
+
+    private fun showPermissionDeniedDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.permission_required))
+            .setMessage(getString(R.string.permission_required_image))
+            .setPositiveButton(getString(R.string.ok)) { _, _ -> finish() }
+            .setCancelable(false)
+            .show()
     }
 
     private fun initializeActivity() {

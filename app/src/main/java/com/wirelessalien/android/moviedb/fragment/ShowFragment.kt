@@ -89,7 +89,21 @@ class ShowFragment : BaseFragment() {
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3)
         visibleThreshold = gridSizePreference * gridSizePreference
-        createShowList(mListType)
+
+        mShowArrayList = ArrayList()
+        mShowGenreList = HashMap()
+        mShowAdapter = ShowBaseAdapter(
+            mShowArrayList, mShowGenreList,
+            preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false
+        )
+        (requireActivity() as BaseActivity).checkNetwork()
+
+        // Use persistent filtering if it is enabled.
+        if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
+            filterShows()
+        } else {
+            fetchShowList(arrayOf(mListType, "1"))
+        }
     }
 
     override fun doNetworkWork() {
@@ -255,29 +269,6 @@ class ShowFragment : BaseFragment() {
         }
         filterChanged = true
         fetchShowList(arrayOf(mListType, "1"))
-    }
-
-    /**
-     * Loads a list of shows from the API.
-     *
-     * @param mode determines if series or movies are retrieved.
-     */
-    private fun createShowList(mode: String?) {
-        // Create a MovieBaseAdapter and load the first page
-        mShowArrayList = ArrayList()
-        mShowGenreList = HashMap()
-        mShowAdapter = ShowBaseAdapter(
-            mShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false
-        )
-        (requireActivity() as BaseActivity).checkNetwork()
-
-        // Use persistent filtering if it is enabled.
-        if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
-            filterShows()
-        } else {
-            fetchShowList(arrayOf(mode, "1"))
-        }
     }
 
     /**

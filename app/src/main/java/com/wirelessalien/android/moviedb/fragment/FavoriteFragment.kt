@@ -44,18 +44,19 @@ import java.util.Optional
 
 class FavoriteFragment : BaseFragment() {
     private var mListType: String? = null
-    private var visibleThreshold = 0 // Three times the amount of items in a row
+    private var visibleThreshold = 0
     private var currentPage = 0
     private var previousTotal = 0
     private var loading = true
     private var pastVisibleItems = 0
     private var visibleItemCount = 0
     private var totalItemCount = 0
-    private val showIdSet = HashSet<Int>()
 
     @Volatile
     private var isLoadingData = false
     private var mShowListLoaded = false
+    private val showIdSet = HashSet<Int>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -74,14 +75,8 @@ class FavoriteFragment : BaseFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val fragmentView = inflater.inflate(R.layout.fragment_show, container, false)
-        // Initialize mListType with "movie" on first load
-        mListType = if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) {
-            "tv"
-        } else {
-            "movie"
-        }
+        mListType = if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) "tv" else "movie"
         loadFavoriteList(mListType, 1)
         showShowList(fragmentView)
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
@@ -96,6 +91,8 @@ class FavoriteFragment : BaseFragment() {
             return
         }
         mShowArrayList.clear()
+        showIdSet.clear()
+        mShowAdapter.notifyDataSetChanged()
         currentPage = 1
         mListType = if ("movie" == mListType) "tv" else "movie"
         loadFavoriteList(mListType, 1)
@@ -112,20 +109,10 @@ class FavoriteFragment : BaseFragment() {
     }
 
     private fun updateFabIcon(fab: FloatingActionButton, listType: String?) {
-        if ("movie" == listType) {
-            fab.setImageResource(R.drawable.ic_movie)
-        } else {
-            fab.setImageResource(R.drawable.ic_tv_show)
-        }
+        fab.setImageResource(if ("movie" == listType) R.drawable.ic_movie else R.drawable.ic_tv_show)
     }
 
-    /**
-     * Loads a list of shows from the API.
-     *
-     */
     private fun createShowList(mode: String?) {
-
-        // Create a MovieBaseAdapter and load the first page
         mShowArrayList = ArrayList()
         mShowGenreList = HashMap()
         mShowAdapter = ShowBaseAdapter(
@@ -135,40 +122,27 @@ class FavoriteFragment : BaseFragment() {
         (requireActivity() as BaseActivity).checkNetwork()
     }
 
-    /**
-     * Visualises the list of shows on the screen.
-     *
-     * @param fragmentView the view to attach the ListView to.
-     */
     override fun showShowList(fragmentView: View) {
         super.showShowList(fragmentView)
-
-        // Dynamically load new pages when user scrolls down.
         mShowView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0 && recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) { // Check for scroll down and if user is actively scrolling.
+                if (dy > 0 && recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
                     visibleItemCount = mShowLinearLayoutManager.childCount
                     totalItemCount = mShowLinearLayoutManager.itemCount
                     pastVisibleItems = mShowLinearLayoutManager.findFirstVisibleItemPosition()
-                    if (loading) {
-                        if (totalItemCount > previousTotal) {
-                            loading = false
-                            previousTotal = totalItemCount
-                            currentPage++
-                        }
+                    if (loading && totalItemCount > previousTotal) {
+                        loading = false
+                        previousTotal = totalItemCount
+                        currentPage++
                     }
-                    var threshold = visibleThreshold
-                    if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
-                        // It is a grid view, so the threshold should be bigger.
+                    val threshold = if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
                         val gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3)
-                        threshold = gridSizePreference * gridSizePreference
+                        gridSizePreference * gridSizePreference
+                    } else {
+                        visibleThreshold
                     }
-
-                    // When no new pages are being loaded,
-                    // but the user is at the end of the list, load the new page.
                     if (!loading && visibleItemCount + pastVisibleItems + threshold >= totalItemCount) {
-                        // Load the next page of the content in the background.
-                        if (mShowArrayList.size > 0) {
+                        if (mShowArrayList.isNotEmpty()) {
                             currentPage++
                             loadFavoriteList(mListType, currentPage)
                         }
@@ -182,43 +156,45 @@ class FavoriteFragment : BaseFragment() {
     private fun loadFavoriteList(listType: String?, page: Int) {
         CoroutineScope(Dispatchers.Main).launch {
             isLoadingData = true
-            if (!isAdded) {
-                return@launch
-            }
+            if (!isAdded) return@launch
 
             val progressBar = Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
-            progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
+            progressBar.ifPresent { it.visibility = View.VISIBLE }
 
             val response = withContext(Dispatchers.IO) {
-                val access_token = preferences.getString("access_token", "")
-                val accountId = preferences.getString("account_id", "")
-                val url = "https://api.themoviedb.org/4/account/$accountId/$listType/favorites?page=$page"
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $access_token")
-                    .build()
-                try {
-                    client.newCall(request).execute().use { response ->
-                        response.body()?.string()
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    null
-                }
+                fetchFavoriteListFromApi(listType, page)
             }
 
             handleResponse(response)
-            progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
+            progressBar.ifPresent { it.visibility = View.GONE }
             isLoadingData = false
+        }
+    }
+
+    private fun fetchFavoriteListFromApi(listType: String?, page: Int): String? {
+        val accessToken = preferences.getString("access_token", "")
+        val accountId = preferences.getString("account_id", "")
+        val url = "https://api.themoviedb.org/4/account/$accountId/$listType/favorites?page=$page"
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .addHeader("Content-Type", "application/json;charset=utf-8")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .build()
+        return try {
+            client.newCall(request).execute().use { response ->
+                response.body()?.string()
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
         }
     }
 
     private fun handleResponse(response: String?) {
         if (isAdded && !response.isNullOrEmpty()) {
-            val position: Int = try {
+            val position = try {
                 mShowLinearLayoutManager.findFirstVisibleItemPosition()
             } catch (npe: NullPointerException) {
                 0
@@ -227,20 +203,20 @@ class FavoriteFragment : BaseFragment() {
             try {
                 val reader = JSONObject(response)
                 val arrayData = reader.getJSONArray("results")
+                val newItems = mutableListOf<JSONObject>()
                 for (i in 0 until arrayData.length()) {
                     val websiteData = arrayData.getJSONObject(i)
                     val showId = websiteData.getInt("id")
-
-                    // Check if the ID is already in the set
                     if (!showIdSet.contains(showId)) {
                         if (websiteData.getString("overview").isEmpty()) {
                             websiteData.put("overview", "Overview may not be available in the specified language.")
                         }
-                        mShowArrayList.add(websiteData)
-                        showIdSet.add(showId) // Add the ID to the set
+                        newItems.add(websiteData)
+                        showIdSet.add(showId)
                     }
                 }
-
+                mShowArrayList.addAll(newItems)
+                mShowAdapter.notifyItemRangeInserted(mShowArrayList.size - newItems.size, newItems.size)
                 mShowView.adapter = mShowAdapter
                 mShowView.scrollToPosition(position)
                 mShowListLoaded = true

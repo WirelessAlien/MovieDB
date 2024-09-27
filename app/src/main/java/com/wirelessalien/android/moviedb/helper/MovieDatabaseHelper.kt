@@ -265,7 +265,7 @@ class MovieDatabaseHelper  // Initialize the database object.
                     }
                 }
             }
-            .setNegativeButton("Cancel") { dialogInterface: DialogInterface, _: Int -> dialogInterface.cancel() }
+            .setNegativeButton(context.getString(R.string.cancel)) { dialogInterface: DialogInterface, _: Int -> dialogInterface.cancel() }
         builder.show()
     }
 
@@ -290,10 +290,10 @@ class MovieDatabaseHelper  // Initialize the database object.
         }
         val fileDialog = MaterialAlertDialogBuilder(context)
         fileDialog.setTitle(R.string.choose_file)
-        fileDialog.setNegativeButton(R.string.import_cancel) { dialog: DialogInterface, which: Int -> dialog.dismiss() }
+        fileDialog.setNegativeButton(R.string.import_cancel) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
 
         // Show the files that can be imported.
-        fileDialog.setAdapter(fileAdapter) { dialog: DialogInterface?, which: Int ->
+        fileDialog.setAdapter(fileAdapter) { _: DialogInterface?, which: Int ->
             val path = File(context.cacheDir.path)
             try {
                 val exportDBPath = fileAdapter.getItem(which)

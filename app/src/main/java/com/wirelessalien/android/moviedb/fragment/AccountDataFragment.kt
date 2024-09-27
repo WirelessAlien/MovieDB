@@ -90,7 +90,6 @@ class AccountDataFragment : BaseFragment() {
                 }
                 if (selectedFragment != null) {
                     childFragmentManager.beginTransaction()
-                        .setReorderingAllowed(true)
                         .replace(R.id.fragment_container, selectedFragment)
                         .commit()
                 }
@@ -106,12 +105,10 @@ class AccountDataFragment : BaseFragment() {
         })
         if (sessionId == null || accountId == null) {
             childFragmentManager.beginTransaction()
-                .setReorderingAllowed(true)
                 .replace(R.id.fragment_container, LoginFragment())
                 .commit()
         } else {
             childFragmentManager.beginTransaction()
-                .setReorderingAllowed(true)
                 .replace(R.id.fragment_container, WatchlistFragment())
                 .commit()
         }
