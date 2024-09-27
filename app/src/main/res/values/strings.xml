@@ -296,4 +296,9 @@
     <string name="trending">Trending</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="permission_required_image">This permission is necessary to view the images. Please grant the permission from Settings or App info.</string>
+    <string name="copy">Copy</string>
+    <string name="crash_log">Crash Log</string>
+    <string name="close">Close</string>
+    <string name="file_picked_fail">Failed to pick file</string>
+    <string name="action_account">Account</string>
 </resources>

@@ -34,6 +34,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.fragment.SeasonDetailsFragment.Companion.newInstance
+import com.wirelessalien.android.moviedb.helper.CrashHelper
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -45,34 +46,9 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tv_season_details)
-        Thread.setDefaultUncaughtExceptionHandler { thread: Thread?, throwable: Throwable ->
-            val crashLog = StringWriter()
-            val printWriter = PrintWriter(crashLog)
-            throwable.printStackTrace(printWriter)
-            val osVersion = Build.VERSION.RELEASE
-            var appVersion = ""
-            try {
-                appVersion = applicationContext.packageManager.getPackageInfo(
-                    applicationContext.packageName,
-                    0
-                ).versionName
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
-            }
-            printWriter.write("\nDevice OS Version: $osVersion")
-            printWriter.write("\nApp Version: $appVersion")
-            printWriter.close()
-            try {
-                val fileName = "Crash_Log.txt"
-                val targetFile = File(applicationContext.filesDir, fileName)
-                val fileOutputStream = FileOutputStream(targetFile, true)
-                fileOutputStream.write((crashLog.toString() + "\n").toByteArray())
-                fileOutputStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            Process.killProcess(Process.myPid())
-        }
+
+        CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
+
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val appBarLayout = findViewById<AppBarLayout>(R.id.appBarLayout)

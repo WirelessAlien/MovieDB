@@ -20,25 +20,19 @@
 package com.wirelessalien.android.moviedb.activity
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.Process
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding
+import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.PrintWriter
-import java.io.StringWriter
 import java.nio.ByteBuffer
 
 class ExportActivity : AppCompatActivity() {
@@ -54,39 +48,12 @@ class ExportActivity : AppCompatActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityExportBinding.inflate(
-            layoutInflater
-        )
+        binding = ActivityExportBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
+
         context = this
-        Thread.setDefaultUncaughtExceptionHandler { thread: Thread?, throwable: Throwable ->
-            val crashLog = StringWriter()
-            val printWriter = PrintWriter(crashLog)
-            throwable.printStackTrace(printWriter)
-            val osVersion = Build.VERSION.RELEASE
-            var appVersion = ""
-            try {
-                appVersion = applicationContext.packageManager.getPackageInfo(
-                    applicationContext.packageName,
-                    0
-                ).versionName
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
-            }
-            printWriter.write("\nDevice OS Version: $osVersion")
-            printWriter.write("\nApp Version: $appVersion")
-            printWriter.close()
-            try {
-                val fileName = "Crash_Log.txt"
-                val targetFile = File(applicationContext.filesDir, fileName)
-                val fileOutputStream = FileOutputStream(targetFile, true)
-                fileOutputStream.write((crashLog.toString() + "\n").toByteArray())
-                fileOutputStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            Process.killProcess(Process.myPid())
-        }
         val exportDirectory = DirectoryHelper.getExportDirectory(context)
         if (exportDirectory != null) {
             binding.selectedDirectoryText.text =

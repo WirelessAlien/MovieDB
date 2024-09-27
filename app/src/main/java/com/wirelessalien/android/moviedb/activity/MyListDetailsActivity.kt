@@ -20,10 +20,7 @@
 package com.wirelessalien.android.moviedb.activity
 
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import android.os.Process
 import android.view.View
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
@@ -35,15 +32,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.tmdb.account.GetListDetails
 import com.wirelessalien.android.moviedb.tmdb.account.GetListDetails.OnFetchListDetailsListener
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.PrintWriter
-import java.io.StringWriter
 
 class MyListDetailsActivity : AppCompatActivity(), OnFetchListDetailsListener {
     private lateinit var recyclerView: RecyclerView
@@ -59,35 +52,10 @@ class MyListDetailsActivity : AppCompatActivity(), OnFetchListDetailsListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list_detail)
+
+        CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
+
         mShowGenreList = HashMap()
-        Thread.setDefaultUncaughtExceptionHandler { thread: Thread?, throwable: Throwable ->
-            val crashLog = StringWriter()
-            val printWriter = PrintWriter(crashLog)
-            throwable.printStackTrace(printWriter)
-            val osVersion = Build.VERSION.RELEASE
-            var appVersion = ""
-            try {
-                appVersion = applicationContext.packageManager.getPackageInfo(
-                    applicationContext.packageName,
-                    0
-                ).versionName
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
-            }
-            printWriter.write("\nDevice OS Version: $osVersion")
-            printWriter.write("\nApp Version: $appVersion")
-            printWriter.close()
-            try {
-                val fileName = "Crash_Log.txt"
-                val targetFile = File(applicationContext.filesDir, fileName)
-                val fileOutputStream = FileOutputStream(targetFile, true)
-                fileOutputStream.write((crashLog.toString() + "\n").toByteArray())
-                fileOutputStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            Process.killProcess(Process.myPid())
-        }
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)

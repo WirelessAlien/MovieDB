@@ -21,24 +21,20 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Process
 import android.provider.OpenableColumns
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.PrintWriter
-import java.io.StringWriter
 
 class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
     private lateinit var context: Context
@@ -72,7 +68,7 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
 //                fileNameTextView.setText(selectedFileText);
 //                fileNameTextView.setSelected(true);
             } else {
-//                Toast.makeText(this, getString(R.string.file_picked_fail), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.file_picked_fail), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -100,35 +96,10 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_import)
+
+        CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
+
         context = this
-        Thread.setDefaultUncaughtExceptionHandler { thread: Thread?, throwable: Throwable ->
-            val crashLog = StringWriter()
-            val printWriter = PrintWriter(crashLog)
-            throwable.printStackTrace(printWriter)
-            val osVersion = Build.VERSION.RELEASE
-            var appVersion = ""
-            try {
-                appVersion = applicationContext.packageManager.getPackageInfo(
-                    applicationContext.packageName,
-                    0
-                ).versionName
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
-            }
-            printWriter.write("\nDevice OS Version: $osVersion")
-            printWriter.write("\nApp Version: $appVersion")
-            printWriter.close()
-            try {
-                val fileName = "Crash_Log.txt"
-                val targetFile = File(applicationContext.filesDir, fileName)
-                val fileOutputStream = FileOutputStream(targetFile, true)
-                fileOutputStream.write((crashLog.toString() + "\n").toByteArray())
-                fileOutputStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            Process.killProcess(Process.myPid())
-        }
         val pickFileButton = findViewById<Button>(R.id.pick_file_button)
         pickFileButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)

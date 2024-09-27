@@ -39,6 +39,8 @@ import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ScrollView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
@@ -124,19 +126,22 @@ class MainActivity : BaseActivity() {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
+
+            val scrollView = ScrollView(this)
+            val textView = TextView(this)
+            textView.text = crashLog.toString()
+            scrollView.addView(textView)
+
             MaterialAlertDialogBuilder(this)
-                .setTitle("Crash Log")
-                .setMessage(crashLog.toString())
-                .setPositiveButton("Copy") { _: DialogInterface?, _: Int ->
-                    val clipboard = getSystemService(
-                        CLIPBOARD_SERVICE
-                    ) as ClipboardManager
-                    val clip = ClipData.newPlainText("Movie DB Crash Log", crashLog.toString())
+                .setTitle(getString(R.string.crash_log))
+                .setView(scrollView)
+                .setPositiveButton(getString(R.string.copy)) { _: DialogInterface?, _: Int ->
+                    val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("ShowCase Crash Log", crashLog.toString())
                     clipboard.setPrimaryClip(clip)
-                    Toast.makeText(this@MainActivity, R.string.crash_log_copied, Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this@MainActivity, R.string.crash_log_copied, Toast.LENGTH_SHORT).show()
                 }
-                .setNegativeButton("Close", null)
+                .setNegativeButton(getString(R.string.close), null)
                 .show()
             crashLogFile.delete()
         }
