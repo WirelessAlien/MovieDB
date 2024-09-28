@@ -17,21 +17,17 @@
   ~
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
+  --><resources>
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Abbrechen</string>
-
     <!-- MainActivity -->
 
     <!-- CastActivity (quotes are to enforce the spaces) -->
     <string name="place_of_birth">"Geburtsort: "</string>
     <string name="birthday">"Geburtstag: "</string>
-    <string name="cast_movie_title">Part of the cast in</string>
+    <string name="cast_movie_title"></string>
     <string name="crew_movie_title">Part of the crew in</string>
-
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Movie added</string>
     <string name="series_added">Series added</string>
@@ -58,7 +54,6 @@
         <item>@string/dropped</item>
     </string-array>
     <string name="show_category">"Category: "</string>
-
     <!-- FilterActivity -->
     <string name="sort_by">Sort By</string>
     <string name="default_sort">Default</string>
@@ -81,31 +76,25 @@
     <string name="keyword_text">You can exclude and include keywords by putting their IDs in the respective text box below. Logic can be applied as following:\n * Use , (comma) to indicate that you mean both keywords.\n * Use | (pipe) to indicate that you are fine with either one or the other.</string>
     <string name="with_keywords_hint">Include shows with the keywords…</string>
     <string name="without_keywords_hint">Exclude shows with the keywords…</string>
-
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">MOVIES</string>
     <string name="series_tab_title">SERIES</string>
     <string name="saved_tab_title">SAVED</string>
-
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Gespeichert als: "</string>
     <string name="choose_export_file">Choose export file format:</string>
     <string name="choose_file">Wählen Sie eine Datei zum Importieren:</string>
     <string name="import_cancel">Abbrechen</string>
     <string name="file_not_found_exception">The file cannot be found!</string>
-
     <!-- search_bar -->
     <string name="hint_search">Suche…</string>
-
     <!-- database_menu -->
     <string name="action_export">Exportieren</string>
     <string name="action_import">Importieren</string>
-
     <!-- options_menu -->
 
     <!-- save_menu -->
     <string name="action_save">Save</string>
-
     <!-- Preferences -->
     <string name="title_general">General</string>
     <string name="title_show_cast">Show cast</string>
@@ -128,12 +117,9 @@
     <string name="title_api_language">API Language</string>
     <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
     <string name="text_tmdb_credits">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
-
     <string name="action_settings">Einstellungen</string>
-
     <!-- (General) Toasts -->
     <string name="no_internet_connection">There is no Internet connection</string>
-
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Collapses or expands the view</string>
     <string name="image_description">Poster of the show</string>
