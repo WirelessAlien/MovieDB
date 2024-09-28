@@ -26,7 +26,6 @@
     <!-- CastActivity (quotes are to enforce the spaces) -->
     <string name="place_of_birth">"Geburtsort: "</string>
     <string name="birthday">"Geburtstag: "</string>
-    <string name="cast_movie_title"></string>
     <string name="crew_movie_title">Part of the crew in</string>
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Movie added</string>
