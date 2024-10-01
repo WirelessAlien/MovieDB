@@ -3,9 +3,9 @@
 <a href="https://github.com/WirelessAlien/MovieDb">
 <img src="https://github.com/WirelessAlien/MovieDB/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="Logo" width="80" height="80">
 </a>
-<h3 align="center">Movie DB</h3>
+<h3 align="center">ShowCase</h3>
 <p align="center">
-Movie DB is a fully open-source android application for exploring and organizing your personal collection of films and television series.
+ShowCase (formerly Movie DB) is a fully open-source android application for exploring and organizing your personal collection of films and television series.
 
 <br/>
 <br/>
@@ -90,4 +90,3 @@ Distributed under the GPL-3 License. See [GPL-3 License](https://www.gnu.org/lic
 ## Acknowledgments
 
 - The base source code is from [nvb / MovieDB](https://notabug.org/nvb/MovieDB) (GPL-v3)
-- App base icon by icelloid from <a href="https://thenounproject.com/browse/icons/term/video-rating/" target="_blank" title="Video Rating Icons">Noun Project</a> (CC BY 3.0)
