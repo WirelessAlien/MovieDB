@@ -127,14 +127,13 @@ class MainActivity : BaseActivity() {
                 e.printStackTrace()
             }
 
-            val scrollView = ScrollView(this)
-            val textView = TextView(this)
+            val dialogView = layoutInflater.inflate(R.layout.dialog_crash_log, null)
+            val textView = dialogView.findViewById<TextView>(R.id.crash_log_text)
             textView.text = crashLog.toString()
-            scrollView.addView(textView)
 
             MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.crash_log))
-                .setView(scrollView)
+                .setView(dialogView)
                 .setPositiveButton(getString(R.string.copy)) { _: DialogInterface?, _: Int ->
                     val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("ShowCase Crash Log", crashLog.toString())

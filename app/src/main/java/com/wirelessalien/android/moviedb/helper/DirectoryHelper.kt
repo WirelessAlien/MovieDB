@@ -40,7 +40,7 @@ import java.io.File
 object DirectoryHelper {
 
     fun getExportDirectory(context: Context): File? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
             val selection = "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?"
             val selectionArgs = arrayOf(Environment.DIRECTORY_DOCUMENTS + "/ShowCase", "ShowCase")
