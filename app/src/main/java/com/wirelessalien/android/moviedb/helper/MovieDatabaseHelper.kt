@@ -103,7 +103,7 @@ class MovieDatabaseHelper  // Initialize the database object.
         return episodesSet
     }
 
-    private fun getJSONExportString(database: SQLiteDatabase): String {
+    private suspend fun getJSONExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
         val selectQuery = "SELECT * FROM $TABLE_MOVIES"
         val cursor = database.rawQuery(selectQuery, null)
 
@@ -140,10 +140,10 @@ class MovieDatabaseHelper  // Initialize the database object.
         cursor.close()
 
         // Convert databaseSet to string and put in file
-        return databaseSet.toString()
+        databaseSet.toString()
     }
 
-    private fun getCSVExportString(database: SQLiteDatabase): String {
+    private suspend fun getCSVExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
         val selectQuery = """
         SELECT m.*, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER, e.$COLUMN_EPISODE_RATING,
                e.$COLUMN_EPISODE_WATCH_DATE, e.$COLUMN_EPISODE_REVIEW
@@ -172,7 +172,7 @@ class MovieDatabaseHelper  // Initialize the database object.
         }
         cursor.close()
 
-        return csvBuilder.toString()
+        csvBuilder.toString()
     }
 
     /**
@@ -210,10 +210,10 @@ class MovieDatabaseHelper  // Initialize the database object.
         val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
         when {
             jsonRadioButton.isChecked -> {
-                val fileContent = getJSONExportString(readableDatabase)
-                val fileExtension = ".json"
-                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                 CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getJSONExportString(readableDatabase)
+                    val fileExtension = ".json"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                     try {
                         val newFile = documentFile?.createFile("application/json", fileName)
                         val outputStream = context.contentResolver.openOutputStream(newFile!!.uri)
@@ -272,10 +272,10 @@ class MovieDatabaseHelper  // Initialize the database object.
                 }
             }
             csvRadioButton.isChecked -> {
-                val fileContent = getCSVExportString(readableDatabase)
-                val fileExtension = ".csv"
-                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                 CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getCSVExportString(readableDatabase)
+                    val fileExtension = ".csv"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                     try {
                         val newFile = documentFile?.createFile("text/csv", fileName)
                         val outputStream = context.contentResolver.openOutputStream(newFile!!.uri)
@@ -301,10 +301,10 @@ class MovieDatabaseHelper  // Initialize the database object.
         val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
         when {
             jsonRadioButton.isChecked -> {
-                val fileContent = getJSONExportString(readableDatabase)
-                val fileExtension = ".json"
-                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                 CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getJSONExportString(readableDatabase)
+                    val fileExtension = ".json"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                     try {
                         val file = File(exportDirectory, fileName)
                         val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))
@@ -361,10 +361,10 @@ class MovieDatabaseHelper  // Initialize the database object.
                 }
             }
             csvRadioButton.isChecked -> {
-                val fileContent = getCSVExportString(readableDatabase)
-                val fileExtension = ".csv"
-                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                 CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getCSVExportString(readableDatabase)
+                    val fileExtension = ".csv"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                     try {
                         val file = File(exportDirectory, fileName)
                         val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))

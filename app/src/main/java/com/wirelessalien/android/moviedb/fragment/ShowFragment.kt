@@ -546,7 +546,7 @@ class ShowFragment : BaseFragment() {
     }
 
     companion object {
-        private const val ARG_LIST_TYPE = "arg_list_type"
+        const val ARG_LIST_TYPE = "arg_list_type"
         fun newInstance(listType: String?): ShowFragment {
             val fragment = ShowFragment()
             val args = Bundle()

@@ -131,12 +131,20 @@
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
     <string name="title_api_language">API Language</string>
     <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
-    <string name="text_tmdb_credits">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
+    <string name="text_tmdb_credits">This product uses the TMDB API but is not endorsed or certified by TMDb.</string>
 
     <string name="action_settings">Settings</string>
 
     <!-- (General) Toasts -->
     <string name="no_internet_connection">There is no Internet connection</string>
+
+    <!-- Fragment names -->
+    <string name="title_home">Home</string>
+    <string name="title_movies">Movies</string>
+    <string name="title_series">Series</string>
+    <string name="title_saved">Saved</string>
+    <string name="title_account">Account</string>
+    <string name="title_people">People</string>
 
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Collapses or expands the view</string>
@@ -310,4 +318,7 @@
     <string name="database_backup">Database Backup</string>
     <string name="database_backup_successful">Database backup completed successfully.</string>
     <string name="database_backup_failed">Database backup failed. Try giving access to the directory again.</string>
+    <string name="filter_people_list">Filter people list</string>
+    <string name="import_movie_database">Import Movie Database</string>
+    <string name="import_people_database">Import People Database</string>
 </resources>

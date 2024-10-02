@@ -53,6 +53,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.work.PeriodicWorkRequest
@@ -64,6 +65,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationBarView
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -148,6 +150,7 @@ class MainActivity : BaseActivity() {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+
         apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")!!
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         bottomNavigationView = findViewById(R.id.bottom_navigation)
@@ -227,6 +230,13 @@ class MainActivity : BaseActivity() {
             params.bottomMargin = bottomNavHeight
             fragmentContainerView.layoutParams = params
         }
+
+        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
+            override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+                super.onFragmentResumed(fm, f)
+                updateToolbarTitle(f)
+            }
+        }, true)
 
 
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
@@ -375,6 +385,20 @@ class MainActivity : BaseActivity() {
             cursor.close()
             preferences.edit().putBoolean("hasRunOnce", true).apply()
         }
+    }
+
+    private fun updateToolbarTitle(fragment: Fragment) {
+        val title = when (fragment) {
+            is HomeFragment -> getString(R.string.app_name)
+            is ShowFragment -> {
+                val listType = fragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                if (listType == SectionsPagerAdapter.MOVIE) getString(R.string.title_movies) else getString(R.string.title_series)
+            }
+            is ListFragment -> getString(R.string.title_saved)
+            is AccountDataFragment -> getString(R.string.title_account)
+            else -> getString(R.string.app_name)
+        }
+        supportActionBar?.title = title
     }
 
     override fun onNewIntent(intent: Intent) {

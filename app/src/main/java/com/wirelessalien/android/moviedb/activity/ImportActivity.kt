@@ -31,6 +31,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import java.io.File
 import java.io.FileOutputStream
@@ -107,9 +108,15 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
             intent.setType("*/*")
             startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
         }
-        val importButton = findViewById<Button>(R.id.import_button)
-        importButton.setOnClickListener {
+        val importMovieDbButton = findViewById<Button>(R.id.import_movie_db_button)
+        importMovieDbButton.setOnClickListener {
             val databaseHelper = MovieDatabaseHelper(applicationContext)
+            databaseHelper.importDatabase(context, this)
+        }
+
+        val importPeopleDbButton = findViewById<Button>(R.id.import_people_db_button)
+        importPeopleDbButton.setOnClickListener {
+            val databaseHelper = PeopleDatabaseHelper(applicationContext)
             databaseHelper.importDatabase(context, this)
         }
     }
