@@ -18,7 +18,7 @@
  *     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.wirelessalien.android.moviedb
+package com.wirelessalien.android.moviedb.work
 
 import android.app.NotificationManager
 import android.content.Context
@@ -27,6 +27,7 @@ import androidx.core.app.NotificationCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.wirelessalien.android.moviedb.R
 import java.io.FileInputStream
 import java.io.IOException
 
@@ -55,11 +56,15 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
                     input.copyTo(output)
                 }
             }
-            showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(R.string.database_backup_successful), true)
+            showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(
+                R.string.database_backup_successful
+            ), true)
             Result.success()
         } catch (e: IOException) {
             e.printStackTrace()
-            showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(R.string.database_backup_failed))
+            showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(
+                R.string.database_backup_failed
+            ))
             Result.failure()
         }
     }

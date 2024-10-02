@@ -35,7 +35,7 @@ import androidx.preference.PreferenceManager
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.wirelessalien.android.moviedb.DatabaseBackupWorker
+import com.wirelessalien.android.moviedb.work.DatabaseBackupWorker
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
@@ -119,9 +119,12 @@ class ExportActivity : AppCompatActivity() {
             openExportDirectoryLauncher.launch(null)
         }
 
-        if (exportDirectoryUri != null) {
+        val backupDirectoryUri = preferences.getString("db_backup_directory", null)
+
+        if (backupDirectoryUri != null) {
             binding.backupBtn.icon = AppCompatResources.getDrawable(this, R.drawable.ic_check)
             binding.backupBtn.text = getString(R.string.backup_directory_selected)
+            scheduleDatabaseExport()
         }
 
         binding.autoBackupSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -129,8 +132,7 @@ class ExportActivity : AppCompatActivity() {
             binding.backupBtn.isEnabled = isChecked
 
             if (isChecked) {
-                val dbBackupDirectory = preferences.getString("db_backup_directory", null)
-                if (dbBackupDirectory != null) {
+                if (backupDirectoryUri != null) {
                     binding.backupBtn.icon = AppCompatResources.getDrawable(this, R.drawable.ic_check)
                 }
                 scheduleDatabaseExport()
@@ -146,13 +148,14 @@ class ExportActivity : AppCompatActivity() {
     }
 
     private fun scheduleDatabaseExport() {
-        val dbExportDirectory = preferences.getString("db_backup_directory", null)
-        if (dbExportDirectory != null) {
-            val directoryUri = Uri.parse(dbExportDirectory)
+        val dbBackupDirectory = preferences.getString("db_backup_directory", null)
+        if (dbBackupDirectory != null) {
+            val directoryUri = Uri.parse(dbBackupDirectory)
             val inputData = workDataOf("directoryUri" to directoryUri.toString())
 
             val exportWorkRequest = PeriodicWorkRequestBuilder<DatabaseBackupWorker>(1, TimeUnit.DAYS)
                 .setInputData(inputData)
+                .addTag("DatabaseBackupWorker")
                 .build()
 
             WorkManager.getInstance(this).enqueue(exportWorkRequest)

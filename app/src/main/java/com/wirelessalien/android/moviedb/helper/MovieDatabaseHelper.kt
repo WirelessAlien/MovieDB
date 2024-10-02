@@ -191,10 +191,14 @@ class MovieDatabaseHelper  // Initialize the database object.
         builder.setTitle(context.resources.getString(R.string.choose_export_file))
             .setPositiveButton(context.getString(R.string.export)) { _, _ ->
                 val exportDirectory = getExportDirectory(context)
-                when {
-                    exportDirectoryUri != null -> exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
-                    exportDirectory != null -> exportToDirectory(context, exportDirectory, jsonRadioButton, dbRadioButton, csvRadioButton)
-                    else -> promptUserToSaveFile(context, jsonRadioButton, dbRadioButton, csvRadioButton)
+                if (exportDirectoryUri != null && exportDirectory != null) {
+                    exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                } else if (exportDirectory != null) {
+                    exportToDirectory(context, exportDirectory, jsonRadioButton, dbRadioButton, csvRadioButton)
+                } else if (exportDirectoryUri !== null) {
+                    exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                } else {
+                    promptUserToSaveFile(context, jsonRadioButton, dbRadioButton, csvRadioButton)
                 }
             }
             .setNegativeButton(context.getString(R.string.cancel)) { dialogInterface, _ -> dialogInterface.cancel() }
