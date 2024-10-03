@@ -139,7 +139,6 @@
     <string name="no_internet_connection">There is no Internet connection</string>
 
     <!-- Fragment names -->
-    <string name="title_home">Home</string>
     <string name="title_movies">Movies</string>
     <string name="title_series">Series</string>
     <string name="title_saved">Saved</string>
@@ -164,7 +163,6 @@
     <string name="previous_lists">Previous Lists</string>
     <string name="create_new_list">Create New List</string>
     <string name="enter_list_name">Enter List Name</string>
-    <string name="select_directory">Select Directory</string>
     <string name="export">Export</string>
     <string name="login_successful">Login successful</string>
     <string name="experimental">Experimental</string>
@@ -288,7 +286,6 @@
     <string name="default_media_type">Default media type</string>
     <string name="show_shows_as_default_in_the_account_tab">Show \"Shows\" as default in the Account Tab</string>
     <string name="remember_only_the_year">Don\'t remember the exact Date !</string>
-    <string name="remember_the_year_and_month">Remember the Year and Month !</string>
     <string name="remember_the_full_date">Remember the full Date !</string>
     <string name="month">MONTH</string>
     <string name="year">YEAR</string>

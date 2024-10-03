@@ -42,7 +42,7 @@
                 android:layout_height="92dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="60dp"
-                android:src="@drawable/ic_export_db"
+                android:src="@drawable/ic_import_db"
                 android:importantForAccessibility="no" />
 
             <com.google.android.material.button.MaterialButton
