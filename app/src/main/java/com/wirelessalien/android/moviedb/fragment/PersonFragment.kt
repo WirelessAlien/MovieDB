@@ -21,7 +21,6 @@ package com.wirelessalien.android.moviedb.fragment
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -58,9 +57,7 @@ class PersonFragment : BaseFragment() {
     private val mSearchQuery: String? = null
     override var mSearchView = false
 
-    // Variables for scroll detection
-    private var visibleThreshold =
-        9 // Three times the amount of items in a row (with three items in a row being the default)
+    private var visibleThreshold = 9
     private var currentPage = 0
     private var currentSearchPage = 0
     private var previousTotal = 0
@@ -68,6 +65,8 @@ class PersonFragment : BaseFragment() {
     private var pastVisibleItems = 0
     private var visibleItemCount = 0
     private var totalItemCount = 0
+    private val showIdSet = HashSet<Int>()
+
     private lateinit var sPreferences: SharedPreferences
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,6 +106,7 @@ class PersonFragment : BaseFragment() {
         // Set the adapter with the database people
         mPersonAdapter = PersonBaseAdapter(databasePeople)
         mPersonGridView.adapter = mPersonAdapter
+        showIdSet.clear()
         mPersonAdapter.notifyDataSetChanged()
     }
 
@@ -120,18 +120,9 @@ class PersonFragment : BaseFragment() {
                 do {
                     val person = JSONObject()
                     try {
-                        person.put(
-                            "id",
-                            cursor.getInt(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_ID))
-                        )
-                        person.put(
-                            "name",
-                            cursor.getString(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_NAME))
-                        )
-                        person.put(
-                            "profile_path",
-                            cursor.getString(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_PROFILE_PATH))
-                        )
+                        person.put("id", cursor.getInt(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_ID)))
+                        person.put("name", cursor.getString(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_NAME)))
+                        person.put("profile_path", cursor.getString(cursor.getColumnIndexOrThrow(PeopleDatabaseHelper.COLUMN_PROFILE_PATH)))
                         databasePeople.add(person)
                     } catch (e: JSONException) {
                         e.printStackTrace()
@@ -140,7 +131,6 @@ class PersonFragment : BaseFragment() {
             }
             cursor.close()
             db.close()
-            Log.d("PersonFragment", "People from database: $databasePeople")
             return databasePeople
         }
 
@@ -173,7 +163,7 @@ class PersonFragment : BaseFragment() {
         mPersonAdapter = PersonBaseAdapter(mPersonArrayList!!)
         val preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity())
         visibleThreshold *= preferences.getInt(GRID_SIZE_PREFERENCE, 3)
-
+        showIdSet.clear()
         // Get the persons
         fetchPersonList(1)
     }
@@ -291,10 +281,16 @@ class PersonFragment : BaseFragment() {
                 try {
                     val reader = JSONObject(response)
                     val arrayData = reader.getJSONArray("results")
+                    val newItems = mutableListOf<JSONObject>()
                     for (i in 0 until arrayData.length()) {
                         val websiteData = arrayData.getJSONObject(i)
-                        mPersonArrayList!!.add(websiteData)
+                        val personId = websiteData.getInt("id")
+                        if (!showIdSet.contains(personId)) {
+                            newItems.add(websiteData)
+                            showIdSet.add(personId)
+                        }
                     }
+                    mPersonArrayList!!.addAll(newItems)
                     if (page == 1) {
                         mPersonGridView.adapter = mPersonAdapter
                     } else {

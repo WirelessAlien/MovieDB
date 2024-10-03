@@ -46,8 +46,8 @@ class AboutFragment : DialogFragment() {
             openUrl("https://github.com/WirelessAlien/MovieDB/issues")
         }
 
-        binding.licenseText.setOnClickListener {
-            openUrl("https://www.gnu.org/licenses/gpl-3.0.html")
+        binding.translateText.setOnClickListener {
+            openUrl("https://hosted.weblate.org/engage/showcase/")
         }
 
         binding.donate.setOnClickListener {

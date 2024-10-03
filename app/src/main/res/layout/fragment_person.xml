@@ -24,21 +24,16 @@
     android:layout_height="match_parent"
     tools:context="com.wirelessalien.android.moviedb.fragment.PersonFragment">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/personRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="2dip"
+        android:padding="11dp"
         android:scrollbars="none" />
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:visibility="gone"/>
-    </RelativeLayout>
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
 </FrameLayout>

@@ -39,7 +39,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -54,9 +53,10 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import androidx.work.OneTimeWorkRequest
+import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -65,7 +65,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationBarView
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.ReleaseReminderService
+import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -81,6 +81,7 @@ import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
+import com.wirelessalien.android.moviedb.work.ReleaseReminderWorker
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
@@ -127,14 +128,13 @@ class MainActivity : BaseActivity() {
                 e.printStackTrace()
             }
 
-            val scrollView = ScrollView(this)
-            val textView = TextView(this)
+            val dialogView = layoutInflater.inflate(R.layout.dialog_crash_log, null)
+            val textView = dialogView.findViewById<TextView>(R.id.crash_log_text)
             textView.text = crashLog.toString()
-            scrollView.addView(textView)
 
             MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.crash_log))
-                .setView(scrollView)
+                .setView(dialogView)
                 .setPositiveButton(getString(R.string.copy)) { _: DialogInterface?, _: Int ->
                     val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("ShowCase Crash Log", crashLog.toString())
@@ -150,6 +150,7 @@ class MainActivity : BaseActivity() {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+
         apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")!!
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         bottomNavigationView = findViewById(R.id.bottom_navigation)
@@ -213,7 +214,6 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        // Register the listener
         preferences.registerOnSharedPreferenceChangeListener(prefListener)
         val fab = findViewById<FloatingActionButton>(R.id.fab)
         bottomNavigationView.viewTreeObserver.addOnGlobalLayoutListener {
@@ -230,6 +230,13 @@ class MainActivity : BaseActivity() {
             params.bottomMargin = bottomNavHeight
             fragmentContainerView.layoutParams = params
         }
+
+        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
+            override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+                super.onFragmentResumed(fm, f)
+                updateToolbarTitle(f)
+            }
+        }, true)
 
 
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
@@ -256,16 +263,8 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                )
-            ) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
                 MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.permission_required)
                     .setMessage(R.string.permission_required_description)
@@ -279,14 +278,11 @@ class MainActivity : BaseActivity() {
                     .setNegativeButton(R.string.cancel) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                     .create().show()
             } else {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    REQUEST_CODE
-                )
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_CODE)
             }
             return
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name: CharSequence = getString(R.string.released_movies)
             val description = getString(R.string.notification_for_movie_released)
@@ -298,6 +294,7 @@ class MainActivity : BaseActivity() {
             )
             notificationManager.createNotificationChannel(channel)
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name: CharSequence = getString(R.string.aired_episodes)
             val description = getString(R.string.notification_for_episode_air)
@@ -309,15 +306,17 @@ class MainActivity : BaseActivity() {
             )
             notificationManager.createNotificationChannel(channel)
         }
-        val workRequest: OneTimeWorkRequest = OneTimeWorkRequest.Builder(ReleaseReminderService::class.java)
-            .setInitialDelay(24, TimeUnit.HOURS)
+
+        val periodicWorkRequest = PeriodicWorkRequest.Builder(ReleaseReminderWorker::class.java, 1, TimeUnit.DAYS)
             .build()
-        WorkManager.getInstance(this).enqueue(workRequest)
+        WorkManager.getInstance(this).enqueue(periodicWorkRequest)
+
         val nIntent = intent
         if (nIntent != null && nIntent.hasExtra("tab_index")) {
             val tabIndex = nIntent.getIntExtra("tab_index", 0)
             bottomNavigationView.selectedItemId = tabIndex
         }
+
         val accessToken = preferences.getString("access_token", null)
         val hasRunOnce = preferences.getBoolean("hasRunOnce", false)
         if (!hasRunOnce && accessToken != null && accessToken != "") {
@@ -386,6 +385,20 @@ class MainActivity : BaseActivity() {
             cursor.close()
             preferences.edit().putBoolean("hasRunOnce", true).apply()
         }
+    }
+
+    private fun updateToolbarTitle(fragment: Fragment) {
+        val title = when (fragment) {
+            is HomeFragment -> getString(R.string.app_name)
+            is ShowFragment -> {
+                val listType = fragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                if (listType == SectionsPagerAdapter.MOVIE) getString(R.string.title_movies) else getString(R.string.title_series)
+            }
+            is ListFragment -> getString(R.string.title_saved)
+            is AccountDataFragment -> getString(R.string.title_account)
+            else -> getString(R.string.app_name)
+        }
+        supportActionBar?.title = title
     }
 
     override fun onNewIntent(intent: Intent) {

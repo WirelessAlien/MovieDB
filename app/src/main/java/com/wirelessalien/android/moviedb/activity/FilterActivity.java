@@ -217,7 +217,6 @@ public class FilterActivity extends AppCompatActivity {
             advancedTitle.setVisibility(View.GONE);
         }
 
-        // Get all existing genres
         SharedPreferences sharedPreferences = getSharedPreferences("GenreList", Context.MODE_PRIVATE);
         String mode = intent.getStringExtra("mode");
 
@@ -232,7 +231,9 @@ public class FilterActivity extends AppCompatActivity {
                 String movieGenreList = sharedPreferences.getString("movieGenreJSONArrayList", null);
                 String tvGenreList = sharedPreferences.getString("tvGenreJSONArrayList", null);
                 if (movieGenreList != null && tvGenreList != null) {
-                    genreArray = concatJSONArray(new JSONArray(movieGenreList), new JSONArray(tvGenreList));
+                    genreArray = concatJSONArray(
+                            new JSONArray(movieGenreList),
+                            new JSONArray(tvGenreList));
                 }
             }
 

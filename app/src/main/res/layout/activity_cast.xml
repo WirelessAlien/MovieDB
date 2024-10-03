@@ -27,6 +27,19 @@
     android:fitsSystemWindows="true"
     tools:context="com.wirelessalien.android.moviedb.activity.CastActivity">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/appBarLayout"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
     <com.wirelessalien.android.moviedb.view.NotifyingScrollView
         android:id="@+id/castScrollView"
         android:layout_width="match_parent"
@@ -165,20 +178,5 @@
                 android:layout_margin="6dp"
                 android:layout_marginBottom="10dp"/>
         </RelativeLayout>
-
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/appBarLayout"
-        android:fitsSystemWindows="true">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"/>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

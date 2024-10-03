@@ -19,29 +19,45 @@
  */
 package com.wirelessalien.android.moviedb.activity
 
+import android.Manifest
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.appcompat.widget.SearchView
+import androidx.core.app.ActivityCompat
 import androidx.preference.PreferenceManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.fragment.PersonFragment
 import com.wirelessalien.android.moviedb.fragment.PersonFragment.Companion.newInstance
+import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
+import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 
-class PersonActivity : BaseActivity() {
+class PersonActivity : BaseActivity() , AdapterDataChangedListener {
     private var mSearchAction: MenuItem? = null
     private var isSearchOpened = false
-    private var preferences: SharedPreferences? = null
+    private lateinit var preferences: SharedPreferences
+    private val REQUEST_CODE_ASK_PERMISSIONS_EXPORT = 123
+    private val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
+    private var exportDirectoryUri: String? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_person)
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+        supportActionBar?.title = getString(R.string.title_people)
+
+        exportDirectoryUri = preferences.getString("db_export_directory", null)
+
         if (savedInstanceState == null) {
             val personFragment = newInstance()
             val transaction = supportFragmentManager.beginTransaction()
@@ -63,13 +79,11 @@ class PersonActivity : BaseActivity() {
         // Inflate the menu; this adds items to the action bar if it is present.
         val inflater = menuInflater
         inflater.inflate(R.menu.options_menu, menu)
+        inflater.inflate(R.menu.database_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         val id = item.itemId
 
         // Search action
@@ -77,6 +91,53 @@ class PersonActivity : BaseActivity() {
             handleMenuSearch()
             return true
         }
+
+        if (id == R.id.action_export)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        REQUEST_CODE_ASK_PERMISSIONS_EXPORT
+                    )
+                } else {
+                    //call export function from PeopleDatabaseHelper
+                    val peopleDatabaseHelper = PeopleDatabaseHelper(this)
+                    peopleDatabaseHelper.exportDatabase(this, exportDirectoryUri)
+                }
+            } else {
+                //call export function from PeopleDatabaseHelper
+                val peopleDatabaseHelper = PeopleDatabaseHelper(this)
+                peopleDatabaseHelper.exportDatabase(this, exportDirectoryUri)
+            }
+
+        if (id == R.id.action_import)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        REQUEST_CODE_ASK_PERMISSIONS_IMPORT
+                    )
+                } else {
+                    val intent = Intent(this, ImportActivity::class.java)
+                    startActivity(intent)
+
+                }
+            } else {
+                val intent = Intent(this, ImportActivity::class.java)
+                startActivity(intent)
+
+            }
+
         return super.onOptionsItemSelected(item)
     }
 
@@ -89,7 +150,7 @@ class PersonActivity : BaseActivity() {
      * Handles input from the search bar and icon.
      */
     private fun handleMenuSearch() {
-        val liveSearch = preferences!!.getBoolean(LIVE_SEARCH_PREFERENCE, true)
+        val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, true)
         val searchView = mSearchAction!!.actionView as SearchView?
         if (isSearchOpened) {
             if (searchView != null && searchView.query.toString() == "") {
@@ -137,6 +198,11 @@ class PersonActivity : BaseActivity() {
             personFragment.cancelSearch()
         }
     }
+
+    override fun onAdapterDataChangedListener() {
+        // Do nothing
+    }
+
 
     companion object {
         private const val LIVE_SEARCH_PREFERENCE = "key_live_search"

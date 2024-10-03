@@ -24,20 +24,23 @@ import android.content.Context
 import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.os.Environment
-import android.os.Handler
-import android.os.Looper
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.documentfile.provider.DocumentFile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ExportActivity
 import com.wirelessalien.android.moviedb.data.EpisodeDbDetails
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper.getExportDirectory
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -52,7 +55,6 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.CompletableFuture
 
 /**
  * This class provides some (basic) database functionality.
@@ -101,7 +103,7 @@ class MovieDatabaseHelper  // Initialize the database object.
         return episodesSet
     }
 
-    private fun getJSONExportString(database: SQLiteDatabase): String {
+    private suspend fun getJSONExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
         val selectQuery = "SELECT * FROM $TABLE_MOVIES"
         val cursor = database.rawQuery(selectQuery, null)
 
@@ -138,10 +140,10 @@ class MovieDatabaseHelper  // Initialize the database object.
         cursor.close()
 
         // Convert databaseSet to string and put in file
-        return databaseSet.toString()
+        databaseSet.toString()
     }
 
-    private fun getCSVExportString(database: SQLiteDatabase): String {
+    private suspend fun getCSVExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
         val selectQuery = """
         SELECT m.*, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER, e.$COLUMN_EPISODE_RATING,
                e.$COLUMN_EPISODE_WATCH_DATE, e.$COLUMN_EPISODE_REVIEW
@@ -170,7 +172,7 @@ class MovieDatabaseHelper  // Initialize the database object.
         }
         cursor.close()
 
-        return csvBuilder.toString()
+        csvBuilder.toString()
     }
 
     /**
@@ -178,7 +180,7 @@ class MovieDatabaseHelper  // Initialize the database object.
      *
      * @param context the context needed for the dialogs and toasts.
      */
-    fun exportDatabase(context: Context) {
+    fun exportDatabase(context: Context, exportDirectoryUri: String?) {
         val builder = MaterialAlertDialogBuilder(context)
         val inflater = LayoutInflater.from(context)
         val customView = inflater.inflate(R.layout.export_dialog, null)
@@ -187,86 +189,221 @@ class MovieDatabaseHelper  // Initialize the database object.
         val csvRadioButton = customView.findViewById<RadioButton>(R.id.radio_csv)
         builder.setView(customView)
         builder.setTitle(context.resources.getString(R.string.choose_export_file))
-            .setPositiveButton("Export") { _: DialogInterface?, _: Int ->
+            .setPositiveButton(context.getString(R.string.export)) { _, _ ->
                 val exportDirectory = getExportDirectory(context)
-                if (exportDirectory != null) {
-                    val data = Environment.getDataDirectory()
-                    val currentDBPath = "/data/" + context.packageName + "/databases/" + databaseFileName
-                    val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
-                    if (jsonRadioButton.isChecked) {
-                        val fileContent = getJSONExportString(readableDatabase)
-                        val fileExtension = ".json"
-                        val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                        try {
-                            val file = File(exportDirectory, fileName)
-                            val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))
-                            bufferedOutputStream.write(fileContent.toByteArray())
-                            bufferedOutputStream.flush()
-                            bufferedOutputStream.close()
-                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
-                        }
-                    } else if (dbRadioButton.isChecked) {
-                        val fileExtension = ".db"
-                        val exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                        try {
-                            val currentDB = File(data, currentDBPath)
-                            val exportDB = File(exportDirectory, exportDBPath)
-                            val bufferedOutputStream = BufferedOutputStream(FileOutputStream(exportDB))
-                            val fileChannel = FileInputStream(currentDB).channel
-                            val buffer = ByteBuffer.allocate(fileChannel.size().toInt())
-                            fileChannel.read(buffer)
-                            buffer.flip()
-                            val byteArray = ByteArray(buffer.remaining())
-                            buffer[byteArray]
-                            bufferedOutputStream.write(byteArray)
-                            bufferedOutputStream.flush()
-                            bufferedOutputStream.close()
-                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + exportDBPath, Toast.LENGTH_SHORT).show()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            if (context is ExportActivity) {
-                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false)
-                            }
-                        }
-                    } else if (csvRadioButton.isChecked) {
-                        val fileContent = getCSVExportString(readableDatabase)
-                        val fileExtension = ".csv"
-                        val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                        try {
-                            val file = File(exportDirectory, fileName)
-                            val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))
-                            bufferedOutputStream.write(fileContent.toByteArray())
-                            bufferedOutputStream.flush()
-                            bufferedOutputStream.close()
-                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
-                        }
-                    }
+                if (exportDirectoryUri != null && exportDirectory != null) {
+                    exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                } else if (exportDirectory != null) {
+                    exportToDirectory(context, exportDirectory, jsonRadioButton, dbRadioButton, csvRadioButton)
+                } else if (exportDirectoryUri !== null) {
+                    exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
                 } else {
-                    if (context is ExportActivity) {
-                        if (jsonRadioButton.isChecked) {
-                            val fileExtension = ".json"
-                            val fileName = DATABASE_FILE_NAME + SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US).format(Date()) + fileExtension
-                            context.promptUserToSaveFile(fileName, isJson = true, isCsv = false)
-                        } else if (dbRadioButton.isChecked) {
-                            val fileExtension = ".db"
-                            val fileName = DATABASE_FILE_NAME + SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US).format(Date()) + fileExtension
-                            context.promptUserToSaveFile(fileName, isJson = false, isCsv = false)
-                        } else if (csvRadioButton.isChecked) {
-                            val fileExtension = ".csv"
-                            val fileName = DATABASE_FILE_NAME + SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US).format(Date()) + fileExtension
-                            context.promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+                    promptUserToSaveFile(context, jsonRadioButton, dbRadioButton, csvRadioButton)
+                }
+            }
+            .setNegativeButton(context.getString(R.string.cancel)) { dialogInterface, _ -> dialogInterface.cancel() }
+        builder.show()
+    }
+
+    private fun exportToUri(context: Context, exportDirectoryUri: String, jsonRadioButton: RadioButton, dbRadioButton: RadioButton, csvRadioButton: RadioButton) {
+        val documentFile = DocumentFile.fromTreeUri(context, Uri.parse(exportDirectoryUri))
+        val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
+        when {
+            jsonRadioButton.isChecked -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getJSONExportString(readableDatabase)
+                    val fileExtension = ".json"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                    try {
+                        val newFile = documentFile?.createFile("application/json", fileName)
+                        val outputStream = context.contentResolver.openOutputStream(newFile!!.uri)
+                        outputStream?.use {
+                            it.write(fileContent.toByteArray())
+                            it.flush()
+                        }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
                         }
                     }
                 }
             }
-            .setNegativeButton(context.getString(R.string.cancel)) { dialogInterface: DialogInterface, _: Int -> dialogInterface.cancel() }
-        builder.show()
+            dbRadioButton.isChecked -> {
+                val fileExtension = ".db"
+                val exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val dynamicDbPath = context.getDatabasePath(databaseFileName).absolutePath
+                        val currentDb = File(dynamicDbPath)
+
+                        if (!currentDb.exists()) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, context.resources.getString(R.string.database_not_found), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        val newFile = documentFile?.createFile("application/octet-stream", exportDBPath)
+                        val outputStream = context.contentResolver.openOutputStream(newFile!!.uri)
+                        val fileChannel = FileInputStream(currentDb).channel
+                        val buffer = ByteBuffer.allocate(fileChannel.size().toInt())
+                        fileChannel.read(buffer)
+                        buffer.flip()
+                        val byteArray = ByteArray(buffer.remaining())
+                        buffer[byteArray]
+                        outputStream?.use {
+                            it.write(byteArray)
+                            it.flush()
+                        }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + exportDBPath, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            if (context is ExportActivity) {
+                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false)
+                            }
+                        }
+                    }
+                }
+            }
+            csvRadioButton.isChecked -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getCSVExportString(readableDatabase)
+                    val fileExtension = ".csv"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                    try {
+                        val newFile = documentFile?.createFile("text/csv", fileName)
+                        val outputStream = context.contentResolver.openOutputStream(newFile!!.uri)
+                        outputStream?.use {
+                            it.write(fileContent.toByteArray())
+                            it.flush()
+                        }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun exportToDirectory(context: Context, exportDirectory: File, jsonRadioButton: RadioButton, dbRadioButton: RadioButton, csvRadioButton: RadioButton) {
+        val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
+        when {
+            jsonRadioButton.isChecked -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getJSONExportString(readableDatabase)
+                    val fileExtension = ".json"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                    try {
+                        val file = File(exportDirectory, fileName)
+                        val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))
+                        bufferedOutputStream.write(fileContent.toByteArray())
+                        bufferedOutputStream.flush()
+                        bufferedOutputStream.close()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
+                        }
+                    }
+                }
+            }
+            dbRadioButton.isChecked -> {
+                val fileExtension = ".db"
+                val exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val dynamicDbPath = context.getDatabasePath(databaseFileName).absolutePath
+                        val currentDb = File(dynamicDbPath)
+
+                        if (!currentDb.exists()) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, context.resources.getString(R.string.database_not_found), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        val exportDB = File(exportDirectory, exportDBPath)
+                        val bufferedOutputStream = BufferedOutputStream(FileOutputStream(exportDB))
+                        val fileChannel = FileInputStream(currentDb).channel
+                        val buffer = ByteBuffer.allocate(fileChannel.size().toInt())
+                        fileChannel.read(buffer)
+                        buffer.flip()
+                        val byteArray = ByteArray(buffer.remaining())
+                        buffer[byteArray]
+                        bufferedOutputStream.write(byteArray)
+                        bufferedOutputStream.flush()
+                        bufferedOutputStream.close()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + exportDBPath, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            if (context is ExportActivity) {
+                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false)
+                            }
+                        }
+                    }
+                }
+            }
+            csvRadioButton.isChecked -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val fileContent = getCSVExportString(readableDatabase)
+                    val fileExtension = ".csv"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                    try {
+                        val file = File(exportDirectory, fileName)
+                        val bufferedOutputStream = BufferedOutputStream(FileOutputStream(file))
+                        bufferedOutputStream.write(fileContent.toByteArray())
+                        bufferedOutputStream.flush()
+                        bufferedOutputStream.close()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun promptUserToSaveFile(context: Context, jsonRadioButton: RadioButton, dbRadioButton: RadioButton, csvRadioButton: RadioButton) {
+        val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
+        when {
+            jsonRadioButton.isChecked -> {
+                val fileExtension = ".json"
+                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
+            }
+            dbRadioButton.isChecked -> {
+                val fileExtension = ".db"
+                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = false)
+            }
+            csvRadioButton.isChecked -> {
+                val fileExtension = ".csv"
+                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+            }
+        }
     }
 
     /**
@@ -300,26 +437,19 @@ class MovieDatabaseHelper  // Initialize the database object.
                 if (exportDBPath == null) {
                     throw NullPointerException()
                 } else if (fileAdapter.getItem(which)!!.endsWith(".db")) {
-                    CompletableFuture.runAsync {
+                    CoroutineScope(Dispatchers.IO).launch {
                         try {
                             // Import the file selected in the dialog.
-                            val data = Environment.getDataDirectory()
-                            val currentDBPath =
-                                "/data/" + context.packageName + "/databases/" + databaseFileName
-                            val currentDB = File(data, currentDBPath)
+                            val currentDBPath = context.getDatabasePath(databaseFileName).absolutePath
+                            val currentDB = File(currentDBPath)
                             val importDB = File(path, exportDBPath)
                             val src = FileInputStream(importDB).channel
                             val dst = FileOutputStream(currentDB).channel
                             dst.transferFrom(src, 0, src.size())
                             src.close()
                             dst.close()
-                            val mainHandler = Handler(Looper.getMainLooper())
-                            mainHandler.post {
-                                Toast.makeText(
-                                    context,
-                                    R.string.database_import_successful,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, R.string.database_import_successful, Toast.LENGTH_SHORT).show()
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -328,11 +458,7 @@ class MovieDatabaseHelper  // Initialize the database object.
                 }
             } catch (npe: NullPointerException) {
                 npe.printStackTrace()
-                Toast.makeText(
-                    context,
-                    context.resources.getString(R.string.file_not_found_exception),
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, context.resources.getString(R.string.file_not_found_exception), Toast.LENGTH_SHORT).show()
             }
             listener.onAdapterDataChangedListener()
         }
