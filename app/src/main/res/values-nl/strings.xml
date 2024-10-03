@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
@@ -16,13 +17,10 @@
   ~
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
+  --><resources>
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Annuleren</string>
-
     <!-- MainActivity -->
 
     <!-- CastActivity (quotes zijn er om de spaties af te dwingen) -->
@@ -30,7 +28,6 @@
     <string name="birthday">"Geboortedatum: "</string>
     <string name="cast_movie_title">Onderdeel van de cast in</string>
     <string name="crew_movie_title">Onderdeel van de crew in</string>
-
     <!-- DetailActivity (quotes zijn er om de spaties af te dwingen) -->
     <string name="movie_added">Film toegevoegd</string>
     <string name="series_added">Serie toegevoegd</string>
@@ -57,7 +54,6 @@
         <item>@string/dropped</item>
     </string-array>
     <string name="show_category">\"Categorie: \"</string>
-
     <!-- FilterActivity -->
     <string name="sort_by">Sorteren op</string>
     <string name="default_sort">Standaard</string>
@@ -79,31 +75,25 @@
     <string name="keyword_text">Je kan sleutelwoorden toevoegen of uitsluiten door de bijhorende ids in het juiste tekstveld te zetten. logica wordt toegepast als volgt:\n* gebruik , (komma) om aan te geven dat je beide sleutelwoorden bedoelt.\n* gebruik | (pipe) om aan te geven dat de show maar één van beide hoeft te bevatten.</string>
     <string name="with_keywords_hint">Shows met de volgende sleutelwoorden toevoegen…</string>
     <string name="without_keywords_hint">Shows met de volgende sleutelwoorden uitsleten…</string>
-
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">FILMS</string>
     <string name="series_tab_title">SERIES</string>
     <string name="saved_tab_title">OPGESLAGEN</string>
-
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Opgeslagen als: "</string>
     <string name="choose_export_file">Kies het bestandsformaat om in te exporteren:</string>
     <string name="choose_file">Kies het te importeren bestand:</string>
     <string name="import_cancel">Annuleren</string>
     <string name="file_not_found_exception">Het bestand kan niet gevonden worden!</string>
-
     <!-- search_bar -->
     <string name="hint_search">Zoeken…</string>
-
     <!-- database_menu -->
     <string name="action_export">Exporteren</string>
     <string name="action_import">Importeren</string>
-
     <!-- options_menu -->
 
     <!-- save_menu -->
     <string name="action_save">Opslaan</string>
-
     <!-- Preferences -->
     <string name="title_general">Algemeen</string>
     <string name="title_show_cast">Cast weergeven</string>
@@ -126,13 +116,10 @@
     <string name="title_api_language">API Taal</string>
     <string name="summary_api_language">Stel de taal van de API gegevens in (standaard taal wordt gebruikt indien leeg).</string>
     <string name="text_tmdb_credits">Dit product gebruikt de TMDb API maar is niet goedgekeurd of gecertificeerd bij TMDb.</string>
-
     <string name="action_settings">Instellingen</string>
     <string name="on_hold">Tijdelijk stopgezet</string>
-
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Er is geen internetverbinding</string>
-
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Opent of sluit geavanceerd</string>
     <string name="image_description">Poster van de show</string>
