@@ -50,8 +50,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/version"
-            android:layout_marginStart="2dp"
-            android:text="Version 3.0"
+            android:layout_marginStart="4dp"
+            android:text="3.0"
             android:textSize="18sp"
             android:gravity="center"/>
     </RelativeLayout>
@@ -77,12 +77,12 @@
             style="?attr/materialIconButtonStyle" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/licenseText"
+            android:id="@+id/translateText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?attr/materialIconButtonStyle"
             android:layout_toEndOf="@id/githubIssueButton"
-            app:icon="@drawable/ic_copyright"
+            app:icon="@drawable/ic_translate"
             android:textSize="16sp" />
 
         <com.google.android.material.button.MaterialButton
@@ -90,7 +90,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="?attr/materialIconButtonStyle"
-            android:layout_toEndOf="@id/licenseText"
+            android:layout_toEndOf="@id/translateText"
             app:icon="@drawable/ic_currency"
             android:textSize="16sp" />
 
