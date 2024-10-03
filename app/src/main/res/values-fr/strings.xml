@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
@@ -18,22 +17,17 @@
   ~
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
-
+  --><resources>
     <!-- MainActivity -->
 
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Annuler</string>
-
     <!-- CastActivity (quotes are to enforce spaces) -->
     <string name="place_of_birth">"Lieu de naissance : "</string>
     <string name="birthday">"Date de naissance : "</string>
     <string name="cast_movie_title">A joué dans</string>
     <string name="crew_movie_title">Membre des équipes de</string>
-
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Film ajouté</string>
     <string name="series_added">Série ajoutée</string>
@@ -53,7 +47,6 @@
     <string name="recommendations_title">Recommendations</string>
     <string name="category_picker">Choisissez la catégorie appropriée</string>
     <string name="show_category">"Catégorie : "</string>
-
     <!-- FilterActivity -->
     <string name="sort_by">Trier par</string>
     <string name="default_sort">Par défaut</string>
@@ -77,31 +70,25 @@
     <string name="keyword_text">Vous pouvez exclure ou inclure des mots-clefs en indiquant leur ID dans le champ texte correspondant ci-dessous. On peut utiliser les opérateurs logiques ainsi :\n * Utilisez « , » (virgule) pour indiquer que vous voulez les deux mots-clefs.\n * Utilisez « | » (barre verticale) pour indiquer que l\'un comme l\'autre vous conviennent.</string>
     <string name="with_keywords_hint">Inclure les œuvres avec les mots-clefs…</string>
     <string name="without_keywords_hint">Exclure les œuvres avec les mots-clefs…</string>
-
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">FILMS</string>
     <string name="series_tab_title">SÉRIES</string>
     <string name="saved_tab_title">ENREGISTRÉES</string>
-
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
     <string name="choose_export_file">Choisissez un format de fichier d\'export</string>
     <string name="choose_file">Choisissez le fichier à importer :</string>
     <string name="import_cancel">Annuler</string>
     <string name="file_not_found_exception">Le fichier est introuvable !</string>
-
     <!-- search_bar -->
     <string name="hint_search">Rechercher…</string>
-
     <!-- database_menu -->
     <string name="action_export">Exporter</string>
     <string name="action_import">Importer</string>
-
     <!-- options_menu -->
 
     <!-- save_menu -->
     <string name="action_save">Sauvegarder</string>
-
     <!-- Preferences -->
     <string name="title_general">Général</string>
     <string name="title_show_cast">Montrer la distribution</string>
@@ -124,10 +111,8 @@
     <string name="title_api_language">API Language</string>
     <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
     <string name="text_tmdb_credits">Ce produit utilise l\'API TMDb mais n\'est pas reconnu ni certifié par TMDb.</string>
-
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Pas de connexion internet</string>
-
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Collapses or expands the view</string>
     <string name="image_description">Poster of the show</string>
