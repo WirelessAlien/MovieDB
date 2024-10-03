@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
@@ -16,13 +17,10 @@
   ~
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
+  --><resources>
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">Хорошо</string>
     <string name="no_permission_dialog_cancel">Отмена</string>
-
     <!-- MainActivity -->
 
     <!-- CastActivity (quotes are to enforce the spaces) -->
@@ -30,7 +28,6 @@
     <string name="birthday">"Дата рождения: "</string>
     <string name="cast_movie_title">Играл в</string>
     <string name="crew_movie_title">Участвовал в создании</string>
-
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Фильм добавлен</string>
     <string name="series_added">Сериал добавлен</string>
@@ -57,7 +54,6 @@
         <item>@string/dropped</item>
     </string-array>
     <string name="show_category">"Категория: "</string>
-
     <!-- FilterActivity -->
     <string name="sort_by">Сортировать по</string>
     <string name="default_sort">Умолчанию</string>
@@ -80,31 +76,25 @@
     <string name="keyword_text">Вы можете фильтровать по ключевым словам, вводя их ID в соотвествующее поле. Логика следующая:\n * Разделяйте их запятой, чтобы использовать оба слова.\n * Разделяйте слова знаком | (или), если хотите использовать любое из них.</string>
     <string name="with_keywords_hint">Показывать фильмы с ключевыми словами…</string>
     <string name="without_keywords_hint">Не показывать фильмы с ключевыми словами…</string>
-
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">ФИЛЬМЫ</string>
     <string name="series_tab_title">СЕРИАЛЫ</string>
     <string name="saved_tab_title">СПИСКИ</string>
-
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Сохранен как: "</string>
     <string name="choose_export_file">Выберите формат экспорта:</string>
     <string name="choose_file">Выберите файл для импорта:</string>
     <string name="import_cancel">Отмена</string>
     <string name="file_not_found_exception">Файл не найден!</string>
-
     <!-- search_bar -->
     <string name="hint_search">Найти…</string>
-
     <!-- database_menu -->
     <string name="action_export">Экспорт</string>
     <string name="action_import">Импорт</string>
-
     <!-- options_menu -->
 
     <!-- save_menu -->
     <string name="action_save">Сохранить</string>
-
     <!-- Preferences -->
     <string name="title_general">Общие</string>
     <string name="title_show_cast">Показывать актеров</string>
@@ -127,12 +117,9 @@
     <string name="title_api_language">Язык API</string>
     <string name="summary_api_language">Выберите язык для полученных через API данных (по-умолчанию используется системная локаль).</string>
     <string name="text_tmdb_credits">Данный продукт использует TMDb API, но не одобрен или не сертифицирован TMDb.</string>
-
     <string name="action_settings">Настройки</string>
-
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Интернет-соединение отстутствует</string>
-
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Свернуть или развернуть</string>
     <string name="image_description">Постер фильма</string>
