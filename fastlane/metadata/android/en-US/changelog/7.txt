@@ -1,0 +1,16 @@
+Feature:
+ -Added a new Homepage
+ -Added ability to add decimal rating (offline)
+ -Added review functionality (offline)
+ -Added image download option
+ -Added CSV export (csv import will be added)
+ -Added #28
+ -Add auto backup of database #33
+ -Add import and export of Cast database
+Fix:
+ -Fix #21, #23, #24, #25, #27, #31, #32
+Removed:
+ -Swipe to change tab function removed
+Development:
+ -The source code (more than 95% of the repository) was migrated from Java to Kotlin, So maybe a few small bug will be there. Please report by creating an issue.
+ -Add support for Android 14
