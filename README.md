@@ -77,6 +77,12 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+## Translate
+
+<a href="https://hosted.weblate.org/engage/showcase/">
+<img src="https://hosted.weblate.org/widget/showcase/strings/287x66-white.png" alt="Translation status" />
+</a>
+
 ## License
 
 Distributed under the GPL-3 License. See [GPL-3 License](https://www.gnu.org/licenses/gpl-3.0.txt) for more information.
