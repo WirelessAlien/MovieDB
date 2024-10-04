@@ -318,4 +318,11 @@
     <string name="filter_people_list">Filter people list</string>
     <string name="import_movie_database">Import Movie Database</string>
     <string name="import_people_database">Import People Database</string>
+    <string name="seasons">Seasons</string>
+    <string name="account_id_fail_try_login_again">Failed to retrieve account id. Try login again.</string>
+    <string name="select_year_and_month">Select Year and Month</string>
+    <string name="no_trailer_available">No trailer available</string>
+    <string name="select_a_date">Select a Date</string>
+    <string name="failed_to_retrieve_account_id">Failed to retrieve account id</string>
+    <string name="season">"Season "</string>
 </resources>

@@ -94,11 +94,10 @@ class CastActivity : BaseActivity() {
     private var lightMutedColor = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityCastBinding.inflate(
-            layoutInflater
-        )
+        binding = ActivityCastBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setNavigationDrawer()
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.title = getString(R.string.title_people)
         setBackButtons()
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         API_KEY = ConfigHelper.getConfigValue(applicationContext, "api_key")

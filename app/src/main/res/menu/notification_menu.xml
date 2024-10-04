@@ -28,7 +28,7 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/action_watched"
-        android:icon="@drawable/ic_bookmark"
+        android:icon="@drawable/ic_visibility"
         android:title="@string/watched"
         app:showAsAction="always" />
 </menu>
