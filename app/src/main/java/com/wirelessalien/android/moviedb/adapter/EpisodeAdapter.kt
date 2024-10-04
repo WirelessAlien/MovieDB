@@ -260,7 +260,7 @@ class EpisodeAdapter(
 
                 fullDateButton.setOnClickListener {
                     val datePicker = MaterialDatePicker.Builder.datePicker()
-                        .setTitleText("Select Date")
+                        .setTitleText(context.getString(R.string.select_a_date))
                         .build()
                     datePicker.show((context as FragmentActivity).supportFragmentManager, datePicker.toString())
                     datePicker.addOnPositiveButtonClickListener { selection: Long? ->
@@ -374,14 +374,14 @@ class EpisodeAdapter(
         }
 
         MaterialAlertDialogBuilder(context)
-            .setTitle("Select Year and Month")
+            .setTitle(context.getString(R.string.select_year_and_month))
             .setView(dialogView)
-            .setPositiveButton("OK") { _, _ ->
+            .setPositiveButton(context.getString(R.string.ok)) { _, _ ->
                 val selectedYear = yearPicker.value
                 val selectedMonth = if (disableMonthPicker.isChecked) null else monthPicker.value + 1
                 onYearMonthSelected(selectedYear, selectedMonth)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(context.getString(R.string.cancel), null)
             .show()
     }
 

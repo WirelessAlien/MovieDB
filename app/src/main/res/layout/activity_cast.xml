@@ -24,7 +24,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context="com.wirelessalien.android.moviedb.activity.CastActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -36,7 +35,8 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"/>
+            android:layout_height="wrap_content"
+            android:minHeight="?attr/actionBarSize"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

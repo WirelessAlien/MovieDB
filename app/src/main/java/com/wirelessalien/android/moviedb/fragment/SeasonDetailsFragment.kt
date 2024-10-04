@@ -20,7 +20,6 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.content.ContentValues
-import android.graphics.Color
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -35,7 +34,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter
@@ -60,6 +58,13 @@ class SeasonDetailsFragment : Fragment() {
     private var currentTabNumber = 1
     private lateinit var pageChangeCallback: ViewPager2.OnPageChangeCallback
     private var dbHelper: EpisodeReminderDatabaseHelper? = null
+
+    //oncreate
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -72,10 +77,9 @@ class SeasonDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
         seasonNumber = requireArguments().getInt(ARG_SEASON_NUMBER)
+        toolbar = requireActivity().findViewById(R.id.toolbar)
+        toolbar.title = getString(R.string.seasons)
         rvEpisodes = view.findViewById(R.id.episodeRecyclerView)
-        toolbar = view.findViewById(R.id.toolbar)
-        val appBarLayout = view.findViewById<AppBarLayout>(R.id.appBarLayout)
-        appBarLayout.setBackgroundColor(Color.TRANSPARENT)
         viewPager = requireActivity().findViewById(R.id.view_pager)
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {

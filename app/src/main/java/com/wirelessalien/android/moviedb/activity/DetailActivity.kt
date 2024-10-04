@@ -399,10 +399,6 @@ class DetailActivity : BaseActivity() {
         } else {
             Color.WHITE
         }
-        val foregroundGradientDrawable = GradientDrawable(
-            GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(ContextCompat.getColor(context, R.color.md_theme_surface), Color.TRANSPARENT)
-        )
-        binding.movieImage.foreground = foregroundGradientDrawable
         if (preferences.getBoolean(DYNAMIC_COLOR_DETAILS_ACTIVITY, false)) {
             if (jMovieObject.has("backdrop_path") && binding.movieImage.drawable == null) {
                 val loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false)
@@ -441,6 +437,12 @@ class DetailActivity : BaseActivity() {
                         }
                         binding.root.background = gradientDrawable
                         binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT)
+
+                        val foregroundGradientDrawable = GradientDrawable(
+                            GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(mutedColor, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT)
+                        )
+                        binding.movieImage.foreground = foregroundGradientDrawable
+
                         val colorStateList = ColorStateList.valueOf(mutedColor)
                         if (mutedColor != Color.TRANSPARENT) {
                             binding.fab.backgroundTintList = colorStateList
@@ -486,6 +488,11 @@ class DetailActivity : BaseActivity() {
                 Picasso.get().load(imageUrl).into(target)
             }
         } else {
+            val foregroundGradientDrawable = GradientDrawable(
+                GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(ContextCompat.getColor(context, R.color.md_theme_surface), Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT)
+            )
+            binding.movieImage.foreground = foregroundGradientDrawable
+
             if (jMovieObject.has("backdrop_path") && binding.movieImage.drawable == null) {
                 val loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false)
                 val imageSize = if (loadHDImage) "w1280" else "w780"
@@ -504,6 +511,7 @@ class DetailActivity : BaseActivity() {
                 binding.movieImage.startAnimation(animation)
             }
         }
+
         binding.watchListButton.setOnClickListener {
             lifecycleScope.launch {
                 if (accountId != null) {
@@ -538,9 +546,7 @@ class DetailActivity : BaseActivity() {
                 } else {
                     Toast.makeText(
                         applicationContext,
-                        "Failed to retrieve account id",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                        getString(R.string.failed_to_retrieve_account_id), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -585,11 +591,8 @@ class DetailActivity : BaseActivity() {
                         }
                     }
                 } else {
-                    Toast.makeText(
-                        applicationContext,
-                        "Failed to retrieve account id. Try login again.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(applicationContext,
+                        getString(R.string.account_id_fail_try_login_again), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -723,7 +726,7 @@ class DetailActivity : BaseActivity() {
                     // Ask in which category the show should be placed.
                     val categoriesDialog = MaterialAlertDialogBuilder(this)
                     categoriesDialog.setTitle(getString(R.string.category_picker))
-                    categoriesDialog.setItems(R.array.categories) { dialog: DialogInterface?, which: Int ->
+                    categoriesDialog.setItems(R.array.categories) { _: DialogInterface?, which: Int ->
                         showValues.put(
                             MovieDatabaseHelper.COLUMN_CATEGORIES,
                             getCategoryNumber(which)
@@ -1390,7 +1393,8 @@ class DetailActivity : BaseActivity() {
                     }
                     binding.trailer.setOnClickListener {
                         if (url.isEmpty()) {
-                            Toast.makeText(context, "No trailer available", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,
+                                getString(R.string.no_trailer_available), Toast.LENGTH_SHORT).show()
                         } else if (url.contains("youtube")) {
                             // Extract the video key from the URL if it's a YouTube video
                             val videoKey = url.substring(url.lastIndexOf("=") + 1)
@@ -1458,7 +1462,7 @@ class DetailActivity : BaseActivity() {
             // Show dropdown on click
             categoriesView.setOnClickListener { categoriesView.showDropDown() }
             categoriesView.onItemClickListener =
-                AdapterView.OnItemClickListener { parent: AdapterView<*>?, view1: View?, position: Int, id: Long ->
+                AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
                     // Save the category to the database
                     val showValues = ContentValues()
                     database = databaseHelper.writableDatabase
@@ -1512,7 +1516,7 @@ class DetailActivity : BaseActivity() {
 
             // Listen to changes to the EditText.
             timesWatchedView.onFocusChangeListener =
-                OnFocusChangeListener { v: View?, hasFocus: Boolean ->
+                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
                     if (!hasFocus && timesWatchedView.text.toString().isNotEmpty()) {
                         // Save the number to the database
                         val showValues = ContentValues()
@@ -1534,7 +1538,7 @@ class DetailActivity : BaseActivity() {
 
             // Listen to changes to the ShowRating EditText.
             showRating.onFocusChangeListener =
-                OnFocusChangeListener { v: View?, hasFocus: Boolean ->
+                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
                     if (!hasFocus && showRating.text.toString().isNotEmpty()) {
                         // Save the number to the database
                         val showValues = ContentValues()
@@ -1564,7 +1568,7 @@ class DetailActivity : BaseActivity() {
 
             // Listen to changes to the MovieReview EditText.
             movieReview.onFocusChangeListener =
-                OnFocusChangeListener { v: View?, hasFocus: Boolean ->
+                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
                     if (!hasFocus) {
                         // Save the review to the database
                         val showValues = ContentValues()
@@ -1810,20 +1814,20 @@ class DetailActivity : BaseActivity() {
         }
 
         MaterialAlertDialogBuilder(context)
-            .setTitle("Select Year and Month")
+            .setTitle(getString(R.string.select_year_and_month))
             .setView(dialogView)
-            .setPositiveButton("OK") { _, _ ->
+            .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 val selectedYear = yearPicker.value
                 val selectedMonth = if (disableMonthPicker.isChecked) null else monthPicker.value + 1
                 onYearMonthSelected(selectedYear, selectedMonth)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
     fun selectDate(view: View) {
         val builder = MaterialDatePicker.Builder.datePicker()
-        builder.setTitleText("Select a date")
+        builder.setTitleText(getString(R.string.select_a_date))
         val datePicker = builder.build()
         datePicker.show(supportFragmentManager, datePicker.toString())
         datePicker.addOnPositiveButtonClickListener { selection: Long? ->
