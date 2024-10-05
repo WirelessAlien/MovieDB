@@ -115,7 +115,7 @@
     <string name="title_hide_saved_tab">Verberg het \'Opgeslagen\' tabblad</string>
     <string name="title_api_language">API Taal</string>
     <string name="summary_api_language">Stel de taal van de API gegevens in (standaard taal wordt gebruikt indien leeg).</string>
-    <string name="text_tmdb_credits">Dit product gebruikt de TMDb API maar is niet goedgekeurd of gecertificeerd bij TMDb.</string>
+    <string name="text_tmdb_credits">Dit product gebruikt de TMDB API maar is niet goedgekeurd of gecertificeerd bij TMDB.</string>
     <string name="action_settings">Instellingen</string>
     <string name="on_hold">Tijdelijk stopgezet</string>
     <!-- (General) Toasts -->
