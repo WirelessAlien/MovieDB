@@ -38,8 +38,8 @@
     <string name="times_watched">"Times watched: "</string>
     <string name="episodes_seen">"Episodes seen: "</string>
     <string name="rating">"Rating: "</string>
-    <string name="change_start_date_2">"Startdatum:"</string>
-    <string name="change_finish_date_2">"Enddatum:"</string>
+    <string name="change_start_date_2">Startdatum:</string>
+    <string name="change_finish_date_2">Enddatum:</string>
     <string name="change_watched_times">"Times watched: "</string>
     <string name="cast_title">Cast</string>
     <string name="crew_title">Crew</string>
