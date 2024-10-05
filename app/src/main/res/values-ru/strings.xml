@@ -116,7 +116,7 @@
     <string name="title_hide_saved_tab">Скрыть вкладку \'Списки\'</string>
     <string name="title_api_language">Язык API</string>
     <string name="summary_api_language">Выберите язык для полученных через API данных (по-умолчанию используется системная локаль).</string>
-    <string name="text_tmdb_credits">Данный продукт использует TMDb API, но не одобрен или не сертифицирован TMDb.</string>
+    <string name="text_tmdb_credits">Данный продукт использует TMDB API, но не одобрен или не сертифицирован TMDB.</string>
     <string name="action_settings">Настройки</string>
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Интернет-соединение отстутствует</string>
@@ -126,4 +126,7 @@
     <string name="person_image_description">Фотография звезды</string>
     <string name="movie_image_description">Кадр из фильма</string>
     <string name="edit_icon_description">Включить режим редактирования</string>
+    <string name="title_saved">Спасти</string>
+    <string name="title_movies">Фильмы</string>
+    <string name="title_series">Серия</string>
 </resources>
