@@ -125,4 +125,9 @@
     <string name="person_image_description">Picture of the person</string>
     <string name="movie_image_description">Image from the show</string>
     <string name="edit_icon_description">Enables edit mode</string>
+    <string name="cast_movie_title">Part of the cast in</string>
+    <string name="export">Exportieren</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
+    <string name="cancel">Abbrechen</string>
 </resources>
