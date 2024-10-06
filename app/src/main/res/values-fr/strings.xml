@@ -293,4 +293,8 @@
     <string name="select_a_date">Sélectionnez une date</string>
     <string name="failed_to_retrieve_account_id">Failed to retrieve account id</string>
     <string name="season">"Saison "</string>
+    <string name="cancel">Annuler</string>
+    <string name="export">Exporter</string>
+    <string name="ok">OK</string>
+    <string name="save">Sauvegarder</string>
 </resources>
