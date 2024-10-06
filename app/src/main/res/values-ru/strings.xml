@@ -299,4 +299,8 @@
     <string name="select_a_date">Выберите дату</string>
     <string name="failed_to_retrieve_account_id">Не удалось получить аккаунт id</string>
     <string name="season">"Сезон "</string>
+    <string name="cancel">Отмена</string>
+    <string name="export">Экспорт</string>
+    <string name="ok">Хорошо</string>
+    <string name="save">Сохранить</string>
 </resources>
