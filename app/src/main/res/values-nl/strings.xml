@@ -300,4 +300,8 @@
     <string name="select_a_date">Verkoop een datum</string>
     <string name="failed_to_retrieve_account_id">Gefaald om de rekening te halen</string>
     <string name="season">"Season "</string>
+    <string name="cancel">Annuleren</string>
+    <string name="ok">OK</string>
+    <string name="export">Exporteren</string>
+    <string name="save">Opslaan</string>
 </resources>
