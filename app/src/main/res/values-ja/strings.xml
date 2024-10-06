@@ -300,4 +300,8 @@
     <string name="import_people_database">インポート ピープル データベース</string>
     <string name="failed_to_retrieve_account_id">アカウント ID の取得失敗</string>
     <string name="season">"シーズン "</string>
+    <string name="export">Export</string>
+    <string name="cancel">キャンセル</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
 </resources>
