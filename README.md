@@ -45,7 +45,7 @@ Or download the latest APK from the [Releases Section](https://github.com/Wirele
 ## Screenshots
 
 <pre>
-<img src="https://github.com/user-attachments/assets/ab547d5e-a1ca-4b72-a80d-4414cf68b38b" width="130" height="280" />  <img src="https://github.com/user-attachments/assets/a30a0917-012f-40af-a882-2f1839a40076" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/79f3a547-e66a-4f5d-bdba-8a1ed807df39" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/1cafa7af-f725-424a-8ee2-58434d5c95fa" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/61d0e36c-47d8-4668-a2ea-cdb7a247fee9" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/6830be73-220b-4b37-9083-5e7de5e07300" width="130" height="280" />
+<img src="https://github.com/user-attachments/assets/ab547d5e-a1ca-4b72-a80d-4414cf68b38b" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/a30a0917-012f-40af-a882-2f1839a40076" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/79f3a547-e66a-4f5d-bdba-8a1ed807df39" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/1cafa7af-f725-424a-8ee2-58434d5c95fa" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/61d0e36c-47d8-4668-a2ea-cdb7a247fee9" width="130" height="280" /> <img src="https://github.com/user-attachments/assets/6830be73-220b-4b37-9083-5e7de5e07300" width="130" height="280" />
 </pre>
 
 
