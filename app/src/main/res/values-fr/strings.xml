@@ -100,7 +100,7 @@
     <string name="title_show_representation">Affichage des œuvres</string>
     <string name="title_shows_in_grid">Montrer les œuvres sur une grille</string>
     <string name="title_grid_size">Taille de la grille</string>
-    <string name="summary_grid_size">Quantité d\'élément par ligne</string>
+    <string name="summary_grid_size">Nombre d\'éléments par ligne</string>
     <string name="title_data_usage">Utilisation des données</string>
     <string name="title_live_search">Utiliser la recherche en direct</string>
     <string name="title_hide_tabs">Cacher les onglets</string>
@@ -108,9 +108,9 @@
     <string name="title_hide_movies_tab">Cacher l\'onglet « Films »</string>
     <string name="title_hide_series_tab">Cacher l\'onglet « Séries »</string>
     <string name="title_hide_saved_tab">Cacher l\'onglet « Enregistrées »</string>
-    <string name="title_api_language">API Language</string>
-    <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
-    <string name="text_tmdb_credits">Ce produit utilise l\'API TMDb mais n\'est pas reconnu ni certifié par TMDb.</string>
+    <string name="title_api_language">Langue de l\'API</string>
+    <string name="summary_api_language">Configurer la langue des données de l\'API (la langue du système sera utilisée si aucune valeur n\'est renseignée).</string>
+    <string name="text_tmdb_credits">Ce produit utilise l\'API TMDB mais n\'est pas reconnu ni certifié par TMDb.</string>
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Pas de connexion internet</string>
     <!-- Image content descriptions -->
