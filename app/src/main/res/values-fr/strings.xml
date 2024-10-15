@@ -43,7 +43,7 @@
     <string name="change_finish_date_2">"Date de fin : "</string>
     <string name="change_watched_times">"Nombre de visionnages : "</string>
     <string name="cast_title">Distribution</string>
-    <string name="crew_title">Équipe</string>
+    <string name="crew_title">Équipes</string>
     <string name="recommendations_title">Recommendations</string>
     <string name="category_picker">Choisissez la catégorie appropriée</string>
     <string name="show_category">"Catégorie : "</string>
@@ -51,8 +51,8 @@
     <string name="sort_by">Trier par</string>
     <string name="default_sort">Par défaut</string>
     <string name="most_popular">Plus populaires</string>
-    <string name="best_rated">Meilleure note</string>
-    <string name="release_date">Date de publication</string>
+    <string name="best_rated">Mieux notés</string>
+    <string name="release_date">Date de sortie</string>
     <string name="alphabetic_order">Ordre alphabétique</string>
     <string name="categories">Catégories</string>
     <string name="watching">En cours</string>
