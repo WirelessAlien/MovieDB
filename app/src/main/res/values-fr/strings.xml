@@ -75,11 +75,11 @@
     <string name="series_tab_title">SÉRIES</string>
     <string name="saved_tab_title">ENREGISTRÉES</string>
     <!-- MovieDatabaseHelper -->
-    <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
+    <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
     <string name="choose_export_file">Choisissez un format de fichier d\'export :</string>
-    <string name="choose_file">Choisissez le fichier à importer :</string>
+    <string name="choose_file">Choisissez le fichier à importer :</string>
     <string name="import_cancel">Annuler</string>
-    <string name="file_not_found_exception">Le fichier est introuvable !</string>
+    <string name="file_not_found_exception">Le fichier est introuvable !</string>
     <!-- search_bar -->
     <string name="hint_search">Rechercher…</string>
     <!-- database_menu -->
