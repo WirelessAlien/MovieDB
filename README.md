@@ -63,7 +63,7 @@ api_read_access_token = "ENTER YOUR KEY";
 ```
 api_key = "ENTER YOUR KEY";
  ```
-4. Build
+3. Build
 
 ## Contributing
 
