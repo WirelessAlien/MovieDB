@@ -182,6 +182,7 @@
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                             android:layout_gravity="fill"
                             android:hint="@string/show_category">
 
@@ -284,15 +285,14 @@
                     </GridLayout>
                 </LinearLayout>
             </RelativeLayout>
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/zeroDivider"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="3dp"
                 android:layout_below="@id/movieDetails"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:layout_marginBottom="10dp"
-                android:background="?android:attr/listDivider"/>
+                android:layout_marginBottom="10dp"/>
             <RelativeLayout
                 android:id="@+id/movieDetailsRl"
                 android:layout_width="match_parent"
@@ -390,14 +390,13 @@
                 </com.google.android.flexbox.FlexboxLayout>
             </RelativeLayout>
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/firstDivider"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="3dp"
                 android:layout_below="@id/movieDetailsRl"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider"/>
+                android:layout_marginRight="16dp"/>
 
             <HorizontalScrollView
                 android:id="@+id/linearLayout"
@@ -475,14 +474,14 @@
                 android:text="@string/overview"
                 android:textSize="16sp"
                 android:textStyle="bold" />
-            <View
+
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/forthDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/overviewTitle"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginRight="16dp"/>
             <TextView
                 android:id="@+id/movieDescription"
                 android:layout_width="match_parent"
@@ -573,15 +572,13 @@
                 android:textStyle="bold"
                 android:textSize="16sp" />
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/secondDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/castTitle"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
-
+                android:layout_marginRight="16dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/castRecyclerView"
@@ -604,14 +601,13 @@
                 android:textAllCaps="true"
                 android:textStyle="bold" />
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/thirdDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/crewTitle"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginRight="16dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/crewRecyclerView"
@@ -634,14 +630,13 @@
                 android:textAllCaps="true"
                 android:text="@string/recommendations_title"
                 android:textSize="16sp" />
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/seventhDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/similarMovieTitle"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginRight="16dp"/>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/movieRecyclerView"
                 android:layout_width="match_parent"
@@ -662,14 +657,13 @@
                 android:textAllCaps="true"
                 android:text="@string/links"
                 android:textSize="16sp" />
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/linkRlDivider1"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/linkLTitle"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider"/>
+                android:layout_marginRight="16dp"/>
 
             <RelativeLayout
                 android:id="@+id/linkRL"
@@ -719,14 +713,13 @@
                 android:textAllCaps="true"
                 android:alpha="0.8"
                 android:textStyle="bold"/>
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/sixthDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/otherText"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginRight="16dp"/>
             <TextView
                 android:id="@+id/counrtyText"
                 android:layout_width="wrap_content"
@@ -809,11 +802,12 @@
         </RelativeLayout>
 
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/progressBar"
         android:layout_gravity="center"
+        android:indeterminate="true"
         android:visibility="gone"/>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
