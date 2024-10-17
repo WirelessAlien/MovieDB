@@ -962,6 +962,7 @@ class DetailActivity : BaseActivity() {
 
             // Check if it is a movie or a TV series.
             val title = if (movieObject.has("title")) "title" else "name"
+            showName = movieObject.optString("name")
             if (movieObject.has(title) &&
                 movieObject.getString(title) != binding.movieTitle
                     .text.toString()
