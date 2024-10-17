@@ -533,6 +533,7 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToWatchlist(movieId, typeCheck, false, mActivity).addToWatchlist()
                             }
+                            binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         } else {
                             binding.watchListButton.icon = ContextCompat.getDrawable(
                                 context,
@@ -541,12 +542,14 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToWatchlist(movieId, typeCheck, true, mActivity).addToWatchlist()
                             }
+                            binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
                 } else {
                     Toast.makeText(
                         applicationContext,
                         getString(R.string.failed_to_retrieve_account_id), Toast.LENGTH_SHORT).show()
+                    binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 }
             }
         }
@@ -580,6 +583,7 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToFavourites(movieId, typeCheck, false, mActivity).addToFavourites()
                             }
+                            binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         } else {
                             binding.favouriteButton.icon = ContextCompat.getDrawable(
                                 context,
@@ -588,11 +592,13 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToFavourites(movieId, typeCheck, true, mActivity).addToFavourites()
                             }
+                            binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
                 } else {
                     Toast.makeText(applicationContext,
                         getString(R.string.account_id_fail_try_login_again), Toast.LENGTH_SHORT).show()
+                    binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 }
             }
         }
@@ -626,6 +632,7 @@ class DetailActivity : BaseActivity() {
                         withContext(Dispatchers.IO) {
                             AddRating(movieId, rating, type, mActivity).addRating()
                         }
+                        submitButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
                     }
                 }
@@ -636,6 +643,7 @@ class DetailActivity : BaseActivity() {
                         withContext(Dispatchers.IO) {
                             DeleteRating(movieId, type, mActivity).deleteRating()
                         }
+                        deleteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
                     }
                 }
@@ -717,6 +725,7 @@ class DetailActivity : BaseActivity() {
                 added = false
                 binding.fabSave.setImageResource(R.drawable.ic_star_border)
                 databaseUpdate()
+                binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             } else {
                 val showValues = ContentValues()
 
@@ -739,6 +748,7 @@ class DetailActivity : BaseActivity() {
                         if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
                             addSeasonsAndEpisodesToDatabase()
                         }
+                        binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         binding.editIcon.visibility = View.VISIBLE
                     }
                     categoriesDialog.show()
@@ -749,6 +759,7 @@ class DetailActivity : BaseActivity() {
                         MovieDatabaseHelper.CATEGORY_WATCHING
                     )
                     addMovieToDatabase(showValues)
+                    binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                     binding.editIcon.visibility = View.VISIBLE
                 }
             }
