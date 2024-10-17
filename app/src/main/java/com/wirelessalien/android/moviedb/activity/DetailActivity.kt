@@ -41,6 +41,7 @@ import android.text.InputType
 import android.text.SpannableString
 import android.util.Log
 import android.util.TypedValue
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnFocusChangeListener
@@ -120,8 +121,8 @@ import kotlin.math.abs
  * It also manages personal show data.
  */
 class DetailActivity : BaseActivity() {
-    private var API_KEY: String? = null
-    private var api_read_access_token: String? = null
+    private var apiKey: String? = null
+    private var apiReadAccessToken: String? = null
     private lateinit var castAdapter: CastBaseAdapter
     private lateinit var crewAdapter: CastBaseAdapter
     private lateinit var castArrayList: ArrayList<JSONObject>
@@ -194,8 +195,8 @@ class DetailActivity : BaseActivity() {
             layoutInflater
         )
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        API_KEY = getConfigValue(applicationContext, "api_key")
-        api_read_access_token = getConfigValue(applicationContext, "api_read_access_token")
+        apiKey = getConfigValue(applicationContext, "api_key")
+        apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
         setContentView(binding.root)
         setNavigationDrawer()
         supportActionBar!!.title = ""
@@ -563,6 +564,7 @@ class DetailActivity : BaseActivity() {
                 }
             }
         }
+
         binding.addToList.setOnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
             val listBottomSheetDialogFragment =
@@ -612,6 +614,7 @@ class DetailActivity : BaseActivity() {
                 }
             }
         }
+
         binding.ratingBtn.setOnClickListener {
             val dialog = BottomSheetDialog(mActivity)
             val inflater = layoutInflater
@@ -683,17 +686,14 @@ class DetailActivity : BaseActivity() {
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.setType("text/plain")
                 shareIntent.putExtra(Intent.EXTRA_TEXT, tmdbLink)
-                startActivity(Intent.createChooser(shareIntent, "Share link using"))
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_link_using)))
             }
         })
         if (!isMovie) {
             binding.revenueText.visibility = View.GONE
             binding.revenueDataText.visibility = View.GONE
         }
-        if (!isMovie) {
-            jMovieObject.has("name")
-            showName = jMovieObject.optString("name")
-        }
+
         if (isMovie) {
             binding.episodeViewPager.visibility = View.GONE
             binding.allEpisodeBtn.visibility = View.GONE
@@ -1377,7 +1377,7 @@ class DetailActivity : BaseActivity() {
         withContext(Dispatchers.IO) {
             try {
                 val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val url = URL("https://api.themoviedb.org/3/$type/$movieId/videos?api_key=$API_KEY")
+                val url = URL("https://api.themoviedb.org/3/$type/$movieId/videos?api_key=$apiKey")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connect()
@@ -1935,7 +1935,7 @@ class DetailActivity : BaseActivity() {
             try {
                 val url = URL(
                     "https://api.themoviedb.org/3/" + movie + "/" +
-                            movieId + "/credits?api_key=" + API_KEY +
+                            movieId + "/credits?api_key=" + apiKey +
                             getLanguageParameter(applicationContext)
                 )
                 val urlConnection = url.openConnection()
@@ -2048,7 +2048,7 @@ class DetailActivity : BaseActivity() {
             val url = URL(
                 "https://api.themoviedb.org/3/" + movie + "/" +
                         movieId + "/recommendations?api_key=" +
-                        API_KEY + getLanguageParameter(applicationContext)
+                        apiKey + getLanguageParameter(applicationContext)
             )
             val urlConnection = url.openConnection()
             try {
@@ -2104,7 +2104,7 @@ class DetailActivity : BaseActivity() {
             .url(url)
             .get()
             .addHeader("accept", "application/json")
-            .addHeader("Authorization", "Bearer $api_read_access_token")
+            .addHeader("Authorization", "Bearer $apiReadAccessToken")
             .build()
         client.newCall(request).execute().use { response ->
             val responseBody = response.body()!!.string()
