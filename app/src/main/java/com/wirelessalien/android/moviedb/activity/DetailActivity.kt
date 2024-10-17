@@ -451,6 +451,16 @@ class DetailActivity : BaseActivity() {
                             binding.runtimeCv.setBackgroundColor(Color.TRANSPARENT)
                             binding.genreCv.setBackgroundColor(Color.TRANSPARENT)
                             binding.ratingCv.setBackgroundColor(Color.TRANSPARENT)
+
+                            binding.zeroDivider.dividerColor = mutedColor
+                            binding.firstDivider.dividerColor = mutedColor
+                            binding.secondDivider.dividerColor = mutedColor
+                            binding.thirdDivider.dividerColor = mutedColor
+                            binding.forthDivider.dividerColor = mutedColor
+                            binding.linkRlDivider1.dividerColor = mutedColor
+                            binding.sixthDivider.dividerColor = mutedColor
+                            binding.seventhDivider.dividerColor = mutedColor
+
                             binding.allEpisodeBtn.backgroundTintList = colorStateList
                             binding.fabSave.backgroundTintList = colorStateList
                             binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
