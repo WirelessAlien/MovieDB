@@ -736,6 +736,7 @@ class DetailActivity : BaseActivity() {
                 binding.fabSave.setImageResource(R.drawable.ic_star_border)
                 databaseUpdate()
                 binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                finish()
             } else {
                 val showValues = ContentValues()
 
