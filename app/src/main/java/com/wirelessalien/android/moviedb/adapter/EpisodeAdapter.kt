@@ -62,7 +62,7 @@ import java.util.Locale
 
 class EpisodeAdapter(
     private val context: Context,
-    val episodes: List<Episode>?,
+    val episodes: List<Episode>,
     var seasonNumber: Int,
     private var tvShowId: Int
 ) : RecyclerView.Adapter<EpisodeViewHolder?>() {
@@ -92,7 +92,7 @@ class EpisodeAdapter(
         )
         val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
         val imageSize = if (loadHDImage) "w780" else "w500"
-        val episode = episodes!![position]
+        val episode = episodes[position]
         holder.binding.title.text = episode.name
         holder.binding.episodeNumber.text = "(" + episode.episodeNumber + ")"
         holder.binding.description.text = episode.overview
@@ -132,31 +132,23 @@ class EpisodeAdapter(
             MovieDatabaseHelper(context).use { db ->
                 if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
                     holder.binding.watched.icon =
-                        ContextCompat.getDrawable(context, R.drawable.ic_visibility_fill)
+                        ContextCompat.getDrawable(context, R.drawable.ic_visibility)
                 } else {
                     holder.binding.watched.icon =
-                        ContextCompat.getDrawable(context, R.drawable.ic_visibility)
+                        ContextCompat.getDrawable(context, R.drawable.ic_visibility_off)
                 }
                 holder.binding.watched.setOnClickListener {
                     // If the episode is in the database, remove it
-                    if (db.isEpisodeInDatabase(
-                            tvShowId,
-                            seasonNumber,
-                            listOf(episode.episodeNumber)
-                        )
-                    ) {
-                        db.removeEpisodeNumber(
-                            tvShowId,
-                            seasonNumber,
-                            listOf(episode.episodeNumber)
-                        )
+                    if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
+                        db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
                         holder.binding.watched.icon =
-                            ContextCompat.getDrawable(context, R.drawable.ic_visibility)
+                            ContextCompat.getDrawable(context, R.drawable.ic_visibility_off)
                     } else {
                         // If the episode is not in the database, add it
                         db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
+
                         holder.binding.watched.icon =
-                            ContextCompat.getDrawable(context, R.drawable.ic_visibility_fill)
+                            ContextCompat.getDrawable(context, R.drawable.ic_visibility)
                     }
                 }
             }
@@ -283,14 +275,7 @@ class EpisodeAdapter(
                 episode1.setReview(review)
                 try {
                     MovieDatabaseHelper(context).use { movieDatabaseHelper ->
-                        movieDatabaseHelper.addOrUpdateEpisode(
-                            tvShowId,
-                            seasonNumber,
-                            episode1.episodeNumber,
-                            episodeRating,
-                            date,
-                            review
-                        )
+                        movieDatabaseHelper.addOrUpdateEpisode(tvShowId, seasonNumber, episode1.episodeNumber, episodeRating, date, review)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -319,24 +304,13 @@ class EpisodeAdapter(
             submitButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
                     val ratingS = ratingBar.rating.toDouble()
-                    AddEpisodeRating(
-                        tvShowId,
-                        seasonNumber,
-                        episode.episodeNumber,
-                        ratingS,
-                        context
-                    ).addRating()
+                    AddEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, ratingS, context).addRating()
                     dialog.dismiss()
                 }
             }
             deleteButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
-                    DeleteEpisodeRating(
-                        tvShowId,
-                        seasonNumber,
-                        episode.episodeNumber,
-                        context
-                    ).deleteEpisodeRating()
+                    DeleteEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, context).deleteEpisodeRating()
                     dialog.dismiss()
                 }
             }
@@ -386,7 +360,7 @@ class EpisodeAdapter(
     }
 
     override fun getItemCount(): Int {
-        return episodes?.size ?: 0
+        return episodes.size
     }
 
     class EpisodeViewHolder(var binding: EpisodeItemBinding) : RecyclerView.ViewHolder(

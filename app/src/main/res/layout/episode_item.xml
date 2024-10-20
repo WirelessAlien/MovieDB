@@ -71,7 +71,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignBottom="@id/image"
                         android:layout_alignParentEnd="true"
-                        app:icon="@drawable/ic_visibility"
+                        app:icon="@drawable/ic_visibility_off"
                         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/editDetails"

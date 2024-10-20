@@ -20,6 +20,8 @@
 package com.wirelessalien.android.moviedb.activity
 
 import android.os.Bundle
+import android.util.Log
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -41,10 +43,12 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
 
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val tvShowId = intent.getIntExtra("tvShowId", -1)
         val seasonNumber = intent.getIntExtra("seasonNumber", 1)
         val numSeasons = intent.getIntExtra("numSeasons", 1)
         val showName = intent.getStringExtra("tvShowName")
+        Log.d("TVSeasonDA", showName.toString())
         val viewPager = findViewById<ViewPager2>(R.id.view_pager)
         val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
         viewPager.adapter = object : FragmentStateAdapter(this) {
@@ -60,5 +64,15 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         TabLayoutMediator(
             tabLayout, viewPager
         ) { tab: TabLayout.Tab, position: Int -> tab.setText(getString(R.string.season) + (position + 1)) }.attach()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }
