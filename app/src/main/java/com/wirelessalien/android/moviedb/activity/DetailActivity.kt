@@ -137,6 +137,8 @@ class DetailActivity : BaseActivity() {
     private lateinit var databaseHelper: MovieDatabaseHelper
     private var movieId = 0
     private var seasons: JSONArray? = null
+    private var lastEpisode: JSONObject? = null
+    private var nextEpisode: JSONObject? = null
     private lateinit var target: Target
     private val voteAverage: String? = null
     private var numSeason = 0
@@ -827,6 +829,46 @@ class DetailActivity : BaseActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch {
+            updateMovieEpisodes()
+            updateEpisodeFragments()
+        }
+    }
+
+    private suspend fun updateMovieEpisodes() {
+        withContext(Dispatchers.IO) {
+            if (!isMovie) {
+                seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
+            }
+        }
+
+        withContext(Dispatchers.Main) {
+            binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
+            binding.movieEpisodes.visibility = View.VISIBLE
+        }
+    }
+
+
+    private suspend fun updateEpisodeFragments() {
+        withContext(Dispatchers.Main) {
+            if (!isMovie) {
+                // Clear the adapter's fragments before adding new ones or it duplicates them.
+                episodePagerAdapter.clearFragments()
+                val lastEpisodeLocal = lastEpisode
+                if (lastEpisodeLocal is JSONObject) {
+                    episodePagerAdapter.addFragment(newInstance(lastEpisodeLocal, "Latest Episode"), 0)
+                }
+                val nextEpisodeLocal = nextEpisode
+                if (nextEpisodeLocal is JSONObject) {
+                    episodePagerAdapter.addFragment(newInstance(nextEpisodeLocal, "Next Episode"), 1)
+                }
+                episodeViewPager.adapter = episodePagerAdapter
+            }
+        }
+    }
+
     private fun addSeasonsAndEpisodesToDatabase() {
         if (!isMovie && seasons != null) {
             try {
@@ -1139,37 +1181,7 @@ class DetailActivity : BaseActivity() {
                         seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
                     }
 
-                    // If there is a personal episode count available,
-                    // set the episodeCount equal to it. If the show is marked
-                    // as "watched" then that implies that all episodes have
-                    // been seen and therefore episodeCount is equal to totalEpisodes.
-                    val episodeCount: String = if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES))
-                            && cursor.getString(
-                                cursor.getColumnIndexOrThrow(
-                                    MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES
-                                )
-                            ) != ""
-                        ) {
-                            cursor.getInt(
-                                cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES)
-                            ).toString()
-                        } else if (cursor.getInt(
-                                cursor.getColumnIndexOrThrow(
-                                    MovieDatabaseHelper.COLUMN_CATEGORIES
-                                )
-                            ) == 1
-                        ) {
-                            if (totalEpisodes != null) {
-                                totalEpisodes.toString()
-                            } else {
-                                seenEpisode.toString()
-                            }
-                        } else {
-                            seenEpisode.toString()
-                        }
-                    binding.movieEpisodes.text =
-                        (getString(R.string.episodes_seen) + episodeCount + "/"
-                                + totalEpisodes)
+                    binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
                     binding.movieEpisodes.visibility = View.VISIBLE
                 }
 
@@ -1253,6 +1265,7 @@ class DetailActivity : BaseActivity() {
                 }
                 episodeViewPager.adapter = episodePagerAdapter
             }
+
             if (movieObject.has("tagline")) {
                 val tagline = movieObject.getString("tagline")
                 if (tagline != binding.tagline.text.toString()) {
@@ -1758,6 +1771,7 @@ class DetailActivity : BaseActivity() {
                 )
             }
         }
+        cursor.close()
         databaseUpdate()
     }
 
@@ -2124,6 +2138,12 @@ class DetailActivity : BaseActivity() {
                 }
                 if (movieData.has("seasons")) {
                     seasons = movieData.getJSONArray("seasons")
+                }
+                if (movieData.has("last_episode_to_air")) {
+                    lastEpisode = movieData.getJSONObject("last_episode_to_air")
+                }
+                if (movieData.has("next_episode_to_air")) {
+                    nextEpisode = movieData.getJSONObject("next_episode_to_air")
                 }
                 if (isMovie) {
                     val releaseDatesObject = movieData.getJSONObject("release_dates")

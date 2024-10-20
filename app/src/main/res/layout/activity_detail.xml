@@ -273,7 +273,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="fill"
                             android:layout_marginTop="5dp"
-                            android:hint="Review">
+                            android:hint="@string/review">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/movieReview"
