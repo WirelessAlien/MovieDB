@@ -87,13 +87,12 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="25dp">
 
-
             <RelativeLayout
                 android:id="@+id/movieDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="10dp"
                 android:layout_marginEnd="16dp">
 
                 <LinearLayout
@@ -285,11 +284,28 @@
                     </GridLayout>
                 </LinearLayout>
             </RelativeLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/editIcon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/edit_icon_description"
+                android:layout_below="@+id/movieDetails"
+                android:onClick="editDetails"
+                app:cornerRadius="5dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="10dp"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                app:icon="@drawable/ic_edit"
+                android:text="@string/edit"
+                android:visibility="gone"/>
+
             <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/zeroDivider"
                 android:layout_width="match_parent"
                 android:layout_height="3dp"
-                android:layout_below="@id/movieDetails"
+                android:layout_below="@id/editIcon"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:layout_marginBottom="10dp"/>
@@ -446,18 +462,6 @@
                         style="@style/Widget.Material3.Button.IconButton"
                         android:text="@string/rate"
                         android:contentDescription="@string/add_rating" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/editIcon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@string/edit_icon_description"
-                        android:onClick="editDetails"
-                        style="@style/Widget.Material3.Button.IconButton"
-                        app:icon="@drawable/ic_edit"
-                        app:iconGravity="textTop"
-                        android:text="@string/edit"
-                        android:visibility="gone"/>
                 </LinearLayout>
             </HorizontalScrollView>
 

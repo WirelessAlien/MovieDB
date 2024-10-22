@@ -832,21 +832,24 @@ class DetailActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
-            updateMovieEpisodes()
+            if (!isMovie) {
+                updateMovieEpisodes()
+            }
             updateEpisodeFragments()
         }
     }
 
     private suspend fun updateMovieEpisodes() {
         withContext(Dispatchers.IO) {
-            if (!isMovie) {
-                seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
-            }
+            seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
         }
 
         withContext(Dispatchers.Main) {
-            binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
-            binding.movieEpisodes.visibility = View.VISIBLE
+            if (seenEpisode != 0) {
+                binding.movieEpisodes.text =
+                    getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
+                binding.movieEpisodes.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -1468,22 +1471,9 @@ class DetailActivity : BaseActivity() {
         val timesWatchedView = binding.timesWatched
         val showRating = binding.showRating
         val movieReview = binding.movieReview
+
         if (editShowDetails.visibility == View.GONE) {
-            fadeOutAndHideAnimation(showDetails)
-            showDetails.animation.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation) {
-                    fadeInAndShowAnimation(editShowDetails)
-                    updateEditShowDetails()
-                    showDetails.visibility = View.GONE
-                }
-
-                override fun onAnimationEnd(animation: Animation) {}
-                override fun onAnimationRepeat(animation: Animation) {}
-            })
-            binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
-            binding.editIcon.setText(R.string.done)
-
-            // Listen for changes to the categories.
+            // Set the adapter for categoriesView before calling updateEditShowDetails
             val categoriesView = binding.categories
             val adapter = ArrayAdapter.createFromResource(
                 this,
@@ -1491,9 +1481,19 @@ class DetailActivity : BaseActivity() {
             )
             categoriesView.setAdapter(adapter)
 
+            fadeOutAndHideAnimation(showDetails)
+            fadeInAndShowAnimation(editShowDetails)
+            updateEditShowDetails()
+            showDetails.visibility = View.GONE
+            editShowDetails.visibility = View.VISIBLE
+
+            binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
+            binding.editIcon.setText(R.string.done)
+
             // Disable text input
             categoriesView.inputType = InputType.TYPE_NULL
             categoriesView.keyListener = null
+
 
             // Show dropdown on click
             categoriesView.setOnClickListener { categoriesView.showDropDown() }
@@ -1617,19 +1617,22 @@ class DetailActivity : BaseActivity() {
                             MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
                         )
                         database.close()
+
+                        if (review.isNotEmpty()) {
+                            binding.movieReviewText.text = getString(R.string.reviews) + review
+                            binding.movieReviewText.visibility = View.VISIBLE
+                        } else {
+                            binding.movieReviewText.text = getString(R.string.no_reviews)
+                            binding.movieReviewText.visibility = View.VISIBLE
+                        }
                     }
                 }
         } else {
             fadeOutAndHideAnimation(editShowDetails)
-            editShowDetails.animation.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation) {
-                    fadeInAndShowAnimation(showDetails)
-                    editShowDetails.visibility = View.GONE
-                }
+            fadeInAndShowAnimation(showDetails)
+            showDetails.visibility = View.VISIBLE
+            editShowDetails.visibility = View.GONE
 
-                override fun onAnimationEnd(animation: Animation) {}
-                override fun onAnimationRepeat(animation: Animation) {}
-            })
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_edit)
             binding.editIcon.setText(R.string.edit)
         }
@@ -1655,21 +1658,15 @@ class DetailActivity : BaseActivity() {
                 )
 
                 MovieDatabaseHelper.CATEGORY_WATCHED -> binding.categories.setText(
-                    binding.categories.adapter.getItem(
-                        2
-                    ).toString(), false
+                    binding.categories.adapter.getItem(2).toString(), false
                 )
 
                 MovieDatabaseHelper.CATEGORY_ON_HOLD -> binding.categories.setText(
-                    binding.categories.adapter.getItem(
-                        3
-                    ).toString(), false
+                    binding.categories.adapter.getItem(3).toString(), false
                 )
 
                 MovieDatabaseHelper.CATEGORY_DROPPED -> binding.categories.setText(
-                    binding.categories.adapter.getItem(
-                        4
-                    ).toString(), false
+                    binding.categories.adapter.getItem(4).toString(), false
                 )
 
                 else -> binding.categories.setText(
@@ -1679,14 +1676,18 @@ class DetailActivity : BaseActivity() {
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
                 && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) != ""
             ) {
-                val startDateString =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                try {
-                    startDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(startDateString)
-                    // Use DateFormat.getDateInstance() for default system date format
-                    binding.startDateButton.text = DateFormat.getDateInstance().format(startDate)
-                } catch (e: ParseException) {
-                    e.printStackTrace()
+                val startDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                if (startDateString.startsWith("00-")) {
+                    val parts = startDateString.split("-")
+                    val month = parts[1]
+                    val year = parts[2]
+                    binding.startDateButton.text = getString(R.string.month_year_format1, month, year)
+                } else {
+                    try {
+                        binding.startDateButton.text = startDateString
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
                 }
             } else {
                 binding.startDateButton.setText(R.string.start_date)
@@ -1694,14 +1695,18 @@ class DetailActivity : BaseActivity() {
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
                 && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)) != ""
             ) {
-                val finishDateString =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
-                try {
-                    finishDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(finishDateString)
-                    // Use DateFormat.getDateInstance() for default system date format
-                    binding.endDateButton.text = DateFormat.getDateInstance().format(finishDate)
-                } catch (e: ParseException) {
-                    e.printStackTrace()
+                val finishDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                if (finishDateString.startsWith("00-")) {
+                    val parts = finishDateString.split("-")
+                    val month = parts[1]
+                    val year = parts[2]
+                    binding.endDateButton.text = getString(R.string.month_year_format1, month, year)
+                } else {
+                    try {
+                        binding.endDateButton.text = finishDateString
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
                 }
             } else {
                 binding.endDateButton.setText(R.string.finish_date)
@@ -1798,23 +1803,57 @@ class DetailActivity : BaseActivity() {
                 database = databaseHelper.writableDatabase
                 databaseHelper.onCreate(database)
                 val month = selectedMonth?.toString()?.padStart(2, '0') ?: "00"
+                val dateText = "00-$month-$selectedYear"
                 if (view.tag == "start_date") {
-                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, "00-$month-$selectedYear")
+                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateText)
                     val button = findViewById<Button>(R.id.startDateButton)
-                    button.text = "00-$month-$selectedYear"
+                    button.text = getString(R.string.month_year_format, month, selectedYear)
+                    binding.movieStartDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
                 } else {
-                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, "00-$month-$selectedYear")
+                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
                     val button = findViewById<Button>(R.id.endDateButton)
-                    button.text = "00-$month-$selectedYear"
+                    button.text = getString(R.string.month_year_format, month, selectedYear)
+                    binding.movieFinishDate.text = getString(R.string.change_finish_date_2) + formatDateString(dateText)
                 }
-                database.update(
-                    MovieDatabaseHelper.TABLE_MOVIES,
-                    movieValues,
-                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId",
-                    null
-                )
+                database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
+                // Update the UI component immediately
+                when (view.tag) {
+                    "start_date" -> {
+                        binding.startDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.movieStartDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                    }
+                    "end_date" -> {
+                        binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.movieFinishDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                    }
+                    else -> {
+                        binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.movieFinishDate.text = getString(R.string.start_date_unknown)
+                    }
+                }
+                dialog.dismiss()
             }
-            dialog.dismiss()
+        }
+    }
+
+    private fun formatDateString(dateString: String): String {
+        return when {
+            dateString.startsWith("00-00-") -> {
+                val year = dateString.substring(6)
+                year
+            }
+            dateString.startsWith("00-") -> {
+                val monthYear = dateString.substring(3)
+                SimpleDateFormat("MM-yyyy", Locale.getDefault()).parse(monthYear)?.let {
+                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                } ?: dateString
+            }
+            else -> {
+                val dbDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                dbDateFormat.parse(dateString)?.let {
+                    DateFormat.getDateInstance(DateFormat.DEFAULT).format(it)
+                } ?: dateString
+            }
         }
     }
 
@@ -1844,10 +1883,13 @@ class DetailActivity : BaseActivity() {
         monthPicker.value = android.icu.util.Calendar.getInstance().get(android.icu.util.Calendar.MONTH)
 
         disableMonthPicker.setOnCheckedChangeListener { _, isChecked ->
-            monthPicker.isEnabled = !isChecked
-            monthPicker.visibility = if (isChecked) View.GONE else View.VISIBLE
-            monthTitle.visibility = if (isChecked) View.GONE else View.VISIBLE
-            monthLayout.visibility = if (isChecked) View.GONE else View.VISIBLE
+            if (isChecked) {
+                monthLayout.visibility = View.GONE
+                monthTitle.visibility = View.GONE
+            } else {
+                monthLayout.visibility = View.VISIBLE
+                monthTitle.visibility = View.VISIBLE
+            }
         }
 
         MaterialAlertDialogBuilder(context)
@@ -1884,8 +1926,7 @@ class DetailActivity : BaseActivity() {
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
                 val formattedDate = dateFormatDefault.format(calendar.time)
-                binding.movieStartDate.text =
-                    getString(R.string.change_start_date_2) + formattedDate
+                binding.movieStartDate.text = getString(R.string.change_start_date_2) + formattedDate
                 startDate = calendar.time
             } else {
                 movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateFormat)
@@ -1895,8 +1936,7 @@ class DetailActivity : BaseActivity() {
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
                 val formattedDate = dateFormatDefault.format(calendar.time)
-                binding.movieFinishDate.text =
-                    getString(R.string.change_finish_date_2) + formattedDate
+                binding.movieFinishDate.text = getString(R.string.change_finish_date_2) + formattedDate
                 finishDate = calendar.time
             }
             database = databaseHelper.writableDatabase
@@ -1913,14 +1953,14 @@ class DetailActivity : BaseActivity() {
     private fun fadeOutAndHideAnimation(view: View) {
         val fadeOut: Animation = AlphaAnimation(1f, 0f)
         fadeOut.interpolator = AccelerateInterpolator()
-        fadeOut.duration = 100
+        fadeOut.duration = 300
         view.startAnimation(fadeOut)
     }
 
     private fun fadeInAndShowAnimation(view: View) {
         val fadeIn: Animation = AlphaAnimation(0f, 1f)
         fadeIn.interpolator = AccelerateInterpolator()
-        fadeIn.duration = 100
+        fadeIn.duration = 300
         fadeIn.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationEnd(animation: Animation) {
                 view.visibility = View.VISIBLE
