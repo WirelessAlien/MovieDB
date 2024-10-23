@@ -23,12 +23,12 @@
 
     <item
         android:id="@+id/action_notification"
-        android:icon="@drawable/ic_add_alert"
+        android:icon="@drawable/ic_notification_add"
         android:title="@string/get_notified"
         app:showAsAction="always" />
     <item
         android:id="@+id/action_watched"
-        android:icon="@drawable/ic_visibility"
+        android:icon="@drawable/ic_visibility_off"
         android:title="@string/watched"
         app:showAsAction="always" />
 </menu>

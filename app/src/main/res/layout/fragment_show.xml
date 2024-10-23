@@ -22,6 +22,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.wirelessalien.android.moviedb.fragment.ShowFragment">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -33,9 +34,13 @@
         tools:listitem="@layout/show_grid_card"
         android:scrollbars="none"/>
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"
+        app:waveAmplitude="10dp"
+        app:wavelength="32dp"
+        app:waveSpeed="0dp"
+        android:indeterminate="true" />
 </FrameLayout>

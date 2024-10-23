@@ -216,11 +216,20 @@ class MainActivity : BaseActivity() {
 
         preferences.registerOnSharedPreferenceChangeListener(prefListener)
         val fab = findViewById<FloatingActionButton>(R.id.fab)
+        val fab2 = findViewById<FloatingActionButton>(R.id.fab2)
+
         bottomNavigationView.viewTreeObserver.addOnGlobalLayoutListener {
             val bottomNavHeight = bottomNavigationView.height
-            val params = fab.layoutParams as CoordinatorLayout.LayoutParams
-            params.bottomMargin = bottomNavHeight + 16
-            fab.layoutParams = params
+
+            // Adjust the position of the first FAB
+            val paramsFab = fab.layoutParams as CoordinatorLayout.LayoutParams
+            paramsFab.bottomMargin = bottomNavHeight + 16
+            fab.layoutParams = paramsFab
+
+            // Adjust the position of the second FAB above the first FAB with a 16dp margin
+            val paramsFab2 = fab2.layoutParams as CoordinatorLayout.LayoutParams
+            paramsFab2.bottomMargin = bottomNavHeight + fab.height + 32 // 16dp margin + fab height + 16dp margin
+            fab2.layoutParams = paramsFab2
         }
 
         val fragmentContainerView = findViewById<FragmentContainerView>(R.id.container)

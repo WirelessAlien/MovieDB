@@ -291,12 +291,11 @@
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/edit_icon_description"
                 android:layout_below="@+id/movieDetails"
-                android:onClick="editDetails"
                 app:cornerRadius="5dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="10dp"
-                style="@style/Widget.Material3.Button.ElevatedButton"
+                style="@style/Widget.Material3.Button.TonalButton"
                 app:icon="@drawable/ic_edit"
                 android:text="@string/edit"
                 android:visibility="gone"/>

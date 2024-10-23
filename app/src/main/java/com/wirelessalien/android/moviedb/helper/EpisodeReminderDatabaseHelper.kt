@@ -40,6 +40,27 @@ class EpisodeReminderDatabaseHelper(context: Context?) :
         db.close()
     }
 
+    fun getShowNameById(tvShowId: Int): String? {
+        val db = this.readableDatabase
+        val selection = "$COLUMN_MOVIE_ID = ?"
+        val selectionArgs = arrayOf(tvShowId.toString())
+        val cursor = db.query(
+            TABLE_EPISODE_REMINDERS,
+            arrayOf(COLUMN_TV_SHOW_NAME),
+            selection,
+            selectionArgs,
+            null,
+            null,
+            null
+        )
+        var showName: String? = null
+        if (cursor.moveToFirst()) {
+            showName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TV_SHOW_NAME))
+        }
+        cursor.close()
+        return showName
+    }
+
     companion object {
         private const val DATABASE_NAME = "episode_reminder.db"
         private const val DATABASE_VERSION = 1

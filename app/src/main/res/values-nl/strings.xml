@@ -40,7 +40,7 @@
     <string name="finish_date">"Beëindigingsdatum: "</string>
     <string name="finish_date_unknown">De beëindigingsdatum is nog niet gespecificeerd.</string>
     <string name="times_watched">"Aantal keer gezien: "</string>
-    <string name="episodes_seen">"Afleveringen gezien: "</string>
+    <string name="episodes_seen">Afleveringen gezien: %1$d/%2$d</string>
     <string name="rating">"Cijfer: "</string>
     <string name="change_start_date_2">"Startdatum: "</string>
     <string name="change_finish_date_2">"Beëindigingsdatum: "</string>

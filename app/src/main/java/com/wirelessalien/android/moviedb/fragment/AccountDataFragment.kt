@@ -53,6 +53,8 @@ class AccountDataFragment : BaseFragment() {
         sPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         tabLayout = view.findViewById(R.id.tabs)
         fab = requireActivity().findViewById(R.id.fab)
+        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
+        fab2.visibility = View.GONE
         sessionId = sPreferences.getString("access_token", null)
         accountId = sPreferences.getString("account_id", null)
         fab.isEnabled = !(sessionId == null || accountId == null)
@@ -72,6 +74,8 @@ class AccountDataFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         fab.isEnabled = !(sessionId == null || accountId == null)
+        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
+        fab2.visibility = View.GONE
     }
 
     private fun setupTabs() {

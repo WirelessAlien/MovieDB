@@ -53,8 +53,10 @@ class ListAdapter(
     }
 
     fun updateData(newData: List<ListData>?) {
-        listData.addAll(newData!!)
-        notifyDataSetChanged()
+        if (newData != null) {
+            listData.addAll(newData)
+            notifyDataSetChanged()
+        }
     }
 
     interface OnItemClickListener {
@@ -86,17 +88,16 @@ class ListAdapter(
             }
             itemCountTextView.text = "Items: " + listData.itemCount
             itemView.tag = listData
-            itemView.setOnClickListener { v: View? -> onItemClickListener.onItemClick(itemView.tag as ListData) }
+            itemView.setOnClickListener { onItemClickListener.onItemClick(itemView.tag as ListData) }
             if (showDeleteButton) {
                 deleteButton.visibility = View.VISIBLE
-                deleteButton.setOnClickListener { v: View? ->
+                deleteButton.setOnClickListener {
                     val deleteListThread = DeleteList(listData.id, itemView.context as Activity, object : DeleteList.OnListDeletedListener {
                         override fun onListDeleted() {
                             this@ListAdapter.listData.remove(listData)
                             notifyDataSetChanged()
                         }
                     })
-                    // Launch a coroutine to call the suspend function
                     CoroutineScope(Dispatchers.Main).launch {
                         deleteListThread.deleteList()
                     }

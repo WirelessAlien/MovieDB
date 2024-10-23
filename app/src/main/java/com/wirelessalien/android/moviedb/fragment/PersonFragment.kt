@@ -29,6 +29,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.adapter.PersonBaseAdapter
@@ -249,7 +250,7 @@ class PersonFragment : BaseFragment() {
     private fun fetchPersonList(page: Int) {
         CoroutineScope(Dispatchers.Main).launch {
             requireActivity().runOnUiThread {
-                val progressBar = requireActivity().findViewById<ProgressBar>(R.id.progressBar)
+                val progressBar = requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar)
                 progressBar.visibility = View.VISIBLE
             }
 
@@ -302,7 +303,7 @@ class PersonFragment : BaseFragment() {
             }
 
             requireActivity().runOnUiThread {
-                val progressBar = requireActivity().findViewById<ProgressBar>(R.id.progressBar)
+                val progressBar = requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar)
                 progressBar.visibility = View.GONE
             }
         }
@@ -390,11 +391,11 @@ class PersonFragment : BaseFragment() {
                 mSearchView = true
                 mPersonGridView.adapter = mSearchPersonAdapter
                 mPersonGridView.scrollToPosition(position)
-                val progressBar = requireActivity().findViewById<ProgressBar>(R.id.progressBar)
+                val progressBar = requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar)
                 progressBar.visibility = View.GONE
             } catch (je: JSONException) {
                 je.printStackTrace()
-                val progressBar = requireActivity().findViewById<ProgressBar>(R.id.progressBar)
+                val progressBar = requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar)
                 progressBar.visibility = View.GONE
             }
         }
