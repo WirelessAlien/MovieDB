@@ -22,6 +22,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -31,10 +32,14 @@
         android:layout_height="wrap_content"
         android:padding="10dp"
         tools:listitem="@layout/episode_item"/>
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:indeterminate="true"
+        app:waveAmplitude="10dp"
+        app:wavelength="32dp"
+        app:waveSpeed="0dp"
         android:layout_gravity="center"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -22,7 +22,6 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.ContentValues
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -85,7 +84,7 @@ class SeasonDetailsFragment : Fragment() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 currentTabNumber = position + 1
-                seasonNumber = currentTabNumber
+                seasonNumber = if (currentTabNumber == 1) 0 else currentTabNumber - 1
                 loadSeasonDetails()
                 requireActivity().invalidateOptionsMenu()
             }
@@ -218,15 +217,9 @@ class SeasonDetailsFragment : Fragment() {
                     values.put(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME, tvShowName)
                     values.put(EpisodeReminderDatabaseHelper.COLUMN_NAME, episode.name)
                     values.put(EpisodeReminderDatabaseHelper.COLUMN_DATE, episode.airDate)
-                    values.put(
-                        EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER,
-                        episode.episodeNumber
-                    )
+                    values.put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, episode.episodeNumber)
                     val newRowId = db.insert(
-                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
-                        null,
-                        values
-                    )
+                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, values)
                     if (newRowId == -1L) {
                         val message = getString(R.string.error_reminder_episode, tvShowName)
                         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
@@ -293,7 +286,6 @@ class SeasonDetailsFragment : Fragment() {
             args.putInt(ARG_TV_SHOW_ID, tvShowId)
             args.putInt(ARG_SEASON_NUMBER, seasonNumber)
             args.putString(ARG_TV_SHOW_NAME, tvShowName)
-            Log.d("SeasonDetailsFragment", tvShowName.toString())
             fragment.arguments = args
             return fragment
         }

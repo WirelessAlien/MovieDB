@@ -216,12 +216,12 @@ class EpisodeAdapter(
             // Fetch episode details from the database
             try {
                 MovieDatabaseHelper(context).use { db ->
-                    val details =
-                        db.getEpisodeDetails(tvShowId, seasonNumber, episode.episodeNumber)
+                    val details = db.getEpisodeDetails(tvShowId, seasonNumber, episode.episodeNumber)
                     if (details != null) {
                         dateTextView.text = details.watchDate
                         if (details.rating?.toDouble() != 0.0 && details.rating != null) {
-                            ratingEditText.setText(details.rating.toString())
+                            val rating1 = if (details.rating > 10.0) 10.0 else details.rating
+                            ratingEditText.setText(rating1.toString())
                         }
                         reviewEditText.setText(details.review)
                     }
