@@ -24,6 +24,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.SQLException
@@ -36,7 +37,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
@@ -44,8 +44,13 @@ import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.activity.ExportActivity
@@ -54,6 +59,11 @@ import com.wirelessalien.android.moviedb.activity.ImportActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
@@ -124,6 +134,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             intent.putExtra("account", false)
             filterActivityResultLauncher.launch(intent)
         }
+        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
+        fab2.setImageResource(R.drawable.ic_info)
+        fab2.visibility = View.VISIBLE
+        fab2.isEnabled = true
+        fab2.setOnClickListener {
+            showWatchSummaryDialog()
+        }
         return fragmentView
     }
 
@@ -190,7 +207,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     override fun onResume() {
-        val progressBar = requireActivity().findViewById<ProgressBar>(R.id.progressBar)
+        val progressBar = requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar)
         if (progressBar != null) {
             progressBar.visibility = View.GONE
         }
@@ -227,6 +244,180 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         super.onPause()
     }
 
+    private suspend fun getTotalItem(category: Int): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val cursor = mDatabase.rawQuery(
+            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = $category",
+            null
+        )
+        val totalItem = cursor.count
+        cursor.close()
+        close()
+        totalItem
+    }
+
+    private suspend fun getTotalMoviesInWatchedCategory(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val cursor = mDatabase.rawQuery(
+            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1",
+            null
+        )
+        val totalMovies = cursor.count
+        cursor.close()
+        close()
+        totalMovies
+    }
+
+    private suspend fun getTotalTVShowsInWatchedCategory(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val cursor = mDatabase.rawQuery(
+            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 0",
+            null
+        )
+        val totalTVShows = cursor.count
+        cursor.close()
+        close()
+        totalTVShows
+    }
+
+    private suspend fun getTotalItemCountForGenre(genreId: Int): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val cursor: Cursor = mDatabase.rawQuery(
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%$genreId%'",
+            null
+        )
+        val totalItemCount = if (cursor.moveToFirst()) {
+            cursor.getInt(0)
+        } else {
+            0
+        }
+        cursor.close()
+        close()
+        totalItemCount
+    }
+
+    private suspend fun getGenreIdsFromDatabase(): List<Int> = withContext(Dispatchers.IO) {
+        val genreIds = mutableListOf<Int>()
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val cursor: Cursor = mDatabase.rawQuery(
+            "SELECT ${MovieDatabaseHelper.COLUMN_GENRES_IDS} FROM ${MovieDatabaseHelper.TABLE_MOVIES}",
+            null
+        )
+        if (cursor.moveToFirst()) {
+            do {
+                val genreIdString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_GENRES_IDS))
+                val ids = genreIdString
+                    .removeSurrounding("[", "]")
+                    .split(",")
+                    .mapNotNull { it.trim().toIntOrNull() }
+                genreIds.addAll(ids)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        close()
+        genreIds.distinct()
+    }
+
+    private fun getGenreNamesFromSharedPreferences(context: Context): Map<Int, String> {
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("GenreList", Context.MODE_PRIVATE)
+        val genreNames = mutableMapOf<Int, String>()
+        val allEntries = sharedPreferences.all
+
+        // First, add individual genre entries
+        for ((key, value) in allEntries) {
+            if (key != "tvGenreJSONArrayList" && key != "movieGenreJSONArrayList") {
+                try {
+                    genreNames[key.toInt()] = value as String
+                } catch (e: NumberFormatException) {
+                    // Log or handle the exception if needed
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        // Then, add genres from tvGenreJSONArrayList
+        val tvGenreJSONArrayList = sharedPreferences.getString("tvGenreJSONArrayList", null)
+        if (tvGenreJSONArrayList != null) {
+            val jsonArray = JSONArray(tvGenreJSONArrayList)
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                genreNames[jsonObject.getInt("id")] = jsonObject.getString("name")
+            }
+        }
+
+        return genreNames
+    }
+
+    private fun displayGenresInChipGroup(context: Context, chipGroup: ChipGroup, genreIds: List<Int>, genreNames: Map<Int, String>) {
+        val inflater = LayoutInflater.from(context)
+        CoroutineScope(Dispatchers.Main).launch {
+            for (genreId in genreIds) {
+                val genreName = genreNames[genreId]
+                if (genreName != null) {
+                    val chip = inflater.inflate(R.layout.chip_item, chipGroup, false) as Chip
+                    val totalItemCount = getTotalItemCountForGenre(genreId)
+                    chip.text = "$genreName: $totalItemCount"
+                    chipGroup.addView(chip)
+                }
+            }
+        }
+    }
+
+    // Usage example
+    private suspend fun setupGenreChips(context: Context, chipGroup: ChipGroup) {
+        val genreIds = getGenreIdsFromDatabase()
+        val genreNames = getGenreNamesFromSharedPreferences(context)
+        displayGenresInChipGroup(context, chipGroup, genreIds, genreNames)
+    }
+
+    private fun showWatchSummaryDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.watch_summary, null)
+        val circularProgressIndicator = dialogView.findViewById<CircularProgressIndicator>(R.id.progressBar)
+        val tvWatching = dialogView.findViewById<Chip>(R.id.chipWatching)
+        val tvWatched = dialogView.findViewById<Chip>(R.id.chipWatched)
+        val tvPlanToWatch = dialogView.findViewById<Chip>(R.id.chipPlanToWatch)
+        val tvOnHold = dialogView.findViewById<Chip>(R.id.chipOnHold)
+        val tvDropped = dialogView.findViewById<Chip>(R.id.chipDropped)
+        val tvWatchedMovies = dialogView.findViewById<Chip>(R.id.chipWatchedMovies)
+        val tvWatchedTVShows = dialogView.findViewById<Chip>(R.id.chipWatchedTVShows)
+        val chipGroup = dialogView.findViewById<ChipGroup>(R.id.chipGroupGenres)
+
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        bottomSheetDialog.setContentView(dialogView)
+        bottomSheetDialog.edgeToEdgeEnabled
+        bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        bottomSheetDialog.show()
+
+        CoroutineScope(Dispatchers.Main).launch {
+            circularProgressIndicator.visibility = View.VISIBLE
+
+            val watching = getTotalItem(MovieDatabaseHelper.CATEGORY_WATCHING)
+            val watched = getTotalItem(MovieDatabaseHelper.CATEGORY_WATCHED)
+            val planToWatch = getTotalItem(MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
+            val onHold = getTotalItem(MovieDatabaseHelper.CATEGORY_ON_HOLD)
+            val dropped = getTotalItem(MovieDatabaseHelper.CATEGORY_DROPPED)
+            val watchedMovies = getTotalMoviesInWatchedCategory()
+            val watchedTVShows = getTotalTVShowsInWatchedCategory()
+
+            tvWatching.text = getString(R.string.watching1, watching)
+            tvWatched.text = getString(R.string.watched1, watched)
+            tvPlanToWatch.text = getString(R.string.plan_to_watch1, planToWatch)
+            tvOnHold.text = getString(R.string.on_hold1, onHold)
+            tvDropped.text = getString(R.string.dropped1, dropped)
+            tvWatchedMovies.text = getString(R.string.movies_watched, watchedMovies)
+            tvWatchedTVShows.text = getString(R.string.movies_watched, watchedTVShows)
+
+            // Setup genre chips
+            setupGenreChips(requireContext(), chipGroup)
+
+            circularProgressIndicator.visibility = View.GONE
+        }
+    }
     /**
      * Create and set the new adapter to update the show view.
      */
