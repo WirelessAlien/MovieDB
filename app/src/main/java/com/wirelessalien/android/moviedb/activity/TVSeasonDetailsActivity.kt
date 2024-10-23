@@ -20,7 +20,6 @@
 package com.wirelessalien.android.moviedb.activity
 
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -48,22 +47,23 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         val seasonNumber = intent.getIntExtra("seasonNumber", 1)
         val numSeasons = intent.getIntExtra("numSeasons", 1)
         val showName = intent.getStringExtra("tvShowName")
-        Log.d("TVSeasonDA", showName.toString())
         val viewPager = findViewById<ViewPager2>(R.id.view_pager)
         val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun createFragment(position: Int): Fragment {
-                return newInstance(tvShowId, position + 1, showName)
+                return newInstance(tvShowId, position, showName)
             }
 
             override fun getItemCount(): Int {
-                return numSeasons
+                return numSeasons + 1
             }
         }
-        viewPager.setCurrentItem(seasonNumber - 1, false)
+        viewPager.setCurrentItem(seasonNumber, false)
         TabLayoutMediator(
             tabLayout, viewPager
-        ) { tab: TabLayout.Tab, position: Int -> tab.setText(getString(R.string.season) + (position + 1)) }.attach()
+        ) { tab: TabLayout.Tab, position: Int ->
+            tab.text = if (position == 0) getString(R.string.specials) else getString(R.string.season) + position
+        }.attach()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

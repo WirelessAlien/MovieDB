@@ -20,25 +20,22 @@
 package com.wirelessalien.android.moviedb.tmdb
 
 import android.content.Context
-import android.util.Log
 import com.wirelessalien.android.moviedb.activity.BaseActivity.Companion.getLanguageParameter
 import com.wirelessalien.android.moviedb.data.Episode
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONObject
-import java.io.IOException
-
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.IOException
 
-class TVSeasonDetails(
-    private val tvShowId: Int,
-    private val seasonNumber: Int, var context: Context
-) {
-    var episodes: MutableList<Episode> = mutableListOf()
+class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, var context: Context) {
+
+    private var episodes: MutableList<Episode> = mutableListOf()
     private var seasonName: String? = null
     private var seasonOverview: String? = null
     private var seasonPosterPath: String? = null
@@ -50,8 +47,7 @@ class TVSeasonDetails(
     fun fetchSeasonDetails(callback: SeasonDetailsCallback) {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val baseUrl =
-                    "https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber?api_key=$apiKey"
+                val baseUrl = "https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber?api_key=$apiKey"
                 val urlWithLanguage = baseUrl + getLanguageParameter(context)
                 var jsonResponse = fetchSeasonDetailsFromNetwork(urlWithLanguage)
 
@@ -59,11 +55,11 @@ class TVSeasonDetails(
                 if (jsonResponse!!.getString("overview").isEmpty()) {
                     jsonResponse = fetchSeasonDetailsFromNetwork(baseUrl)
                 }
-                seasonName = jsonResponse!!.getString("name")
-                seasonOverview = jsonResponse.getString("overview")
-                seasonPosterPath = jsonResponse.getString("poster_path")
-                seasonVoteAverage = jsonResponse.getDouble("vote_average")
-                val response = jsonResponse.getJSONArray("episodes")
+                seasonName = if (seasonNumber == 0) "Specials" else jsonResponse!!.getString("name")
+                seasonOverview = jsonResponse?.getString("overview") ?: ""
+                seasonPosterPath = jsonResponse?.getString("poster_path") ?: ""
+                seasonVoteAverage = jsonResponse?.getDouble("vote_average") ?: 0.0
+                val response = jsonResponse?.getJSONArray("episodes") ?: JSONArray()
                 episodes = mutableListOf()
                 for (i in 0 until response.length()) {
                     val episodeJson = response.getJSONObject(i)
@@ -71,21 +67,10 @@ class TVSeasonDetails(
                     val overview = episodeJson.getString("overview")
                     val airDate = episodeJson.getString("air_date")
                     val episodeNumber = episodeJson.getInt("episode_number")
-                    val runtime =
-                        if (episodeJson.isNull("runtime")) 0 else episodeJson.getInt("runtime")
+                    val runtime = if (episodeJson.isNull("runtime")) 0 else episodeJson.getInt("runtime")
                     val posterPath = episodeJson.getString("still_path")
                     val voteAverage = episodeJson.getDouble("vote_average")
-                    episodes.add(
-                        Episode(
-                            airDate,
-                            episodeNumber,
-                            name,
-                            overview,
-                            runtime,
-                            posterPath,
-                            voteAverage
-                        )
-                    )
+                    episodes.add(Episode(airDate, episodeNumber, name, overview, runtime, posterPath, voteAverage))
                 }
                 callback.onSeasonDetailsFetched(episodes)
             } catch (e: Exception) {
