@@ -239,6 +239,9 @@ class DetailActivity : BaseActivity() {
         )
         binding.movieRecyclerView.layoutManager = movieLinearLayoutManager
 
+        val adapter = ArrayAdapter.createFromResource(this, R.array.categories, android.R.layout.simple_dropdown_item_1line)
+        binding.categories.setAdapter(adapter)
+
         // Make the views invisible if the user collapsed the view.
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         if (!preferences.getBoolean(CAST_VIEW_PREFERENCE, false)) {
@@ -727,6 +730,7 @@ class DetailActivity : BaseActivity() {
                 startActivity(browserIntent)
             }
         }
+
         binding.fabSave.setOnClickListener {
             if (added) {
                 // Remove the show from the database.
@@ -805,6 +809,10 @@ class DetailActivity : BaseActivity() {
                 finish()
             }
         })
+
+        binding.editIcon.setOnClickListener {
+            editDetails()
+        }
     }
 
     override fun doNetworkWork() {
@@ -911,36 +919,18 @@ class DetailActivity : BaseActivity() {
         // Add the show to the database.
         try {
             // Put the necessary values into ContentValues object.
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_MOVIES_ID,
-                jMovieObject.getString("id").toInt()
-            )
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_IMAGE,
-                jMovieObject.getString("backdrop_path")
-            )
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_ICON,
-                jMovieObject.getString("poster_path")
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, jMovieObject.getString("id").toInt())
+            showValues.put(MovieDatabaseHelper.COLUMN_IMAGE, jMovieObject.getString("backdrop_path"))
+            showValues.put(MovieDatabaseHelper.COLUMN_ICON, jMovieObject.getString("poster_path"))
             val title = if (isMovie) "title" else "name"
             showValues.put(MovieDatabaseHelper.COLUMN_TITLE, jMovieObject.getString(title))
             showValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, jMovieObject.getString("overview"))
             showValues.put(MovieDatabaseHelper.COLUMN_GENRES, genres)
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_GENRES_IDS,
-                jMovieObject.getString("genre_ids")
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, jMovieObject.getString("genre_ids"))
             showValues.put(MovieDatabaseHelper.COLUMN_MOVIE, isMovie)
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_RATING,
-                jMovieObject.getString("vote_average")
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_RATING, jMovieObject.getString("vote_average"))
             val releaseDate = if (isMovie) "release_date" else "first_air_date"
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_RELEASE_DATE,
-                jMovieObject.getString(releaseDate)
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, jMovieObject.getString(releaseDate))
 
             // Insert the show into the database.
             database.insert(MovieDatabaseHelper.TABLE_MOVIES, null, showValues)
@@ -950,24 +940,13 @@ class DetailActivity : BaseActivity() {
             added = true
             binding.fabSave.setImageResource(R.drawable.ic_star)
             if (isMovie) {
-                Toast.makeText(
-                    applicationContext,
-                    resources.getString(R.string.movie_added),
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(applicationContext, resources.getString(R.string.movie_added), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(
-                    applicationContext,
-                    resources.getString(R.string.series_added),
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(applicationContext, resources.getString(R.string.series_added), Toast.LENGTH_SHORT).show()
             }
         } catch (je: JSONException) {
             je.printStackTrace()
-            Toast.makeText(
-                this, resources.getString(R.string.show_added_error),
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, resources.getString(R.string.show_added_error), Toast.LENGTH_SHORT).show()
         }
 
         // Update the ListFragment to include the newly added show.
@@ -1465,14 +1444,12 @@ class DetailActivity : BaseActivity() {
      * Makes the showDetails layout invisible and the editShowDetails visible
      * (or the other way around).
      */
-    fun editDetails(view: View?) {
-        val showDetails: LinearLayout = binding.showDetails
-        val editShowDetails: LinearLayout = binding.editShowDetails
-        val timesWatchedView = binding.timesWatched
-        val showRating = binding.showRating
-        val movieReview = binding.movieReview
+    private fun editDetails() {
 
-        if (editShowDetails.visibility == View.GONE) {
+        if (binding.editShowDetails.visibility == View.GONE) {
+            fadeOutAndHideAnimation(binding.showDetails)
+            fadeInAndShowAnimation(binding.editShowDetails)
+
             // Set the adapter for categoriesView before calling updateEditShowDetails
             val categoriesView = binding.categories
             val adapter = ArrayAdapter.createFromResource(
@@ -1481,172 +1458,127 @@ class DetailActivity : BaseActivity() {
             )
             categoriesView.setAdapter(adapter)
 
-            fadeOutAndHideAnimation(showDetails)
-            fadeInAndShowAnimation(editShowDetails)
-            updateEditShowDetails()
-            showDetails.visibility = View.GONE
-            editShowDetails.visibility = View.VISIBLE
-
-            binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
-            binding.editIcon.setText(R.string.done)
-
             // Disable text input
             categoriesView.inputType = InputType.TYPE_NULL
             categoriesView.keyListener = null
 
-
             // Show dropdown on click
             categoriesView.setOnClickListener { categoriesView.showDropDown() }
-            categoriesView.onItemClickListener =
-                AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
-                    // Save the category to the database
-                    val showValues = ContentValues()
-                    database = databaseHelper.writableDatabase
-                    val cursor = database.rawQuery(
-                        "SELECT * FROM " +
-                                MovieDatabaseHelper.TABLE_MOVIES +
-                                " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                                "=" + movieId + " LIMIT 1", null
-                    )
-                    cursor.moveToFirst()
+            categoriesView.onItemClickListener = AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
+                // Save the category to the database
+                val showValues = ContentValues()
+                database = databaseHelper.writableDatabase
+                val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
+                cursor.moveToFirst()
 
-                    // Check if the show is already watched and if the user changed the category.
-                    if (getCategoryNumber(position) == 1 && cursor.getInt(
-                            cursor.getColumnIndexOrThrow(
-                                MovieDatabaseHelper.COLUMN_CATEGORIES
-                            )
-                        )
-                        != getCategoryNumber(position)
-                    ) {
+                // Check if the show is already watched and if the user changed the category.
+                if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) != getCategoryNumber(position)) {
 
-                        // If the user hasn't set their own watched value, automatically set it.
-                        val timesWatchedCount = cursor.getInt(
-                            cursor.getColumnIndexOrThrow(
-                                MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
-                            )
-                        )
-                        if (timesWatchedCount == 0) {
-                            showValues.put(
-                                MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
-                                1
-                            )
-                            timesWatchedView.setText("1")
-                        }
-
-                        // Fetch seasons data and add to database if category is changed to "watched"
-                        lifecycleScope.launch {
-                            fetchMovieDetailsCoroutine()
-                            addSeasonsAndEpisodesToDatabase()
-                        }
+                    // If the user hasn't set their own watched value, automatically set it.
+                    val timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                    if (timesWatchedCount == 0) { showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, 1)
+                        binding.timesWatched.setText("1")
                     }
-                    showValues.put(
-                        MovieDatabaseHelper.COLUMN_CATEGORIES,
-                        getCategoryNumber(position)
-                    )
-                    database.update(
-                        MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                        MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                    )
-                    database.close()
+
+                    // Fetch seasons data and add to database if category is changed to "watched"
+                    lifecycleScope.launch {
+                        fetchMovieDetailsCoroutine()
+                        addSeasonsAndEpisodesToDatabase()
+                    }
                 }
+                showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(position))
+                database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                database.close()
+            }
 
             // Listen to changes to the EditText.
-            timesWatchedView.onFocusChangeListener =
-                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-                    if (!hasFocus && timesWatchedView.text.toString().isNotEmpty()) {
-                        // Save the number to the database
-                        val showValues = ContentValues()
-                        val timesWatched = timesWatchedView.text.toString().toInt()
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, timesWatched)
-                        database = databaseHelper.writableDatabase
-                        databaseHelper.onCreate(database)
-                        database.update(
-                            MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                        )
-                        database.close()
+            binding.timesWatched.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
+                if (!hasFocus && binding.timesWatched.text.toString().isNotEmpty()) {
+                    // Save the number to the database
+                    val showValues = ContentValues()
+                    val timesWatched = binding.timesWatched.text.toString().toInt()
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, timesWatched)
+                    database = databaseHelper.writableDatabase
+                    databaseHelper.onCreate(database)
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                    database.close()
 
-                        // Update the view
-                        binding.movieRewatched.text =
-                            getString(R.string.change_watched_times) + timesWatched
-                    }
+                    // Update the view
+                    binding.movieRewatched.text = getString(R.string.change_watched_times) + timesWatched
+                    binding.movieRewatched.visibility = View.VISIBLE
                 }
+            }
 
             // Listen to changes to the ShowRating EditText.
-            showRating.onFocusChangeListener =
-                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-                    if (!hasFocus && showRating.text.toString().isNotEmpty()) {
-                        // Save the number to the database
-                        val showValues = ContentValues()
-                        var rating = showRating.text.toString().toFloat()
+            binding.showRating.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
+                if (!hasFocus && binding.showRating.text.toString().isNotEmpty()) {
+                    // Save the number to the database
+                    val showValues = ContentValues()
+                    var rating = binding.showRating.text.toString().toFloat()
 
-                        // Do not allow ratings outside of the range.
-                        if (rating > 10.0f) {
-                            rating = 10.0f
-                        } else if (rating < 0.0f) {
-                            rating = 0.0f
-                        }
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
-                        database = databaseHelper.writableDatabase
-                        databaseHelper.onCreate(database)
-                        database.update(
-                            MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                        )
-                        database.close()
-
-                        // Update the view
-                        val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
-                        binding.rating.text =
-                            String.format(Locale.getDefault(), "%.1f/%s", rating, localizedTen)
+                    // Do not allow ratings outside of the range.
+                    if (rating > 10.0f) {
+                        rating = 10.0f
+                    } else if (rating < 0.0f) {
+                        rating = 0.0f
                     }
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
+                    database = databaseHelper.writableDatabase
+                    databaseHelper.onCreate(database)
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                    database.close()
+
+                    // Update the view
+                    val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
+                    binding.rating.text = String.format(Locale.getDefault(), "%.1f/%s", rating, localizedTen)
                 }
+            }
 
             // Listen to changes to the MovieReview EditText.
-            movieReview.onFocusChangeListener =
-                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-                    if (!hasFocus) {
-                        // Save the review to the database
-                        val showValues = ContentValues()
-                        val review = movieReview.text.toString()
-                        showValues.put(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW, review)
-                        database = databaseHelper.writableDatabase
-                        databaseHelper.onCreate(database)
-                        database.update(
-                            MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                        )
-                        database.close()
+            binding.movieReview.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
+                if (!hasFocus) {
+                    // Save the review to the database
+                    val showValues = ContentValues()
+                    val review =  binding.movieReview.text.toString()
+                    showValues.put(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW, review)
+                    database = databaseHelper.writableDatabase
+                    databaseHelper.onCreate(database)
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                    database.close()
 
-                        if (review.isNotEmpty()) {
-                            binding.movieReviewText.text = getString(R.string.reviews) + review
-                            binding.movieReviewText.visibility = View.VISIBLE
-                        } else {
-                            binding.movieReviewText.text = getString(R.string.no_reviews)
-                            binding.movieReviewText.visibility = View.VISIBLE
-                        }
+                    if (review.isNotEmpty()) {
+                        binding.movieReviewText.text = getString(R.string.reviews) + review
+                        binding.movieReviewText.visibility = View.VISIBLE
+                    } else {
+                        binding.movieReviewText.text = getString(R.string.no_reviews)
+                        binding.movieReviewText.visibility = View.VISIBLE
                     }
                 }
+            }
+            updateEditShowDetails()
+            binding.showDetails.visibility = View.GONE
+            binding.editShowDetails.visibility = View.VISIBLE
+
+            binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
+            binding.editIcon.setText(R.string.done)
         } else {
-            fadeOutAndHideAnimation(editShowDetails)
-            fadeInAndShowAnimation(showDetails)
-            showDetails.visibility = View.VISIBLE
-            editShowDetails.visibility = View.GONE
+            fadeOutAndHideAnimation(binding.editShowDetails)
+            fadeInAndShowAnimation(binding.showDetails)
+            updateEditShowDetails()
+            binding.showDetails.visibility = View.VISIBLE
+            binding.editShowDetails.visibility = View.GONE
 
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_edit)
             binding.editIcon.setText(R.string.edit)
+
+
         }
     }
 
     private fun updateEditShowDetails() {
         database = databaseHelper.writableDatabase
         databaseHelper.onCreate(database)
-        val cursor = database.rawQuery(
-            "SELECT * FROM " +
-                    MovieDatabaseHelper.TABLE_MOVIES +
-                    " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                    "=" + movieId + " LIMIT 1", null
-        )
+        val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
         if (cursor.count <= 0) {
             // No record has been found, the show hasn't been added or an error occurred.
             cursor.close()
@@ -1712,68 +1644,20 @@ class DetailActivity : BaseActivity() {
                 binding.endDateButton.setText(R.string.finish_date)
             }
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
-                && cursor.getString(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
-                    )
-                ) != ""
-            ) {
-                binding.timesWatched.setText(
-                    cursor.getString(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
-                        )
-                    )
-                )
+                && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)) != "") {
+                binding.timesWatched.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)))
             } else {
-                if (cursor.getInt(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_CATEGORIES
-                        )
-                    ) == 1
-                ) {
+                if (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) == 1) {
                     binding.timesWatched.setText("1")
                 } else {
                     binding.timesWatched.setText("0")
                 }
             }
-            if (!cursor.isNull(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING
-                    )
-                )
-                && cursor.getString(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING
-                    )
-                ) != ""
-            ) {
-                binding.showRating.setText(
-                    cursor.getString(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_PERSONAL_RATING
-                        )
-                    )
-                )
+            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) != "") {
+                binding.showRating.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)))
             }
-            if (!cursor.isNull(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_MOVIE_REVIEW
-                    )
-                )
-                && cursor.getString(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_MOVIE_REVIEW
-                    )
-                ) != ""
-            ) {
-                binding.movieReview.setText(
-                    cursor.getString(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_MOVIE_REVIEW
-                        )
-                    )
-                )
+            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) != "") {
+                binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
             }
         }
         cursor.close()
@@ -1821,14 +1705,17 @@ class DetailActivity : BaseActivity() {
                     "start_date" -> {
                         binding.startDateButton.text = getString(R.string.month_year_format, month, selectedYear)
                         binding.movieStartDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                        binding.movieStartDate.visibility = View.VISIBLE
                     }
                     "end_date" -> {
                         binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
                         binding.movieFinishDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                        binding.movieFinishDate.visibility = View.VISIBLE
                     }
                     else -> {
                         binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
                         binding.movieFinishDate.text = getString(R.string.start_date_unknown)
+
                     }
                 }
                 dialog.dismiss()
