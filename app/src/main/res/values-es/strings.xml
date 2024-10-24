@@ -37,10 +37,10 @@
     <string name="default_sort">Predeterminado</string>
     <string name="most_popular">Más popular</string>
     <string name="best_rated">Mejor valorada</string>
-    <string name="release_date">Fecha de lanzamiento</string>
+    <string name="release_date">Fecha de estreno</string>
     <string name="alphabetic_order">Orden alfabético</string>
     <string name="watching">Viendo</string>
-    <string name="plan_to_watch">Plan para ver</string>
+    <string name="plan_to_watch">Planeas ver</string>
     <string name="watched">Visto</string>
     <string name="on_hold">En espera</string>
     <string name="dropped">Retirado</string>
