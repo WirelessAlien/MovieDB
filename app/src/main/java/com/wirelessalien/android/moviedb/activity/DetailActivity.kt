@@ -468,6 +468,7 @@ class DetailActivity : BaseActivity() {
                             binding.seventhDivider.dividerColor = mutedColor
 
                             binding.allEpisodeBtn.backgroundTintList = colorStateList
+                            binding.editIcon.backgroundTintList = colorStateList
                             binding.fabSave.backgroundTintList = colorStateList
                             binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
                             binding.collapsingToolbar.setContentScrimColor(mutedColor)
