@@ -19,27 +19,42 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/episodeRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:padding="10dp"
-        tools:listitem="@layout/episode_item"/>
+        android:visibility="gone"
+        tools:listitem="@layout/episode_item" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/defaultMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="200dp"
+        android:layout_centerInParent="true"
+        android:clickable="false"
+        style="@style/Widget.Material3.Chip.Assist.Elevated"
+        android:text="@string/no_specials_available"
+      />
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminate="true"
+        android:layout_marginTop="100dp"
+        android:visibility="gone"
         app:waveAmplitude="10dp"
         app:wavelength="32dp"
         app:waveSpeed="0dp"
-        android:layout_gravity="center"/>
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        android:layout_centerInParent="true"/>
+</RelativeLayout>

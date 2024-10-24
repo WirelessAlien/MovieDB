@@ -43,6 +43,7 @@ class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, 
     private val apiKey: String? = getConfigValue(context, "api_key")
     interface SeasonDetailsCallback {
         fun onSeasonDetailsFetched(episodes: List<Episode>)
+        fun onSeasonDetailsNotAvailable()
     }
     fun fetchSeasonDetails(callback: SeasonDetailsCallback) {
         CoroutineScope(Dispatchers.Main).launch {
@@ -55,6 +56,12 @@ class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, 
                 if (jsonResponse!!.getString("overview").isEmpty()) {
                     jsonResponse = fetchSeasonDetailsFromNetwork(baseUrl)
                 }
+
+                if (jsonResponse == null || jsonResponse.getJSONArray("episodes").length() == 0) {
+                    callback.onSeasonDetailsNotAvailable()
+                    return@launch
+                }
+
                 seasonName = if (seasonNumber == 0) "Specials" else jsonResponse!!.getString("name")
                 seasonOverview = jsonResponse?.getString("overview") ?: ""
                 seasonPosterPath = jsonResponse?.getString("poster_path") ?: ""
@@ -75,6 +82,7 @@ class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, 
                 callback.onSeasonDetailsFetched(episodes)
             } catch (e: Exception) {
                 e.printStackTrace()
+                callback.onSeasonDetailsNotAvailable()
             }
         }
     }

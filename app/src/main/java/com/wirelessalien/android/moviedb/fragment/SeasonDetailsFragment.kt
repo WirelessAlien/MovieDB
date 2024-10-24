@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.ContentValues
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -34,6 +35,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.chip.Chip
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter
@@ -80,11 +82,12 @@ class SeasonDetailsFragment : Fragment() {
         toolbar.title = getString(R.string.seasons)
         rvEpisodes = view.findViewById(R.id.episodeRecyclerView)
         viewPager = requireActivity().findViewById(R.id.view_pager)
+        view.findViewById<Chip>(R.id.defaultMessage)
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                currentTabNumber = position + 1
-                seasonNumber = if (currentTabNumber == 1) 0 else currentTabNumber - 1
+                currentTabNumber = position
+                seasonNumber = if (currentTabNumber == 0) 0 else currentTabNumber
                 loadSeasonDetails()
                 requireActivity().invalidateOptionsMenu()
             }
@@ -95,6 +98,7 @@ class SeasonDetailsFragment : Fragment() {
 
     private fun loadSeasonDetails() {
         val progressBar = view?.findViewById<CircularProgressIndicator>(R.id.progressBar)
+        val defaultMessage = view?.findViewById<Chip>(R.id.defaultMessage)
         progressBar?.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.Main).launch {
             progressBar?.visibility = View.VISIBLE
@@ -105,8 +109,18 @@ class SeasonDetailsFragment : Fragment() {
                         val adapter = EpisodeAdapter(requireContext(), episodes, seasonNumber, tvShowId)
                         rvEpisodes.layoutManager = LinearLayoutManager(requireContext())
                         rvEpisodes.adapter = adapter
+                        rvEpisodes.visibility = View.VISIBLE
+                        defaultMessage?.visibility = View.GONE
                         progressBar?.visibility = View.GONE
                         requireActivity().invalidateOptionsMenu()
+                    }
+
+                    override fun onSeasonDetailsNotAvailable() {
+                        if (seasonNumber == 0) {
+                            defaultMessage?.visibility = View.VISIBLE
+                            rvEpisodes.visibility = View.GONE
+                        }
+                        progressBar?.visibility = View.GONE
                     }
                 })
             } catch (e: Exception) {
@@ -254,6 +268,7 @@ class SeasonDetailsFragment : Fragment() {
                             db.addEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
                         }
                     }
+                    Log.d("SeasonDetailsFragment", "Episodes added $tvShowId $currentTabNumber ${episodes.map { it.episodeNumber }}")
                     item.setIcon(R.drawable.ic_visibility)
                     Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT).show()
                 } else {
