@@ -40,4 +40,9 @@
     <string name="unknown">Ukjent</string>
     <string name="no_description">Ingen beskrivelse</string>
     <string name="type">Type</string>
+    <string name="action_export">Eksporter</string>
+    <string name="title_people">Folk</string>
+    <string name="save">Lagre</string>
+    <string name="search">Søk …</string>
+    <string name="action_account">Konto</string>
 </resources>
