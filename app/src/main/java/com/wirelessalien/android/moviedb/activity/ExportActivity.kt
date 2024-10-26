@@ -76,7 +76,7 @@ class ExportActivity : AppCompatActivity() {
         uri?.let {
             contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             backupDirectoryUri = it
-            preferences.edit().putString("db_backup_directory", it.toString()).apply()
+            preferences.edit().putString("db_backup_directory", it.toString()).commit()
             binding.backupBtn.icon = AppCompatResources.getDrawable(this, R.drawable.ic_check)
             binding.backupBtn.text = getString(R.string.backup_directory_selected)
             scheduleDatabaseExport()
@@ -86,7 +86,7 @@ class ExportActivity : AppCompatActivity() {
         uri?.let {
             contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             exportDirectoryUri = it
-            preferences.edit().putString("db_export_directory", it.toString()).apply()
+            preferences.edit().putString("db_export_directory", it.toString()).commit()
             binding.selectedDirectoryText.text = getString(R.string.directory_path, it.path)
         }
     }
