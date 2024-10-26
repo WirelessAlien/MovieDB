@@ -27,20 +27,26 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.preference.PreferenceManager
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.wirelessalien.android.moviedb.work.DatabaseBackupWorker
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.work.DatabaseBackupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,6 +64,9 @@ class ExportActivity : AppCompatActivity() {
     private var backupDirectoryUri: Uri? = null
     private var exportDirectoryUri: Uri? = null
     private lateinit var preferences: SharedPreferences
+    private val predefinedValues = arrayOf(
+        "15 minutes", "30 minutes", "1 hour", "6 hours", "12 hours", "24 hours", "1 week", "1 month"
+    )
     private val createFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri: Uri? ->
         uri?.let {
             saveFileToUri(it, isJson, isCsv)
@@ -70,6 +79,7 @@ class ExportActivity : AppCompatActivity() {
             preferences.edit().putString("db_backup_directory", it.toString()).apply()
             binding.backupBtn.icon = AppCompatResources.getDrawable(this, R.drawable.ic_check)
             binding.backupBtn.text = getString(R.string.backup_directory_selected)
+            scheduleDatabaseExport()
         }
     }
     private val openExportDirectoryLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -94,6 +104,7 @@ class ExportActivity : AppCompatActivity() {
         val isAutoBackupEnabled = preferences.getBoolean("auto_backup_enabled", false)
         binding.autoBackupSwitch.isChecked = isAutoBackupEnabled
         binding.backupBtn.isEnabled = isAutoBackupEnabled
+        binding.backupFrequencyET.isEnabled = isAutoBackupEnabled
 
         val exportDirectory = DirectoryHelper.getExportDirectory(context)
         val exportDirectoryUri = preferences.getString("db_export_directory", null)
@@ -107,8 +118,9 @@ class ExportActivity : AppCompatActivity() {
         }
 
         binding.exportButton.setOnClickListener {
+            val exportDirUri = preferences.getString("db_export_directory", null)
             val databaseHelper = MovieDatabaseHelper(applicationContext)
-            databaseHelper.exportDatabase(context, exportDirectoryUri)
+            databaseHelper.exportDatabase(context, exportDirUri)
         }
 
         binding.backupBtn.setOnClickListener {
@@ -130,6 +142,7 @@ class ExportActivity : AppCompatActivity() {
         binding.autoBackupSwitch.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit().putBoolean("auto_backup_enabled", isChecked).apply()
             binding.backupBtn.isEnabled = isChecked
+            binding.backupFrequencyET.isEnabled = isChecked
 
             if (isChecked) {
                 if (backupDirectoryUri != null) {
@@ -144,7 +157,91 @@ class ExportActivity : AppCompatActivity() {
             }
         }
 
+        val backupFrequency = preferences.getInt("backup_frequency", 15)
+        val timeUnitString = convertMinutesToLargestUnit(backupFrequency)
+        binding.backupFrequencyET.setText(timeUnitString)
+
+        binding.backupFrequencyET.setOnTouchListener { _, _ ->
+            binding.backupFrequencyET.showDropDown()
+            false
+        }
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValues)
+        binding.backupFrequencyET.setAdapter(adapter)
+
+        binding.backupFrequencyET.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.backupFrequencyET.clearFocus()
+                saveBackupFrequency()
+
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(binding.backupFrequencyET.windowToken, 0)
+
+                true
+            } else {
+                false
+            }
+        }
+
         createNotificationChannel()
+    }
+
+    private fun convertMinutesToLargestUnit(minutes: Int): String {
+        return when {
+            minutes >= 43200 -> "${minutes / 43200} month (s)"
+            minutes >= 1440 -> "${minutes / 1440} day (s)"
+            minutes >= 60 -> "${minutes / 60} hour (s)"
+            else -> "$minutes minute (s)"
+        }
+    }
+
+    private fun saveBackupFrequency() {
+        val frequencyInMinutes = when (val frequencyText = binding.backupFrequencyET.text.toString()) {
+            "15 minutes" -> 15
+            "30 minutes" -> 30
+            "1 hour" -> 60
+            "6 hours" -> 360
+            "12 hours" -> 720
+            "24 hours" -> 1440
+            "1 week" -> 10080
+            "1 month" -> 43200
+            else -> frequencyText.toIntOrNull()
+        }
+
+        if (frequencyInMinutes == null || frequencyInMinutes == 0) {
+            binding.backupFrequencyET.error = getString(R.string.backup_fequency_error_text)
+            binding.backupFrequencyET.requestFocus()
+            return
+        }
+
+        preferences.edit().putInt("backup_frequency", frequencyInMinutes).apply()
+
+        // Restart the worker with the new frequency
+        val dbBackupDirectory = preferences.getString("db_backup_directory", null)
+        if (dbBackupDirectory != null) {
+            val directoryUri = Uri.parse(dbBackupDirectory)
+            val inputData = workDataOf("directoryUri" to directoryUri.toString())
+
+            val constraints = Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .build()
+
+
+            val exportWorkRequest = PeriodicWorkRequestBuilder<DatabaseBackupWorker>(frequencyInMinutes.toLong(), TimeUnit.MINUTES)
+                .setInputData(inputData)
+                .setConstraints(constraints)
+                .addTag("DatabaseBackupWorker")
+                .build()
+
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "DatabaseBackupWorker",
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                exportWorkRequest
+            )
+
+        } else {
+            Log.e("ExportActivity", "saveBackupFrequency: No backup directory selected")
+        }
     }
 
     private fun scheduleDatabaseExport() {
@@ -153,12 +250,26 @@ class ExportActivity : AppCompatActivity() {
             val directoryUri = Uri.parse(dbBackupDirectory)
             val inputData = workDataOf("directoryUri" to directoryUri.toString())
 
-            val exportWorkRequest = PeriodicWorkRequestBuilder<DatabaseBackupWorker>(1, TimeUnit.DAYS)
+            val frequency = preferences.getInt("backup_frequency", 1440)
+
+            val constraints = Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .build()
+
+            val exportWorkRequest = PeriodicWorkRequestBuilder<DatabaseBackupWorker>(frequency.toLong(), TimeUnit.MINUTES)
                 .setInputData(inputData)
+                .setConstraints(constraints)
                 .addTag("DatabaseBackupWorker")
                 .build()
 
-            WorkManager.getInstance(this).enqueue(exportWorkRequest)
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "DatabaseBackupWorker",
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                exportWorkRequest
+            )
+
+        } else {
+            Log.e(  "ExportActivity", "scheduleDatabaseExport: No backup directory selected")
         }
     }
 
@@ -176,13 +287,11 @@ class ExportActivity : AppCompatActivity() {
         }
     }
 
-
     fun promptUserToSaveFile(fileName: String, isJson: Boolean, isCsv: Boolean) {
         this.isJson = isJson
         this.isCsv = isCsv
         createFileLauncher.launch(fileName)
     }
-
 
     private fun saveFileToUri(uri: Uri, isJson: Boolean, isCsv: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
