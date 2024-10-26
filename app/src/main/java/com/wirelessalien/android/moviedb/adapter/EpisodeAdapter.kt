@@ -265,23 +265,27 @@ class EpisodeAdapter(
             }
 
             submitButton.setOnClickListener {
-                val date = dateTextView.text.toString()
-                val episodeRating = ratingEditText.text.toString().toDoubleOrNull()?.toFloat() ?: 0.0f
-                val review = reviewEditText.text.toString()
-                val adapterPosition = holder.bindingAdapterPosition
-                val episode1 = episodes[adapterPosition]
-                episode1.setWatchDate(date)
-                episode1.setRating(episodeRating)
-                episode1.setReview(review)
-                try {
-                    MovieDatabaseHelper(context).use { movieDatabaseHelper ->
-                        movieDatabaseHelper.addOrUpdateEpisode(tvShowId, seasonNumber, episode1.episodeNumber, episodeRating, date, review)
+                val episodeRating = ratingEditText.text.toString().toDoubleOrNull()
+                if (episodeRating != null && episodeRating > 10.0) {
+                    ratingEditText.error = context.getString(R.string.error_rating_exceeds_limit)
+                } else {
+                    val date = dateTextView.text.toString()
+                    val review = reviewEditText.text.toString()
+                    val adapterPosition = holder.bindingAdapterPosition
+                    val episode1 = episodes[adapterPosition]
+                    episode1.setWatchDate(date)
+                    episode1.setRating((episodeRating ?: 0.0).toFloat())
+                    episode1.setReview(review)
+                    try {
+                        MovieDatabaseHelper(context).use { movieDatabaseHelper ->
+                            movieDatabaseHelper.addOrUpdateEpisode(tvShowId, seasonNumber, episode1.episodeNumber, (episodeRating ?: 0.0).toFloat(), date, review)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                    notifyItemChanged(adapterPosition)
+                    dialog.dismiss()
                 }
-                notifyItemChanged(adapterPosition)
-                dialog.dismiss()
             }
             cancelButton.setOnClickListener { dialog.dismiss() }
         }

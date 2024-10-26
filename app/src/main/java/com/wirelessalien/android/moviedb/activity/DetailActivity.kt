@@ -1520,9 +1520,11 @@ class DetailActivity : BaseActivity() {
                     // Do not allow ratings outside of the range.
                     if (rating > 10.0f) {
                         rating = 10.0f
-                    } else if (rating < 0.0f) {
-                        rating = 0.0f
+                        binding.showRating.error = context.getString(R.string.error_rating_exceeds_limit)
+                    } else {
+                        binding.showRating.error = null
                     }
+
                     showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
                     database = databaseHelper.writableDatabase
                     databaseHelper.onCreate(database)
@@ -1556,6 +1558,7 @@ class DetailActivity : BaseActivity() {
                     }
                 }
             }
+
             updateEditShowDetails()
             binding.showDetails.visibility = View.GONE
             binding.editShowDetails.visibility = View.VISIBLE
