@@ -300,6 +300,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         totalItemCount
     }
 
+
     private suspend fun getGenreIdsFromDatabase(): List<Int> = withContext(Dispatchers.IO) {
         val genreIds = mutableListOf<Int>()
         open()
@@ -361,7 +362,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 if (genreName != null) {
                     val chip = inflater.inflate(R.layout.chip_item, chipGroup, false) as Chip
                     val totalItemCount = getTotalItemCountForGenre(genreId)
-                    chip.text = "$genreName: $totalItemCount"
+                    chip.text = String.format("%s: %d", genreName, totalItemCount)
                     chipGroup.addView(chip)
                 }
             }
@@ -409,8 +410,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             tvPlanToWatch.text = getString(R.string.plan_to_watch1, planToWatch)
             tvOnHold.text = getString(R.string.on_hold1, onHold)
             tvDropped.text = getString(R.string.dropped1, dropped)
-            tvWatchedMovies.text = getString(R.string.movies_watched, watchedMovies)
-            tvWatchedTVShows.text = getString(R.string.movies_watched, watchedTVShows)
+            tvWatchedMovies.text = getString(R.string.watched1, watchedMovies)
+            tvWatchedTVShows.text = getString(R.string.watched1, watchedTVShows)
 
             // Setup genre chips
             setupGenreChips(requireContext(), chipGroup)

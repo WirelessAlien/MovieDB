@@ -54,7 +54,6 @@
             android:layout_height="2dp"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            android:layout_marginBottom="10dp"
             android:layout_below="@+id/categoryTitle"/>
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/chip1"
@@ -125,7 +124,6 @@
             android:layout_height="2dp"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            android:layout_marginBottom="10dp"
             android:layout_below="@+id/typeTitle"/>
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/chip2"
@@ -173,7 +171,6 @@
             android:layout_height="2dp"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            android:layout_marginBottom="10dp"
             android:layout_below="@+id/genresTitle"/>
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupGenres"

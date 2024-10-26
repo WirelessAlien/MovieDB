@@ -187,12 +187,12 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         builder.setTitle(context.resources.getString(R.string.choose_export_file))
             .setPositiveButton(context.getString(R.string.export)) { _, _ ->
                 val exportDirectory = getExportDirectory(context)
-                if (exportDirectoryUri != null && exportDirectory != null) {
+                if (exportDirectoryUri != null) {
                     exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                    Log.d("Export", "Exporting to URI")
                 } else if (exportDirectory != null) {
                     exportToDirectory(context, exportDirectory, jsonRadioButton, dbRadioButton, csvRadioButton)
-                } else if (exportDirectoryUri !== null) {
-                    exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                    Log.d("Export", "Exporting to DIR")
                 } else {
                     promptUserToSaveFile(context, jsonRadioButton, dbRadioButton, csvRadioButton)
                 }

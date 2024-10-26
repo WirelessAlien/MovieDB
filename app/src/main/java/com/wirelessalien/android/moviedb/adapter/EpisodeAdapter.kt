@@ -210,8 +210,7 @@ class EpisodeAdapter(
             val dateButton = dialogView.findViewById<Button>(R.id.dateButton)
             val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
             val reviewEditText = dialogView.findViewById<TextInputEditText>(R.id.episodeReview)
-            episodeTitle.text =
-                "S:" + seasonNumber + " " + "E:" + episode.episodeNumber + " " + episode.name
+            episodeTitle.text = "S:" + seasonNumber + " " + "E:" + episode.episodeNumber + " " + episode.name
 
             // Fetch episode details from the database
             try {

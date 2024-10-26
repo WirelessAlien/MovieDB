@@ -44,7 +44,7 @@
         android:clickable="false"
         style="@style/Widget.Material3.Chip.Assist.Elevated"
         android:text="@string/no_specials_available"
-      />
+        android:visibility="gone"/>
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"

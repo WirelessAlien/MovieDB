@@ -328,17 +328,19 @@
     <string name="plan_to_watch1">Plan to Watch: %1$d</string>
     <string name="on_hold1">On Hold: %1$d</string>
     <string name="dropped1">Dropped: %1$d</string>
-    <string name="movies_watched">Watched: %1$d</string>
     <string name="watch_summary">Watch Summary</string>
     <string name="share_link_using">Share link using</string>
     <string name="episode_title">S:%1$d E:%2$d %3$s</string>
     <string name="season_number">S: %1$d</string>
     <string name="episode_number">E: %1$d</string>
     <string name="review">Review</string>
-    <string name="month_year_format">%1$s-%2$d</string>
-    <string name="month_year_format1">%1$s-%2$s</string>
+    <string name="month_year_format" translatable="false">%1$s-%2$d</string>
+    <string name="month_year_format1" translatable="false">%1$s-%2$s</string>
     <string name="rating1">Rating</string>
     <string name="specials">Specials</string>
     <string name="no_specials_available">No specials available</string>
+    <string name="backup_fequency_error_text">Please enter a value above 0</string>
+    <string name="backup_frequency">Backup Frequency</string>
+    <string name="error_rating_exceeds_limit">Please enter a value within 0.0–10.0</string>
 
 </resources>
