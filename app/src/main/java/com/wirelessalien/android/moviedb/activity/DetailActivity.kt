@@ -1135,35 +1135,23 @@ class DetailActivity : BaseActivity() {
                 } else {
                     binding.movieReviewText.text = getString(R.string.no_reviews)
                 }
-                if (!isMovie) {
 
+                if (!isMovie) {
                     // Get the total amount of episodes.
                     if (movieObject.has("number_of_episodes")) {
                         totalEpisodes = movieObject.getInt("number_of_episodes")
                     } else if (movieObject.has("seasons")) {
                         val seasonArray = movieObject.getJSONArray("seasons")
-                        if (seasonArray.length() > 1) {
-                            totalEpisodes = 0
-                            // If there are more seasons, season 0 mostly refers to Specials.
-                            // Specials (and other extras) don't count as episodes.
-                            // (which is also the reason that number_of_episodes is not used)
-                            for (i in 1 until seasonArray.length()) {
-                                if (seasonArray[i] != null) {
-                                    totalEpisodes =
-                                        totalEpisodes!! + (seasonArray[i] as JSONObject).getInt(
-                                            "episode_count"
-                                        )
-                                }
+                        var episodeCount = 0
+                        // Iterate through all seasons, including season 0.
+                        for (i in 0 until seasonArray.length()) {
+                            if (seasonArray[i] != null) {
+                                episodeCount += (seasonArray[i] as JSONObject).getInt("episode_count")
                             }
-                        } else {
-                            totalEpisodes =
-                                (seasonArray[0] as JSONObject).getInt("episode_count")
                         }
+                        totalEpisodes = episodeCount
                     }
-                    if (!isMovie) {
-                        seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
-                    }
-
+                    seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
                     binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
                     binding.movieEpisodes.visibility = View.VISIBLE
                 }
@@ -1172,6 +1160,7 @@ class DetailActivity : BaseActivity() {
                 binding.movieStartDate.visibility = View.VISIBLE
                 binding.movieFinishDate.visibility = View.VISIBLE
                 binding.movieRewatched.visibility = View.VISIBLE
+                binding.movieReviewText.visibility = View.VISIBLE
 
                 // Make it possible to change the values.
                 binding.editIcon.visibility = View.VISIBLE
