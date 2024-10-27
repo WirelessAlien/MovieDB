@@ -85,6 +85,7 @@
     <string name="without_keywords_hint">Exclude shows with the keywords…</string>
 
     <!-- SectionsPagerAdapter -->
+    <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">Movies</string>
     <string name="series_tab_title">Series</string>
     <string name="saved_tab_title">Saved</string>
@@ -129,7 +130,7 @@
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
     <string name="title_api_language">API language</string>
     <string name="summary_api_language">Set the language of the API data (otherwise defaults to system language).</string>
-    <string name="text_tmdb_credits">This product uses the TMDB API, and is not endorsed or certified by TMDB.</string>
+    <string name="text_tmdb_credits">This product uses the TMDB API but is not endorsed or certified by TMDB</string>
 
     <string name="action_settings">Settings</string>
 
@@ -191,7 +192,7 @@
     <string name="status">Status</string>
     <string name="add_to_favourite">Add to favourite</string>
     <string name="add_rating">Add rating</string>
-    <string name="get_notified_for_episode">You are notified when episodes of %1$s release</string>
+    <string name="get_notified_for_episode">You will get notified when episodes of %1$s release</string>
     <string name="error_reminder_episode">Could not save reminder for %1$s</string>
     <string name="removed_from_reminder">%1$s removed from reminders</string>
     <string name="crash_log_copied">Crash log copied to clipboard</string>
@@ -243,7 +244,7 @@
     <string name="donate">Donate</string>
     <string name="attribution">Attribution</string>
     <string name="about_movie_db">About</string>
-    <string name="image">IMAGE</string>
+    <string name="image">Image</string>
     <string name="where_to_watch">Where to watch?</string>
     <string name="trailer">Trailer</string>
     <string name="selected_directory">Path:</string>
@@ -269,10 +270,10 @@
     <string name="overview_not_available">Overview not added to the episode. It will when available.</string>
     <string name="search_engine">Search Engine</string>
     <string name="search_engine_key_summary">Search Engine to use for searching movies from the app (default is Google)</string>
-    <string name="home">HOME</string>
+    <string name="home">Home</string>
     <string name="rating_tmdb">"Rating (TMDB): "</string>
     <string name="links">Links</string>
-    <string name="search_movie_show">Search Movie, and/or show…</string>
+    <string name="search_movie_show">Search Movie and/or show…</string>
     <string name="invalid_url">Invalid URL</string>
     <string name="image_download_successful">Image downloaded</string>
     <string name="failed_to_download_image">Could not download image</string>
@@ -281,7 +282,7 @@
     <string name="reviews">"Review: "</string>
     <string name="no_reviews">Review: Not added</string>
     <string name="default_media_type">Default media type</string>
-    <string name="show_shows_as_default_in_the_account_tab">Show \"Shows\" as default in the \'Account\' tab</string>
+    <string name="show_shows_as_default_in_the_account_tab">Display \"Shows\" as default in the \'Account\' tab</string>
     <string name="remember_only_the_year">Don\'t remember the exact date</string>
     <string name="remember_the_full_date">Remember the full date</string>
     <string name="month">Month</string>
@@ -339,7 +340,7 @@
     <string name="rating1">Rating</string>
     <string name="specials">Specials</string>
     <string name="no_specials_available">No specials available</string>
-    <string name="backup_fequency_error_text">Please enter a value above 0</string>
+    <string name="backup_fequency_error_text">Backup frequency cannot be less than 15 minutes</string>
     <string name="backup_frequency">Backup Frequency</string>
     <string name="error_rating_exceeds_limit">Please enter a value within 0.0–10.0</string>
 
