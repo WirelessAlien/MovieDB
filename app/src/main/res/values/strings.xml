@@ -225,8 +225,8 @@
     <string name="failed_to_add_rating">Could not add rating.</string>
     <string name="episode_airing_today">Episode %1$s (%2$s) is airing today!</string>
     <string name="movie_released_today">%1$s is released today!</string>
-    <string name="episodes_removed">All episodes added</string>
-    <string name="episodes_added">All episodes removed</string>
+    <string name="episodes_removed">All episodes marked as watched</string>
+    <string name="episodes_added">all episodes marked as unwatched</string>
     <string name="error_occurred_in_list_data">Could not fetch list data</string>
     <string name="login_failed">Something went wrong. Please log in again.</string>
     <string name="list_state_info">The TMDB API lacks a direct method of retrieving availability state (i.e., whether a movie is available or not) for all lists in a single request. Consequently, each movie must be checked against each list, which is inefficient. List states are therefore managed in an offline database after fetching details from TMDB. When a user adds or removes a movie from a list, this action is recorded both in TMDB and our database. However, if a user modifies their lists outside of the app (e.g., on the TMDB website), the app won’t be aware of these changes. To update the data, users can manually refresh their lists using the provided button.</string>
