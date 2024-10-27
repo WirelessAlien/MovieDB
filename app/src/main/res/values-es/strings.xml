@@ -263,4 +263,21 @@
     <string name="select_a_date">Selecciona una fecha</string>
     <string name="failed_to_retrieve_account_id">Error al recuperar el identificador de la cuenta</string>
     <string name="season">"Temporada "</string>
+    <string name="watching1">Mirando: %1$d</string>
+    <string name="watched1">Visto: %1$d</string>
+    <string name="plan_to_watch1">Plan to Watch: %1$d</string>
+    <string name="on_hold1">Espera: %1$d</string>
+    <string name="dropped1">Suelto: %1$d</string>
+    <string name="watch_summary">Resumen</string>
+    <string name="share_link_using">Compartir enlace usando</string>
+    <string name="episode_title">S:%1$d E:%2$d %3$s</string>
+    <string name="season_number">S: %1$d</string>
+    <string name="episode_number">E: %1$d</string>
+    <string name="review">Examen</string>
+    <string name="rating1">Valoración</string>
+    <string name="specials">Especiales</string>
+    <string name="no_specials_available">No hay especiales disponibles</string>
+    <string name="backup_fequency_error_text">Frecuencia de respaldo no puede ser inferior a 15 minutos</string>
+    <string name="backup_frequency">Frecuencia de respaldo</string>
+    <string name="error_rating_exceeds_limit">Por favor introduzca un valor dentro 0,00</string>
 </resources>
