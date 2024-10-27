@@ -182,6 +182,11 @@ class ExportActivity : AppCompatActivity() {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(binding.backupFrequencyET.windowToken, 0)
 
+                // Get the current frequency value and convert it
+                val frequencyInMinutes = preferences.getInt("backup_frequency", 1440)
+                val convertedValue = convertMinutesToLargestUnit(frequencyInMinutes)
+                binding.backupFrequencyET.setText(convertedValue)
+
                 true
             } else {
                 false
@@ -192,12 +197,19 @@ class ExportActivity : AppCompatActivity() {
     }
 
     private fun convertMinutesToLargestUnit(minutes: Int): String {
-        return when {
-            minutes >= 43200 -> "${minutes / 43200} month (s)"
-            minutes >= 1440 -> "${minutes / 1440} day (s)"
-            minutes >= 60 -> "${minutes / 60} hour (s)"
-            else -> "$minutes minute (s)"
-        }
+        val months = minutes / 43200
+        val remainingMinutesAfterMonths = minutes % 43200
+        val days = remainingMinutesAfterMonths / 1440
+        val remainingMinutesAfterDays = remainingMinutesAfterMonths % 1440
+        val hours = remainingMinutesAfterDays / 60
+        val remainingMinutes = remainingMinutesAfterDays % 60
+
+        return buildString {
+            if (months > 0) append("$months month(s) ")
+            if (days > 0) append("$days day(s) ")
+            if (hours > 0) append("$hours hour(s) ")
+            if (remainingMinutes > 0) append("$remainingMinutes minute(s)")
+        }.trim()
     }
 
     private fun saveBackupFrequency() {
@@ -213,7 +225,7 @@ class ExportActivity : AppCompatActivity() {
             else -> frequencyText.toIntOrNull()
         }
 
-        if (frequencyInMinutes == null || frequencyInMinutes == 0) {
+        if (frequencyInMinutes == null || frequencyInMinutes < 15) {
             binding.backupFrequencyET.error = getString(R.string.backup_fequency_error_text)
             binding.backupFrequencyET.requestFocus()
             return
