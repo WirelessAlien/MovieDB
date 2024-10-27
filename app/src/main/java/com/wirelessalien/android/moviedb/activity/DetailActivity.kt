@@ -41,6 +41,7 @@ import android.text.InputType
 import android.text.SpannableString
 import android.util.Log
 import android.util.TypedValue
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnFocusChangeListener
@@ -120,8 +121,8 @@ import kotlin.math.abs
  * It also manages personal show data.
  */
 class DetailActivity : BaseActivity() {
-    private var API_KEY: String? = null
-    private var api_read_access_token: String? = null
+    private var apiKey: String? = null
+    private var apiReadAccessToken: String? = null
     private lateinit var castAdapter: CastBaseAdapter
     private lateinit var crewAdapter: CastBaseAdapter
     private lateinit var castArrayList: ArrayList<JSONObject>
@@ -136,6 +137,8 @@ class DetailActivity : BaseActivity() {
     private lateinit var databaseHelper: MovieDatabaseHelper
     private var movieId = 0
     private var seasons: JSONArray? = null
+    private var lastEpisode: JSONObject? = null
+    private var nextEpisode: JSONObject? = null
     private lateinit var target: Target
     private val voteAverage: String? = null
     private var numSeason = 0
@@ -194,8 +197,8 @@ class DetailActivity : BaseActivity() {
             layoutInflater
         )
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        API_KEY = getConfigValue(applicationContext, "api_key")
-        api_read_access_token = getConfigValue(applicationContext, "api_read_access_token")
+        apiKey = getConfigValue(applicationContext, "api_key")
+        apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
         setContentView(binding.root)
         setNavigationDrawer()
         supportActionBar!!.title = ""
@@ -235,6 +238,9 @@ class DetailActivity : BaseActivity() {
             LinearLayoutManager.HORIZONTAL, false
         )
         binding.movieRecyclerView.layoutManager = movieLinearLayoutManager
+
+        val adapter = ArrayAdapter.createFromResource(this, R.array.categories, android.R.layout.simple_dropdown_item_1line)
+        binding.categories.setAdapter(adapter)
 
         // Make the views invisible if the user collapsed the view.
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -451,7 +457,18 @@ class DetailActivity : BaseActivity() {
                             binding.runtimeCv.setBackgroundColor(Color.TRANSPARENT)
                             binding.genreCv.setBackgroundColor(Color.TRANSPARENT)
                             binding.ratingCv.setBackgroundColor(Color.TRANSPARENT)
+
+                            binding.zeroDivider.dividerColor = mutedColor
+                            binding.firstDivider.dividerColor = mutedColor
+                            binding.secondDivider.dividerColor = mutedColor
+                            binding.thirdDivider.dividerColor = mutedColor
+                            binding.forthDivider.dividerColor = mutedColor
+                            binding.linkRlDivider1.dividerColor = mutedColor
+                            binding.sixthDivider.dividerColor = mutedColor
+                            binding.seventhDivider.dividerColor = mutedColor
+
                             binding.allEpisodeBtn.backgroundTintList = colorStateList
+                            binding.editIcon.backgroundTintList = colorStateList
                             binding.fabSave.backgroundTintList = colorStateList
                             binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
                             binding.collapsingToolbar.setContentScrimColor(mutedColor)
@@ -533,6 +550,7 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToWatchlist(movieId, typeCheck, false, mActivity).addToWatchlist()
                             }
+                            binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         } else {
                             binding.watchListButton.icon = ContextCompat.getDrawable(
                                 context,
@@ -541,15 +559,18 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToWatchlist(movieId, typeCheck, true, mActivity).addToWatchlist()
                             }
+                            binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
                 } else {
                     Toast.makeText(
                         applicationContext,
                         getString(R.string.failed_to_retrieve_account_id), Toast.LENGTH_SHORT).show()
+                    binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 }
             }
         }
+
         binding.addToList.setOnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
             val listBottomSheetDialogFragment =
@@ -580,6 +601,7 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToFavourites(movieId, typeCheck, false, mActivity).addToFavourites()
                             }
+                            binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         } else {
                             binding.favouriteButton.icon = ContextCompat.getDrawable(
                                 context,
@@ -588,14 +610,17 @@ class DetailActivity : BaseActivity() {
                             withContext(Dispatchers.IO) {
                                 AddToFavourites(movieId, typeCheck, true, mActivity).addToFavourites()
                             }
+                            binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
                 } else {
                     Toast.makeText(applicationContext,
                         getString(R.string.account_id_fail_try_login_again), Toast.LENGTH_SHORT).show()
+                    binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 }
             }
         }
+
         binding.ratingBtn.setOnClickListener {
             val dialog = BottomSheetDialog(mActivity)
             val inflater = layoutInflater
@@ -626,6 +651,7 @@ class DetailActivity : BaseActivity() {
                         withContext(Dispatchers.IO) {
                             AddRating(movieId, rating, type, mActivity).addRating()
                         }
+                        submitButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
                     }
                 }
@@ -636,6 +662,7 @@ class DetailActivity : BaseActivity() {
                         withContext(Dispatchers.IO) {
                             DeleteRating(movieId, type, mActivity).deleteRating()
                         }
+                        deleteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
                     }
                 }
@@ -665,17 +692,14 @@ class DetailActivity : BaseActivity() {
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.setType("text/plain")
                 shareIntent.putExtra(Intent.EXTRA_TEXT, tmdbLink)
-                startActivity(Intent.createChooser(shareIntent, "Share link using"))
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_link_using)))
             }
         })
         if (!isMovie) {
             binding.revenueText.visibility = View.GONE
             binding.revenueDataText.visibility = View.GONE
         }
-        if (!isMovie) {
-            jMovieObject.has("name")
-            showName = jMovieObject.optString("name")
-        }
+
         if (isMovie) {
             binding.episodeViewPager.visibility = View.GONE
             binding.allEpisodeBtn.visibility = View.GONE
@@ -707,6 +731,7 @@ class DetailActivity : BaseActivity() {
                 startActivity(browserIntent)
             }
         }
+
         binding.fabSave.setOnClickListener {
             if (added) {
                 // Remove the show from the database.
@@ -717,6 +742,8 @@ class DetailActivity : BaseActivity() {
                 added = false
                 binding.fabSave.setImageResource(R.drawable.ic_star_border)
                 databaseUpdate()
+                binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                finish()
             } else {
                 val showValues = ContentValues()
 
@@ -739,6 +766,7 @@ class DetailActivity : BaseActivity() {
                         if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
                             addSeasonsAndEpisodesToDatabase()
                         }
+                        binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         binding.editIcon.visibility = View.VISIBLE
                     }
                     categoriesDialog.show()
@@ -749,6 +777,7 @@ class DetailActivity : BaseActivity() {
                         MovieDatabaseHelper.CATEGORY_WATCHING
                     )
                     addMovieToDatabase(showValues)
+                    binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                     binding.editIcon.visibility = View.VISIBLE
                 }
             }
@@ -781,6 +810,10 @@ class DetailActivity : BaseActivity() {
                 finish()
             }
         })
+
+        binding.editIcon.setOnClickListener {
+            editDetails()
+        }
     }
 
     override fun doNetworkWork() {
@@ -801,6 +834,49 @@ class DetailActivity : BaseActivity() {
         if (!mVideosLoaded) {
             lifecycleScope.launch {
                 fetchVideos()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch {
+            if (!isMovie) {
+                updateMovieEpisodes()
+            }
+            updateEpisodeFragments()
+        }
+    }
+
+    private suspend fun updateMovieEpisodes() {
+        withContext(Dispatchers.IO) {
+            seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
+        }
+
+        withContext(Dispatchers.Main) {
+            if (seenEpisode != 0) {
+                binding.movieEpisodes.text =
+                    getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
+                binding.movieEpisodes.visibility = View.VISIBLE
+            }
+        }
+    }
+
+
+    private suspend fun updateEpisodeFragments() {
+        withContext(Dispatchers.Main) {
+            if (!isMovie) {
+                // Clear the adapter's fragments before adding new ones or it duplicates them.
+                episodePagerAdapter.clearFragments()
+                val lastEpisodeLocal = lastEpisode
+                if (lastEpisodeLocal is JSONObject) {
+                    episodePagerAdapter.addFragment(newInstance(lastEpisodeLocal, "Latest Episode"), 0)
+                }
+                val nextEpisodeLocal = nextEpisode
+                if (nextEpisodeLocal is JSONObject) {
+                    episodePagerAdapter.addFragment(newInstance(nextEpisodeLocal, "Next Episode"), 1)
+                }
+                episodeViewPager.adapter = episodePagerAdapter
             }
         }
     }
@@ -844,36 +920,18 @@ class DetailActivity : BaseActivity() {
         // Add the show to the database.
         try {
             // Put the necessary values into ContentValues object.
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_MOVIES_ID,
-                jMovieObject.getString("id").toInt()
-            )
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_IMAGE,
-                jMovieObject.getString("backdrop_path")
-            )
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_ICON,
-                jMovieObject.getString("poster_path")
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, jMovieObject.getString("id").toInt())
+            showValues.put(MovieDatabaseHelper.COLUMN_IMAGE, jMovieObject.getString("backdrop_path"))
+            showValues.put(MovieDatabaseHelper.COLUMN_ICON, jMovieObject.getString("poster_path"))
             val title = if (isMovie) "title" else "name"
             showValues.put(MovieDatabaseHelper.COLUMN_TITLE, jMovieObject.getString(title))
             showValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, jMovieObject.getString("overview"))
             showValues.put(MovieDatabaseHelper.COLUMN_GENRES, genres)
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_GENRES_IDS,
-                jMovieObject.getString("genre_ids")
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, jMovieObject.getString("genre_ids"))
             showValues.put(MovieDatabaseHelper.COLUMN_MOVIE, isMovie)
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_RATING,
-                jMovieObject.getString("vote_average")
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_RATING, jMovieObject.getString("vote_average"))
             val releaseDate = if (isMovie) "release_date" else "first_air_date"
-            showValues.put(
-                MovieDatabaseHelper.COLUMN_RELEASE_DATE,
-                jMovieObject.getString(releaseDate)
-            )
+            showValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, jMovieObject.getString(releaseDate))
 
             // Insert the show into the database.
             database.insert(MovieDatabaseHelper.TABLE_MOVIES, null, showValues)
@@ -883,24 +941,13 @@ class DetailActivity : BaseActivity() {
             added = true
             binding.fabSave.setImageResource(R.drawable.ic_star)
             if (isMovie) {
-                Toast.makeText(
-                    applicationContext,
-                    resources.getString(R.string.movie_added),
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(applicationContext, resources.getString(R.string.movie_added), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(
-                    applicationContext,
-                    resources.getString(R.string.series_added),
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(applicationContext, resources.getString(R.string.series_added), Toast.LENGTH_SHORT).show()
             }
         } catch (je: JSONException) {
             je.printStackTrace()
-            Toast.makeText(
-                this, resources.getString(R.string.show_added_error),
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, resources.getString(R.string.show_added_error), Toast.LENGTH_SHORT).show()
         }
 
         // Update the ListFragment to include the newly added show.
@@ -941,6 +988,7 @@ class DetailActivity : BaseActivity() {
 
             // Check if it is a movie or a TV series.
             val title = if (movieObject.has("title")) "title" else "name"
+            showName = movieObject.optString("name")
             if (movieObject.has(title) &&
                 movieObject.getString(title) != binding.movieTitle
                     .text.toString()
@@ -1087,66 +1135,24 @@ class DetailActivity : BaseActivity() {
                 } else {
                     binding.movieReviewText.text = getString(R.string.no_reviews)
                 }
-                if (!isMovie) {
 
+                if (!isMovie) {
                     // Get the total amount of episodes.
                     if (movieObject.has("number_of_episodes")) {
                         totalEpisodes = movieObject.getInt("number_of_episodes")
                     } else if (movieObject.has("seasons")) {
                         val seasonArray = movieObject.getJSONArray("seasons")
-                        if (seasonArray.length() > 1) {
-                            totalEpisodes = 0
-                            // If there are more seasons, season 0 mostly refers to Specials.
-                            // Specials (and other extras) don't count as episodes.
-                            // (which is also the reason that number_of_episodes is not used)
-                            for (i in 1 until seasonArray.length()) {
-                                if (seasonArray[i] != null) {
-                                    totalEpisodes =
-                                        totalEpisodes!! + (seasonArray[i] as JSONObject).getInt(
-                                            "episode_count"
-                                        )
-                                }
+                        var episodeCount = 0
+                        // Iterate through all seasons, including season 0.
+                        for (i in 0 until seasonArray.length()) {
+                            if (seasonArray[i] != null) {
+                                episodeCount += (seasonArray[i] as JSONObject).getInt("episode_count")
                             }
-                        } else {
-                            totalEpisodes =
-                                (seasonArray[0] as JSONObject).getInt("episode_count")
                         }
+                        totalEpisodes = episodeCount
                     }
-                    if (!isMovie) {
-                        seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
-                    }
-
-                    // If there is a personal episode count available,
-                    // set the episodeCount equal to it. If the show is marked
-                    // as "watched" then that implies that all episodes have
-                    // been seen and therefore episodeCount is equal to totalEpisodes.
-                    val episodeCount: String = if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES))
-                            && cursor.getString(
-                                cursor.getColumnIndexOrThrow(
-                                    MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES
-                                )
-                            ) != ""
-                        ) {
-                            cursor.getInt(
-                                cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_EPISODES)
-                            ).toString()
-                        } else if (cursor.getInt(
-                                cursor.getColumnIndexOrThrow(
-                                    MovieDatabaseHelper.COLUMN_CATEGORIES
-                                )
-                            ) == 1
-                        ) {
-                            if (totalEpisodes != null) {
-                                totalEpisodes.toString()
-                            } else {
-                                seenEpisode.toString()
-                            }
-                        } else {
-                            seenEpisode.toString()
-                        }
-                    binding.movieEpisodes.text =
-                        (getString(R.string.episodes_seen) + episodeCount + "/"
-                                + totalEpisodes)
+                    seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
+                    binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
                     binding.movieEpisodes.visibility = View.VISIBLE
                 }
 
@@ -1154,6 +1160,7 @@ class DetailActivity : BaseActivity() {
                 binding.movieStartDate.visibility = View.VISIBLE
                 binding.movieFinishDate.visibility = View.VISIBLE
                 binding.movieRewatched.visibility = View.VISIBLE
+                binding.movieReviewText.visibility = View.VISIBLE
 
                 // Make it possible to change the values.
                 binding.editIcon.visibility = View.VISIBLE
@@ -1230,6 +1237,7 @@ class DetailActivity : BaseActivity() {
                 }
                 episodeViewPager.adapter = episodePagerAdapter
             }
+
             if (movieObject.has("tagline")) {
                 val tagline = movieObject.getString("tagline")
                 if (tagline != binding.tagline.text.toString()) {
@@ -1355,7 +1363,7 @@ class DetailActivity : BaseActivity() {
         withContext(Dispatchers.IO) {
             try {
                 val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val url = URL("https://api.themoviedb.org/3/$type/$movieId/videos?api_key=$API_KEY")
+                val url = URL("https://api.themoviedb.org/3/$type/$movieId/videos?api_key=$apiKey")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connect()
@@ -1426,28 +1434,13 @@ class DetailActivity : BaseActivity() {
      * Makes the showDetails layout invisible and the editShowDetails visible
      * (or the other way around).
      */
-    fun editDetails(view: View?) {
-        val showDetails: LinearLayout = binding.showDetails
-        val editShowDetails: LinearLayout = binding.editShowDetails
-        val timesWatchedView = binding.timesWatched
-        val showRating = binding.showRating
-        val movieReview = binding.movieReview
-        if (editShowDetails.visibility == View.GONE) {
-            fadeOutAndHideAnimation(showDetails)
-            showDetails.animation.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation) {
-                    fadeInAndShowAnimation(editShowDetails)
-                    updateEditShowDetails()
-                    showDetails.visibility = View.GONE
-                }
+    private fun editDetails() {
 
-                override fun onAnimationEnd(animation: Animation) {}
-                override fun onAnimationRepeat(animation: Animation) {}
-            })
-            binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
-            binding.editIcon.setText(R.string.done)
+        if (binding.editShowDetails.visibility == View.GONE) {
+            fadeOutAndHideAnimation(binding.showDetails)
+            fadeInAndShowAnimation(binding.editShowDetails)
 
-            // Listen for changes to the categories.
+            // Set the adapter for categoriesView before calling updateEditShowDetails
             val categoriesView = binding.categories
             val adapter = ArrayAdapter.createFromResource(
                 this,
@@ -1461,153 +1454,124 @@ class DetailActivity : BaseActivity() {
 
             // Show dropdown on click
             categoriesView.setOnClickListener { categoriesView.showDropDown() }
-            categoriesView.onItemClickListener =
-                AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
-                    // Save the category to the database
-                    val showValues = ContentValues()
-                    database = databaseHelper.writableDatabase
-                    val cursor = database.rawQuery(
-                        "SELECT * FROM " +
-                                MovieDatabaseHelper.TABLE_MOVIES +
-                                " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                                "=" + movieId + " LIMIT 1", null
-                    )
-                    cursor.moveToFirst()
+            categoriesView.onItemClickListener = AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
+                // Save the category to the database
+                val showValues = ContentValues()
+                database = databaseHelper.writableDatabase
+                val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
+                cursor.moveToFirst()
 
-                    // Check if the show is already watched and if the user changed the category.
-                    if (getCategoryNumber(position) == 1 && cursor.getInt(
-                            cursor.getColumnIndexOrThrow(
-                                MovieDatabaseHelper.COLUMN_CATEGORIES
-                            )
-                        )
-                        != getCategoryNumber(position)
-                    ) {
+                // Check if the show is already watched and if the user changed the category.
+                if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) != getCategoryNumber(position)) {
 
-                        // If the user hasn't set their own watched value, automatically set it.
-                        val timesWatchedCount = cursor.getInt(
-                            cursor.getColumnIndexOrThrow(
-                                MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
-                            )
-                        )
-                        if (timesWatchedCount == 0) {
-                            showValues.put(
-                                MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED,
-                                1
-                            )
-                            timesWatchedView.setText("1")
-                        }
-
-                        // Fetch seasons data and add to database if category is changed to "watched"
-                        lifecycleScope.launch {
-                            fetchMovieDetailsCoroutine()
-                            addSeasonsAndEpisodesToDatabase()
-                        }
+                    // If the user hasn't set their own watched value, automatically set it.
+                    val timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                    if (timesWatchedCount == 0) { showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, 1)
+                        binding.timesWatched.setText("1")
                     }
-                    showValues.put(
-                        MovieDatabaseHelper.COLUMN_CATEGORIES,
-                        getCategoryNumber(position)
-                    )
-                    database.update(
-                        MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                        MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                    )
-                    database.close()
+
+                    // Fetch seasons data and add to database if category is changed to "watched"
+                    lifecycleScope.launch {
+                        fetchMovieDetailsCoroutine()
+                        addSeasonsAndEpisodesToDatabase()
+                    }
                 }
+                showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(position))
+                database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                database.close()
+            }
 
             // Listen to changes to the EditText.
-            timesWatchedView.onFocusChangeListener =
-                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-                    if (!hasFocus && timesWatchedView.text.toString().isNotEmpty()) {
-                        // Save the number to the database
-                        val showValues = ContentValues()
-                        val timesWatched = timesWatchedView.text.toString().toInt()
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, timesWatched)
-                        database = databaseHelper.writableDatabase
-                        databaseHelper.onCreate(database)
-                        database.update(
-                            MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                        )
-                        database.close()
+            binding.timesWatched.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
+                if (!hasFocus && binding.timesWatched.text.toString().isNotEmpty()) {
+                    // Save the number to the database
+                    val showValues = ContentValues()
+                    val timesWatched = binding.timesWatched.text.toString().toInt()
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, timesWatched)
+                    database = databaseHelper.writableDatabase
+                    databaseHelper.onCreate(database)
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                    database.close()
 
-                        // Update the view
-                        binding.movieRewatched.text =
-                            getString(R.string.change_watched_times) + timesWatched
-                    }
+                    // Update the view
+                    binding.movieRewatched.text = getString(R.string.change_watched_times) + timesWatched
+                    binding.movieRewatched.visibility = View.VISIBLE
                 }
+            }
 
             // Listen to changes to the ShowRating EditText.
-            showRating.onFocusChangeListener =
-                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-                    if (!hasFocus && showRating.text.toString().isNotEmpty()) {
-                        // Save the number to the database
-                        val showValues = ContentValues()
-                        var rating = showRating.text.toString().toFloat()
+            binding.showRating.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
+                if (!hasFocus && binding.showRating.text.toString().isNotEmpty()) {
+                    // Save the number to the database
+                    val showValues = ContentValues()
+                    var rating = binding.showRating.text.toString().toFloat()
 
-                        // Do not allow ratings outside of the range.
-                        if (rating > 10.0f) {
-                            rating = 10.0f
-                        } else if (rating < 0.0f) {
-                            rating = 0.0f
-                        }
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
-                        database = databaseHelper.writableDatabase
-                        databaseHelper.onCreate(database)
-                        database.update(
-                            MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                        )
-                        database.close()
-
-                        // Update the view
-                        val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
-                        binding.rating.text =
-                            String.format(Locale.getDefault(), "%.1f/%s", rating, localizedTen)
+                    // Do not allow ratings outside of the range.
+                    if (rating > 10.0f) {
+                        rating = 10.0f
+                        binding.showRating.error = context.getString(R.string.error_rating_exceeds_limit)
+                    } else {
+                        binding.showRating.error = null
                     }
+
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
+                    database = databaseHelper.writableDatabase
+                    databaseHelper.onCreate(database)
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                    database.close()
+
+                    // Update the view
+                    val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
+                    binding.rating.text = String.format(Locale.getDefault(), "%.1f/%s", rating, localizedTen)
                 }
+            }
 
             // Listen to changes to the MovieReview EditText.
-            movieReview.onFocusChangeListener =
-                OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-                    if (!hasFocus) {
-                        // Save the review to the database
-                        val showValues = ContentValues()
-                        val review = movieReview.text.toString()
-                        showValues.put(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW, review)
-                        database = databaseHelper.writableDatabase
-                        databaseHelper.onCreate(database)
-                        database.update(
-                            MovieDatabaseHelper.TABLE_MOVIES, showValues,
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                        )
-                        database.close()
+            binding.movieReview.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
+                if (!hasFocus) {
+                    // Save the review to the database
+                    val showValues = ContentValues()
+                    val review =  binding.movieReview.text.toString()
+                    showValues.put(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW, review)
+                    database = databaseHelper.writableDatabase
+                    databaseHelper.onCreate(database)
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                    database.close()
+
+                    if (review.isNotEmpty()) {
+                        binding.movieReviewText.text = getString(R.string.reviews) + review
+                        binding.movieReviewText.visibility = View.VISIBLE
+                    } else {
+                        binding.movieReviewText.text = getString(R.string.no_reviews)
+                        binding.movieReviewText.visibility = View.VISIBLE
                     }
                 }
-        } else {
-            fadeOutAndHideAnimation(editShowDetails)
-            editShowDetails.animation.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation) {
-                    fadeInAndShowAnimation(showDetails)
-                    editShowDetails.visibility = View.GONE
-                }
+            }
 
-                override fun onAnimationEnd(animation: Animation) {}
-                override fun onAnimationRepeat(animation: Animation) {}
-            })
+            updateEditShowDetails()
+            binding.showDetails.visibility = View.GONE
+            binding.editShowDetails.visibility = View.VISIBLE
+
+            binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
+            binding.editIcon.setText(R.string.done)
+        } else {
+            fadeOutAndHideAnimation(binding.editShowDetails)
+            fadeInAndShowAnimation(binding.showDetails)
+            updateEditShowDetails()
+            binding.showDetails.visibility = View.VISIBLE
+            binding.editShowDetails.visibility = View.GONE
+
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_edit)
             binding.editIcon.setText(R.string.edit)
+
+
         }
     }
 
     private fun updateEditShowDetails() {
         database = databaseHelper.writableDatabase
         databaseHelper.onCreate(database)
-        val cursor = database.rawQuery(
-            "SELECT * FROM " +
-                    MovieDatabaseHelper.TABLE_MOVIES +
-                    " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                    "=" + movieId + " LIMIT 1", null
-        )
+        val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
         if (cursor.count <= 0) {
             // No record has been found, the show hasn't been added or an error occurred.
             cursor.close()
@@ -1619,21 +1583,15 @@ class DetailActivity : BaseActivity() {
                 )
 
                 MovieDatabaseHelper.CATEGORY_WATCHED -> binding.categories.setText(
-                    binding.categories.adapter.getItem(
-                        2
-                    ).toString(), false
+                    binding.categories.adapter.getItem(2).toString(), false
                 )
 
                 MovieDatabaseHelper.CATEGORY_ON_HOLD -> binding.categories.setText(
-                    binding.categories.adapter.getItem(
-                        3
-                    ).toString(), false
+                    binding.categories.adapter.getItem(3).toString(), false
                 )
 
                 MovieDatabaseHelper.CATEGORY_DROPPED -> binding.categories.setText(
-                    binding.categories.adapter.getItem(
-                        4
-                    ).toString(), false
+                    binding.categories.adapter.getItem(4).toString(), false
                 )
 
                 else -> binding.categories.setText(
@@ -1643,14 +1601,18 @@ class DetailActivity : BaseActivity() {
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
                 && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) != ""
             ) {
-                val startDateString =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                try {
-                    startDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(startDateString)
-                    // Use DateFormat.getDateInstance() for default system date format
-                    binding.startDateButton.text = DateFormat.getDateInstance().format(startDate)
-                } catch (e: ParseException) {
-                    e.printStackTrace()
+                val startDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                if (startDateString.startsWith("00-")) {
+                    val parts = startDateString.split("-")
+                    val month = parts[1]
+                    val year = parts[2]
+                    binding.startDateButton.text = getString(R.string.month_year_format1, month, year)
+                } else {
+                    try {
+                        binding.startDateButton.text = startDateString
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
                 }
             } else {
                 binding.startDateButton.setText(R.string.start_date)
@@ -1658,83 +1620,40 @@ class DetailActivity : BaseActivity() {
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
                 && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)) != ""
             ) {
-                val finishDateString =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
-                try {
-                    finishDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse(finishDateString)
-                    // Use DateFormat.getDateInstance() for default system date format
-                    binding.endDateButton.text = DateFormat.getDateInstance().format(finishDate)
-                } catch (e: ParseException) {
-                    e.printStackTrace()
+                val finishDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                if (finishDateString.startsWith("00-")) {
+                    val parts = finishDateString.split("-")
+                    val month = parts[1]
+                    val year = parts[2]
+                    binding.endDateButton.text = getString(R.string.month_year_format1, month, year)
+                } else {
+                    try {
+                        binding.endDateButton.text = finishDateString
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
                 }
             } else {
                 binding.endDateButton.setText(R.string.finish_date)
             }
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
-                && cursor.getString(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
-                    )
-                ) != ""
-            ) {
-                binding.timesWatched.setText(
-                    cursor.getString(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
-                        )
-                    )
-                )
+                && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)) != "") {
+                binding.timesWatched.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)))
             } else {
-                if (cursor.getInt(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_CATEGORIES
-                        )
-                    ) == 1
-                ) {
+                if (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) == 1) {
                     binding.timesWatched.setText("1")
                 } else {
                     binding.timesWatched.setText("0")
                 }
             }
-            if (!cursor.isNull(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING
-                    )
-                )
-                && cursor.getString(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING
-                    )
-                ) != ""
-            ) {
-                binding.showRating.setText(
-                    cursor.getString(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_PERSONAL_RATING
-                        )
-                    )
-                )
+            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) != "") {
+                binding.showRating.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)))
             }
-            if (!cursor.isNull(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_MOVIE_REVIEW
-                    )
-                )
-                && cursor.getString(
-                    cursor.getColumnIndexOrThrow(
-                        MovieDatabaseHelper.COLUMN_MOVIE_REVIEW
-                    )
-                ) != ""
-            ) {
-                binding.movieReview.setText(
-                    cursor.getString(
-                        cursor.getColumnIndexOrThrow(
-                            MovieDatabaseHelper.COLUMN_MOVIE_REVIEW
-                        )
-                    )
-                )
+            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) != "") {
+                binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
             }
         }
+        cursor.close()
         databaseUpdate()
     }
 
@@ -1761,23 +1680,60 @@ class DetailActivity : BaseActivity() {
                 database = databaseHelper.writableDatabase
                 databaseHelper.onCreate(database)
                 val month = selectedMonth?.toString()?.padStart(2, '0') ?: "00"
+                val dateText = "00-$month-$selectedYear"
                 if (view.tag == "start_date") {
-                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, "00-$month-$selectedYear")
+                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateText)
                     val button = findViewById<Button>(R.id.startDateButton)
-                    button.text = "00-$month-$selectedYear"
+                    button.text = getString(R.string.month_year_format, month, selectedYear)
+                    binding.movieStartDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
                 } else {
-                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, "00-$month-$selectedYear")
+                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
                     val button = findViewById<Button>(R.id.endDateButton)
-                    button.text = "00-$month-$selectedYear"
+                    button.text = getString(R.string.month_year_format, month, selectedYear)
+                    binding.movieFinishDate.text = getString(R.string.change_finish_date_2) + formatDateString(dateText)
                 }
-                database.update(
-                    MovieDatabaseHelper.TABLE_MOVIES,
-                    movieValues,
-                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId",
-                    null
-                )
+                database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
+                // Update the UI component immediately
+                when (view.tag) {
+                    "start_date" -> {
+                        binding.startDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.movieStartDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                        binding.movieStartDate.visibility = View.VISIBLE
+                    }
+                    "end_date" -> {
+                        binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.movieFinishDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                        binding.movieFinishDate.visibility = View.VISIBLE
+                    }
+                    else -> {
+                        binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.movieFinishDate.text = getString(R.string.start_date_unknown)
+
+                    }
+                }
+                dialog.dismiss()
             }
-            dialog.dismiss()
+        }
+    }
+
+    private fun formatDateString(dateString: String): String {
+        return when {
+            dateString.startsWith("00-00-") -> {
+                val year = dateString.substring(6)
+                year
+            }
+            dateString.startsWith("00-") -> {
+                val monthYear = dateString.substring(3)
+                SimpleDateFormat("MM-yyyy", Locale.getDefault()).parse(monthYear)?.let {
+                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                } ?: dateString
+            }
+            else -> {
+                val dbDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                dbDateFormat.parse(dateString)?.let {
+                    DateFormat.getDateInstance(DateFormat.DEFAULT).format(it)
+                } ?: dateString
+            }
         }
     }
 
@@ -1807,10 +1763,13 @@ class DetailActivity : BaseActivity() {
         monthPicker.value = android.icu.util.Calendar.getInstance().get(android.icu.util.Calendar.MONTH)
 
         disableMonthPicker.setOnCheckedChangeListener { _, isChecked ->
-            monthPicker.isEnabled = !isChecked
-            monthPicker.visibility = if (isChecked) View.GONE else View.VISIBLE
-            monthTitle.visibility = if (isChecked) View.GONE else View.VISIBLE
-            monthLayout.visibility = if (isChecked) View.GONE else View.VISIBLE
+            if (isChecked) {
+                monthLayout.visibility = View.GONE
+                monthTitle.visibility = View.GONE
+            } else {
+                monthLayout.visibility = View.VISIBLE
+                monthTitle.visibility = View.VISIBLE
+            }
         }
 
         MaterialAlertDialogBuilder(context)
@@ -1847,8 +1806,7 @@ class DetailActivity : BaseActivity() {
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
                 val formattedDate = dateFormatDefault.format(calendar.time)
-                binding.movieStartDate.text =
-                    getString(R.string.change_start_date_2) + formattedDate
+                binding.movieStartDate.text = getString(R.string.change_start_date_2) + formattedDate
                 startDate = calendar.time
             } else {
                 movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateFormat)
@@ -1858,8 +1816,7 @@ class DetailActivity : BaseActivity() {
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
                 val formattedDate = dateFormatDefault.format(calendar.time)
-                binding.movieFinishDate.text =
-                    getString(R.string.change_finish_date_2) + formattedDate
+                binding.movieFinishDate.text = getString(R.string.change_finish_date_2) + formattedDate
                 finishDate = calendar.time
             }
             database = databaseHelper.writableDatabase
@@ -1876,14 +1833,14 @@ class DetailActivity : BaseActivity() {
     private fun fadeOutAndHideAnimation(view: View) {
         val fadeOut: Animation = AlphaAnimation(1f, 0f)
         fadeOut.interpolator = AccelerateInterpolator()
-        fadeOut.duration = 100
+        fadeOut.duration = 300
         view.startAnimation(fadeOut)
     }
 
     private fun fadeInAndShowAnimation(view: View) {
         val fadeIn: Animation = AlphaAnimation(0f, 1f)
         fadeIn.interpolator = AccelerateInterpolator()
-        fadeIn.duration = 100
+        fadeIn.duration = 300
         fadeIn.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationEnd(animation: Animation) {
                 view.visibility = View.VISIBLE
@@ -1913,7 +1870,7 @@ class DetailActivity : BaseActivity() {
             try {
                 val url = URL(
                     "https://api.themoviedb.org/3/" + movie + "/" +
-                            movieId + "/credits?api_key=" + API_KEY +
+                            movieId + "/credits?api_key=" + apiKey +
                             getLanguageParameter(applicationContext)
                 )
                 val urlConnection = url.openConnection()
@@ -2026,7 +1983,7 @@ class DetailActivity : BaseActivity() {
             val url = URL(
                 "https://api.themoviedb.org/3/" + movie + "/" +
                         movieId + "/recommendations?api_key=" +
-                        API_KEY + getLanguageParameter(applicationContext)
+                        apiKey + getLanguageParameter(applicationContext)
             )
             val urlConnection = url.openConnection()
             try {
@@ -2082,7 +2039,7 @@ class DetailActivity : BaseActivity() {
             .url(url)
             .get()
             .addHeader("accept", "application/json")
-            .addHeader("Authorization", "Bearer $api_read_access_token")
+            .addHeader("Authorization", "Bearer $apiReadAccessToken")
             .build()
         client.newCall(request).execute().use { response ->
             val responseBody = response.body()!!.string()
@@ -2101,6 +2058,12 @@ class DetailActivity : BaseActivity() {
                 }
                 if (movieData.has("seasons")) {
                     seasons = movieData.getJSONArray("seasons")
+                }
+                if (movieData.has("last_episode_to_air")) {
+                    lastEpisode = movieData.getJSONObject("last_episode_to_air")
+                }
+                if (movieData.has("next_episode_to_air")) {
+                    nextEpisode = movieData.getJSONObject("next_episode_to_air")
                 }
                 if (isMovie) {
                     val releaseDatesObject = movieData.getJSONObject("release_dates")

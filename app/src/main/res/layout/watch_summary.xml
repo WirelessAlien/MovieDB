@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     ShowCase is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     ShowCase is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+        <TextView
+            android:id="@+id/watchSummaryTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/watch_summary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="5dp"/>
+
+        <TextView
+            android:id="@+id/categoryTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/categories"
+            android:layout_below="@id/watchSummaryTitle"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="5dp"/>
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/catDivider"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_below="@+id/categoryTitle"/>
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/chip1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/catDivider"
+            app:flexWrap="wrap">
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipWatching"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:clickable="false"
+                android:checkable="false" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipWatched"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:clickable="false"
+                android:checkable="false" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPlanToWatch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:clickable="false"
+                android:checkable="false" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipOnHold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:clickable="false"
+                android:checkable="false" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipDropped"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:clickable="false"
+                android:checkable="false" />
+        </com.google.android.flexbox.FlexboxLayout>
+
+        <TextView
+            android:id="@+id/typeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/type"
+            android:textSize="20sp"
+            android:layout_below="@id/chip1"
+            android:textStyle="bold"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="5dp"/>
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/typeDivider"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_below="@+id/typeTitle"/>
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/chip2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/typeDivider"
+            app:flexWrap="wrap">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipWatchedMovies"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                app:chipIcon="@drawable/ic_movie"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:clickable="false"
+                android:checkable="false" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipWatchedTVShows"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                app:chipIcon="@drawable/ic_tv_show"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:clickable="false"
+                android:checkable="false" />
+
+        </com.google.android.flexbox.FlexboxLayout>
+
+        <TextView
+            android:id="@+id/genresTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/genres"
+            android:layout_below="@id/chip2"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="20dp"
+            android:textStyle="bold"/>
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/genreDivider"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_below="@+id/genresTitle"/>
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupGenres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_below="@id/genreDivider"/>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            app:waveAmplitude="10dp"
+            app:wavelength="32dp"
+            app:waveSpeed="0dp"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+</androidx.core.widget.NestedScrollView>

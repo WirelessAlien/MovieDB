@@ -168,10 +168,14 @@
             android:layout_marginBottom="10dp"
             android:scrollbars="none" />
 
-        <ProgressBar
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:indeterminate="true"
+            app:waveAmplitude="10dp"
+            app:wavelength="32dp"
+            app:waveSpeed="0dp"
             android:layout_centerInParent="true"/>
     </RelativeLayout>
 

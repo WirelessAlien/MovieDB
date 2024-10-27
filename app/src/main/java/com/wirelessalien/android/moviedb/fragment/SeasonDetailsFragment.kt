@@ -22,19 +22,21 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.ContentValues
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.chip.Chip
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter
 import com.wirelessalien.android.moviedb.data.Episode
@@ -57,9 +59,8 @@ class SeasonDetailsFragment : Fragment() {
     private var seasonNumber = 0
     private var currentTabNumber = 1
     private lateinit var pageChangeCallback: ViewPager2.OnPageChangeCallback
-    private var dbHelper: EpisodeReminderDatabaseHelper? = null
+    private lateinit var dbHelper: EpisodeReminderDatabaseHelper
 
-    //oncreate
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -81,32 +82,50 @@ class SeasonDetailsFragment : Fragment() {
         toolbar.title = getString(R.string.seasons)
         rvEpisodes = view.findViewById(R.id.episodeRecyclerView)
         viewPager = requireActivity().findViewById(R.id.view_pager)
+        view.findViewById<Chip>(R.id.defaultMessage)
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                currentTabNumber = position + 1
+                currentTabNumber = position
+                seasonNumber = if (currentTabNumber == 0) 0 else currentTabNumber
+                loadSeasonDetails()
                 requireActivity().invalidateOptionsMenu()
             }
         }
         viewPager.registerOnPageChangeCallback(pageChangeCallback)
-        val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
-        progressBar.visibility = View.VISIBLE
+        loadSeasonDetails()
+    }
+
+    private fun loadSeasonDetails() {
+        val progressBar = view?.findViewById<CircularProgressIndicator>(R.id.progressBar)
+        val defaultMessage = view?.findViewById<Chip>(R.id.defaultMessage)
+        progressBar?.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.Main).launch {
-            progressBar.visibility = View.VISIBLE
+            progressBar?.visibility = View.VISIBLE
             try {
                 val tvSeasonDetails = TVSeasonDetails(tvShowId, seasonNumber, requireContext())
                 tvSeasonDetails.fetchSeasonDetails(object : TVSeasonDetails.SeasonDetailsCallback {
                     override fun onSeasonDetailsFetched(episodes: List<Episode>) {
-                        val adapter = EpisodeAdapter(requireContext(), episodes, currentTabNumber, tvShowId)
+                        val adapter = EpisodeAdapter(requireContext(), episodes, seasonNumber, tvShowId)
                         rvEpisodes.layoutManager = LinearLayoutManager(requireContext())
                         rvEpisodes.adapter = adapter
-                        progressBar.visibility = View.GONE
+                        rvEpisodes.visibility = View.VISIBLE
+                        defaultMessage?.visibility = View.GONE
+                        progressBar?.visibility = View.GONE
                         requireActivity().invalidateOptionsMenu()
+                    }
+
+                    override fun onSeasonDetailsNotAvailable() {
+                        if (seasonNumber == 0) {
+                            defaultMessage?.visibility = View.VISIBLE
+                            rvEpisodes.visibility = View.GONE
+                        }
+                        progressBar?.visibility = View.GONE
                     }
                 })
             } catch (e: Exception) {
                 e.printStackTrace()
-                progressBar.visibility = View.GONE
+                progressBar?.visibility = View.GONE
             }
         }
     }
@@ -124,30 +143,28 @@ class SeasonDetailsFragment : Fragment() {
         if (isShowInDatabase(tvShowId)) {
             notificationItem.setIcon(R.drawable.ic_notifications_active)
         } else {
-            notificationItem.setIcon(R.drawable.ic_add_alert)
+            notificationItem.setIcon(R.drawable.ic_notification_add)
         }
         val adapter = rvEpisodes.adapter as EpisodeAdapter?
         if (adapter != null) {
             val episodes = adapter.episodes
-            if (episodes != null) {
-                if (episodes.isNotEmpty()) {
-                    val latestEpisode = Collections.max(
-                        episodes,
-                        Comparator.comparingInt { obj: Episode -> obj.episodeNumber })
+            if (episodes.isNotEmpty()) {
+                val latestEpisode = Collections.max(
+                    episodes,
+                    Comparator.comparingInt { obj: Episode -> obj.episodeNumber })
 
-                    // Parse the air date of the latest episode
-                    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                    try {
-                        val latestEpisodeDate = sdf.parse(latestEpisode.airDate)
-                        val currentDate = Date()
+                // Parse the air date of the latest episode
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                try {
+                    val latestEpisodeDate = sdf.parse(latestEpisode.airDate)
+                    val currentDate = Date()
 
-                        // If the air date of the latest episode is older than the current date, disable the notification action
-                        if (latestEpisodeDate != null && latestEpisodeDate.before(currentDate)) {
-                            notificationItem.setEnabled(false)
-                        }
-                    } catch (e: ParseException) {
-                        e.printStackTrace()
+                    // If the air date of the latest episode is older than the current date, disable the notification action
+                    if (latestEpisodeDate != null && latestEpisodeDate.before(currentDate)) {
+                        notificationItem.setEnabled(false)
                     }
+                } catch (e: ParseException) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -162,31 +179,24 @@ class SeasonDetailsFragment : Fragment() {
             val episodes = adapter.episodes
             val db = MovieDatabaseHelper(requireContext())
             var allEpisodesInDatabase = true
-            if (episodes != null) {
-                for (episode in episodes) {
-                    val seasonEpisodeNumbers: MutableMap<Int, List<Int>> = HashMap()
-                    seasonEpisodeNumbers[currentTabNumber] = listOf(episode.episodeNumber)
-                    if (!db.isEpisodeInDatabase(
-                            tvShowId,
-                            currentTabNumber,
-                            listOf(episode.episodeNumber)
-                        )
-                    ) {
-                        allEpisodesInDatabase = false
-                        break
-                    }
+            for (episode in episodes) {
+                val seasonEpisodeNumbers: MutableMap<Int, List<Int>> = HashMap()
+                seasonEpisodeNumbers[currentTabNumber] = listOf(episode.episodeNumber)
+                if (!db.isEpisodeInDatabase(tvShowId, currentTabNumber, listOf(episode.episodeNumber))) {
+                    allEpisodesInDatabase = false
+                    break
                 }
             }
             if (allEpisodesInDatabase) {
-                watchedItem.setIcon(R.drawable.ic_visibility_fill)
-            } else {
                 watchedItem.setIcon(R.drawable.ic_visibility)
+            } else {
+                watchedItem.setIcon(R.drawable.ic_visibility_off)
             }
         }
     }
 
     private fun isShowInDatabase(tvShowId: Int): Boolean {
-        val db = dbHelper!!.readableDatabase
+        val db = dbHelper.readableDatabase
         val selection = EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID + " = ?"
         val selectionArgs = arrayOf(tvShowId.toString())
         val cursor = db.query(
@@ -202,16 +212,18 @@ class SeasonDetailsFragment : Fragment() {
         return if (item.itemId == R.id.action_notification) {
             dbHelper = EpisodeReminderDatabaseHelper(requireContext())
             if (isShowInDatabase(requireArguments().getInt(ARG_TV_SHOW_ID))) {
-                dbHelper!!.deleteData(requireArguments().getInt(ARG_TV_SHOW_ID))
-                val message = getString(R.string.removed_from_reminder, ARG_TV_SHOW_NAME)
+                val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
+                val showName = dbHelper.getShowNameById(tvShowId)
+                dbHelper.deleteData(tvShowId)
+                val message = getString(R.string.removed_from_reminder, showName)
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                item.setIcon(R.drawable.ic_add_alert)
+                item.setIcon(R.drawable.ic_notification_add)
                 return true
             }
-            val db = dbHelper!!.writableDatabase
+            val db = dbHelper.writableDatabase
             val adapter = rvEpisodes.adapter as EpisodeAdapter?
             if (adapter != null) {
-                for (episode in adapter.episodes!!) {
+                for (episode in adapter.episodes) {
                     val values = ContentValues()
                     val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
                     values.put(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID, tvShowId)
@@ -219,15 +231,9 @@ class SeasonDetailsFragment : Fragment() {
                     values.put(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME, tvShowName)
                     values.put(EpisodeReminderDatabaseHelper.COLUMN_NAME, episode.name)
                     values.put(EpisodeReminderDatabaseHelper.COLUMN_DATE, episode.airDate)
-                    values.put(
-                        EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER,
-                        episode.episodeNumber
-                    )
+                    values.put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, episode.episodeNumber)
                     val newRowId = db.insert(
-                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
-                        null,
-                        values
-                    )
+                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, values)
                     if (newRowId == -1L) {
                         val message = getString(R.string.error_reminder_episode, tvShowName)
                         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
@@ -250,53 +256,29 @@ class SeasonDetailsFragment : Fragment() {
                 val episodes = adapter.episodes
                 val db = MovieDatabaseHelper(requireContext())
                 var allEpisodesInDatabase = true
-                if (episodes != null) {
-                    for (episode in episodes) {
-                        if (!db.isEpisodeInDatabase(
-                                tvShowId,
-                                currentTabNumber,
-                                listOf(episode.episodeNumber)
-                            )
-                        ) {
-                            allEpisodesInDatabase = false
-                            break
-                        }
+                for (episode in episodes) {
+                    if (!db.isEpisodeInDatabase(tvShowId, currentTabNumber, listOf(episode.episodeNumber))) {
+                        allEpisodesInDatabase = false
+                        break
                     }
                 }
                 if (!allEpisodesInDatabase) {
-                    if (episodes != null) {
-                        for (episode in episodes) {
-                            if (!db.isEpisodeInDatabase(
-                                    tvShowId,
-                                    currentTabNumber,
-                                    listOf(episode.episodeNumber)
-                                )
-                            ) {
-                                db.addEpisodeNumber(
-                                    tvShowId,
-                                    currentTabNumber,
-                                    listOf(episode.episodeNumber)
-                                )
-                            }
+                    for (episode in episodes) {
+                        if (!db.isEpisodeInDatabase(tvShowId, currentTabNumber, listOf(episode.episodeNumber))) {
+                            db.addEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
                         }
                     }
-                    item.setIcon(R.drawable.ic_visibility_fill)
-                    Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT)
-                        .show()
-                } else {
-                    if (episodes != null) {
-                        for (episode in episodes) {
-                            db.removeEpisodeNumber(
-                                tvShowId,
-                                currentTabNumber,
-                                listOf(episode.episodeNumber)
-                            )
-                        }
-                    }
+                    Log.d("SeasonDetailsFragment", "Episodes added $tvShowId $currentTabNumber ${episodes.map { it.episodeNumber }}")
                     item.setIcon(R.drawable.ic_visibility)
-                    Toast.makeText(requireContext(), R.string.episodes_added, Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT).show()
+                } else {
+                    for (episode in episodes) {
+                        db.removeEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
+                    }
+                    item.setIcon(R.drawable.ic_visibility_off)
+                    Toast.makeText(requireContext(), R.string.episodes_added, Toast.LENGTH_SHORT).show()
                 }
+                adapter.notifyDataSetChanged()
             }
             true
         } else {
@@ -308,7 +290,7 @@ class SeasonDetailsFragment : Fragment() {
         private const val ARG_TV_SHOW_ID = "tvShowId"
         private const val ARG_SEASON_NUMBER = "seasonNumber"
         private const val ARG_TV_SHOW_NAME = "tvShowName"
-        @JvmStatic
+
         fun newInstance(
             tvShowId: Int,
             seasonNumber: Int,

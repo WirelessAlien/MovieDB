@@ -20,6 +20,7 @@
 package com.wirelessalien.android.moviedb.activity
 
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -41,6 +42,7 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
 
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val tvShowId = intent.getIntExtra("tvShowId", -1)
         val seasonNumber = intent.getIntExtra("seasonNumber", 1)
         val numSeasons = intent.getIntExtra("numSeasons", 1)
@@ -49,16 +51,28 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun createFragment(position: Int): Fragment {
-                return newInstance(tvShowId, position + 1, showName)
+                return newInstance(tvShowId, position, showName)
             }
 
             override fun getItemCount(): Int {
-                return numSeasons
+                return numSeasons + 1
             }
         }
-        viewPager.setCurrentItem(seasonNumber - 1, false)
+        viewPager.setCurrentItem(seasonNumber, false)
         TabLayoutMediator(
             tabLayout, viewPager
-        ) { tab: TabLayout.Tab, position: Int -> tab.setText(getString(R.string.season) + (position + 1)) }.attach()
+        ) { tab: TabLayout.Tab, position: Int ->
+            tab.text = if (position == 0) getString(R.string.specials) else getString(R.string.season) + position
+        }.attach()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

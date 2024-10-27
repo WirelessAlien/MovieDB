@@ -59,19 +59,15 @@ import java.util.Locale
 /**
  * This class provides some (basic) database functionality.
  */
-class MovieDatabaseHelper  // Initialize the database object.
-/**
- * Initialises the database object.
- *
- * @param context the context passed on to the super.
- */
-    (context: Context?) : SQLiteOpenHelper(context, databaseFileName, null, DATABASE_VERSION) {
+class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databaseFileName, null, DATABASE_VERSION) {
+
     /**
      * Converts the show table in the database to a JSON string.
      *
      * @param database the database to get the data from.
      * @return a string in JSON format containing all the show data.
      */
+
     private fun getEpisodesForMovie(movieId: Int, database: SQLiteDatabase): JSONArray {
         val selectQuery =
             "SELECT * FROM $TABLE_EPISODES WHERE $COLUMN_MOVIES_ID = $movieId"
@@ -191,12 +187,12 @@ class MovieDatabaseHelper  // Initialize the database object.
         builder.setTitle(context.resources.getString(R.string.choose_export_file))
             .setPositiveButton(context.getString(R.string.export)) { _, _ ->
                 val exportDirectory = getExportDirectory(context)
-                if (exportDirectoryUri != null && exportDirectory != null) {
+                if (exportDirectoryUri != null) {
                     exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                    Log.d("Export", "Exporting to URI")
                 } else if (exportDirectory != null) {
                     exportToDirectory(context, exportDirectory, jsonRadioButton, dbRadioButton, csvRadioButton)
-                } else if (exportDirectoryUri !== null) {
-                    exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                    Log.d("Export", "Exporting to DIR")
                 } else {
                     promptUserToSaveFile(context, jsonRadioButton, dbRadioButton, csvRadioButton)
                 }
@@ -801,11 +797,6 @@ class MovieDatabaseHelper  // Initialize the database object.
         const val CATEGORY_ON_HOLD = 3
         const val CATEGORY_DROPPED = 4
 
-        /**
-         * Returns the database name.
-         *
-         * @return the database name.
-         */
         const val databaseFileName = "movies.db"
         private const val DATABASE_FILE_NAME = "movies"
         private const val DATABASE_FILE_EXT = ".db"

@@ -22,7 +22,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
     <androidx.recyclerview.widget.RecyclerView
@@ -31,10 +32,14 @@
         android:layout_height="wrap_content"
         tools:listitem="@layout/list_details_item"/>
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:indeterminate="true"
+        app:waveAmplitude="10dp"
+        app:wavelength="32dp"
+        app:waveSpeed="0dp"
         android:layout_centerInParent="true"/>
 
 </RelativeLayout>

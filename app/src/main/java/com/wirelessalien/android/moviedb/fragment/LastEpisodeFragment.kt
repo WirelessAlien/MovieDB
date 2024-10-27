@@ -23,6 +23,7 @@ import android.graphics.Color
 import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,8 +48,8 @@ import java.text.ParseException
 import java.util.Locale
 
 class LastEpisodeFragment : Fragment() {
-    private var binding: FragmentLastEpisodeBinding? = null
-    private var databaseHelper: MovieDatabaseHelper? = null
+    private lateinit var binding: FragmentLastEpisodeBinding
+    private lateinit var databaseHelper: MovieDatabaseHelper
     private var movieId = 0
     private var seasonNumber = 0
     private var episodeNumber = 0
@@ -59,15 +60,16 @@ class LastEpisodeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentLastEpisodeBinding.inflate(inflater, container, false)
-        val view: View = binding!!.root
+        val view: View = binding.root
         val preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         if (preferences.getBoolean(DYNAMIC_COLOR_DETAILS_ACTIVITY, false)) {
-            binding!!.lastEpisodeCard.strokeWidth = 5
-            binding!!.lastEpisodeCard.setCardBackgroundColor(Color.TRANSPARENT)
+            binding.lastEpisodeCard.strokeWidth = 5
+            binding.lastEpisodeCard.setCardBackgroundColor(Color.TRANSPARENT)
         }
         val sessionId = preferences.getString("access_token", null)
         val accountId = preferences.getString("account_id", null)
-        binding!!.episodeRateBtn.isEnabled = sessionId != null && accountId != null
+        databaseHelper = MovieDatabaseHelper(context)
+        binding.episodeRateBtn.isEnabled = sessionId != null && accountId != null
         if (arguments != null) {
             try {
                 val episodeDetails = JSONObject(requireArguments().getString(ARG_EPISODE_DETAILS))
@@ -76,44 +78,36 @@ class LastEpisodeFragment : Fragment() {
                 episodeNumber = episodeDetails.getInt("episode_number")
                 episodeName = episodeDetails.getString("name")
                 val labelText = requireArguments().getString(ARG_LABEL_TEXT)
-                binding!!.episodeRecencyText.text = labelText
-                binding!!.seasonNo.text = "S: $seasonNumber"
-                binding!!.episodeNo.text = "E: $episodeNumber"
-                binding!!.episodeName.text = episodeName
-                binding!!.ratingAverage.text = String.format(
+                binding.episodeRecencyText.text = labelText
+                binding.seasonNo.text = getString(R.string.season_number, seasonNumber)
+                binding.episodeNo.text = getString(R.string.episode_number, episodeNumber)
+                binding.episodeName.text = episodeName
+                binding.ratingAverage.text = String.format(
                     Locale.getDefault(),
                     "%.2f/%s",
                     episodeDetails.getDouble("vote_average"),
-                    String.format(
-                        Locale.getDefault(), "%d", 10
-                    )
-                )
+                    String.format(Locale.getDefault(), "%d", 10))
+
                 val overview = episodeDetails.getString("overview")
                 if (overview.isEmpty()) {
-                    binding!!.episodeOverview.setText(R.string.overview_not_available)
+                    binding.episodeOverview.setText(R.string.overview_not_available)
                 } else {
-                    binding!!.episodeOverview.text = overview
+                    binding.episodeOverview.text = overview
                 }
                 val episodeAirDateStr = episodeDetails.getString("air_date")
                 val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val date = originalFormat.parse(episodeAirDateStr)
                 val dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                 val formattedDate = dateFormat.format(date)
-                binding!!.episodeAirDate.text = formattedDate
-                databaseHelper = MovieDatabaseHelper(context)
-                if (databaseHelper!!.isEpisodeInDatabase(
-                        movieId,
-                        seasonNumber,
-                        listOf(episodeNumber)
-                    )
-                ) {
-                    binding!!.episodeWathchBtn.icon =
-                        ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility_fill)
-                } else {
-                    binding!!.episodeWathchBtn.icon =
+                binding.episodeAirDate.text = formattedDate
+                if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(episodeNumber))) {
+                    binding.episodeWathchBtn.icon =
                         ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility)
+                } else {
+                    binding.episodeWathchBtn.icon =
+                        ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility_off)
                 }
-                binding!!.episodeRateBtn.setOnClickListener { v: View? ->
+                binding.episodeRateBtn.setOnClickListener {
                     val dialog = BottomSheetDialog(requireContext())
                     val dialogInflater = LayoutInflater.from(context)
                     val dialogView = dialogInflater.inflate(R.layout.rating_dialog, null)
@@ -124,7 +118,7 @@ class LastEpisodeFragment : Fragment() {
                     val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
                     val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
                     val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-                    episodeTitle.text = "S:$seasonNumber E:$episodeNumber $episodeName"
+                    episodeTitle.text = getString(R.string.episode_title, seasonNumber, episodeNumber, episodeName)
                     submitButton.setOnClickListener {
                         CoroutineScope(Dispatchers.Main).launch {
                             val rating = ratingBar.rating.toDouble()
@@ -152,33 +146,15 @@ class LastEpisodeFragment : Fragment() {
                     }
                     cancelButton.setOnClickListener { dialog.dismiss() }
                 }
-                binding!!.episodeWathchBtn.setOnClickListener {
-                    if (databaseHelper == null) {
-                        databaseHelper = MovieDatabaseHelper(context)
-                    }
-                    if (databaseHelper!!.isEpisodeInDatabase(
-                            movieId,
-                            seasonNumber,
-                            listOf(episodeNumber)
-                        )
-                    ) {
-                        databaseHelper!!.removeEpisodeNumber(
-                            movieId,
-                            seasonNumber,
-                            listOf(episodeNumber)
-                        )
-                        binding!!.episodeWathchBtn.icon =
-                            ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility)
+                binding.episodeWathchBtn.setOnClickListener {
+                    if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(episodeNumber))) {
+                        Log.d("Episode", "Removed from database $movieId $seasonNumber $episodeNumber")
+                        databaseHelper.removeEpisodeNumber(movieId, seasonNumber, listOf(episodeNumber))
+                        binding.episodeWathchBtn.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility_off)
                     } else {
-                        databaseHelper!!.addEpisodeNumber(
-                            movieId,
-                            seasonNumber,
-                            listOf(episodeNumber)
-                        )
-                        binding!!.episodeWathchBtn.icon = ContextCompat.getDrawable(
-                            requireContext(),
-                            R.drawable.ic_visibility_fill
-                        )
+                        databaseHelper.addEpisodeNumber(movieId, seasonNumber, listOf(episodeNumber))
+                        Log.d("Episode", "Added to database $movieId $seasonNumber $episodeNumber")
+                        binding.episodeWathchBtn.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility)
                     }
                 }
             } catch (e: JSONException) {
@@ -194,7 +170,6 @@ class LastEpisodeFragment : Fragment() {
         private const val ARG_EPISODE_DETAILS = "episode_details"
         private const val ARG_LABEL_TEXT = "label_text"
         private const val DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity"
-        @JvmStatic
         fun newInstance(episodeDetails: JSONObject, labelText: String?): LastEpisodeFragment {
             val fragment = LastEpisodeFragment()
             val args = Bundle()

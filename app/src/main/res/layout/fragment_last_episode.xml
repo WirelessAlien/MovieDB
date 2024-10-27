@@ -148,7 +148,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/episodeRateBtn"
-                    app:icon="@drawable/ic_visibility" />
+                    app:icon="@drawable/ic_visibility_off" />
             </RelativeLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

@@ -40,6 +40,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.CarouselSnapHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.search.SearchBar
 import com.google.android.material.search.SearchView
 import com.wirelessalien.android.moviedb.R
@@ -115,6 +116,8 @@ class HomeFragment : BaseFragment() {
         showTrendingList(fragmentView)
         showUpcomingMovieList(fragmentView)
         showUpcomingTVShowList(fragmentView)
+        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
+        fab2.visibility = View.GONE
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.visibility = View.GONE
         searchBar = fragmentView.findViewById(R.id.searchbar)
@@ -179,6 +182,8 @@ class HomeFragment : BaseFragment() {
         super.onResume()
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.visibility = View.GONE
+        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
+        fab2.visibility = View.GONE
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -590,7 +595,7 @@ class HomeFragment : BaseFragment() {
     private fun hideProgressBar() {
         if (isAdded) {
             val progressBar =
-                Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
+                Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
             progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
         }
     }

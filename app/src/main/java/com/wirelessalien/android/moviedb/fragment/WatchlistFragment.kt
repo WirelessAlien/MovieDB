@@ -28,6 +28,7 @@ import android.widget.Toast
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
@@ -158,7 +159,7 @@ class WatchlistFragment : BaseFragment() {
             isLoadingData = true
             if (!isAdded) return@launch
 
-            val progressBar = Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
+            val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
             progressBar.ifPresent { it.visibility = View.VISIBLE }
 
             val response = withContext(Dispatchers.IO) {

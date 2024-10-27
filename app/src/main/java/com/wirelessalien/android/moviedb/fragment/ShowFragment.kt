@@ -31,6 +31,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.activity.FilterActivity
@@ -122,6 +123,8 @@ class ShowFragment : BaseFragment() {
         // Inflate the layout for this fragment
         val fragmentView = inflater.inflate(R.layout.fragment_show, container, false)
         showShowList(fragmentView)
+        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
+        fab2.visibility = View.GONE
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.setImageResource(R.drawable.ic_filter_list)
         fab.isEnabled = true
@@ -134,6 +137,8 @@ class ShowFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
+        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
+        fab2.visibility = View.GONE
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.visibility = View.VISIBLE
         fab.setImageResource(R.drawable.ic_filter_list)
@@ -361,7 +366,7 @@ class ShowFragment : BaseFragment() {
                 if (!isAdded) {
                     return@launch
                 }
-                val progressBar = Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
+                val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
                 progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
 
                 listType = params[0]
@@ -399,7 +404,7 @@ class ShowFragment : BaseFragment() {
                 e.printStackTrace()
             } finally {
                 if (isAdded) {
-                    val progressBar = Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
+                    val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
                     progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
                 }
             }
@@ -477,7 +482,7 @@ class ShowFragment : BaseFragment() {
 
         CoroutineScope(Dispatchers.Main).launch {
             if (isAdded) {
-                val progressBar = Optional.ofNullable(requireActivity().findViewById<ProgressBar>(R.id.progressBar))
+                val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
                 progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
 
                 val response = withContext(Dispatchers.IO) {

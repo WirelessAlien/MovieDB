@@ -62,7 +62,7 @@ import java.util.Locale
 
 class EpisodeAdapter(
     private val context: Context,
-    val episodes: List<Episode>?,
+    val episodes: List<Episode>,
     var seasonNumber: Int,
     private var tvShowId: Int
 ) : RecyclerView.Adapter<EpisodeViewHolder?>() {
@@ -92,7 +92,7 @@ class EpisodeAdapter(
         )
         val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
         val imageSize = if (loadHDImage) "w780" else "w500"
-        val episode = episodes!![position]
+        val episode = episodes[position]
         holder.binding.title.text = episode.name
         holder.binding.episodeNumber.text = "(" + episode.episodeNumber + ")"
         holder.binding.description.text = episode.overview
@@ -132,31 +132,23 @@ class EpisodeAdapter(
             MovieDatabaseHelper(context).use { db ->
                 if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
                     holder.binding.watched.icon =
-                        ContextCompat.getDrawable(context, R.drawable.ic_visibility_fill)
+                        ContextCompat.getDrawable(context, R.drawable.ic_visibility)
                 } else {
                     holder.binding.watched.icon =
-                        ContextCompat.getDrawable(context, R.drawable.ic_visibility)
+                        ContextCompat.getDrawable(context, R.drawable.ic_visibility_off)
                 }
                 holder.binding.watched.setOnClickListener {
                     // If the episode is in the database, remove it
-                    if (db.isEpisodeInDatabase(
-                            tvShowId,
-                            seasonNumber,
-                            listOf(episode.episodeNumber)
-                        )
-                    ) {
-                        db.removeEpisodeNumber(
-                            tvShowId,
-                            seasonNumber,
-                            listOf(episode.episodeNumber)
-                        )
+                    if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
+                        db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
                         holder.binding.watched.icon =
-                            ContextCompat.getDrawable(context, R.drawable.ic_visibility)
+                            ContextCompat.getDrawable(context, R.drawable.ic_visibility_off)
                     } else {
                         // If the episode is not in the database, add it
                         db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
+
                         holder.binding.watched.icon =
-                            ContextCompat.getDrawable(context, R.drawable.ic_visibility_fill)
+                            ContextCompat.getDrawable(context, R.drawable.ic_visibility)
                     }
                 }
             }
@@ -218,18 +210,17 @@ class EpisodeAdapter(
             val dateButton = dialogView.findViewById<Button>(R.id.dateButton)
             val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
             val reviewEditText = dialogView.findViewById<TextInputEditText>(R.id.episodeReview)
-            episodeTitle.text =
-                "S:" + seasonNumber + " " + "E:" + episode.episodeNumber + " " + episode.name
+            episodeTitle.text = "S:" + seasonNumber + " " + "E:" + episode.episodeNumber + " " + episode.name
 
             // Fetch episode details from the database
             try {
                 MovieDatabaseHelper(context).use { db ->
-                    val details =
-                        db.getEpisodeDetails(tvShowId, seasonNumber, episode.episodeNumber)
+                    val details = db.getEpisodeDetails(tvShowId, seasonNumber, episode.episodeNumber)
                     if (details != null) {
                         dateTextView.text = details.watchDate
                         if (details.rating?.toDouble() != 0.0 && details.rating != null) {
-                            ratingEditText.setText(details.rating.toString())
+                            val rating1 = if (details.rating > 10.0) 10.0 else details.rating
+                            ratingEditText.setText(rating1.toString())
                         }
                         reviewEditText.setText(details.review)
                     }
@@ -273,30 +264,27 @@ class EpisodeAdapter(
             }
 
             submitButton.setOnClickListener {
-                val date = dateTextView.text.toString()
-                val episodeRating = ratingEditText.text.toString().toDoubleOrNull()?.toFloat() ?: 0.0f
-                val review = reviewEditText.text.toString()
-                val adapterPosition = holder.bindingAdapterPosition
-                val episode1 = episodes[adapterPosition]
-                episode1.setWatchDate(date)
-                episode1.setRating(episodeRating)
-                episode1.setReview(review)
-                try {
-                    MovieDatabaseHelper(context).use { movieDatabaseHelper ->
-                        movieDatabaseHelper.addOrUpdateEpisode(
-                            tvShowId,
-                            seasonNumber,
-                            episode1.episodeNumber,
-                            episodeRating,
-                            date,
-                            review
-                        )
+                val episodeRating = ratingEditText.text.toString().toDoubleOrNull()
+                if (episodeRating != null && episodeRating > 10.0) {
+                    ratingEditText.error = context.getString(R.string.error_rating_exceeds_limit)
+                } else {
+                    val date = dateTextView.text.toString()
+                    val review = reviewEditText.text.toString()
+                    val adapterPosition = holder.bindingAdapterPosition
+                    val episode1 = episodes[adapterPosition]
+                    episode1.setWatchDate(date)
+                    episode1.setRating((episodeRating ?: 0.0).toFloat())
+                    episode1.setReview(review)
+                    try {
+                        MovieDatabaseHelper(context).use { movieDatabaseHelper ->
+                            movieDatabaseHelper.addOrUpdateEpisode(tvShowId, seasonNumber, episode1.episodeNumber, (episodeRating ?: 0.0).toFloat(), date, review)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                    notifyItemChanged(adapterPosition)
+                    dialog.dismiss()
                 }
-                notifyItemChanged(adapterPosition)
-                dialog.dismiss()
             }
             cancelButton.setOnClickListener { dialog.dismiss() }
         }
@@ -319,24 +307,13 @@ class EpisodeAdapter(
             submitButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
                     val ratingS = ratingBar.rating.toDouble()
-                    AddEpisodeRating(
-                        tvShowId,
-                        seasonNumber,
-                        episode.episodeNumber,
-                        ratingS,
-                        context
-                    ).addRating()
+                    AddEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, ratingS, context).addRating()
                     dialog.dismiss()
                 }
             }
             deleteButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
-                    DeleteEpisodeRating(
-                        tvShowId,
-                        seasonNumber,
-                        episode.episodeNumber,
-                        context
-                    ).deleteEpisodeRating()
+                    DeleteEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, context).deleteEpisodeRating()
                     dialog.dismiss()
                 }
             }
@@ -386,7 +363,7 @@ class EpisodeAdapter(
     }
 
     override fun getItemCount(): Int {
-        return episodes?.size ?: 0
+        return episodes.size
     }
 
     class EpisodeViewHolder(var binding: EpisodeItemBinding) : RecyclerView.ViewHolder(

@@ -22,11 +22,12 @@
     android:layout_width="match_parent"
     android:layout_height="200dp"
     android:orientation="vertical">
+
     <TextView
         android:id="@+id/crash_log_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
+        android:layout_height="200dp"
         android:ellipsize="end"
+        android:padding="16dp"
         android:textSize="14sp" />
 </LinearLayout>
