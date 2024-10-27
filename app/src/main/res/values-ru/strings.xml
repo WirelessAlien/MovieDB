@@ -303,4 +303,21 @@
     <string name="export">Экспорт</string>
     <string name="ok">Хорошо</string>
     <string name="save">Сохранить</string>
+    <string name="no_specials_available">Специалистов не имеется</string>
+    <string name="backup_frequency">Частота резервного копирования</string>
+    <string name="watching1">%1$d</string>
+    <string name="watched1">%1$d</string>
+    <string name="plan_to_watch1">%1$d</string>
+    <string name="on_hold1">%1$d</string>
+    <string name="dropped1">%1$d</string>
+    <string name="watch_summary">Смотреть</string>
+    <string name="share_link_using">Share link using</string>
+    <string name="episode_title">S:%1$d E:%2$d %3$s</string>
+    <string name="season_number">S: %1$d</string>
+    <string name="episode_number">E: %1$d</string>
+    <string name="review">Обзор</string>
+    <string name="rating1">Рейтинг</string>
+    <string name="specials">Специальные</string>
+    <string name="backup_fequency_error_text">Частота резервного копирования не может быть менее 15 минут</string>
+    <string name="error_rating_exceeds_limit">Пожалуйста, введите значение внутри 0.0–10.0</string>
 </resources>
