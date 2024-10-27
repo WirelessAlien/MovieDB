@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
@@ -18,48 +17,44 @@
   ~
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
-
+  --><resources>
     <!-- MainActivity -->
 
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Annuler</string>
-
     <!-- CastActivity (quotes are to enforce spaces) -->
-    <string name="place_of_birth">"Lieu de naissance : "</string>
-    <string name="birthday">"Date de naissance : "</string>
+    <string name="place_of_birth">"Lieu de naissance : "</string>
+    <string name="birthday">"Date de naissance : "</string>
     <string name="cast_movie_title">A joué dans</string>
-    <string name="crew_movie_title">Membre des équipes de</string>
-
+    <string name="crew_movie_title">Membre des équipes dans</string>
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Film ajouté</string>
     <string name="series_added">Série ajoutée</string>
     <string name="show_added_error">Erreur lors de l\'ajout à la base de donnée</string>
-    <string name="start_date">"Date de début : "</string>
-    <string name="start_date_unknown">La date de début n\'est pas encore indiquée.</string>
-    <string name="finish_date">"Date de fin : "</string>
-    <string name="finish_date_unknown">La date de fin n\'est pas encore indiquée.</string>
-    <string name="times_watched">"Nombre de visionnages : "</string>
-    <string name="episodes_seen">Épisodes vus : %1$d/%2$d</string>
-    <string name="rating">"Note : "</string>
-    <string name="change_start_date_2">"Date de début : "</string>
-    <string name="change_finish_date_2">"Date de fin : "</string>
-    <string name="change_watched_times">"Nombre de visionnages : "</string>
-    <string name="cast_title">Distribution</string>
-    <string name="crew_title">Équipe</string>
-    <string name="recommendations_title">Recommendations</string>
-    <string name="category_picker">Choisissez la catégorie appropriée</string>
-    <string name="show_category">"Catégorie : "</string>
 
+    <string name="episodes_seen">Épisodes vus : %1$d/%2$d</string>
+    <string name="start_date">"Date de début : "</string>
+    <string name="start_date_unknown">Date de début : Indéfinie</string>
+    <string name="finish_date">"Date de fin : "</string>
+    <string name="finish_date_unknown">Date de fin : Non définie</string>
+    <string name="times_watched">"Nombre de visionnages : "</string>
+    <string name="rating">"Note : "</string>
+    <string name="change_start_date_2">"Date de début : "</string>
+    <string name="change_finish_date_2">"Date de fin : "</string>
+    <string name="change_watched_times">"Nombre de visionnages : "</string>
+
+    <string name="cast_title">Distribution</string>
+    <string name="crew_title">Équipes</string>
+    <string name="recommendations_title">Recommandations</string>
+    <string name="category_picker">Choisissez la catégorie appropriée</string>
+    <string name="show_category">"Catégorie : "</string>
     <!-- FilterActivity -->
     <string name="sort_by">Trier par</string>
     <string name="default_sort">Par défaut</string>
     <string name="most_popular">Plus populaires</string>
-    <string name="best_rated">Meilleure note</string>
-    <string name="release_date">Date de publication</string>
+    <string name="best_rated">Mieux notés</string>
+    <string name="release_date">Date de sortie</string>
     <string name="alphabetic_order">Ordre alphabétique</string>
     <string name="categories">Catégories</string>
     <string name="watching">En cours</string>
@@ -70,50 +65,44 @@
     <string name="dates">Dates</string>
     <string name="in_the_theater_right_now">À l\'affiche</string>
     <string name="between_two_dates">Entre deux dates</string>
-    <string name="end_date">"Date de fin : "</string>
+    <string name="end_date">"Date de fin : "</string>
     <string name="genres">Genres</string>
     <string name="action_settings">Paramètres</string>
     <string name="advanced">Avancé</string>
     <string name="keyword_text">Vous pouvez exclure ou inclure des mots-clefs en indiquant leur ID dans le champ texte correspondant ci-dessous. On peut utiliser les opérateurs logiques ainsi :\n * Utilisez « , » (virgule) pour indiquer que vous voulez les deux mots-clefs.\n * Utilisez « | » (barre verticale) pour indiquer que l\'un comme l\'autre vous conviennent.</string>
     <string name="with_keywords_hint">Inclure les œuvres avec les mots-clefs…</string>
     <string name="without_keywords_hint">Exclure les œuvres avec les mots-clefs…</string>
-
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">FILMS</string>
     <string name="series_tab_title">SÉRIES</string>
     <string name="saved_tab_title">ENREGISTRÉES</string>
-
     <!-- MovieDatabaseHelper -->
-    <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
-    <string name="choose_export_file">Choisissez un format de fichier d\'export</string>
-    <string name="choose_file">Choisissez le fichier à importer :</string>
+    <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
+    <string name="choose_export_file">Choisissez un format de fichier d\'export :</string>
+    <string name="choose_file">Choisissez le fichier à importer :</string>
     <string name="import_cancel">Annuler</string>
-    <string name="file_not_found_exception">Le fichier est introuvable !</string>
-
+    <string name="file_not_found_exception">Le fichier est introuvable !</string>
     <!-- search_bar -->
     <string name="hint_search">Rechercher…</string>
-
     <!-- database_menu -->
     <string name="action_export">Exporter</string>
     <string name="action_import">Importer</string>
-
     <!-- options_menu -->
 
     <!-- save_menu -->
     <string name="action_save">Sauvegarder</string>
-
     <!-- Preferences -->
     <string name="title_general">Général</string>
     <string name="title_show_cast">Montrer la distribution</string>
-    <string name="title_show_crew">Montrer les membres</string>
-    <string name="title_show_recommendations">Show recommendations</string>
+    <string name="title_show_crew">Montrer les équipes</string>
+    <string name="title_show_recommendations">Montrer les recommandations</string>
     <string name="title_show_save_dialog">Montrer le dialogue de sauvegarde</string>
-    <string name="title_persistent_filtering">Persistent filter</string>
-    <string name="summary_persistent_filtering">Automatically filter shows when starting the application</string>
-    <string name="title_show_representation">Montrer la représentation</string>
+    <string name="title_persistent_filtering">Filtre persistent</string>
+    <string name="summary_persistent_filtering">Filtrer automatiquement les séries au démarrage de l\'application</string>
+    <string name="title_show_representation">Affichage des œuvres</string>
     <string name="title_shows_in_grid">Montrer les œuvres sur une grille</string>
     <string name="title_grid_size">Taille de la grille</string>
-    <string name="summary_grid_size">Quantité d\'élément par ligne</string>
+    <string name="summary_grid_size">Nombre d\'éléments par ligne</string>
     <string name="title_data_usage">Utilisation des données</string>
     <string name="title_live_search">Utiliser la recherche en direct</string>
     <string name="title_hide_tabs">Cacher les onglets</string>
@@ -121,17 +110,193 @@
     <string name="title_hide_movies_tab">Cacher l\'onglet « Films »</string>
     <string name="title_hide_series_tab">Cacher l\'onglet « Séries »</string>
     <string name="title_hide_saved_tab">Cacher l\'onglet « Enregistrées »</string>
-    <string name="title_api_language">API Language</string>
-    <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
-    <string name="text_tmdb_credits">Ce produit utilise l\'API TMDb mais n\'est pas reconnu ni certifié par TMDb.</string>
-
+    <string name="title_api_language">Langue de l\'API</string>
+    <string name="summary_api_language">Configurer la langue des données de l\'API (la langue du système sera utilisée si aucune valeur n\'est renseignée).</string>
+    <string name="text_tmdb_credits">Ce produit utilise l\'API TMDB mais n\'est pas reconnu ni certifié par TMDb.</string>
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Pas de connexion internet</string>
-
     <!-- Image content descriptions -->
-    <string name="collapse_icon_description">Collapses or expands the view</string>
-    <string name="image_description">Poster of the show</string>
-    <string name="person_image_description">Picture of the person</string>
-    <string name="movie_image_description">Image from the show</string>
-    <string name="edit_icon_description">Enables edit mode</string>
+    <string name="collapse_icon_description">Réduire ou déployer la vue</string>
+    <string name="image_description">Affiche de l\'œuvre</string>
+    <string name="person_image_description">Photo de la personne</string>
+    <string name="movie_image_description">Image tirée de l\'œuvre</string>
+    <string name="edit_icon_description">Active le mode édition</string>
+    <string name="file_picked_success">Fichier choisi avec succès</string>
+    <string name="login">Connexion</string>
+    <string name="description">Description</string>
+    <string name="list_name">Nom de la liste</string>
+    <string name="episodes">Episodes :</string>
+    <string name="delete">Supprimer</string>
+    <string name="create_list">Créer une liste</string>
+    <string name="previous_lists">Listes précédentes</string>
+    <string name="create_new_list">Créer une nouvelle liste</string>
+    <string name="enter_list_name">Entrer le nom de la liste</string>
+    <string name="login_successful">Connexion réussie</string>
+    <string name="experimental">Expérimental</string>
+    <string name="dynamic_color_preference_title">Couleur dynamique dans la page de détails</string>
+    <string name="share_link_button">Bouton du lien de partage</string>
+    <string name="database_import_successful">Importation de base de données réussie. Veuillez réouvrir l\'application.</string>
+    <string name="summary_notification_two">Vous serez averti pour les films sauvegardés quand ils sortent</string>
+    <string name="not_logged_in">Vous n\'êtes pas connecté</string>
+    <string name="logged_in">Vous êtes connecté</string>
+    <string name="other">Autres</string>
+    <string name="get_notified">Etre averti</string>
+    <string name="title">Titre</string>
+    <string name="sign_up">S\'inscrire</string>
+    <string name="logout">Se déconnecter</string>
+    <string name="user_name">Nom d\'utilisateur</string>
+    <string name="private_list">Privé</string>
+    <string name="watchlist">A regarder</string>
+    <string name="rate">Note</string>
+    <string name="favourite">Favoris</string>
+    <string name="overview">Aperçu général</string>
+    <string name="other_details">Autres détails</string>
+    <string name="country">Pays</string>
+    <string name="revenue">Budget / Revenu</string>
+    <string name="status">Statut</string>
+    <string name="add_rating">Ajouter la note</string>
+    <string name="add_to_favourite">Ajouter aux favoris</string>
+    <string name="notification_for_movie_released">Soyez averti quand un film sort.</string>
+    <string name="aired_episodes">Episodes diffusés</string>
+    <string name="notification_for_episode_air">Soyez averti quand un épisode est diffusé.</string>
+    <string name="not_rated">Non noté</string>
+    <string name="released_movies">Films sortis</string>
+    <string name="list_delete_success">Liste supprimée avec succès</string>
+    <string name="failed_to_delete_list">Suppression de la liste échouée</string>
+    <string name="added_to_watchlist">Ajouté à la liste de surveillance</string>
+    <string name="list_created_successfully">Liste créée avec succès</string>
+    <string name="failed_to_create_list">Création de la liste échouée</string>
+    <string name="removed_from_watchlist">Supprimer de la liste de surveillance</string>
+    <string name="episode_airing_today">Episode %1$s (%2$s) est diffusé aujourd\'hui !</string>
+    <string name="failed_to_add_rating">Failed to add rating.</string>
+    <string name="movie_released_today">%1$s est sorti aujourd\'hui !</string>
+    <string name="episodes_removed">Tous les épisodes ajoutés</string>
+    <string name="episodes_added">Tous les épisodes enlevés</string>
+    <string name="error_occurred_in_list_data">Failed to get lists data.</string>
+    <string name="lists_state_info_title">Listes Info</string>
+    <string name="load_hd_images">Load HD images</string>
+    <string name="error_adding_episode_to_database">Erreur ajoutant l\'épisode à la base de données</string>
+    <string name="login_is_required_to_use_tmdb_based_sync">Il est nécessaire d\'utiliser le sync basé sur TMDB.</string>
+    <string name="overview_not_available">L\'aperçu n\'est pas ajouté à l\'épisode, sera ajouté lorsque disponible.</string>
+    <string name="search_engine">Moteur de recherche</string>
+    <string name="search_engine_key_summary">Moteur de recherche à utiliser pour rechercher des films de l\'application (par défaut, Google)</string>
+    <string name="search_movie_show">Recherche Film, Série…</string>
+    <string name="invalid_url">URL invalide</string>
+    <string name="image_download_successful">Image téléchargée avec succès.</string>
+    <string name="failed_to_download_image">Failed to download image.</string>
+    <string name="error">"Erreur : "</string>
+    <string name="failed_to_create_directory">Failed to create Directory.</string>
+    <string name="now_playing">Maintenant</string>
+    <string name="airing_today">Airing Today</string>
+    <string name="upcoming">À venir</string>
+    <string name="pick_file">Pick File</string>
+    <string name="error_saving_file">Quelque chose s\'est mal passé. Fichier d\'erreur</string>
+    <string name="on_the_air">On the Air</string>
+    <string name="trending">Tendances</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="permission_required_image">Cette autorisation est nécessaire pour voir les images. Veuillez accorder la permission de Paramètres ou d\'App info.</string>
+    <string name="copy">Copie</string>
+    <string name="crash_log">Crash Log</string>
+    <string name="title_movies">Films</string>
+    <string name="title_series">Séries</string>
+    <string name="title_saved">Sauvegardés</string>
+    <string name="title_account">Compte</string>
+    <string name="title_people">Personnes</string>
+    <string name="lists">Listes</string>
+    <string name="dynamic_color_preference_summary">La couleur de la page de détails sera affichée dynamiquement en fonction de la couleur de l\'image du film ou de la distribution</string>
+    <string name="notification">Notification</string>
+    <string name="summary_notification_one">Cette préférence s\'applique uniquement aux films et aux séries. Pour les épisodes de séries, activez-les individuellement.</string>
+    <string name="get_notified_for_episode">Vous serez averti quand les épisodes de %1$s sortent</string>
+    <string name="error_reminder_episode">Erreur lors de l\'enregistrement du rappel pour %1$s</string>
+    <string name="removed_from_reminder">%1$s est retiré du rappel</string>
+    <string name="load_hd_image_summary">Les affiches de films, images d\'épisode, images de lancer seront chargées avec la résolution 780+.</string>
+    <string name="login_failed">Quelque chose s\'est mal passé, s\'il vous plaît vous connecter à nouveau</string>
+    <string name="home">HOME</string>
+    <string name="rating_tmdb">"Note (TMDb) : "</string>
+    <string name="get_notified_for_saved_movies">Etre averti pour les films sauvegardés</string>
+    <string name="add_to_list">Liste</string>
+    <string name="crash_log_copied">Journaux d\'erreur copiés dans le presse-papier</string>
+    <string name="permission_required">Permission requise</string>
+    <string name="permission_required_description">Cette autorisation est nécessaire pour montrer les notifications, ne vous inquiétez pas nous ne vous enverrons pas de notifications publicitaires.</string>
+    <string name="unknown">Inconnu</string>
+    <string name="no_description">Pas de description</string>
+    <string name="logged_out_successfully">Déconnecté avec succès</string>
+    <string name="rating_delete_success">Note supprimée avec succès</string>
+    <string name="delete_rating_fail">Suppression de la note échouée</string>
+    <string name="media_removed_from_list">Média supprimé de la liste</string>
+    <string name="failed_to_remove_media_from_list">Suppression du media échouée</string>
+    <string name="media_added_to_list">Média ajouté à la liste</string>
+    <string name="failed_to_add_media_to_list">Failed to add media to list</string>
+    <string name="added_to_favourites">Ajouté aux favoris</string>
+    <string name="removed_from_favourites">Supprimer des favoris</string>
+    <string name="rating_added_successfully">Note ajoutée avec succès.</string>
+    <string name="list_state_info">L\'API TMDB n\'a pas de méthode directe pour récupérer l\'état de disponibilité (c.-à-d. si un film est disponible ou non) pour toutes les listes en une seule demande. Par conséquent, nous devons vérifier individuellement chaque film sur chaque liste, ce qui est inefficace. Pour y remédier, nous gérons les états de la liste dans une base de données hors ligne après avoir récupéré les détails de TMDB. Lorsqu\'un utilisateur ajoute ou supprime un film dans une liste, cette action est enregistrée à la fois dans TMDB et dans notre base de données. Toutefois, si un utilisateur modifie ses listes à l’extérieur de l’application (p. ex. sur le site TMDB), l’application ne sera pas au courant de ces changements. Pour mettre à jour les données, les utilisateurs peuvent actualiser manuellement leurs listes en utilisant le bouton fourni.</string>
+    <string name="runtime_minutes">%1$d minutes</string>
+    <string name="rated">Évalué</string>
+    <string name="movie">Film</string>
+    <string name="tv_show">TV</string>
+    <string name="type">Type</string>
+    <string name="just_watch_attribution">Cette application utilise les données de JustWatch pour afficher l\'information \'Où regarder\'.</string>
+    <string name="share">Partager ShowCase</string>
+    <string name="donate">Donate</string>
+    <string name="attribution">Attribution</string>
+    <string name="about_movie_db">À propos</string>
+    <string name="image">IMAGE</string>
+    <string name="where_to_watch">OÙ ALLER ?</string>
+    <string name="trailer">TRAILER</string>
+    <string name="selected_directory">Sentier :</string>
+    <string name="export_info">L\'application permet l\'exportation de fichiers dans les formats \"db\", \"json\" et \"csv\". Veuillez toutefois noter que seul le format « db » est supporté pour les opérations d\'importation subséquentes.</string>
+    <string name="directory_path">Chemin : %1$s</string>
+    <string name="no_browser_available">Aucune application ne peut traiter cette demande. S\'il vous plaît installer un navigateur web.</string>
+    <string name="rate_movie">Note</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+    <string name="episode_rating_tmdb_not_set">Note (TMDb) : Non définie</string>
+    <string name="episode_rating_db_not_set">Note (Db) : Non définie</string>
+    <string name="watched_on">Attention :</string>
+    <string name="rating_db">Note :</string>
+    <string name="watched_on_not_set">Regardé sur : Non défini</string>
+    <string name="account_data_tab_title">COMPTE</string>
+    <string name="hide_the_account_tab">Cacher l\'onglet « Compte »</string>
+    <string name="loading_in_progress">Veuillez patienter, chargement en cours…</string>
+    <string name="save_to_database">Enregistrer dans la base de données</string>
+    <string name="choose_date">Date</string>
+    <string name="links">Liens</string>
+    <string name="reviews">"Examen : "</string>
+    <string name="no_reviews">Avis : Non ajouté</string>
+    <string name="default_media_type">Type de média par défaut</string>
+    <string name="show_shows_as_default_in_the_account_tab">Afficher \"Shows\" par défaut dans l\'onglet Compte</string>
+    <string name="remember_only_the_year">Ne te souviens pas de la date exacte !</string>
+    <string name="remember_the_full_date">Rappelez-vous la date complète !</string>
+    <string name="month">MONTH</string>
+    <string name="year">ANNÉE</string>
+    <string name="keywords">Mots-clés</string>
+    <string name="search">Recherche</string>
+    <string name="homepage">Homepage</string>
+    <string name="close">Fermer</string>
+    <string name="file_picked_fail">Failed to pick file</string>
+    <string name="action_account">Compte</string>
+    <string name="database_not_found">Base de données non disponible</string>
+    <string name="export_channel_name">Base de données Sauvegarde</string>
+    <string name="export_channel_description">Notification pour la sauvegarde automatisée de la base de données</string>
+    <string name="auto_backup_directory_selection">Sélectionnez Directory for Auto Backup</string>
+    <string name="backup_directory_selected">Annuaire de sauvegarde Sélectionné</string>
+    <string name="enable_auto_backup">Enable Auto Backup</string>
+    <string name="database_backup">Base de données Sauvegarde</string>
+    <string name="database_backup_successful">Sauvegarde de la base de données terminée avec succès.</string>
+    <string name="database_backup_failed">La sauvegarde de la base de données a échoué. Essayez d\'accéder à nouveau au répertoire.</string>
+    <string name="filter_people_list">Filtrer la liste</string>
+    <string name="import_movie_database">Import Movie Database</string>
+    <string name="import_people_database">Import People Database</string>
+    <string name="seasons">Saisons</string>
+    <string name="account_id_fail_try_login_again">Failed to retrieve account id. Essayez de vous connecter.</string>
+    <string name="select_year_and_month">Sélectionnez Année et mois</string>
+    <string name="no_trailer_available">Pas de remorque disponible</string>
+    <string name="select_a_date">Sélectionnez une date</string>
+    <string name="failed_to_retrieve_account_id">Failed to retrieve account id</string>
+    <string name="season">"Saison "</string>
+    <string name="cancel">Annuler</string>
+    <string name="export">Exporter</string>
+    <string name="ok">OK</string>
+    <string name="save">Sauvegarder</string>
 </resources>

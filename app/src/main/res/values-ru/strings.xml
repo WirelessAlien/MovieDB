@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
@@ -16,13 +17,10 @@
   ~
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
+  --><resources>
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">Хорошо</string>
     <string name="no_permission_dialog_cancel">Отмена</string>
-
     <!-- MainActivity -->
 
     <!-- CastActivity (quotes are to enforce the spaces) -->
@@ -30,7 +28,6 @@
     <string name="birthday">"Дата рождения: "</string>
     <string name="cast_movie_title">Играл в</string>
     <string name="crew_movie_title">Участвовал в создании</string>
-
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Фильм добавлен</string>
     <string name="series_added">Сериал добавлен</string>
@@ -57,7 +54,6 @@
         <item>@string/dropped</item>
     </string-array>
     <string name="show_category">"Категория: "</string>
-
     <!-- FilterActivity -->
     <string name="sort_by">Сортировать по</string>
     <string name="default_sort">Умолчанию</string>
@@ -80,31 +76,25 @@
     <string name="keyword_text">Вы можете фильтровать по ключевым словам, вводя их ID в соотвествующее поле. Логика следующая:\n * Разделяйте их запятой, чтобы использовать оба слова.\n * Разделяйте слова знаком | (или), если хотите использовать любое из них.</string>
     <string name="with_keywords_hint">Показывать фильмы с ключевыми словами…</string>
     <string name="without_keywords_hint">Не показывать фильмы с ключевыми словами…</string>
-
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">ФИЛЬМЫ</string>
     <string name="series_tab_title">СЕРИАЛЫ</string>
     <string name="saved_tab_title">СПИСКИ</string>
-
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Сохранен как: "</string>
     <string name="choose_export_file">Выберите формат экспорта:</string>
     <string name="choose_file">Выберите файл для импорта:</string>
     <string name="import_cancel">Отмена</string>
     <string name="file_not_found_exception">Файл не найден!</string>
-
     <!-- search_bar -->
     <string name="hint_search">Найти…</string>
-
     <!-- database_menu -->
     <string name="action_export">Экспорт</string>
     <string name="action_import">Импорт</string>
-
     <!-- options_menu -->
 
     <!-- save_menu -->
     <string name="action_save">Сохранить</string>
-
     <!-- Preferences -->
     <string name="title_general">Общие</string>
     <string name="title_show_cast">Показывать актеров</string>
@@ -126,17 +116,191 @@
     <string name="title_hide_saved_tab">Скрыть вкладку \'Списки\'</string>
     <string name="title_api_language">Язык API</string>
     <string name="summary_api_language">Выберите язык для полученных через API данных (по-умолчанию используется системная локаль).</string>
-    <string name="text_tmdb_credits">Данный продукт использует TMDb API, но не одобрен или не сертифицирован TMDb.</string>
-
+    <string name="text_tmdb_credits">Данный продукт использует TMDB API, но не одобрен или не сертифицирован TMDB.</string>
     <string name="action_settings">Настройки</string>
-
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Интернет-соединение отстутствует</string>
-
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Свернуть или развернуть</string>
     <string name="image_description">Постер фильма</string>
     <string name="person_image_description">Фотография звезды</string>
     <string name="movie_image_description">Кадр из фильма</string>
     <string name="edit_icon_description">Включить режим редактирования</string>
+    <string name="title_saved">Спасти</string>
+    <string name="title_movies">Фильмы</string>
+    <string name="title_series">Серия</string>
+    <string name="file_picked_success">Выбранный файл</string>
+    <string name="episodes">Эпизоды:</string>
+    <string name="delete">Подключение к {provider} выполнено успешно. Позволить службе использовать секреты в учетных данных.</string>
+    <string name="login">Войти</string>
+    <string name="lists">Список</string>
+    <string name="description">Описание</string>
+    <string name="experimental">Экспериментальный</string>
+    <string name="dynamic_color_preference_summary">Цвет страницы деталей будет показан динамически на основе цвета фильма или образа актера</string>
+    <string name="login_successful">Войти успешно</string>
+    <string name="dynamic_color_preference_title">Динамический цвет на странице в деталях</string>
+    <string name="share_link_button">Нажмите кнопку</string>
+    <string name="database_import_successful">Импорт базы данных успешно. Пожалуйста, откройте приложение.</string>
+    <string name="notification">Уведомление</string>
+    <string name="summary_notification_one">Это предпочтение относится только к фильмам и шоу. Для эпизодов шоу, включить их индивидуально.</string>
+    <string name="not_logged_in">Вы не вошли</string>
+    <string name="logged_in">Вы вошли</string>
+    <string name="other">Прочие</string>
+    <string name="get_notified">Получить уведомление</string>
+    <string name="title">Название</string>
+    <string name="sign_up">Зарегистрироваться</string>
+    <string name="logout">Выход</string>
+    <string name="watchlist">WatchList</string>
+    <string name="add_to_list">Список</string>
+    <string name="favourite">Любит</string>
+    <string name="rate">Уровень</string>
+    <string name="overview">Обзор</string>
+    <string name="other_details">Другие сведения</string>
+    <string name="status">Статус</string>
+    <string name="add_rating">Добавить рейтинг</string>
+    <string name="get_notified_for_episode">Вы будете уведомлены, когда эпизоды %1$s выпуска</string>
+    <string name="error_reminder_episode">%1$s</string>
+    <string name="removed_from_reminder">%1$s удаляется из напоминания</string>
+    <string name="aired_episodes">Эпизоды</string>
+    <string name="permission_required_description">Это разрешение необходимо для показа уведомлений, не волнуйтесь, мы не будем отправлять вам спам-уведомления.</string>
+    <string name="released_movies">Выпущенные фильмы</string>
+    <string name="notification_for_movie_released">Получите уведомление, когда фильм будет выпущен.</string>
+    <string name="notification_for_episode_air">Получите уведомление, когда будет показан эпизод.</string>
+    <string name="not_rated">Не сдается</string>
+    <string name="media_removed_from_list">СМИ удалены из списка</string>
+    <string name="list_delete_success">Список удален успешно</string>
+    <string name="failed_to_delete_list">Не удалось удалить список</string>
+    <string name="failed_to_add_rating">Не удалось добавить рейтинг.</string>
+    <string name="added_to_favourites">Добавлено к фаворитам</string>
+    <string name="removed_from_favourites">Удалено из фаворитов</string>
+    <string name="rating_added_successfully">Рейтинг успешно добавлен.</string>
+    <string name="lists_state_info_title">Информация</string>
+    <string name="load_hd_images">Загрузка HD изображений</string>
+    <string name="runtime_minutes">%1$d</string>
+    <string name="load_hd_image_summary">Фильмы, эпизодические изображения, бросковые изображения будут загружены разрешением 780+.</string>
+    <string name="rated">Количество</string>
+    <string name="movie">Фильм</string>
+    <string name="tv_show">ТВ-шоу</string>
+    <string name="share">Показывать</string>
+    <string name="just_watch_attribution">Это приложение использует данные JustWatch, чтобы показать «Где смотреть» информацию.</string>
+    <string name="donate">Донат</string>
+    <string name="attribution">Присвоение</string>
+    <string name="about_movie_db">О</string>
+    <string name="selected_directory">Путь:</string>
+    <string name="export_info">Приложение позволяет экспортировать файлы в форматах «db», «json» и «csv». Обратите внимание, однако, что для последующих импортных операций поддерживается только формат «db».</string>
+    <string name="directory_path">%1$s</string>
+    <string name="done">Дон</string>
+    <string name="episode_rating_tmdb_not_set">Рейтинг (TMDb): Не установлен</string>
+    <string name="episode_rating_db_not_set">Рейтинг (Db): Не установлен</string>
+    <string name="watched_on">Наблюдается:</string>
+    <string name="rate_movie">Уровень</string>
+    <string name="rating_db">Рейтинг (Db):</string>
+    <string name="watched_on_not_set">Смотреть: Не установлен</string>
+    <string name="account_data_tab_title">ACCOUNT</string>
+    <string name="hide_the_account_tab">Скрыть вкладку \"Счет\"</string>
+    <string name="choose_date">Выберите дату</string>
+    <string name="error_adding_episode_to_database">Ошибка добавления эпизода в базу данных</string>
+    <string name="login_is_required_to_use_tmdb_based_sync">Войти требуется для использования синхронизации на основе TMDB.</string>
+    <string name="failed_to_download_image">Не удалось загрузить изображение.</string>
+    <string name="month">МОН</string>
+    <string name="error">"Ошибка: "</string>
+    <string name="failed_to_create_directory">Не удалось создать Directory.</string>
+    <string name="keywords">Ключевые слова</string>
+    <string name="search">Поиск</string>
+    <string name="homepage">Главная страница</string>
+    <string name="pick_file">Выберите файл</string>
+    <string name="error_saving_file">Что-то не так. Ошибка сохранения файла</string>
+    <string name="close">Это поле требуется</string>
+    <string name="file_picked_fail">Не удалось выбрать файл</string>
+    <string name="action_account">Счет</string>
+    <string name="title_account">Счет</string>
+    <string name="title_people">Люди</string>
+    <string name="list_name">Имя списка</string>
+    <string name="no_description">No description</string>
+    <string name="logged_out_successfully">Журнал успешно</string>
+    <string name="rating_delete_success">Рейтинг удален успешно</string>
+    <string name="search_movie_show">Search Movie, Show..</string>
+    <string name="invalid_url">Неверный URL</string>
+    <string name="image_download_successful">Изображение успешно загружено.</string>
+    <string name="reviews">"Обзор: "</string>
+    <string name="seasons">Сезоны</string>
+    <string name="account_id_fail_try_login_again">Не удалось получить аккаунт id. Попробуй снова войти.</string>
+    <string name="select_year_and_month">Выбор года и месяца</string>
+    <string name="get_notified_for_saved_movies">Получить уведомление о спасенных фильмах</string>
+    <string name="crash_log_copied">Crash log скопирован в буфер обмена</string>
+    <string name="permission_required">Требуется разрешение</string>
+    <string name="list_state_info">TMDB API не имеет прямого метода извлечения состояния доступности (т.е., является ли фильм доступным или нет) для всех списков в одном запросе. Следовательно, мы должны по отдельности проверить каждый фильм против каждого списка, который является неэффективным. Чтобы решить эту проблему, мы управляем состояниями списка в автономной базе данных после получения деталей от TMDB. Когда пользователь добавляет или удаляет фильм из списка, это действие регистрируется как в TMDB, так и в нашей базе данных. Однако, если пользователь изменяет свои списки за пределами приложения (например, на сайте TMDB), приложение не будет знать об этих изменениях. Чтобы обновить данные, пользователи могут вручную обновить свои списки с помощью предоставленной кнопки.</string>
+    <string name="type">Тип</string>
+    <string name="no_browser_available">Никакое приложение не может обрабатывать этот запрос. Пожалуйста, установите веб-браузер.</string>
+    <string name="create_list">Создать список</string>
+    <string name="previous_lists">Предыдущие списки</string>
+    <string name="create_new_list">Создать новый список</string>
+    <string name="enter_list_name">Имя списка</string>
+    <string name="summary_notification_two">Вы получите уведомление о спасенных фильмах, когда вы будете освобождены</string>
+    <string name="user_name">Имя пользователя</string>
+    <string name="private_list">Частные</string>
+    <string name="country">Страна</string>
+    <string name="revenue">Бюджет / Поступления</string>
+    <string name="add_to_favourite">Добавить в любимый</string>
+    <string name="unknown">Неизвестный</string>
+    <string name="delete_rating_fail">Не удалось удалить рейтинг</string>
+    <string name="failed_to_remove_media_from_list">Не удалось удалить СМИ из списка</string>
+    <string name="list_created_successfully">Список создан успешно</string>
+    <string name="failed_to_create_list">Не удалось создать список</string>
+    <string name="added_to_watchlist">Добавлено в список</string>
+    <string name="removed_from_watchlist">Удалено из списка</string>
+    <string name="media_added_to_list">СМИ добавлены в список</string>
+    <string name="failed_to_add_media_to_list">Не удалось добавить медиа в список</string>
+    <string name="episode_airing_today">Эпизод %1$s (%2$s) выходит сегодня!</string>
+    <string name="movie_released_today">%1$s выходит сегодня!</string>
+    <string name="episodes_removed">Все эпизоды добавлены</string>
+    <string name="episodes_added">Все эпизоды удалены</string>
+    <string name="error_occurred_in_list_data">Не удалось получить данные списков.</string>
+    <string name="login_failed">Что-то пошло не так, пожалуйста, повторите</string>
+    <string name="image">IMAGE</string>
+    <string name="where_to_watch">ГДЕ ПОСМОТРЕТЬ?</string>
+    <string name="trailer">TRAILER</string>
+    <string name="loading_in_progress">Пожалуйста, подождите, загрузка идет..</string>
+    <string name="save_to_database">Сохранить базу данных</string>
+    <string name="overview_not_available">Обзор не добавляется к эпизоду, будет добавлен при наличии.</string>
+    <string name="search_engine">Поисковая система</string>
+    <string name="search_engine_key_summary">Поисковая система для поиска фильмов из приложения (по умолчанию это Google)</string>
+    <string name="home">ДОМ</string>
+    <string name="rating_tmdb">"Рейтинг (TMDb): "</string>
+    <string name="links">Ссылки</string>
+    <string name="no_reviews">Обзор: Не добавлен</string>
+    <string name="default_media_type">Тип по умолчанию</string>
+    <string name="show_shows_as_default_in_the_account_tab">Показывать \"Показать\" как по умолчанию в вкладке Пользователя</string>
+    <string name="remember_only_the_year">Не помните точную дату!</string>
+    <string name="remember_the_full_date">Помните полную дату!</string>
+    <string name="year">ГОД</string>
+    <string name="now_playing">Теперь игра</string>
+    <string name="airing_today">Воздух сегодня</string>
+    <string name="upcoming">Предстоящее</string>
+    <string name="on_the_air">On The Air</string>
+    <string name="trending">Торговля</string>
+    <string name="privacy_policy">Политика конфиденциальности</string>
+    <string name="permission_required_image">Это разрешение необходимо для просмотра изображений. Пожалуйста, предоставьте разрешение от Настройки или Информации Приложения.</string>
+    <string name="copy">Копировать</string>
+    <string name="crash_log">Краш Журнал</string>
+    <string name="database_not_found">База данных отсутствует</string>
+    <string name="export_channel_name">Резервирование базы данных</string>
+    <string name="export_channel_description">Уведомление об автоматизированной резервной базе данных</string>
+    <string name="auto_backup_directory_selection">Выберите каталог для автоматического резервного копирования</string>
+    <string name="backup_directory_selected">Выбранный каталог резервного копирования</string>
+    <string name="enable_auto_backup">Включить автоматическое резервирование</string>
+    <string name="database_backup">Резервирование базы данных</string>
+    <string name="database_backup_successful">Резервное копирование базы данных успешно завершено.</string>
+    <string name="database_backup_failed">Резервное копирование базы данных не удалось. Попробуйте снова предоставить доступ к каталогу.</string>
+    <string name="filter_people_list">Список пользователей фильтра</string>
+    <string name="import_movie_database">Импорт базы данных кино</string>
+    <string name="import_people_database">Импорт базы данных</string>
+    <string name="no_trailer_available">Трейлер отсутствует</string>
+    <string name="select_a_date">Выберите дату</string>
+    <string name="failed_to_retrieve_account_id">Не удалось получить аккаунт id</string>
+    <string name="season">"Сезон "</string>
+    <string name="cancel">Отмена</string>
+    <string name="export">Экспорт</string>
+    <string name="ok">Хорошо</string>
+    <string name="save">Сохранить</string>
 </resources>

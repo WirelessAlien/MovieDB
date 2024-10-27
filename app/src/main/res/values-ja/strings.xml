@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
@@ -17,13 +17,10 @@
   ~
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
+  --><resources>
     <!-- BaseAcitivty -->
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">キャンセル</string>
-
     <!-- MainActivity -->
 
     <!-- CastActivity (quotes are to enforce the spaces) -->
@@ -31,7 +28,6 @@
     <string name="birthday">"誕生日: "</string>
     <string name="cast_movie_title">Part of the cast in</string>
     <string name="crew_movie_title">Part of the crew in</string>
-
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Movie added</string>
     <string name="series_added">Series added</string>
@@ -58,7 +54,6 @@
         <item>@string/dropped</item>
     </string-array>
     <string name="show_category">"Category: "</string>
-
     <!-- FilterActivity -->
     <string name="sort_by">Sort By</string>
     <string name="default_sort">Default</string>
@@ -81,31 +76,25 @@
     <string name="keyword_text">You can exclude and include keywords by putting their IDs in the respective text box below. Logic can be applied as following:\n * Use , (comma) to indicate that you mean both keywords.\n * Use | (pipe) to indicate that you are fine with either one or the other.</string>
     <string name="with_keywords_hint">Include shows with the keywords…</string>
     <string name="without_keywords_hint">Exclude shows with the keywords…</string>
-
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">MOVIES</string>
     <string name="series_tab_title">SERIES</string>
     <string name="saved_tab_title">SAVED</string>
-
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Saved as: "</string>
     <string name="choose_export_file">Choose export file format:</string>
     <string name="choose_file">Choose which file to import:</string>
     <string name="import_cancel">Cancel</string>
     <string name="file_not_found_exception">The file cannot be found!</string>
-
     <!-- search_bar -->
     <string name="hint_search">検索…</string>
-
     <!-- database_menu -->
     <string name="action_export">Export</string>
     <string name="action_import">Import</string>
-
     <!-- options_menu -->
 
     <!-- save_menu -->
     <string name="action_save">Save</string>
-
     <!-- Preferences -->
     <string name="title_general">General</string>
     <string name="title_show_cast">Show cast</string>
@@ -128,16 +117,191 @@
     <string name="title_api_language">API Language</string>
     <string name="summary_api_language">Set the language of the API data (locale will be used if left empty).</string>
     <string name="text_tmdb_credits">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
-
     <string name="action_settings">設定</string>
-
     <!-- (General) Toasts -->
     <string name="no_internet_connection">There is no Internet connection</string>
-
     <!-- Image content descriptions -->
     <string name="collapse_icon_description">Collapses or expands the view</string>
     <string name="image_description">Poster of the show</string>
     <string name="person_image_description">Picture of the person</string>
     <string name="movie_image_description">Image from the show</string>
     <string name="edit_icon_description">Enables edit mode</string>
+    <string name="file_picked_success">正常にピックアップされたファイル</string>
+    <string name="login">ログイン</string>
+    <string name="experimental">実験実験</string>
+    <string name="create_new_list">新しいリストを作成する</string>
+    <string name="enter_list_name">リスト名を入力してください</string>
+    <string name="login_successful">ログイン成功</string>
+    <string name="share_link_button">共有リンクボタン</string>
+    <string name="logged_in">ログイン</string>
+    <string name="get_notified_for_saved_movies">保存された映画の通知を得る</string>
+    <string name="summary_notification_two">公開時に保存した映画に通知されます</string>
+    <string name="not_logged_in">ログインしていない</string>
+    <string name="other">その他</string>
+    <string name="get_notified">通知を受ける</string>
+    <string name="rate">レート</string>
+    <string name="overview">プロフィール</string>
+    <string name="favourite">お気に入り</string>
+    <string name="other_details">他の細部</string>
+    <string name="country">カントリー</string>
+    <string name="revenue">予算/収入</string>
+    <string name="rating_delete_success">正常に削除された評価</string>
+    <string name="delete_rating_fail">評価を削除する失敗</string>
+    <string name="list_delete_success">正常に削除されたリスト</string>
+    <string name="failed_to_delete_list">リストを削除できない</string>
+    <string name="media_removed_from_list">リストから削除されたメディア</string>
+    <string name="failed_to_remove_media_from_list">リストからメディアを削除できない</string>
+    <string name="failed_to_create_list">リストを作成する失敗</string>
+    <string name="added_to_watchlist">ウォッチリストに追加</string>
+    <string name="removed_from_watchlist">Watchlistから削除</string>
+    <string name="list_created_successfully">正常に作成されたリスト</string>
+    <string name="media_added_to_list">リストに追加されたメディア</string>
+    <string name="rating_added_successfully">評価は首尾よく加えました.</string>
+    <string name="failed_to_add_rating">評価を追加する失敗しました.</string>
+    <string name="failed_to_add_media_to_list">リストにメディアを追加する失敗</string>
+    <string name="added_to_favourites">お気に入りに追加</string>
+    <string name="removed_from_favourites">お気に入りから削除</string>
+    <string name="episode_airing_today">エピソード %1$s (%2$s) は、今日空飛ぶ!</string>
+    <string name="movie_released_today">【X0X】は本日発売!</string>
+    <string name="episodes_removed">すべてのエピソードを追加</string>
+    <string name="list_state_info">TMDB API は、単一のリクエストですべてのリストの可用性状態(つまり映画が利用可能であるか否か)を取得する直接的な方法が欠けています。 その結果、各ムービーを個別にチェックし、非効率性である必要があります。 これに対処するため、TMDBから詳細を取得した後、リストの状態をオフラインデータベースに管理します。 ユーザーがリストからムービーを追加または削除すると、このアクションはTMDBとデータベースの両方で記録されます。 ただし、ユーザーがアプリの外にリストを変更した場合(TMDBウェブサイトなど)、このアプリはこれらの変更を気付くことはありません。 データを更新するには、提供されたボタンを使用してリストを手動で更新できます.</string>
+    <string name="runtime_minutes">%1$d 分</string>
+    <string name="lists_state_info_title">リスト情報</string>
+    <string name="load_hd_images">HD画像をロードする</string>
+    <string name="load_hd_image_summary">映画ポスター、エピソード画像、キャスト画像は780以上の解像度で読み込まれます.</string>
+    <string name="share">シェアショーケース</string>
+    <string name="donate">寄付する</string>
+    <string name="attribution">アトリビューション</string>
+    <string name="image">インフォメーション</string>
+    <string name="where_to_watch">お問い合わせ?</string>
+    <string name="trailer">トレール</string>
+    <string name="about_movie_db">お問い合わせ</string>
+    <string name="just_watch_attribution">本アプリは「Where to watch」情報を表示するJustWatchデータを使用します.</string>
+    <string name="selected_directory">パス:</string>
+    <string name="export_info">アプリケーションは \"db\", \"json\" および \"csv\" 形式のファイルのエクスポートを可能にします。 ただし、その後のインポート操作では「db」形式のみがサポートされています.</string>
+    <string name="directory_path">パス: %1$s</string>
+    <string name="watched_on">注意:</string>
+    <string name="rating_db">評価(Db):</string>
+    <string name="episode_rating_tmdb_not_set">評価(TMDb): セットなし</string>
+    <string name="episode_rating_db_not_set">評価(Db): セット無し</string>
+    <string name="watched_on_not_set">観戦時: 未設定</string>
+    <string name="account_data_tab_title">アクセス</string>
+    <string name="links">サイトマップ</string>
+    <string name="error_adding_episode_to_database">データベースにエピソードを追加するエラー</string>
+    <string name="login_is_required_to_use_tmdb_based_sync">TMDBベースの同期を使用するにはログインが必要です.</string>
+    <string name="overview_not_available">エピソードに概要は追加されません.</string>
+    <string name="search_engine">検索エンジン</string>
+    <string name="search_engine_key_summary">アプリケーションからムービーを検索するための検索エンジン(デフォルトはGoogleです)</string>
+    <string name="home">トップページ</string>
+    <string name="rating_tmdb">"評価(TMDb): "</string>
+    <string name="search_movie_show">映画を検索します。, ショー..</string>
+    <string name="invalid_url">無効なURL</string>
+    <string name="image_download_successful">正常にダウンロードした画像.</string>
+    <string name="failed_to_download_image">画像のダウンロードに失敗しました.</string>
+    <string name="show_shows_as_default_in_the_account_tab">アカウントタブでデフォルトで「表示」を表示する</string>
+    <string name="remember_only_the_year">正確な日付を覚えていない!</string>
+    <string name="remember_the_full_date">満日を思い出してください!</string>
+    <string name="default_media_type">デフォルトのメディアタイプ</string>
+    <string name="month">月別アーカイブ</string>
+    <string name="year">年間行事</string>
+    <string name="airing_today">今日空飛ぶ</string>
+    <string name="upcoming">アップカム</string>
+    <string name="on_the_air">空気の上</string>
+    <string name="trending">トレンド</string>
+    <string name="error_saving_file">何かが間違っていた。 エラー保存ファイル</string>
+    <string name="now_playing">今すぐプレイ</string>
+    <string name="privacy_policy">プライバシーポリシー</string>
+    <string name="copy">コピー</string>
+    <string name="permission_required_image">画像を閲覧するには、この許可が必要です。 設定またはアプリ情報からの許可を付与してください.</string>
+    <string name="crash_log">クラッシュログ</string>
+    <string name="close">ふりがな</string>
+    <string name="file_picked_fail">ファイルを選ぶ失敗</string>
+    <string name="title_movies">映画</string>
+    <string name="title_series">シリーズ</string>
+    <string name="title_saved">保存済み</string>
+    <string name="title_account">パスワード</string>
+    <string name="description">コンテンツ</string>
+    <string name="list_name">リスト名</string>
+    <string name="create_list">リストの作成</string>
+    <string name="previous_lists">過去の一覧</string>
+    <string name="dynamic_color_preference_summary">映像やキャスト画像の色をもとに詳細ページの色を動的に表示します</string>
+    <string name="dynamic_color_preference_title">ダイナミックカラー詳細ページ</string>
+    <string name="database_import_successful">データベースのインポート成功. アプリをリニューアルしました.</string>
+    <string name="notification">お知らせ</string>
+    <string name="summary_notification_one">この設定は映画やショーのみに適用されます。 番組のエピソードは、個別に有効化します.</string>
+    <string name="title">タイトル</string>
+    <string name="private_list">プライベート</string>
+    <string name="watchlist">ウォッチリスト</string>
+    <string name="add_to_list">プロフィール</string>
+    <string name="status">ステータス</string>
+    <string name="add_to_favourite">お気に入りに追加</string>
+    <string name="add_rating">評価を追加</string>
+    <string name="get_notified_for_episode">%1$sリリースのエピソード時に通知されます</string>
+    <string name="error_reminder_episode">%1$s のエラー保存リマインダー</string>
+    <string name="removed_from_reminder">%1$s はリマインダーから削除されます</string>
+    <string name="crash_log_copied">クリップボードにコピーされたクラッシュログ</string>
+    <string name="permission_required">許可が必要</string>
+    <string name="edit">編集</string>
+    <string name="done">ログイン</string>
+    <string name="hide_the_account_tab">「アカウント」タブを非表示にする</string>
+    <string name="loading_in_progress">お待ち下さい</string>
+    <string name="seasons">季節限定</string>
+    <string name="account_id_fail_try_login_again">アカウント ID を取得できません。 もう一度ログインしてください.</string>
+    <string name="select_year_and_month">年と月を選択</string>
+    <string name="no_trailer_available">トレーラーなし</string>
+    <string name="select_a_date">日付を選択</string>
+    <string name="episodes_added">すべてのエピソードを削除</string>
+    <string name="error">"エラー: "</string>
+    <string name="action_account">パスワード</string>
+    <string name="title_people">スタッフ</string>
+    <string name="lists">リスト</string>
+    <string name="episodes">エピソード:</string>
+    <string name="delete">削除</string>
+    <string name="sign_up">サインアップ</string>
+    <string name="logout">ログイン</string>
+    <string name="user_name">ユーザー名</string>
+    <string name="permission_required_description">通知を表示するには、スパム通知を送信しない心配しないでください.</string>
+    <string name="released_movies">リリースムービー</string>
+    <string name="notification_for_movie_released">映画の公開時に通知します.</string>
+    <string name="aired_episodes">エアエピソード</string>
+    <string name="notification_for_episode_air">エピソードが空になったときに通知します.</string>
+    <string name="not_rated">評価されない</string>
+    <string name="unknown">未知の</string>
+    <string name="no_description">説明なし</string>
+    <string name="logged_out_successfully">うまくログアウト</string>
+    <string name="error_occurred_in_list_data">リストデータを取得できません.</string>
+    <string name="login_failed">何かが間違っていたら、もう一度ログインしてください</string>
+    <string name="rated">評価される</string>
+    <string name="movie">ムービー</string>
+    <string name="tv_show">テレビショー</string>
+    <string name="type">タイプ:</string>
+    <string name="no_browser_available">リクエストを処理できません。 Webブラウザをインストールしてください.</string>
+    <string name="rate_movie">レート</string>
+    <string name="save_to_database">データベースに保存</string>
+    <string name="choose_date">日付を選択してください</string>
+    <string name="failed_to_create_directory">ディレクトリを作成することができません.</string>
+    <string name="reviews">"レビュー: "</string>
+    <string name="no_reviews">レビュー: 未追加</string>
+    <string name="keywords">キーワード</string>
+    <string name="search">インフォメーション</string>
+    <string name="homepage">サイトマップ</string>
+    <string name="pick_file">ファイルの選択</string>
+    <string name="database_not_found">データベースは利用できません</string>
+    <string name="export_channel_name">データベースのバックアップ</string>
+    <string name="export_channel_description">自動データベースバックアップ通知</string>
+    <string name="auto_backup_directory_selection">自動バックアップのディレクトリを選択します</string>
+    <string name="backup_directory_selected">バックアップディレクトリ選択</string>
+    <string name="enable_auto_backup">自動バックアップを有効にする</string>
+    <string name="database_backup">データベースのバックアップ</string>
+    <string name="database_backup_successful">データベースのバックアップが正常に完了しました.</string>
+    <string name="database_backup_failed">データベースのバックアップが失敗しました。 ディレクトリに再度アクセスしてください.</string>
+    <string name="filter_people_list">フィルタの人々 リスト</string>
+    <string name="import_movie_database">インポートムービーデータベース</string>
+    <string name="import_people_database">インポート ピープル データベース</string>
+    <string name="failed_to_retrieve_account_id">アカウント ID の取得失敗</string>
+    <string name="season">"シーズン "</string>
+    <string name="export">Export</string>
+    <string name="cancel">キャンセル</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
 </resources>
