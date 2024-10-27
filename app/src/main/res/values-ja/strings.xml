@@ -304,4 +304,21 @@
     <string name="cancel">キャンセル</string>
     <string name="ok">OK</string>
     <string name="save">Save</string>
+    <string name="watching1">視聴: %1$d</string>
+    <string name="watched1">監視: %1$d</string>
+    <string name="plan_to_watch1">観る予定: %1$d</string>
+    <string name="on_hold1">ホールド: %1$d</string>
+    <string name="dropped1">ドロップ: %1$d</string>
+    <string name="watch_summary">概要を見る</string>
+    <string name="share_link_using">共有リンクの利用</string>
+    <string name="episode_title">S:%1$d E:%2$d %3$s</string>
+    <string name="season_number">S: %1$d</string>
+    <string name="episode_number">E: %1$d</string>
+    <string name="review">レビュー</string>
+    <string name="rating1">評価</string>
+    <string name="specials">スペシャル</string>
+    <string name="no_specials_available">スペシャル無し</string>
+    <string name="backup_fequency_error_text">バックアップ頻度は15分以内にすることはできません</string>
+    <string name="backup_frequency">バックアップ頻度</string>
+    <string name="error_rating_exceeds_limit">値を入力してください 0.0～10.0</string>
 </resources>
