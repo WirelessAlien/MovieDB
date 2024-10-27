@@ -157,7 +157,12 @@ class ExportActivity : AppCompatActivity() {
             }
         }
 
-        val backupFrequency = preferences.getInt("backup_frequency", 15)
+        // Check if backup frequency is set, if not set it to default 1440 minutes
+        if (!preferences.contains("backup_frequency")) {
+            preferences.edit().putInt("backup_frequency", 1440).commit()
+        }
+
+        val backupFrequency = preferences.getInt("backup_frequency", 1440)
         val timeUnitString = convertMinutesToLargestUnit(backupFrequency)
         binding.backupFrequencyET.setText(timeUnitString)
 
