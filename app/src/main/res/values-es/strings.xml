@@ -212,7 +212,7 @@
     <string name="overview_not_available">No se ha añadido resumen al episodio. Se añadirá cuando esté disponible.</string>
     <string name="search_engine">Motor de búsqueda</string>
     <string name="search_engine_key_summary">Se utiliza el motor de búsqueda para buscar películas desde la aplicación (Google por defecto)</string>
-    <string name="home">INICIO</string>
+    <string name="home">Home</string>
     <string name="rating_tmdb">"Valoracion (TMDB): "</string>
     <string name="links">Enlaces</string>
     <string name="search_movie_show">Buscar película y/o programa…</string>
