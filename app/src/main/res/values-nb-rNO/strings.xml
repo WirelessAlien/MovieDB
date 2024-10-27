@@ -45,4 +45,5 @@
     <string name="save">Lagre</string>
     <string name="search">Søk …</string>
     <string name="action_account">Konto</string>
+    <string name="account_data_tab_title">Konto</string>
 </resources>
