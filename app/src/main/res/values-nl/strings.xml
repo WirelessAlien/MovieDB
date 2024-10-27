@@ -304,4 +304,21 @@
     <string name="ok">OK</string>
     <string name="export">Exporteren</string>
     <string name="save">Opslaan</string>
+    <string name="watching1">Kijken:</string>
+    <string name="watched1">Kijkde:</string>
+    <string name="plan_to_watch1">Plan om te kijken:</string>
+    <string name="on_hold1">Op Hold:</string>
+    <string name="dropped1">Gevallen:</string>
+    <string name="watch_summary">Let op Summary</string>
+    <string name="share_link_using">De Share link met</string>
+    <string name="episode_title">_</string>
+    <string name="season_number">S:</string>
+    <string name="episode_number">E:</string>
+    <string name="review">Review</string>
+    <string name="rating1">Rating</string>
+    <string name="specials">Speciaal</string>
+    <string name="no_specials_available">Geen specialiteiten beschikbaar</string>
+    <string name="backup_fequency_error_text">Versterkingsfrequentie is niet minder dan 15 minuten</string>
+    <string name="backup_frequency">Versterking Frequency</string>
+    <string name="error_rating_exceeds_limit">Kom binnen. 0.0 -10</string>
 </resources>
