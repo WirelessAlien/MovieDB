@@ -28,7 +28,7 @@
     <string name="times_watched">"Veces visto: "</string>
     <string name="rating">"Valoración: "</string>
     <string name="change_start_date_2">"Fecha de inicio: "</string>
-    <string name="change_watched_times">"Veces visto: "</string>
+    <string name="change_watched_times">"Número de visionados:: "</string>
     <string name="cast_title">Reparto</string>
     <string name="crew_title">Equipo</string>
     <string name="category_picker">Seleccionar la categoría apropiada</string>
