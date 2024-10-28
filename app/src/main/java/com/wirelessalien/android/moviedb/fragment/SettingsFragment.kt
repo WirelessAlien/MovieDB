@@ -90,11 +90,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        view.fitsSystemWindows = true
-    }
-
     override fun onDisplayPreferenceDialog(preference: Preference) {
         // Check if the preference is a NumberPickerPreference
         if (preference is NumberPickerPreference) {

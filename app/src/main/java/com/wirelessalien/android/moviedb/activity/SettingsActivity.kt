@@ -19,22 +19,30 @@
  */
 package com.wirelessalien.android.moviedb.activity
 
-import android.R
+
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.MaterialToolbar
+import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.fragment.SettingsFragment
 
 class SettingsActivity : AppCompatActivity() {
     var mTabsPreferenceChanged = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings)
+
+        // Set up the toolbar
+        val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
+        toolbar.title = getString(R.string.action_settings)
+        setSupportActionBar(toolbar)
 
         // Display the fragment as the main content.
         supportFragmentManager.beginTransaction()
-            .replace(R.id.content, SettingsFragment())
+            .replace(R.id.fragmentCntainer, SettingsFragment())
             .commit()
 
         // Add back button to the activity
@@ -53,7 +61,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.home) {
+        if (item.itemId == android.R.id.home) {
             finishActivity()
             return true
         }

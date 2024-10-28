@@ -31,7 +31,6 @@ import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ProgressBar
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
@@ -536,9 +535,9 @@ class HomeFragment : BaseFragment() {
 
     private fun searchAsync(query: String) {
         val progressBar = Optional.ofNullable(
-            searchView.findViewById<ProgressBar>(R.id.search_progress_bar)
+            searchView.findViewById<CircularProgressIndicator>(R.id.search_progress_bar)
         )
-        progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
+        progressBar.ifPresent { bar: CircularProgressIndicator -> bar.visibility = View.VISIBLE }
         lifecycleScope.launch {
             val response = withContext(Dispatchers.IO) { doInBackground(query) }
             if (response != null) {
@@ -596,15 +595,15 @@ class HomeFragment : BaseFragment() {
         if (isAdded) {
             val progressBar =
                 Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
-            progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
+            progressBar.ifPresent { bar: CircularProgressIndicator -> bar.visibility = View.GONE }
         }
     }
 
     private fun hideSearchProgressBar() {
         val progressBar = Optional.ofNullable(
-            searchView.findViewById<ProgressBar>(R.id.search_progress_bar)
+            searchView.findViewById<CircularProgressIndicator>(R.id.search_progress_bar)
         )
-        progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
+        progressBar.ifPresent { bar: CircularProgressIndicator -> bar.visibility = View.GONE }
     }
 
     companion object {

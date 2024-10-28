@@ -734,11 +734,19 @@ class DetailActivity : BaseActivity() {
 
         binding.fabSave.setOnClickListener {
             if (added) {
+
                 // Remove the show from the database.
                 database.delete(
                     MovieDatabaseHelper.TABLE_MOVIES,
                     MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
                 )
+
+                // Remove all episodes related to the show from the database.
+                database.delete(
+                    MovieDatabaseHelper.TABLE_EPISODES,
+                    MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
+                )
+
                 added = false
                 binding.fabSave.setImageResource(R.drawable.ic_star_border)
                 databaseUpdate()
