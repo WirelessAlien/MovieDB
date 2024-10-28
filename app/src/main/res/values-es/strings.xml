@@ -83,7 +83,7 @@
     <string name="title_hide_saved_tab">Ocultar la pestaña \'Guardado\'</string>
     <string name="title_api_language">Idioma de API</string>
     <string name="summary_api_language">Establece el idioma de los datos de la API (de lo contrario, el valor predeterminado es el idioma del sistema).</string>
-    <string name="text_tmdb_credits">Este producto utiliza la API de TMDB pero no está avalado o certificado por TMDB.</string>
+    <string name="text_tmdb_credits">Este producto utiliza la API de TMDB pero no está avalado o certificado por TMDB</string>
     <string name="action_settings">Ajustes</string>
     <string name="no_internet_connection">No hay conexión a Internet</string>
     <string name="title_series">Series</string>
@@ -117,7 +117,7 @@
     <string name="notification">Notificación</string>
     <string name="summary_notification_one">Esta preferencia solo se aplica a películas y programas. Para los episodios de programas, actívelos individualmente.</string>
     <string name="get_notified_for_saved_movies">Recibe notificaciones para las películas guardadas</string>
-    <string name="summary_notification_two">Recibirás una notificación cuando se estrenen las películas guardadas</string>
+    <string name="summary_notification_two">Recibirás una notificación cuando se estrenen las películas guardadas.</string>
     <string name="not_logged_in">No has iniciado sesión</string>
     <string name="logged_in">Has iniciado sesión</string>
     <string name="other">Otros</string>
@@ -219,7 +219,7 @@
     <string name="image_download_successful">Imagen descargada</string>
     <string name="failed_to_download_image">Error al descargar la imagen</string>
     <string name="error">"Error: "</string>
-    <string name="failed_to_create_directory">No se pudo crear la carpeta.</string>
+    <string name="failed_to_create_directory">No se pudo crear la carpeta</string>
     <string name="reviews">"Reseña: "</string>
     <string name="no_reviews">Reseña: no añadida</string>
     <string name="default_media_type">Tipo de medio predeterminado</string>
@@ -232,7 +232,7 @@
     <string name="search">Buscar</string>
     <string name="homepage">Página principal</string>
     <string name="pick_file">Seleccionar archivo</string>
-    <string name="error_saving_file">Se produjo un error. No se pudo guardar el archivo</string>
+    <string name="error_saving_file">Se produjo un error. No se pudo guardar el archivo.</string>
     <string name="now_playing">Reproduciendo</string>
     <string name="airing_today">Se emite hoy</string>
     <string name="upcoming">Próximamente</string>
