@@ -202,7 +202,7 @@
     <string name="watched_on">Visto en:</string>
     <string name="rating_db">Valoración (DB):</string>
     <string name="watched_on_not_set">Visto en: sin establecer</string>
-    <string name="account_data_tab_title">CUENTA</string>
+    <string name="account_data_tab_title">Cuenta</string>
     <string name="hide_the_account_tab">Ocultar la pestaña \'Cuenta\'</string>
     <string name="loading_in_progress">Cargando, por favor espere…</string>
     <string name="save_to_database">Guardar en la base de datos</string>
