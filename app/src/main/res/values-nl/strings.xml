@@ -256,7 +256,6 @@
     <string name="removed_from_favourites">Verwijderd van favorieten</string>
     <string name="rating_added_successfully">Rating toegevoegd.</string>
     <string name="failed_to_add_rating">Gefaald om rating toe te voegen.</string>
-    <string name="runtime_minutes">_</string>
     <string name="rated">Verkrachting</string>
     <string name="tv_show">TV</string>
     <string name="type">Type</string>
@@ -268,7 +267,7 @@
     <string name="trailer">VERTALING:</string>
     <string name="selected_directory">Path:</string>
     <string name="export_info">De aanvraag is toegestaan voor de exportatie van bestanden in \"db\", \"Json\" en \"csv\" formats. Let op, dat alleen de \"db\" formaat wordt ondersteund voor ondervolgende importoperaties.</string>
-    <string name="directory_path">Path:</string>
+    <string name="directory_path">Path: %1$s</string>
     <string name="no_browser_available">Geen aanvraag kan dit verzoek aan. installeer alsjeblieft een web browser.</string>
     <string name="rate_movie">Vertaling:</string>
     <string name="edit">Ed</string>
