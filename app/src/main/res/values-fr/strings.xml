@@ -32,7 +32,6 @@
     <string name="movie_added">Film ajouté</string>
     <string name="series_added">Série ajoutée</string>
     <string name="show_added_error">Erreur lors de l\'ajout à la base de donnée</string>
-
     <string name="episodes_seen">Épisodes vus : %1$d/%2$d</string>
     <string name="start_date">"Date de début : "</string>
     <string name="start_date_unknown">Date de début : Indéfinie</string>
@@ -43,7 +42,6 @@
     <string name="change_start_date_2">"Date de début : "</string>
     <string name="change_finish_date_2">"Date de fin : "</string>
     <string name="change_watched_times">"Nombre de visionnages : "</string>
-
     <string name="cast_title">Distribution</string>
     <string name="crew_title">Équipes</string>
     <string name="recommendations_title">Recommandations</string>
@@ -299,4 +297,21 @@
     <string name="export">Exporter</string>
     <string name="ok">OK</string>
     <string name="save">Sauvegarder</string>
+    <string name="watching1">Observation : %1$d</string>
+    <string name="watched1">Attention : %1$d</string>
+    <string name="plan_to_watch1">Plan de surveillance: %1$d</string>
+    <string name="on_hold1">En attente : %1$d</string>
+    <string name="dropped1">Classé : %1$d</string>
+    <string name="watch_summary">Regarde résumé</string>
+    <string name="share_link_using">Partager le lien en utilisant</string>
+    <string name="episode_title">S:%1$d E:%2$d %3$s</string>
+    <string name="season_number">S: %1$d</string>
+    <string name="episode_number">E: %1$d</string>
+    <string name="review">Examen</string>
+    <string name="rating1">Note</string>
+    <string name="specials">Spécialités</string>
+    <string name="no_specials_available">Pas de spécial disponible</string>
+    <string name="backup_fequency_error_text">La fréquence de sauvegarde ne peut pas être inférieure à 15 minutes</string>
+    <string name="backup_frequency">Fréquence de sauvegarde</string>
+    <string name="error_rating_exceeds_limit">Veuillez saisir une valeur à l\'intérieur 0,0–10,0</string>
 </resources>
