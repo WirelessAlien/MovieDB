@@ -224,7 +224,7 @@
     <string name="no_reviews">Reseña: no añadida</string>
     <string name="default_media_type">Tipo de medio predeterminado</string>
     <string name="show_shows_as_default_in_the_account_tab">Mostrar \"Espectáculos\" como predeterminada en la pestaña \'Cuenta\'</string>
-    <string name="remember_only_the_year">No recordar la fecha exacta</string>
+    <string name="remember_only_the_year">No recuerdo la fecha exacta</string>
     <string name="remember_the_full_date">Recordar la fecha completa</string>
     <string name="month">Mes</string>
     <string name="year">Año</string>
