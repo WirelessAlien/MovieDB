@@ -24,10 +24,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.util.Log
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -37,15 +40,29 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
+
 class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
+
     private lateinit var context: Context
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            if (data!!.data != null) {
-                val archiveFileUri = data.data
-                Toast.makeText(this, getString(R.string.file_picked_success), Toast.LENGTH_SHORT)
-                    .show()
+    private lateinit var pickFileLauncher: ActivityResultLauncher<Intent>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_import)
+
+        CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
+
+        context = this
+        val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
+        toolbar.title = getString(R.string.action_import)
+        setSupportActionBar(toolbar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar!!.setHomeButtonEnabled(true)
+
+        pickFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                val archiveFileUri = result.data!!.data
+                Toast.makeText(this, getString(R.string.file_picked_success), Toast.LENGTH_SHORT).show()
                 try {
                     val inputStream = contentResolver.openInputStream(archiveFileUri!!)
                     val cacheFile = File(cacheDir, getArchiveFileName(archiveFileUri))
@@ -55,59 +72,24 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
                     while (inputStream!!.read(buffer).also { length = it } > 0) {
                         fileOutputStream.write(buffer, 0, length)
                     }
-                    Log.d("CacheFile", cacheFile.absolutePath)
                     fileOutputStream.close()
                     inputStream.close()
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
-
-
-                // Display the file name from the intent
-//                String fileName = getArchiveFileName(archiveFileUri);
-//                String selectedFileText = getString(R.string.selected_file_text, fileName);
-//                fileNameTextView.setText(selectedFileText);
-//                fileNameTextView.setSelected(true);
             } else {
                 Toast.makeText(this, getString(R.string.file_picked_fail), Toast.LENGTH_SHORT).show()
             }
         }
-    }
 
-    private fun getArchiveFileName(uri: Uri?): String? {
-        var result: String? = null
-        if (uri!!.scheme == "content") {
-            contentResolver.query(uri, null, null, null, null).use { cursor ->
-                if (cursor != null && cursor.moveToFirst()) {
-                    result =
-                        cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
-                }
-            }
-        }
-        if (result == null) {
-            result = uri.path
-            val cut = result!!.lastIndexOf('/')
-            if (cut != -1) {
-                result = result!!.substring(cut + 1)
-            }
-        }
-        return result
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_import)
-
-        CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
-
-        context = this
         val pickFileButton = findViewById<Button>(R.id.pick_file_button)
         pickFileButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.addCategory(Intent.CATEGORY_OPENABLE)
-            intent.setType("*/*")
-            startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
+            intent.type = "*/*"
+            pickFileLauncher.launch(intent)
         }
+
         val importMovieDbButton = findViewById<Button>(R.id.import_movie_db_button)
         importMovieDbButton.setOnClickListener {
             val databaseHelper = MovieDatabaseHelper(applicationContext)
@@ -121,11 +103,34 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
         }
     }
 
-    override fun onAdapterDataChangedListener() {
-        // Do nothing
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
-    companion object {
-        private const val PICK_FILE_REQUEST_CODE = 1
+    private fun getArchiveFileName(uri: Uri?): String? {
+        var result: String? = null
+        if (uri!!.scheme == "content") {
+            contentResolver.query(uri, null, null, null, null).use { cursor ->
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                }
+            }
+        }
+        if (result == null) {
+            val path = uri.path
+            val cut = path!!.lastIndexOf('/')
+            if (cut != -1) {
+                result = path.substring(cut + 1)
+            }
+        }
+        return result
+    }
+
+    override fun onAdapterDataChangedListener() {
+        // Do nothing
     }
 }

@@ -99,14 +99,13 @@
 
             </RelativeLayout>
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/firstDivider"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="3dp"
                 android:layout_below="@id/actorDetails"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginRight="16dp"/>
 
             <TextView
                 android:id="@+id/actorBiography"
@@ -125,19 +124,17 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:textStyle="bold"
-                android:alpha="0.8"
-                android:textAllCaps="true"
+                android:layout_marginBottom="3dp"
                 android:text="@string/cast_movie_title"
                 android:textSize="16sp" />
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/secondDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/castMovieTitle"
                 android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginRight="16dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/castMovieRecyclerView"
@@ -155,15 +152,14 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:textStyle="bold"
-                android:alpha="0.8"
-                android:textAllCaps="true"
+                android:layout_marginBottom="3dp"
                 android:text="@string/crew_movie_title"
                 android:textSize="16sp" />
 
-            <View
+            <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/thirdDivider"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="2dp"
                 android:layout_below="@id/crewMovieTitle"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"

@@ -57,11 +57,15 @@
             android:padding="2dip"
             android:scrollbars="none" />
 
-        <ProgressBar
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/search_progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            app:waveAmplitude="10dp"
+            app:wavelength="32dp"
+            app:waveSpeed="0dp"
+            android:indeterminate="true"
             android:visibility="gone" />
     </com.google.android.material.search.SearchView>
 

@@ -107,6 +107,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="22sp"
                         android:textStyle="bold" />
+
                     <TextView
                         android:id="@+id/tagline"
                         android:layout_width="wrap_content"
@@ -258,6 +259,7 @@
                                 android:layout_gravity="fill"
                                 android:hint="@string/rating"
                                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
                                 <com.google.android.material.textfield.TextInputEditText
                                     android:id="@+id/showRating"
                                     android:layout_width="match_parent"
@@ -267,6 +269,7 @@
                                     android:text="@string/show_rating_default" />
                             </com.google.android.material.textfield.TextInputLayout>
                         </GridLayout>
+
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -308,6 +311,7 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:layout_marginBottom="10dp"/>
+
             <RelativeLayout
                 android:id="@+id/movieDetailsRl"
                 android:layout_width="match_parent"
@@ -433,6 +437,7 @@
                         app:iconGravity="textTop"
                         style="@style/Widget.Material3.Button.IconButton"
                         app:icon="@drawable/ic_bookmark" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/addToList"
                         android:layout_width="wrap_content"
@@ -442,6 +447,7 @@
                         style="@style/Widget.Material3.Button.IconButton"
                         android:text="@string/add_to_list"
                         android:contentDescription="@string/add_to_list" />
+
                     <com.google.android.material.button.MaterialButton
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -472,9 +478,8 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
-                android:alpha="0.8"
-                android:textAllCaps="true"
                 android:text="@string/overview"
+                android:layout_marginBottom="3dp"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -485,6 +490,7 @@
                 android:layout_below="@id/overviewTitle"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"/>
+
             <TextView
                 android:id="@+id/movieDescription"
                 android:layout_width="match_parent"
@@ -509,6 +515,7 @@
                     app:cornerRadius="5dp"
                     style="@style/Widget.Material3.Button.IconButton"
                     android:text="@string/image"/>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/watchProvider"
                     android:layout_width="wrap_content"
@@ -519,6 +526,7 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_toEndOf="@id/trailer"
                     android:text="@string/where_to_watch"/>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/trailer"
                     android:layout_width="wrap_content"
@@ -528,6 +536,7 @@
                     android:layout_toEndOf="@id/moreImageBtn"
                     android:text="@string/trailer"/>
             </RelativeLayout>
+
             <RelativeLayout
                 android:id="@+id/episodeRL"
                 android:layout_width="match_parent"
@@ -543,7 +552,7 @@
                     android:layout_marginEnd="16dp"
                     android:layout_centerVertical="true"
                     android:text="@string/episodes"
-                    android:textSize="20sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/allEpisodeBtn"
@@ -570,8 +579,7 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/cast_title"
-                android:alpha="0.8"
-                android:textAllCaps="true"
+                android:layout_marginBottom="3dp"
                 android:textStyle="bold"
                 android:textSize="16sp" />
 
@@ -598,10 +606,8 @@
                 android:layout_below="@id/castRecyclerView"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:alpha="0.8"
                 android:text="@string/crew_title"
                 android:textSize="16sp"
-                android:textAllCaps="true"
                 android:textStyle="bold" />
 
             <com.google.android.material.divider.MaterialDivider
@@ -629,10 +635,10 @@
                 android:paddingTop="16dp"
                 android:paddingStart="16dp"
                 android:textStyle="bold"
-                android:alpha="0.8"
-                android:textAllCaps="true"
+                android:layout_marginBottom="3dp"
                 android:text="@string/recommendations_title"
                 android:textSize="16sp" />
+
             <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/seventhDivider"
                 android:layout_width="match_parent"
@@ -640,6 +646,7 @@
                 android:layout_below="@id/similarMovieTitle"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"/>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/movieRecyclerView"
                 android:layout_width="match_parent"
@@ -647,6 +654,7 @@
                 android:paddingStart="6dp"
                 android:layout_below="@id/seventhDivider"
                 android:scrollbars="none" />
+
             <TextView
                 android:id="@+id/linkLTitle"
                 android:layout_width="wrap_content"
@@ -655,11 +663,11 @@
                 android:layout_marginEnd="16dp"
                 android:paddingTop="16dp"
                 android:paddingStart="16dp"
+                android:layout_marginBottom="3dp"
                 android:textStyle="bold"
-                android:alpha="0.8"
-                android:textAllCaps="true"
                 android:text="@string/links"
                 android:textSize="16sp" />
+
             <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/linkRlDivider1"
                 android:layout_width="match_parent"
@@ -685,6 +693,7 @@
                     android:text="@string/search"
                     app:iconGravity="top"
                     style="@style/Widget.Material3.Button.IconButton"/>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/imdbBtn"
                     android:layout_width="wrap_content"
@@ -694,6 +703,7 @@
                     android:text="Imdb"
                     app:icon="@drawable/ic_open_in_new"
                     style="@style/Widget.Material3.Button.IconButton"/>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/homepage"
                     android:layout_width="wrap_content"
@@ -704,6 +714,7 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_alignParentStart="true"/>
             </RelativeLayout>
+
             <TextView
                 android:id="@+id/otherText"
                 android:layout_width="wrap_content"
@@ -711,11 +722,11 @@
                 android:text="@string/other_details"
                 android:paddingStart="16dp"
                 android:layout_marginTop="16dp"
+                android:layout_marginBottom="3dp"
                 android:layout_below="@id/linkRL"
                 android:textSize="16sp"
-                android:textAllCaps="true"
-                android:alpha="0.8"
                 android:textStyle="bold"/>
+
             <com.google.android.material.divider.MaterialDivider
                 android:id="@+id/sixthDivider"
                 android:layout_width="match_parent"
@@ -723,6 +734,7 @@
                 android:layout_below="@id/otherText"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"/>
+
             <TextView
                 android:id="@+id/counrtyText"
                 android:layout_width="wrap_content"
@@ -732,7 +744,7 @@
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
                 android:layout_below="@id/sixthDivider"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
 
             <TextView
@@ -742,7 +754,7 @@
                 android:text="USA"
                 android:paddingStart="16dp"
                 android:layout_below="@id/counrtyText"
-                android:textSize="15sp"/>
+                android:textSize="14sp"/>
 
             <TextView
                 android:id="@+id/revenueText"
@@ -753,8 +765,9 @@
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
                 android:layout_below="@id/countryDataText"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
+
             <TextView
                 android:id="@+id/revenueDataText"
                 android:layout_width="wrap_content"
@@ -762,7 +775,8 @@
                 android:text="@string/revenue"
                 android:paddingStart="16dp"
                 android:layout_below="@id/revenueText"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
+
             <TextView
                 android:id="@+id/statusText"
                 android:layout_width="wrap_content"
@@ -772,8 +786,9 @@
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
                 android:layout_below="@id/revenueDataText"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
+
             <TextView
                 android:id="@+id/statusDataText"
                 android:layout_width="wrap_content"
@@ -781,7 +796,8 @@
                 android:text="@string/status"
                 android:paddingStart="16dp"
                 android:layout_below="@id/statusText"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
+
             <TextView
                 android:id="@+id/keywordText"
                 android:layout_width="wrap_content"
@@ -791,8 +807,9 @@
                 android:paddingTop="16dp"
                 android:paddingBottom="10dp"
                 android:layout_below="@id/statusDataText"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
+
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/keywordsLayout"
                 android:layout_width="match_parent"
@@ -803,15 +820,19 @@
                 app:flexWrap="wrap"
                 app:justifyContent="flex_start"/>
         </RelativeLayout>
-
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
         android:layout_gravity="center"
-        android:indeterminate="true"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        app:waveAmplitude="10dp"
+        app:wavelength="32dp"
+        app:waveSpeed="0dp"
+        android:indeterminate="true"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
@@ -821,7 +842,6 @@
         android:contentDescription="@string/share_link_button"
         android:src="@drawable/ic_share"
         app:layout_behavior="com.google.android.material.floatingactionbutton.FloatingActionButton$Behavior"/>
-
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabSave"

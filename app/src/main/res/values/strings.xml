@@ -80,7 +80,7 @@
     <string name="end_date">"End date: "</string>
     <string name="genres">Genres</string>
     <string name="advanced">Advanced</string>
-    <string name="keyword_text">Exclude and include keywords by putting their IDs in the respective text box below.\n * Use , (comma) to indicate you mean both keywords.\n * Use | (pipe) to indicate you are want one, or the other.</string>
+    <string name="keyword_text">Exclude and include keywords by putting their IDs in the respective text box below.\n * Use , (comma) to indicate you mean both keywords.\n * Use | (pipe) to indicate you want one or the other.</string>
     <string name="with_keywords_hint">Include shows with the keywords…</string>
     <string name="without_keywords_hint">Exclude shows with the keywords…</string>
 

@@ -77,7 +77,8 @@ class CastActivity : BaseActivity() {
     private lateinit var binding: ActivityCastBinding
     private var actorId = 0
     private lateinit var target: Target
-    private var API_KEY: String? = null
+    private lateinit var palette: Palette
+    private var apiKey: String? = null
 
     /*
     * This class provides an overview for actors.
@@ -100,7 +101,7 @@ class CastActivity : BaseActivity() {
         supportActionBar?.title = getString(R.string.title_people)
         setBackButtons()
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        API_KEY = ConfigHelper.getConfigValue(applicationContext, "api_key")
+        apiKey = ConfigHelper.getConfigValue(applicationContext, "api_key")
         context = this
 
         // Create a variable with the application context that can be used
@@ -191,28 +192,28 @@ class CastActivity : BaseActivity() {
                     override fun onBitmapLoaded(bitmap: Bitmap, from: LoadedFrom) {
                         // Set the loaded bitmap to your ImageView before generating the Palette
                         binding.actorImage.setImageBitmap(bitmap)
-                        Palette.from(bitmap).generate { palette: Palette? ->
-                            darkMutedColor = palette!!.getDarkMutedColor(
-                                palette.getMutedColor(
-                                    Color.TRANSPARENT
-                                )
-                            )
-                            lightMutedColor =
-                                palette.getLightMutedColor(palette.getMutedColor(Color.TRANSPARENT))
-                            val gradientDrawable: GradientDrawable = if (isDarkTheme) {
-                                GradientDrawable(
-                                    GradientDrawable.Orientation.TL_BR,
-                                    intArrayOf(darkMutedColor, color)
-                                )
-                            } else {
-                                GradientDrawable(
-                                    GradientDrawable.Orientation.TL_BR,
-                                    intArrayOf(lightMutedColor, color)
-                                )
-                            }
-                            binding.root.background = gradientDrawable
-                            binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT)
+
+                        palette = Palette.from(bitmap).generate()
+
+                        darkMutedColor = palette.getDarkMutedColor(palette.getMutedColor(Color.TRANSPARENT))
+
+                        lightMutedColor = palette.getLightMutedColor(palette.getMutedColor(Color.TRANSPARENT))
+                        val gradientDrawable: GradientDrawable
+                        val mutedColor: Int
+
+                        if (isDarkTheme) {
+                            gradientDrawable = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(darkMutedColor, color))
+                            mutedColor = darkMutedColor
+                        } else {
+                            gradientDrawable = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(lightMutedColor, color))
+                            mutedColor = lightMutedColor
                         }
+                        binding.root.background = gradientDrawable
+                        binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT)
+                        binding.firstDivider.dividerColor = mutedColor
+                        binding.secondDivider.dividerColor = mutedColor
+                        binding.thirdDivider.dividerColor = mutedColor
+
                         val animation = AnimationUtils.loadAnimation(
                             applicationContext, R.anim.fade_in
                         )
@@ -221,6 +222,7 @@ class CastActivity : BaseActivity() {
 
                     override fun onBitmapFailed(e: Exception, errorDrawable: Drawable?) {
                         val fallbackDrawable = errorDrawable ?: ContextCompat.getColor(context, R.color.md_theme_surface)
+
                         binding.actorImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
                         binding.actorImage.setBackgroundColor(fallbackDrawable as Int)
                     }
@@ -228,12 +230,7 @@ class CastActivity : BaseActivity() {
                     override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
                         // Ensure placeHolderDrawable is not null
                         placeHolderDrawable ?: ContextCompat.getColor(context, R.color.md_theme_primary)
-                        binding.actorImage.setBackgroundColor(
-                            ContextCompat.getColor(
-                                context,
-                                R.color.md_theme_surface
-                            )
-                        )
+                        binding.actorImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
                     }
                 }
                 Picasso.get().load(imageUrl).into(target)
@@ -400,7 +397,7 @@ class CastActivity : BaseActivity() {
         try {
             val url = URL(
                 "https://api.themoviedb.org/3/person/" +
-                        actorId + "/combined_credits?api_key=" + API_KEY + getLanguageParameter(
+                        actorId + "/combined_credits?api_key=" + apiKey + getLanguageParameter(
                     applicationContext
                 )
             )
@@ -441,10 +438,8 @@ class CastActivity : BaseActivity() {
                 if (reader.getJSONArray("cast").length() <= 0) {
                     // This person has no roles as cast, do not show the
                     // cast related views.
-                    val textView = mActivity.findViewById<TextView>(R.id.castMovieTitle)
-                    val view = mActivity.findViewById<View>(R.id.secondDivider)
-                    textView.visibility = View.GONE
-                    view.visibility = View.GONE
+                    binding.castMovieTitle.visibility = View.GONE
+                    binding.secondDivider.visibility = View.GONE
                     binding.castMovieRecyclerView.visibility = View.GONE
                 } else {
                     val castMovieArray = reader.getJSONArray("cast")
@@ -465,10 +460,8 @@ class CastActivity : BaseActivity() {
                 if (reader.getJSONArray("crew").length() <= 0) {
                     // This person has no roles as crew, do not show the
                     // crew related views.
-                    val textView = mActivity.findViewById<TextView>(R.id.crewMovieTitle)
-                    val view = mActivity.findViewById<View>(R.id.thirdDivider)
-                    textView.visibility = View.GONE
-                    view.visibility = View.GONE
+                    binding.crewMovieTitle.visibility = View.GONE
+                    binding.thirdDivider.visibility = View.GONE
                     binding.crewMovieRecyclerView.visibility = View.GONE
                 } else {
                     val crewMovieArray = reader.getJSONArray("crew")
@@ -509,7 +502,7 @@ class CastActivity : BaseActivity() {
 
     private fun fetchActorDetails() {
         CoroutineScope(coroutineDispatcher).launch {
-            val baseUrl = "https://api.themoviedb.org/3/person/$actorId?api_key=$API_KEY"
+            val baseUrl = "https://api.themoviedb.org/3/person/$actorId?api_key=$apiKey"
             val urlWithLanguage = baseUrl + getLanguageParameter(applicationContext)
             try {
                 // First request with language parameter
