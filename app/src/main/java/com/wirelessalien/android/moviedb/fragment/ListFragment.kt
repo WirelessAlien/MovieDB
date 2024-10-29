@@ -1029,7 +1029,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
          *
          * @return the newly created ListFragment object.
          */
-        @JvmStatic
         fun newInstance(): ListFragment {
             return ListFragment()
         }
@@ -1037,7 +1036,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         /**
          * Creates and sets a new adapter when ListFragment is resumed.
          */
-        @JvmStatic
         fun databaseUpdate() {
             mDatabaseUpdate = true
         }

@@ -87,9 +87,7 @@ class EpisodeAdapter(
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: EpisodeViewHolder, position: Int) {
-        val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(
-            context
-        )
+        val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
         val imageSize = if (loadHDImage) "w780" else "w500"
         val episode = episodes[position]
@@ -100,8 +98,7 @@ class EpisodeAdapter(
             val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val parsedDate = inputFormat.parse(episode.airDate)
             if (parsedDate != null) {
-                val outputFormat =
-                    DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+                val outputFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                 val formattedDate = outputFormat.format(parsedDate)
                 holder.binding.date.text = formattedDate
             }
@@ -111,9 +108,7 @@ class EpisodeAdapter(
         }
         holder.binding.runtime.text = context.getString(R.string.runtime_minutes, episode.runtime)
         holder.binding.averageRating.text = context.getString(
-            R.string.average_rating, episode.voteAverage, String.format(
-                Locale.getDefault(), "%d", 10
-            )
+            R.string.average_rating, episode.voteAverage, String.format(Locale.getDefault(), "%d", 10)
         )
         Picasso.get()
             .load("https://image.tmdb.org/t/p/" + imageSize + episode.posterPath)
@@ -128,6 +123,16 @@ class EpisodeAdapter(
                 Locale.getDefault(), "%.1f/" + String.format(Locale.getDefault(), "%d", 10), rating
             )
         }
+
+        val sessionId = defaultSharedPreferences.getString("access_token", null)
+        val accountId = defaultSharedPreferences.getString("account_id", null)
+
+        if (sessionId == null || accountId == null) {
+            holder.binding.rateBtn.visibility = View.GONE
+        } else {
+            holder.binding.rateBtn.visibility = View.VISIBLE
+        }
+
         try {
             MovieDatabaseHelper(context).use { db ->
                 if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
