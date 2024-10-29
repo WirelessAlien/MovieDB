@@ -773,6 +773,11 @@ class DetailActivity : BaseActivity() {
                         // If the selected category is CATEGORY_WATCHED, add seasons and episodes to the database
                         if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
                             addSeasonsAndEpisodesToDatabase()
+                            lifecycleScope.launch {
+                                if (!isMovie) {
+                                    updateEpisodeFragments()
+                                }
+                            }
                         }
                         binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         binding.editIcon.visibility = View.VISIBLE
@@ -856,15 +861,23 @@ class DetailActivity : BaseActivity() {
         }
     }
 
+    private fun saveTotalEpisodes(totalEpisodes: Int) {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putInt("totalEpisodes_$movieId", totalEpisodes)
+        editor.commit()
+    }
+
     private suspend fun updateMovieEpisodes() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         withContext(Dispatchers.IO) {
             seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
+            totalEpisodes = sharedPreferences.getInt("totalEpisodes_$movieId", 0)
         }
 
         withContext(Dispatchers.Main) {
             if (seenEpisode != 0) {
-                binding.movieEpisodes.text =
-                    getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
+                binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes ?: 0)
                 binding.movieEpisodes.visibility = View.VISIBLE
             }
         }
@@ -892,24 +905,37 @@ class DetailActivity : BaseActivity() {
     private fun addSeasonsAndEpisodesToDatabase() {
         if (!isMovie && seasons != null) {
             try {
-                for (i in 1..seasons!!.length()) {
-                    val season = seasons!!.getJSONObject(i - 1)
+                val firstSeasonNumber = seasons!!.getJSONObject(0).getInt("season_number")
+                val startSeasonIndex = if (firstSeasonNumber == 0) 1 else 0
+
+                for (i in startSeasonIndex until seasons!!.length()) {
+                    val season = seasons!!.getJSONObject(i)
                     val seasonNumber = season.getInt("season_number")
                     val episodeCount = season.getInt("episode_count")
                     for (j in 1..episodeCount) {
-                        val values = ContentValues()
-                        values.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieId)
-                        values.put(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, seasonNumber)
-                        values.put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, j)
-                        val newRowId =
-                            database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values)
-                        if (newRowId == -1L) {
-                            Toast.makeText(
-                                this,
-                                R.string.error_adding_episode_to_database,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        val cursor = database.rawQuery(
+                            "SELECT * FROM ${MovieDatabaseHelper.TABLE_EPISODES} WHERE " +
+                                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ? AND " +
+                                    "${MovieDatabaseHelper.COLUMN_SEASON_NUMBER} = ? AND " +
+                                    "${MovieDatabaseHelper.COLUMN_EPISODE_NUMBER} = ?",
+                            arrayOf(movieId.toString(), seasonNumber.toString(), j.toString())
+                        )
+                        if (cursor.count == 0) {
+                            val values = ContentValues().apply {
+                                put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieId)
+                                put(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, seasonNumber)
+                                put(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER, j)
+                            }
+                            val newRowId = database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values)
+                            if (newRowId == -1L) {
+                                Toast.makeText(
+                                    this,
+                                    R.string.error_adding_episode_to_database,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
+                        cursor.close()
                     }
                 }
             } catch (e: JSONException) {
@@ -1504,7 +1530,6 @@ class DetailActivity : BaseActivity() {
                     val timesWatched = binding.timesWatched.text.toString().toInt()
                     showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, timesWatched)
                     database = databaseHelper.writableDatabase
-                    databaseHelper.onCreate(database)
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
                     database.close()
 
@@ -1531,7 +1556,6 @@ class DetailActivity : BaseActivity() {
 
                     showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
                     database = databaseHelper.writableDatabase
-                    databaseHelper.onCreate(database)
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
                     database.close()
 
@@ -1546,11 +1570,11 @@ class DetailActivity : BaseActivity() {
                 if (!hasFocus) {
                     // Save the review to the database
                     val showValues = ContentValues()
-                    val review =  binding.movieReview.text.toString()
+                    val review = binding.movieReview.text.toString()
                     showValues.put(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW, review)
                     database = databaseHelper.writableDatabase
-                    databaseHelper.onCreate(database)
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
+                    Log.d("MovieReview", "Review: $review")
                     database.close()
 
                     if (review.isNotEmpty()) {
@@ -1570,6 +1594,12 @@ class DetailActivity : BaseActivity() {
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
             binding.editIcon.setText(R.string.done)
         } else {
+
+            binding.categories.clearFocus()
+            binding.timesWatched.clearFocus()
+            binding.showRating.clearFocus()
+            binding.movieReview.clearFocus()
+
             fadeOutAndHideAnimation(binding.editShowDetails)
             fadeInAndShowAnimation(binding.showDetails)
             updateEditShowDetails()
@@ -1579,16 +1609,13 @@ class DetailActivity : BaseActivity() {
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_edit)
             binding.editIcon.setText(R.string.edit)
 
-
         }
     }
 
     private fun updateEditShowDetails() {
         database = databaseHelper.writableDatabase
-        databaseHelper.onCreate(database)
         val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
         if (cursor.count <= 0) {
-            // No record has been found, the show hasn't been added or an error occurred.
             cursor.close()
         } else {
             cursor.moveToFirst()
@@ -1596,19 +1623,15 @@ class DetailActivity : BaseActivity() {
                 MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> binding.categories.setText(
                     binding.categories.adapter.getItem(1).toString(), false
                 )
-
                 MovieDatabaseHelper.CATEGORY_WATCHED -> binding.categories.setText(
                     binding.categories.adapter.getItem(2).toString(), false
                 )
-
                 MovieDatabaseHelper.CATEGORY_ON_HOLD -> binding.categories.setText(
                     binding.categories.adapter.getItem(3).toString(), false
                 )
-
                 MovieDatabaseHelper.CATEGORY_DROPPED -> binding.categories.setText(
                     binding.categories.adapter.getItem(4).toString(), false
                 )
-
                 else -> binding.categories.setText(
                     binding.categories.adapter.getItem(0).toString(), false
                 )
@@ -2070,6 +2093,10 @@ class DetailActivity : BaseActivity() {
                 showExternalIds(movieData)
                 if (movieData.has("number_of_seasons")) {
                     numSeason = movieData.getInt("number_of_seasons")
+                }
+                if (movieData.has("number_of_episodes")) {
+                    totalEpisodes = movieData.getInt("number_of_episodes")
+                    saveTotalEpisodes(totalEpisodes!!)
                 }
                 if (movieData.has("seasons")) {
                     seasons = movieData.getJSONArray("seasons")
