@@ -55,7 +55,7 @@
     <string name="series_tab_title">Series</string>
     <string name="saved_tab_title">Guardado</string>
     <string name="write_to_external_storage_as">"Guardado como: "</string>
-    <string name="choose_export_file">Elegir formato del archivo exportado:</string>
+    <string name="choose_export_file">Elija un formato de archivo para exportar:</string>
     <string name="choose_file">Elegir un archivo para importar:</string>
     <string name="import_cancel">Cancelar</string>
     <string name="file_not_found_exception">No se pudo encontrar el archivo</string>
