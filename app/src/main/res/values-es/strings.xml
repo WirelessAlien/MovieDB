@@ -280,6 +280,6 @@
     <string name="backup_fequency_error_text">La frecuencia de la copia de seguridad no puede ser inferior a 15 minutos</string>
     <string name="backup_frequency">Frecuencia de la copia de seguridad</string>
     <string name="error_rating_exceeds_limit">Por favor introduzca un valor entre 0,0 y 10</string>
-    <string name="items_count">Temas: %1$d</string>
+    <string name="items_count">Elementos: %1$d</string>
     <string name="refresh">Refresh</string>
 </resources>
