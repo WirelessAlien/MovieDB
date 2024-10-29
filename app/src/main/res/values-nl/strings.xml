@@ -320,4 +320,5 @@
     <string name="backup_fequency_error_text">Versterkingsfrequentie is niet minder dan 15 minuten</string>
     <string name="backup_frequency">Versterking Frequency</string>
     <string name="error_rating_exceeds_limit">Kom binnen. 0.0 -10</string>
+    <string name="runtime_minutes">_</string>
 </resources>

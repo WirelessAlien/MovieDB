@@ -182,13 +182,13 @@
     <string name="movie">Película</string>
     <string name="tv_show">Programa de televisión</string>
     <string name="type">Tipo</string>
-    <string name="just_watch_attribution">La aplicación utiliza los datos de JustWatch para mostrar la información \'¿Donde puedo ver?\'.</string>
+    <string name="just_watch_attribution">La aplicación utiliza los datos de JustWatch para mostrar la información \'¿Donde puedo verla?\'.</string>
     <string name="share">Compartir ShowCase</string>
     <string name="donate">Donar</string>
     <string name="attribution">Atribución</string>
     <string name="about_movie_db">Acerca de</string>
     <string name="image">Imagen</string>
-    <string name="where_to_watch">¿Dónde puedo ver?</string>
+    <string name="where_to_watch">¿Dónde puedo verla?</string>
     <string name="trailer">Tráiler</string>
     <string name="selected_directory">Ruta:</string>
     <string name="export_info">La aplicación permite la exportación de archivos en formatos \".db\", \".json\" y \".csv\". Sin embargo, ten en cuenta que solo se admite el formato \".db\" para importaciones posteriores.</string>
@@ -212,7 +212,7 @@
     <string name="overview_not_available">No se ha añadido resumen al episodio. Se añadirá cuando esté disponible.</string>
     <string name="search_engine">Motor de búsqueda</string>
     <string name="search_engine_key_summary">Se utiliza el motor de búsqueda para buscar películas desde la aplicación (Google por defecto)</string>
-    <string name="home">Home</string>
+    <string name="home">Inicio</string>
     <string name="rating_tmdb">"Valoracion (TMDB): "</string>
     <string name="links">Enlaces</string>
     <string name="search_movie_show">Buscar película y/o programa…</string>

@@ -53,7 +53,7 @@
     <string name="most_popular">Plus populaires</string>
     <string name="best_rated">Mieux notés</string>
     <string name="release_date">Date de sortie</string>
-    <string name="alphabetic_order">Ordre alphabétique</string>
+    <string name="alphabetic_order">A-Z</string>
     <string name="categories">Catégories</string>
     <string name="watching">En cours</string>
     <string name="plan_to_watch">Prévu</string>
@@ -71,9 +71,9 @@
     <string name="with_keywords_hint">Inclure les œuvres avec les mots-clefs…</string>
     <string name="without_keywords_hint">Exclure les œuvres avec les mots-clefs…</string>
     <!-- SectionsPagerAdapter -->
-    <string name="movie_tab_title">FILMS</string>
-    <string name="series_tab_title">SÉRIES</string>
-    <string name="saved_tab_title">ENREGISTRÉES</string>
+    <string name="movie_tab_title">Films</string>
+    <string name="series_tab_title">Séries</string>
+    <string name="saved_tab_title">Sauvegardés</string>
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Sauvegardé comme : "</string>
     <string name="choose_export_file">Choisissez un format de fichier d\'export :</string>
