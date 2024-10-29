@@ -25,7 +25,7 @@
     <string name="start_date_unknown">Fecha de inicio: sin establecer</string>
     <string name="finish_date">Finalizó el: %1$s</string>
     <string name="finish_date_unknown">Fecha de finalización: sin establecer</string>
-    <string name="times_watched">Veces visto: %1$d</string>
+    <string name="times_watched">Número de visionados: %1$d</string>
     <string name="rating">"Valoración: "</string>
     <string name="change_start_date_2">"Fecha de inicio: "</string>
     <string name="change_watched_times">"Número de visionados: "</string>
@@ -182,13 +182,13 @@
     <string name="movie">Película</string>
     <string name="tv_show">Programa de televisión</string>
     <string name="type">Tipo</string>
-    <string name="just_watch_attribution">La aplicación utiliza los datos de JustWatch para mostrar la información \'¿Donde puedo verla?\'.</string>
+    <string name="just_watch_attribution">La aplicación utiliza los datos de JustWatch para mostrar la información \'¿Donde puedo ver?\'.</string>
     <string name="share">Compartir ShowCase</string>
     <string name="donate">Donar</string>
     <string name="attribution">Atribución</string>
     <string name="about_movie_db">Acerca de</string>
     <string name="image">Imagen</string>
-    <string name="where_to_watch">¿Dónde puedo verla?</string>
+    <string name="where_to_watch">¿Dónde puedo ver?</string>
     <string name="trailer">Tráiler</string>
     <string name="selected_directory">Ruta:</string>
     <string name="export_info">La aplicación permite la exportación de archivos en formatos \".db\", \".json\" y \".csv\". Sin embargo, ten en cuenta que solo se admite el formato \".db\" para importaciones posteriores.</string>
