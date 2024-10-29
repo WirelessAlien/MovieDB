@@ -314,4 +314,6 @@
     <string name="backup_fequency_error_text">La fréquence de sauvegarde ne peut pas être inférieure à 15 minutes</string>
     <string name="backup_frequency">Fréquence de sauvegarde</string>
     <string name="error_rating_exceeds_limit">Veuillez saisir une valeur à l\'intérieur 0,0–10,0</string>
+    <string name="items_count">Points: %1$d</string>
+    <string name="refresh">Refresh</string>
 </resources>
