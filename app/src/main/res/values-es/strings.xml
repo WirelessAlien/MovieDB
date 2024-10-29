@@ -55,7 +55,7 @@
     <string name="series_tab_title">Series</string>
     <string name="saved_tab_title">Guardado</string>
     <string name="write_to_external_storage_as">"Guardado como: "</string>
-    <string name="choose_export_file">Elegir formato del archivo exportado:</string>
+    <string name="choose_export_file">Elija un formato de archivo para exportar:</string>
     <string name="choose_file">Elegir un archivo para importar:</string>
     <string name="import_cancel">Cancelar</string>
     <string name="file_not_found_exception">No se pudo encontrar el archivo</string>
@@ -280,4 +280,6 @@
     <string name="backup_fequency_error_text">La frecuencia de la copia de seguridad no puede ser inferior a 15 minutos</string>
     <string name="backup_frequency">Frecuencia de la copia de seguridad</string>
     <string name="error_rating_exceeds_limit">Por favor introduzca un valor entre 0,0 y 10</string>
+    <string name="items_count">Elementos: %1$d</string>
+    <string name="refresh">Refresh</string>
 </resources>
