@@ -1,0 +1,6 @@
+Add frequency selection for automated backup
+Add support for specials (TV Show)
+Add a watch summary dialog
+Reworked strings @comradekingu
+A logic change - If user select the media as "Watched" it will not add the "Specials" episode to database automatically
+Fix #42, #44, #45, #46, #47, #48 and a few small fix
