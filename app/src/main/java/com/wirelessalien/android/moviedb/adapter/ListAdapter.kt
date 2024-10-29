@@ -86,7 +86,7 @@ class ListAdapter(
             } else {
                 descriptionTextView.text = listData.description
             }
-            itemCountTextView.text = "Items: " + listData.itemCount
+            itemCountTextView.text = itemView.context.getString(R.string.items_count, listData.itemCount)
             itemView.tag = listData
             itemView.setOnClickListener { onItemClickListener.onItemClick(itemView.tag as ListData) }
             if (showDeleteButton) {

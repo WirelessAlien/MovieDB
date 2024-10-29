@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="birthday">"Cumpleaños: "</string>
+    <string name="birthday">Cumpleaños: %1$s</string>
     <string name="episodes_seen">Episodios vistos: %1$d/%2$d</string>
     <string name="change_finish_date_2">"Fecha de finalización: "</string>
     <string name="recommendations_title">Recomendaciones</string>
@@ -15,17 +15,17 @@
     <string name="enable_auto_backup">Activar copia de seguridad automática</string>
     <string name="no_permission_dialog_ok">De acuerdo</string>
     <string name="no_permission_dialog_cancel">Cancelar</string>
-    <string name="place_of_birth">"Lugar de nacimiento: "</string>
+    <string name="place_of_birth">Lugar de nacimiento: %1$s</string>
     <string name="cast_movie_title">Parte del reparto en</string>
     <string name="crew_movie_title">Parte del equipo en</string>
     <string name="movie_added">Película añadida</string>
     <string name="series_added">Serie añadida</string>
     <string name="show_added_error">No se pudo agregar el programa a la base de datos</string>
-    <string name="start_date">"Comenzó el: "</string>
+    <string name="start_date">Comenzó el: %1$s</string>
     <string name="start_date_unknown">Fecha de inicio: sin establecer</string>
-    <string name="finish_date">"Finalizó el: "</string>
+    <string name="finish_date">Finalizó el: %1$s</string>
     <string name="finish_date_unknown">Fecha de finalización: sin establecer</string>
-    <string name="times_watched">"Veces visto: "</string>
+    <string name="times_watched">Veces visto: %1$d</string>
     <string name="rating">"Valoración: "</string>
     <string name="change_start_date_2">"Fecha de inicio: "</string>
     <string name="change_watched_times">"Número de visionados: "</string>
@@ -220,7 +220,7 @@
     <string name="failed_to_download_image">Error al descargar la imagen</string>
     <string name="error">"Error: "</string>
     <string name="failed_to_create_directory">No se pudo crear la carpeta</string>
-    <string name="reviews">"Reseña: "</string>
+    <string name="reviews">Reseña: %1$s</string>
     <string name="no_reviews">Reseña: no añadida</string>
     <string name="default_media_type">Tipo de medio predeterminado</string>
     <string name="show_shows_as_default_in_the_account_tab">Mostrar \"Espectáculos\" como predeterminada en la pestaña \'Cuenta\'</string>
@@ -240,7 +240,7 @@
     <string name="trending">Popular</string>
     <string name="privacy_policy">Política de privacidad</string>
     <string name="permission_required_image">El permiso es necesario para ver las imágenes. Por favor, concede el permiso desde \'Ajustes\' o desde \'Información de la aplicación\'.</string>
-    <string name="copy">Copiar</string>
+    <string name="copy_text">Copiar</string>
     <string name="crash_log">Registro de fallo</string>
     <string name="close">Cerrar</string>
     <string name="file_picked_fail">No se pudo seleccionar el archivo</string>

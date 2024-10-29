@@ -67,8 +67,7 @@ class SimilarMovieBaseAdapter // Create the adapter with the list of similar sho
         val movieData = similarMovieList[position]
         try {
             // Depending if it is a movie or a series, it needs to get the title or name.
-            val title: String
-            title = if (movieData.has("title")) {
+            val title: String = if (movieData.has("title")) {
                 "title"
             } else {
                 "name"

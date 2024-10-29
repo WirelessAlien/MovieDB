@@ -87,11 +87,11 @@ class ListBottomSheetDialogFragment(
             )
             builder.setTitle(R.string.lists_state_info_title)
             builder.setMessage(R.string.list_state_info)
-            builder.setPositiveButton("Refresh") { dialog: DialogInterface, which: Int ->
+            builder.setPositiveButton(getString(R.string.refresh)) { dialog: DialogInterface, _: Int ->
                 fetchList()
                 dialog.dismiss()
             }
-            builder.setNegativeButton("Cancel") { dialog: DialogInterface, which: Int -> dialog.dismiss() }
+            builder.setNegativeButton(getString(R.string.cancel)) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
             builder.show()
         }
         createListButton.setOnClickListener {

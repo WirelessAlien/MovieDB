@@ -1071,8 +1071,12 @@ class DetailActivity : BaseActivity() {
                                 }
                             }
                         }
-                        binding.movieStartDate.text =
-                            getString(R.string.start_date) + (formattedStartDate ?: getString(R.string.start_date_unknown))
+                        val startDateText = if (formattedStartDate != null) {
+                            getString(R.string.start_date, formattedStartDate)
+                        } else {
+                            getString(R.string.start_date_unknown)
+                        }
+                        binding.movieStartDate.text = startDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
                         binding.movieStartDate.text = getString(R.string.start_date_unknown)
@@ -1105,8 +1109,12 @@ class DetailActivity : BaseActivity() {
                                 }
                             }
                         }
-                        binding.movieFinishDate.text =
-                            getString(R.string.finish_date) + (formattedFinishDate ?: getString(R.string.finish_date_unknown))
+                        val finishDateText = if (formattedFinishDate != null) {
+                            getString(R.string.finish_date, formattedFinishDate)
+                        } else {
+                            getString(R.string.finish_date_unknown)
+                        }
+                        binding.movieFinishDate.text = finishDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
                         binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
@@ -1134,11 +1142,10 @@ class DetailActivity : BaseActivity() {
                 ) {
                     watched = 1
                 }
-                binding.movieRewatched.text = getString(R.string.times_watched) + watched
+                binding.movieRewatched.text = getString(R.string.times_watched, watched)
                 if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW))) {
-                    binding.movieReviewText.text = getString(R.string.reviews) + cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)
-                    )
+                    binding.movieReviewText.text = getString(R.string.reviews, cursor.getString(
+                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
                     binding.movieReviewText.visibility = View.VISIBLE
                 } else {
                     binding.movieReviewText.text = getString(R.string.no_reviews)
@@ -1502,7 +1509,7 @@ class DetailActivity : BaseActivity() {
                     database.close()
 
                     // Update the view
-                    binding.movieRewatched.text = getString(R.string.change_watched_times) + timesWatched
+                    binding.movieRewatched.text = getString(R.string.times_watched, timesWatched)
                     binding.movieRewatched.visibility = View.VISIBLE
                 }
             }
@@ -1547,7 +1554,7 @@ class DetailActivity : BaseActivity() {
                     database.close()
 
                     if (review.isNotEmpty()) {
-                        binding.movieReviewText.text = getString(R.string.reviews) + review
+                        binding.movieReviewText.text = getString(R.string.reviews, review)
                         binding.movieReviewText.visibility = View.VISIBLE
                     } else {
                         binding.movieReviewText.text = getString(R.string.no_reviews)
@@ -1623,7 +1630,7 @@ class DetailActivity : BaseActivity() {
                     }
                 }
             } else {
-                binding.startDateButton.setText(R.string.start_date)
+                binding.startDateButton.setText(R.string.change_start_date_2)
             }
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
                 && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)) != ""
@@ -1642,7 +1649,7 @@ class DetailActivity : BaseActivity() {
                     }
                 }
             } else {
-                binding.endDateButton.setText(R.string.finish_date)
+                binding.endDateButton.setText(R.string.change_finish_date_2)
             }
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
                 && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)) != "") {
@@ -1693,24 +1700,24 @@ class DetailActivity : BaseActivity() {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateText)
                     val button = findViewById<Button>(R.id.startDateButton)
                     button.text = getString(R.string.month_year_format, month, selectedYear)
-                    binding.movieStartDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                    binding.movieStartDate.text = getString(R.string.start_date, formatDateString(dateText))
                 } else {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
                     val button = findViewById<Button>(R.id.endDateButton)
                     button.text = getString(R.string.month_year_format, month, selectedYear)
-                    binding.movieFinishDate.text = getString(R.string.change_finish_date_2) + formatDateString(dateText)
+                    binding.movieFinishDate.text = getString(R.string.finish_date, formatDateString(dateText))
                 }
                 database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
                 // Update the UI component immediately
                 when (view.tag) {
                     "start_date" -> {
                         binding.startDateButton.text = getString(R.string.month_year_format, month, selectedYear)
-                        binding.movieStartDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                        binding.movieStartDate.text = getString(R.string.start_date, formatDateString(dateText))
                         binding.movieStartDate.visibility = View.VISIBLE
                     }
                     "end_date" -> {
                         binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
-                        binding.movieFinishDate.text = getString(R.string.change_start_date_2) + formatDateString(dateText)
+                        binding.movieFinishDate.text = getString(R.string.finish_date, formatDateString(dateText))
                         binding.movieFinishDate.visibility = View.VISIBLE
                     }
                     else -> {
@@ -1814,7 +1821,7 @@ class DetailActivity : BaseActivity() {
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
                 val formattedDate = dateFormatDefault.format(calendar.time)
-                binding.movieStartDate.text = getString(R.string.change_start_date_2) + formattedDate
+                binding.movieStartDate.text = getString(R.string.start_date, formattedDate)
                 startDate = calendar.time
             } else {
                 movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateFormat)
@@ -1824,7 +1831,7 @@ class DetailActivity : BaseActivity() {
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
                 val formattedDate = dateFormatDefault.format(calendar.time)
-                binding.movieFinishDate.text = getString(R.string.change_finish_date_2) + formattedDate
+                binding.movieFinishDate.text = getString(R.string.finish_date, formattedDate)
                 finishDate = calendar.time
             }
             database = databaseHelper.writableDatabase
@@ -2099,7 +2106,7 @@ class DetailActivity : BaseActivity() {
                         val isoCountry = result.getString("iso_3166_1")
                         val rating = result.getString("rating")
                         if (isoCountry.equals(Locale.getDefault().country, ignoreCase = true)) {
-                            binding.certification.text = "$rating ($isoCountry)"
+                            binding.certification.text = getString(R.string.certification_with_country, rating, isoCountry)
                             isLocaleRatingFound = true
                             break
                         }

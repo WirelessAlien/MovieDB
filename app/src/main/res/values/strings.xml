@@ -19,28 +19,25 @@
   -->
 
 <resources>
-    <!-- Activity names -->
     <string name="app_name" translatable="false">ShowCase</string>
 
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Cancel</string>
 
-    <!-- CastActivity (quotes are to enforce the spaces) -->
-    <string name="place_of_birth">"Place of Birth: "</string>
-    <string name="birthday">"Birthday: "</string>
+    <string name="place_of_birth">Place of Birth: %1$s</string>
+    <string name="birthday">Birthday: %1$s</string>
     <string name="cast_movie_title">Part of the cast in</string>
     <string name="crew_movie_title">Part of the crew in</string>
 
-    <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Movie added</string>
     <string name="series_added">Series added</string>
     <string name="show_added_error">Could not add show to database</string>
-    <string name="start_date">"Started on: "</string>
+    <string name="start_date">Started on: %1$s</string>
     <string name="start_date_unknown">Start date: Not set </string>
-    <string name="finish_date">"Finished on: "</string>
+    <string name="finish_date">Finished on: %1$s</string>
     <string name="finish_date_unknown">Finish date: Not set </string>
-    <string name="times_watched">"Times watched: "</string>
+    <string name="times_watched">Times Watched: %1$d</string>
     <string name="times_watched_default" translatable="false">1</string>
     <string name="episodes_seen">Episodes seen: %1$d/%2$d</string>
     <string name="rating">"Rating: "</string>
@@ -92,7 +89,7 @@
 
     <!-- MovieDatabaseHelper -->
     <string name="write_to_external_storage_as">"Saved as: "</string>
-    <string name="choose_export_file">Choose exported file format:</string>
+    <string name="choose_export_file">Choose a file format to export:</string>
     <string name="choose_file">Choose a file to import:</string>
     <string name="import_cancel">Cancel</string>
     <string name="file_not_found_exception">Could not find the file</string>
@@ -279,7 +276,7 @@
     <string name="failed_to_download_image">Could not download image</string>
     <string name="error">"Error: "</string>
     <string name="failed_to_create_directory">Could not create directory</string>
-    <string name="reviews">"Review: "</string>
+    <string name="reviews">Review: %1$s</string>
     <string name="no_reviews">Review: Not added</string>
     <string name="default_media_type">Default media type</string>
     <string name="show_shows_as_default_in_the_account_tab">Display \"Shows\" as default in the \'Account\' tab</string>
@@ -299,7 +296,7 @@
     <string name="trending">Trending</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="permission_required_image">This permission is necessary to view the images. Please grant the permission from \'Settings\' or \'App info\'.</string>
-    <string name="copy">Copy</string>
+    <string name="copy_text">Copy</string>
     <string name="crash_log">Crash Log</string>
     <string name="close">Close</string>
     <string name="file_picked_fail">Could not select file</string>
@@ -343,5 +340,8 @@
     <string name="backup_fequency_error_text">Backup frequency cannot be less than 15 minutes</string>
     <string name="backup_frequency">Backup Frequency</string>
     <string name="error_rating_exceeds_limit">Please enter a value within 0.0–10.0</string>
+    <string name="certification_with_country" translatable="false">%1$s (%2$s)</string>
+    <string name="items_count">Items: %1$d</string>
+    <string name="refresh">Refresh</string>
 
 </resources>

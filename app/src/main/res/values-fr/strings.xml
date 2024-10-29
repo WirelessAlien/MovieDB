@@ -24,8 +24,8 @@
     <string name="no_permission_dialog_ok">OK</string>
     <string name="no_permission_dialog_cancel">Annuler</string>
     <!-- CastActivity (quotes are to enforce spaces) -->
-    <string name="place_of_birth">"Lieu de naissance : "</string>
-    <string name="birthday">"Date de naissance : "</string>
+    <string name="place_of_birth">Lieu de naissance : %1$s</string>
+    <string name="birthday">Date de naissance : %1$s</string>
     <string name="cast_movie_title">A joué dans</string>
     <string name="crew_movie_title">Membre des équipes dans</string>
     <!-- DetailActivity (quotes are to enforce the spaces) -->
@@ -33,11 +33,11 @@
     <string name="series_added">Série ajoutée</string>
     <string name="show_added_error">Erreur lors de l\'ajout à la base de donnée</string>
     <string name="episodes_seen">Épisodes vus : %1$d/%2$d</string>
-    <string name="start_date">"Date de début : "</string>
+    <string name="start_date">Date de début : %1$s</string>
     <string name="start_date_unknown">Date de début : Indéfinie</string>
-    <string name="finish_date">"Date de fin : "</string>
+    <string name="finish_date">Date de fin : %1$s</string>
     <string name="finish_date_unknown">Date de fin : Non définie</string>
-    <string name="times_watched">"Nombre de visionnages : "</string>
+    <string name="times_watched">Nombre de visionnages : %1$d</string>
     <string name="rating">"Note : "</string>
     <string name="change_start_date_2">"Date de début : "</string>
     <string name="change_finish_date_2">"Date de fin : "</string>
@@ -193,7 +193,7 @@
     <string name="trending">Tendances</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="permission_required_image">Cette autorisation est nécessaire pour voir les images. Veuillez accorder la permission de Paramètres ou d\'App info.</string>
-    <string name="copy">Copie</string>
+    <string name="copy_text">Copie</string>
     <string name="crash_log">Crash Log</string>
     <string name="title_movies">Films</string>
     <string name="title_series">Séries</string>
@@ -260,7 +260,7 @@
     <string name="save_to_database">Enregistrer dans la base de données</string>
     <string name="choose_date">Date</string>
     <string name="links">Liens</string>
-    <string name="reviews">"Examen : "</string>
+    <string name="reviews">Examen : %1$s</string>
     <string name="no_reviews">Avis : Non ajouté</string>
     <string name="default_media_type">Type de média par défaut</string>
     <string name="show_shows_as_default_in_the_account_tab">Afficher \"Shows\" par défaut dans l\'onglet Compte</string>
@@ -295,7 +295,7 @@
     <string name="season">"Saison "</string>
     <string name="cancel">Annuler</string>
     <string name="export">Exporter</string>
-    <string name="ok">OK</string>
+    <string name="ok">Ok</string>
     <string name="save">Sauvegarder</string>
     <string name="watching1">Observation : %1$d</string>
     <string name="watched1">Attention : %1$d</string>
