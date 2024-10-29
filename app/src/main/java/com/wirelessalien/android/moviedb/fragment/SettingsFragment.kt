@@ -24,7 +24,6 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference

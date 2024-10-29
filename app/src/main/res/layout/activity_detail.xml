@@ -238,7 +238,7 @@
                                 android:layout_columnWeight="1"
                                 android:layout_gravity="fill"
                                 android:layout_marginEnd="5dp"
-                                android:hint="@string/times_watched"
+                                android:hint="@string/change_watched_times"
                                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                                 <com.google.android.material.textfield.TextInputEditText

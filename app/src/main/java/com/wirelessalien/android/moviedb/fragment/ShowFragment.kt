@@ -76,7 +76,6 @@ class ShowFragment : BaseFragment() {
     private var mShowListLoaded = false
     private val showIdSet = HashSet<Int>()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)

@@ -135,7 +135,7 @@ class MainActivity : BaseActivity() {
             MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.crash_log))
                 .setView(dialogView)
-                .setPositiveButton(getString(R.string.copy)) { _: DialogInterface?, _: Int ->
+                .setPositiveButton(getString(R.string.copy_text)) { _: DialogInterface?, _: Int ->
                     val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("ShowCase Crash Log", crashLog.toString())
                     clipboard.setPrimaryClip(clip)

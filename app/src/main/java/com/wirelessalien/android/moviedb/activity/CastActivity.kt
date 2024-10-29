@@ -355,14 +355,14 @@ class CastActivity : BaseActivity() {
         // If the place of birth is different in the new dataset, change it.
         actorObject.optString("place_of_birth").let { placeOfBirth ->
         if (placeOfBirth != binding.actorPlaceOfBirth.text.toString()) {
-            binding.actorPlaceOfBirth.text = getString(R.string.place_of_birth) + placeOfBirth
+            binding.actorPlaceOfBirth.text = getString(R.string.place_of_birth, placeOfBirth)
         }
         }
 
         // If the birthday is different in the new dataset, change it.
         actorObject.optString("birthday").let { birthday ->
             if (birthday != binding.actorBirthday.text.toString()) {
-                binding.actorBirthday.text = getString(R.string.birthday) + birthday
+                binding.actorBirthday.text = getString(R.string.birthday, birthday)
             }
         }
 

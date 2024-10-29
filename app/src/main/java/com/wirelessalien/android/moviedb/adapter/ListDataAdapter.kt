@@ -50,7 +50,7 @@ class ListDataAdapter(
         holder.listName.text = data.listName
         holder.listSwitch.setOnCheckedChangeListener(null)
         holder.listSwitch.isChecked = data.isMovieInList
-        holder.listSwitch.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
+        holder.listSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             val pos = holder.bindingAdapterPosition
             if (pos != RecyclerView.NO_POSITION) {
                 val listData = listData[pos]
