@@ -23,6 +23,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
@@ -33,22 +34,36 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.preference.PreferenceManager
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.Scope
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.api.client.http.FileContent
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper
+import com.wirelessalien.android.moviedb.helper.GoogleCredSignIn
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.work.DatabaseBackupWorker
+import com.wirelessalien.android.moviedb.work.GoogleDriveBackupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -66,6 +81,10 @@ class ExportActivity : AppCompatActivity() {
     private var backupDirectoryUri: Uri? = null
     private var exportDirectoryUri: Uri? = null
     private lateinit var preferences: SharedPreferences
+    private lateinit var googleSignIn: GoogleCredSignIn
+    private val serverClientId = "892148791583-lmjdmttoa7akrq1v7hnji8eb3p3h1ali.apps.googleusercontent.com"
+    private lateinit var authorizationLauncher: ActivityResultLauncher<IntentSenderRequest>
+
     private val predefinedValues = arrayOf(
         "15 minutes", "30 minutes", "1 hour", "6 hours", "12 hours", "24 hours", "1 week", "1 month"
     )
@@ -108,11 +127,15 @@ class ExportActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
-
+        googleSignIn = GoogleCredSignIn(this, serverClientId)
         val isAutoBackupEnabled = preferences.getBoolean("auto_backup_enabled", false)
         binding.autoBackupSwitch.isChecked = isAutoBackupEnabled
         binding.backupBtn.isEnabled = isAutoBackupEnabled
         binding.backupFrequencyET.isEnabled = isAutoBackupEnabled
+
+        val isAutoBackupEnableDrive = preferences.getBoolean("auto_backup_enabled_drive", false)
+        binding.autoBackupSwitchDrive.isChecked = isAutoBackupEnableDrive
+        binding.backupFrequencyETDrive.isEnabled = isAutoBackupEnableDrive
 
         val exportDirectory = DirectoryHelper.getExportDirectory(context)
         val exportDirectoryUri = preferences.getString("db_export_directory", null)
@@ -156,9 +179,8 @@ class ExportActivity : AppCompatActivity() {
                 if (backupDirectoryUri != null) {
                     binding.backupBtn.icon = AppCompatResources.getDrawable(this, R.drawable.ic_check)
                 }
-                scheduleDatabaseExport()
             } else {
-                preferences.edit().remove("db_backup_directory").apply()
+                preferences.edit().remove("db_backup_directory").commit()
                 binding.backupBtn.icon = null
                 binding.backupBtn.text = getString(R.string.auto_backup_directory_selection)
                 WorkManager.getInstance(this).cancelAllWorkByTag("DatabaseBackupWorker")
@@ -201,7 +223,106 @@ class ExportActivity : AppCompatActivity() {
             }
         }
 
+        val predefinedValuesDrive = arrayOf("1 day", "1 week", "1 month")
+        val adapterDrive = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValuesDrive)
+        binding.backupFrequencyETDrive.setAdapter(adapterDrive)
+
+        binding.autoBackupSwitchDrive.setOnCheckedChangeListener { _, isChecked ->
+            preferences.edit().putBoolean("auto_backup_enabled_drive", isChecked).apply()
+            binding.backupFrequencyETDrive.isEnabled = isChecked
+
+            if (isChecked) {
+                val backupFrequencyDrive = preferences.getInt("backup_frequency_drive", 1440)
+
+                var backupDriveText : String? = null
+                when (backupFrequencyDrive) {
+                    1440 -> {
+                        backupDriveText = "1 day"
+                    }
+                    10080 -> {
+                        backupDriveText = "1 week"
+                    }
+                    43200 -> {
+                        backupDriveText = "1 month"
+                    }
+                }
+                binding.backupFrequencyETDrive.setText(backupDriveText)
+            } else {
+                preferences.edit().remove("backup_frequency_drive").commit()
+                WorkManager.getInstance(this).cancelAllWorkByTag("GoogleDriveBackupWorker")
+            }
+        }
+
+        binding.backupFrequencyETDrive.apply {
+            setOnClickListener {
+                showDropDown()
+            }
+            setOnItemClickListener { _, _, position, _ ->
+                val frequencyInMinutes = when (predefinedValuesDrive[position]) {
+                    "1 day" -> 1440
+                    "1 week" -> 10080
+                    "1 month" -> 43200
+                    else -> 1440
+                }
+                preferences.edit().putInt("backup_frequency_drive", frequencyInMinutes).commit()
+                scheduleGoogleDriveBackup(frequencyInMinutes)
+            }
+        }
+
+        binding.googleSignInButton.setOnClickListener {
+            googleSignIn.googleLogin {
+                requestDrivePermissions()
+            }
+        }
+
+        binding.googleDriveButton.setOnClickListener {
+            requestDrivePermissions()
+        }
+
+        authorizationLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                val authorizationResult = Identity.getAuthorizationClient(this)
+                    .getAuthorizationResultFromIntent(data)
+                val accessToken = authorizationResult.accessToken
+                if (accessToken != null) {
+                    saveToDriveAppFolder(accessToken)
+                }
+            }
+        }
+
         createNotificationChannel()
+    }
+
+    private fun requestDrivePermissions() {
+        val requestedScopes = listOf(Scope(DriveScopes.DRIVE_APPDATA))
+        val authorizationRequest = AuthorizationRequest.Builder()
+            .setRequestedScopes(requestedScopes)
+            .build()
+
+        Identity.getAuthorizationClient(this)
+            .authorize(authorizationRequest)
+            .addOnSuccessListener { authorizationResult ->
+                if (authorizationResult.hasResolution()) {
+                    val pendingIntent = authorizationResult.pendingIntent
+                    try {
+                        if (pendingIntent != null) {
+                            val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent).build()
+                            authorizationLauncher.launch(intentSenderRequest)
+                        }
+                    } catch (e: IntentSender.SendIntentException) {
+                        Log.e("TAG", "Couldn't start Authorization UI: ${e.localizedMessage}")
+                    }
+                } else {
+                    val accessToken = authorizationResult.accessToken
+                    if (accessToken != null) {
+                        saveToDriveAppFolder(accessToken)
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("TAG", "Failed to authorize", e)
+            }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -211,6 +332,71 @@ class ExportActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+    private fun saveToDriveAppFolder(accessToken: String) {
+        val credential = GoogleCredential.Builder()
+            .setTransport(NetHttpTransport())
+            .setJsonFactory(GsonFactory.getDefaultInstance())
+            .build()
+            .setAccessToken(accessToken)
+
+        val driveService = Drive.Builder(NetHttpTransport(), GsonFactory.getDefaultInstance(), credential)
+            .setApplicationName(getString(R.string.app_name))
+            .build()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val dbFile = File(getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath)
+                val fileMetadata = com.google.api.services.drive.model.File()
+                fileMetadata.name = "database_backup.db"
+                val mediaContent = FileContent("application/octet-stream", dbFile)
+
+                // Search for the existing file
+                val result = driveService.files().list()
+                    .setQ("name = 'database_backup.db' and trashed = false")
+                    .setSpaces("drive")
+                    .execute()
+                val files = result.files
+
+                if (files != null && files.isNotEmpty()) {
+                    // Update the existing file
+                    val fileId = files[0].id
+                    val file = driveService.files().update(fileId, fileMetadata, mediaContent).execute()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@ExportActivity, "Backup updated: ${file.name}", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    // Create a new file
+                    val file = driveService.files().create(fileMetadata, mediaContent).execute()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@ExportActivity, "Backup created: ${file.name}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ExportActivity, "Backup failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun scheduleGoogleDriveBackup(frequencyInMinutes: Int) {
+        val constraints = Constraints.Builder()
+            .setRequiresBatteryNotLow(true)
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val backupWorkRequest = PeriodicWorkRequestBuilder<GoogleDriveBackupWorker>(frequencyInMinutes.toLong(), TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .addTag("GoogleDriveBackupWorker")
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "GoogleDriveBackupWorker",
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            backupWorkRequest
+        )
+    }
+
 
     private fun convertMinutesToLargestUnit(minutes: Int): String {
         val months = minutes / 43200
@@ -302,7 +488,7 @@ class ExportActivity : AppCompatActivity() {
             )
 
         } else {
-            Log.e(  "ExportActivity", "scheduleDatabaseExport: No backup directory selected")
+            Log.e("ExportActivity", "scheduleDatabaseExport: No backup directory selected")
         }
     }
 

@@ -343,5 +343,7 @@
     <string name="certification_with_country" translatable="false">%1$s (%2$s)</string>
     <string name="items_count">Items: %1$d</string>
     <string name="refresh">Refresh</string>
+    <string name="server_client_id" translatable="false">892148791583-09ejuvol66meprf0a16pafa1c3ki7h7m.apps.googleusercontent.com</string>
+    <string name="drive_access_failed">Failed to access Google Drive</string>
 
 </resources>
