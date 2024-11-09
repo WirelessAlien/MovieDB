@@ -74,6 +74,7 @@
                 android:layout_marginTop="30dp"
                 app:cornerRadius="5dp"
                 android:text="@string/import_movie_database"/>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/import_people_db_button"
                 android:layout_width="match_parent"
@@ -82,6 +83,22 @@
                 android:layout_marginTop="30dp"
                 app:cornerRadius="5dp"
                 android:text="@string/import_people_database"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/import_drive_db"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp"
+                app:cornerRadius="5dp"
+                android:text="Restore Database from Google Drive"/>
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progressIndicator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="5dp"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

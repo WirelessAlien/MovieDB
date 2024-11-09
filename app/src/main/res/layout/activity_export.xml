@@ -152,6 +152,13 @@
                 android:layout_marginTop="10dp"
                 android:text="Backup to Google Drive" />
 
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progressIndicator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="5dp"/>
+
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/autoBackupSwitchDrive"
                 android:layout_width="wrap_content"

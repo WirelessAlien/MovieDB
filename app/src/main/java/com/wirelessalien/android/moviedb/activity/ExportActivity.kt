@@ -30,6 +30,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
@@ -180,7 +181,7 @@ class ExportActivity : AppCompatActivity() {
                     binding.backupBtn.icon = AppCompatResources.getDrawable(this, R.drawable.ic_check)
                 }
             } else {
-                preferences.edit().remove("db_backup_directory").commit()
+                preferences.edit().remove("db_backup_directory").apply()
                 binding.backupBtn.icon = null
                 binding.backupBtn.text = getString(R.string.auto_backup_directory_selection)
                 WorkManager.getInstance(this).cancelAllWorkByTag("DatabaseBackupWorker")
@@ -227,28 +228,25 @@ class ExportActivity : AppCompatActivity() {
         val adapterDrive = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValuesDrive)
         binding.backupFrequencyETDrive.setAdapter(adapterDrive)
 
+        val frequencyTextDrive = when (preferences.getInt("backup_frequency_drive", 1440)) {
+            1440 -> "1 day"
+            10080 -> "1 week"
+            43200 -> "1 month"
+            else -> "1 day"
+        }
+        binding.backupFrequencyETDrive.setText(frequencyTextDrive)
+
         binding.autoBackupSwitchDrive.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit().putBoolean("auto_backup_enabled_drive", isChecked).apply()
             binding.backupFrequencyETDrive.isEnabled = isChecked
 
             if (isChecked) {
-                val backupFrequencyDrive = preferences.getInt("backup_frequency_drive", 1440)
-
-                var backupDriveText : String? = null
-                when (backupFrequencyDrive) {
-                    1440 -> {
-                        backupDriveText = "1 day"
-                    }
-                    10080 -> {
-                        backupDriveText = "1 week"
-                    }
-                    43200 -> {
-                        backupDriveText = "1 month"
-                    }
-                }
-                binding.backupFrequencyETDrive.setText(backupDriveText)
+                val backupFrequencyDrive = 1440
+                preferences.edit().putInt("backup_frequency_drive", backupFrequencyDrive).apply()
+                scheduleGoogleDriveBackup(backupFrequencyDrive)
+                binding.backupFrequencyETDrive.setText("1 day")
             } else {
-                preferences.edit().remove("backup_frequency_drive").commit()
+                preferences.edit().remove("backup_frequency_drive").apply()
                 WorkManager.getInstance(this).cancelAllWorkByTag("GoogleDriveBackupWorker")
             }
         }
@@ -264,10 +262,11 @@ class ExportActivity : AppCompatActivity() {
                     "1 month" -> 43200
                     else -> 1440
                 }
-                preferences.edit().putInt("backup_frequency_drive", frequencyInMinutes).commit()
+                preferences.edit().putInt("backup_frequency_drive", frequencyInMinutes).apply()
                 scheduleGoogleDriveBackup(frequencyInMinutes)
             }
         }
+
 
         binding.googleSignInButton.setOnClickListener {
             googleSignIn.googleLogin {
@@ -311,7 +310,7 @@ class ExportActivity : AppCompatActivity() {
                             authorizationLauncher.launch(intentSenderRequest)
                         }
                     } catch (e: IntentSender.SendIntentException) {
-                        Log.e("TAG", "Couldn't start Authorization UI: ${e.localizedMessage}")
+                        Log.e("TAG", "Couldn't start Authorization UI: ${e.message}")
                     }
                 } else {
                     val accessToken = authorizationResult.accessToken
@@ -322,6 +321,7 @@ class ExportActivity : AppCompatActivity() {
             }
             .addOnFailureListener { e ->
                 Log.e("TAG", "Failed to authorize", e)
+                Toast.makeText(this, getString(R.string.drive_access_failed), Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -347,33 +347,43 @@ class ExportActivity : AppCompatActivity() {
             try {
                 val dbFile = File(getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath)
                 val fileMetadata = com.google.api.services.drive.model.File()
-                fileMetadata.name = "database_backup.db"
+                fileMetadata.name = "showcase_database_backup.db"
                 val mediaContent = FileContent("application/octet-stream", dbFile)
 
-                // Search for the existing file
+                // Search for the existing file in the app data folder
                 val result = driveService.files().list()
-                    .setQ("name = 'database_backup.db' and trashed = false")
-                    .setSpaces("drive")
+                    .setQ("name = 'showcase_database_backup.db' and trashed = false and 'appDataFolder' in parents")
+                    .setSpaces("appDataFolder")
                     .execute()
                 val files = result.files
 
-                if (files != null && files.isNotEmpty()) {
-                    // Update the existing file
+                val request = if (files != null && files.isNotEmpty()) {
                     val fileId = files[0].id
-                    val file = driveService.files().update(fileId, fileMetadata, mediaContent).execute()
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@ExportActivity, "Backup updated: ${file.name}", Toast.LENGTH_SHORT).show()
-                    }
+                    driveService.files().update(fileId, fileMetadata, mediaContent)
+                        .setAddParents("appDataFolder")
                 } else {
-                    // Create a new file
-                    val file = driveService.files().create(fileMetadata, mediaContent).execute()
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@ExportActivity, "Backup created: ${file.name}", Toast.LENGTH_SHORT).show()
+                    fileMetadata.parents = listOf("appDataFolder")
+                    driveService.files().create(fileMetadata, mediaContent)
+                }
+
+                // Set up a progress listener
+                request.mediaHttpUploader.setProgressListener { uploader ->
+                    val progress = (uploader.progress * 100).toInt()
+                    CoroutineScope(Dispatchers.Main).launch {
+                        binding.progressIndicator.visibility = View.VISIBLE
+                        binding.progressIndicator.progress = progress
                     }
+                }
+
+                request.execute()
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ExportActivity, getString(R.string.database_backup_successful), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ExportActivity, "Backup failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ExportActivity,
+                        getString(R.string.backup_failed, e.message), Toast.LENGTH_SHORT).show()
                 }
             }
         }

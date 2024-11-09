@@ -46,6 +46,7 @@ class GoogleDriveBackupWorker(appContext: Context, workerParams: WorkerParameter
     override suspend fun doWork(): Result {
         val accessToken = requestDriveAccessToken() ?: return Result.failure()
 
+
         val credential = GoogleCredential.Builder()
             .setTransport(NetHttpTransport())
             .setJsonFactory(GsonFactory.getDefaultInstance())
@@ -59,23 +60,48 @@ class GoogleDriveBackupWorker(appContext: Context, workerParams: WorkerParameter
         return try {
             val dbFile = File(applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath)
             val fileMetadata = com.google.api.services.drive.model.File()
-            fileMetadata.name = "database_backup.db"
+            fileMetadata.name = "showcase_database_backup.db"
             val mediaContent = FileContent("application/octet-stream", dbFile)
 
+            // Create a notification builder
+            val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val builder = NotificationCompat.Builder(applicationContext, "db_backup_channel")
+                .setContentTitle(applicationContext.getString(R.string.database_backup))
+                .setContentText(applicationContext.getString(R.string.upload_in_progress))
+                .setSmallIcon(R.drawable.ic_notification)
+                .setProgress(100, 0, false)
+            notificationManager.notify(1, builder.build())
+
+            // Search for the existing file in the app data folder
             val result = driveService.files().list()
-                .setQ("name = 'database_backup.db' and trashed = false")
-                .setSpaces("drive")
+                .setQ("name = 'showcase_database_backup.db' and trashed = false and 'appDataFolder' in parents")
+                .setSpaces("appDataFolder")
                 .execute()
             val files = result.files
 
-            if (files != null && files.isNotEmpty()) {
+            val request = if (files != null && files.isNotEmpty()) {
                 val fileId = files[0].id
-                driveService.files().update(fileId, fileMetadata, mediaContent).execute()
+                driveService.files().update(fileId, fileMetadata, mediaContent)
+                    .setAddParents("appDataFolder")
             } else {
-                driveService.files().create(fileMetadata, mediaContent).execute()
+                fileMetadata.parents = listOf("appDataFolder")
+                driveService.files().create(fileMetadata, mediaContent)
             }
 
-            showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(R.string.database_backup_successful), true)
+            // Set up a progress listener
+            request.mediaHttpUploader.setProgressListener { uploader ->
+                val progress = (uploader.progress * 100).toInt()
+                builder.setProgress(100, progress, false)
+                notificationManager.notify(1, builder.build())
+            }
+
+            request.execute()
+
+            // Upload complete
+            builder.setContentText(applicationContext.getString(R.string.database_backup_successful))
+                .setProgress(0, 0, false)
+            notificationManager.notify(1, builder.build())
+
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()

@@ -344,6 +344,9 @@
     <string name="items_count">Items: %1$d</string>
     <string name="refresh">Refresh</string>
     <string name="server_client_id" translatable="false">892148791583-09ejuvol66meprf0a16pafa1c3ki7h7m.apps.googleusercontent.com</string>
-    <string name="drive_access_failed">Failed to access Google Drive</string>
+    <string name="drive_access_failed">Could not access Google Drive</string>
+    <string name="upload_in_progress">Uploading</string>
+    <string name="could_not_import_backup">Could not import backup: %1$s</string>
+    <string name="backup_failed">Could not backup the database: %1$s</string>
 
 </resources>
