@@ -65,7 +65,7 @@
     <string name="action_save">ذخیره</string>
     <string name="title_general">عمومی</string>
     <string name="title_show_cast">نمایش بازیگران</string>
-    <string name="title_show_crew">خدمه نمایش</string>
+    <string name="title_show_crew">نمایش خدمه</string>
     <string name="title_show_recommendations">نمایش توصیه شده‌ها</string>
     <string name="title_show_save_dialog">نمایش پیام ذخیره</string>
     <string name="title_persistent_filtering">فیلتر دائمی</string>
@@ -98,7 +98,7 @@
     <string name="lists">لیست ها</string>
     <string name="episodes">قسمت ها:</string>
     <string name="delete">حذف</string>
-    <string name="cancel">لغو</string>
+    <string name="cancel">دیگر</string>
     <string name="description">توضیحات</string>
     <string name="list_name">نام لیست</string>
     <string name="create_list">ایجاد لیست</string>
