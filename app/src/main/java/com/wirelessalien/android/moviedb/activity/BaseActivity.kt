@@ -142,7 +142,6 @@ open class BaseActivity : AppCompatActivity() {
          * (which will interfere with the manual ampersand) must be
          * taken into account.
          */
-        @JvmStatic
         fun getLanguageParameter(context: Context?): String {
             val languageParameter = "&language="
             val language = Locale.getDefault().language

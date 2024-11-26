@@ -46,7 +46,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="25dp"
+            android:layout_margin="16dp"
             android:orientation="vertical">
 
             <ImageView
@@ -89,11 +89,20 @@
                 app:cornerRadius="5dp"
                 android:text="@string/export" />
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/autoBackupSwitch"
+            <TextView
+                android:id="@+id/backupSettingd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
+                android:text="Backup Settings"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/autoBackupSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:text="@string/enable_auto_backup"/>
 
             <com.google.android.material.button.MaterialButton
@@ -138,10 +147,14 @@
                 android:textSize="16sp"
                 android:layout_marginTop="16dp"/>
 
-            <com.google.android.gms.common.SignInButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/googleSignInButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Authorize Google Drive"
+                app:cornerRadius="5dp"
                 android:layout_marginTop="10dp"/>
 
             <com.google.android.material.button.MaterialButton
@@ -161,7 +174,7 @@
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/autoBackupSwitchDrive"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="@string/enable_auto_backup"/>
@@ -194,6 +207,7 @@
                 android:textSize="16sp"
                 android:layout_marginTop="16dp"
                 android:drawablePadding="5dp"
+                android:alpha="0.8"
                 app:drawableStartCompat="@drawable/ic_info" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

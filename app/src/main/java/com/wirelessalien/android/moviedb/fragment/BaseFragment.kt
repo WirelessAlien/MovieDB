@@ -27,6 +27,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
@@ -109,7 +110,22 @@ open class BaseFragment : Fragment() {
             mShowView.layoutManager = mShowLinearLayoutManager
         }
         mShowView.adapter = mShowAdapter
+
+//        setupScrollListener()
     }
+
+//    private fun setupScrollListener() {
+//        val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation)
+//        mShowView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+//            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+//                if (dy > 0 && bottomNavigationView.isShown) {
+//                    bottomNavigationView.visibility = View.GONE
+//                } else if (dy < 0) {
+//                    bottomNavigationView.visibility = View.VISIBLE
+//                }
+//            }
+//        })
+//    }
 
     /**
      * Sets the search view and adapter back to normal.

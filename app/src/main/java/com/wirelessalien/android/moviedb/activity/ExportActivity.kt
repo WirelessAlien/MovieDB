@@ -267,9 +267,16 @@ class ExportActivity : AppCompatActivity() {
             }
         }
 
+        val googleEmail = preferences.getString("google_email", null)
+        if (googleEmail != null) {
+            binding.googleSignInButton.text = googleEmail
+        }
 
         binding.googleSignInButton.setOnClickListener {
             googleSignIn.googleLogin {
+                val emailId = this.id
+                preferences.edit().putString("google_email", emailId).apply()
+                binding.googleSignInButton.text = emailId
                 requestDrivePermissions()
             }
         }

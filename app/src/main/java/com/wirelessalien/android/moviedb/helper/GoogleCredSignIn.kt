@@ -67,7 +67,6 @@ class GoogleCredSignIn(private val context: Context, serverClientId: String) {
             try {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 callback(googleIdTokenCredential)
-                Log.i("TAG", "handleSignIn: $googleIdTokenCredential")
             } catch (e: GoogleIdTokenParsingException) {
                 Log.e("TAG", "Received an invalid google id token response", e)
             }
