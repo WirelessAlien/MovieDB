@@ -33,7 +33,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.NumberPicker
-import android.widget.RatingBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -43,6 +42,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 import com.google.android.material.textfield.TextInputEditText
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
@@ -209,7 +209,7 @@ class EpisodeAdapter(
             dialog.setContentView(dialogView)
             dialog.show()
             val dateTextView = dialogView.findViewById<TextView>(R.id.dateTextView)
-            val ratingEditText = dialogView.findViewById<TextInputEditText>(R.id.episodeRating)
+            val ratingSlider = dialogView.findViewById<Slider>(R.id.episodeRatingSlider)
             val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
             val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
             val dateButton = dialogView.findViewById<Button>(R.id.dateButton)
@@ -225,7 +225,7 @@ class EpisodeAdapter(
                         dateTextView.text = details.watchDate
                         if (details.rating?.toDouble() != 0.0 && details.rating != null) {
                             val rating1 = if (details.rating > 10.0) 10.0 else details.rating
-                            ratingEditText.setText(rating1.toString())
+                            ratingSlider.value = rating1.toFloat()
                         }
                         reviewEditText.setText(details.review)
                     }
@@ -269,20 +269,20 @@ class EpisodeAdapter(
             }
 
             submitButton.setOnClickListener {
-                val episodeRating = ratingEditText.text.toString().toDoubleOrNull()
-                if (episodeRating != null && episodeRating > 10.0) {
-                    ratingEditText.error = context.getString(R.string.error_rating_exceeds_limit)
+                val episodeRating = ratingSlider.value
+                if (episodeRating > 10.0) {
+                    // This should not happen as the slider's max value is 10.0
                 } else {
                     val date = dateTextView.text.toString()
                     val review = reviewEditText.text.toString()
                     val adapterPosition = holder.bindingAdapterPosition
                     val episode1 = episodes[adapterPosition]
                     episode1.setWatchDate(date)
-                    episode1.setRating((episodeRating ?: 0.0).toFloat())
+                    episode1.setRating(episodeRating)
                     episode1.setReview(review)
                     try {
                         MovieDatabaseHelper(context).use { movieDatabaseHelper ->
-                            movieDatabaseHelper.addOrUpdateEpisode(tvShowId, seasonNumber, episode1.episodeNumber, (episodeRating ?: 0.0).toFloat(), date, review)
+                            movieDatabaseHelper.addOrUpdateEpisode(tvShowId, seasonNumber, episode1.episodeNumber, episodeRating, date, review)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -301,17 +301,16 @@ class EpisodeAdapter(
             val dialogView = inflater.inflate(R.layout.rating_dialog, null)
             dialog.setContentView(dialogView)
             dialog.show()
-            val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBar)
+            val ratingSlider = dialogView.findViewById<Slider>(R.id.ratingSlider)
             val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
             val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
             val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
             val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-            episodeTitle.text =
-                "S:" + seasonNumber + " " + "E:" + episode.episodeNumber + " " + episode.name
+            episodeTitle.text = "S:" + seasonNumber + " " + "E:" + episode.episodeNumber + " " + episode.name
             Handler(Looper.getMainLooper())
             submitButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
-                    val ratingS = ratingBar.rating.toDouble()
+                    val ratingS = ratingSlider.value.toDouble()
                     AddEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, ratingS, context).addRating()
                     dialog.dismiss()
                 }

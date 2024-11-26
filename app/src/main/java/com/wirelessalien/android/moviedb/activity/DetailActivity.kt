@@ -54,7 +54,6 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.NumberPicker
-import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -76,6 +75,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Picasso.LoadedFrom
 import com.squareup.picasso.Target
@@ -627,7 +627,7 @@ class DetailActivity : BaseActivity() {
             val dialogView = inflater.inflate(R.layout.rating_dialog, null)
             dialog.setContentView(dialogView)
             dialog.show()
-            val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBar)
+            val ratingBar = dialogView.findViewById<Slider>(R.id.ratingSlider)
             val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
             val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
             val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
@@ -642,12 +642,12 @@ class DetailActivity : BaseActivity() {
                 }
 
                 val previousRating = getAccountState.rating
-                ratingBar.rating = previousRating.toFloat()
+                ratingBar.value = previousRating.toFloat()
 
                 submitButton.setOnClickListener {
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
-                        val rating = ratingBar.rating.toDouble()
+                        val rating = ratingBar.value.toDouble()
                         withContext(Dispatchers.IO) {
                             AddRating(movieId, rating, type, mActivity).addRating()
                         }

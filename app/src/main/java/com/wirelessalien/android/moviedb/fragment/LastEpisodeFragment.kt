@@ -28,12 +28,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.RatingBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.slider.Slider
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.FragmentLastEpisodeBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -113,7 +113,7 @@ class LastEpisodeFragment : Fragment() {
                     val dialogView = dialogInflater.inflate(R.layout.rating_dialog, null)
                     dialog.setContentView(dialogView)
                     dialog.show()
-                    val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBar)
+                    val ratingBar = dialogView.findViewById<Slider>(R.id.ratingSlider)
                     val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
                     val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
                     val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
@@ -121,7 +121,7 @@ class LastEpisodeFragment : Fragment() {
                     episodeTitle.text = getString(R.string.episode_title, seasonNumber, episodeNumber, episodeName)
                     submitButton.setOnClickListener {
                         CoroutineScope(Dispatchers.Main).launch {
-                            val rating = ratingBar.rating.toDouble()
+                            val rating = ratingBar.value.toDouble()
                             AddEpisodeRating(
                                 movieId,
                                 seasonNumber,
