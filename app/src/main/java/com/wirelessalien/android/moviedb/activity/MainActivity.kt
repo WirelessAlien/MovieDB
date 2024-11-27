@@ -56,8 +56,6 @@ import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.color.DynamicColors
@@ -89,7 +87,6 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 class MainActivity : BaseActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
@@ -316,15 +313,7 @@ class MainActivity : BaseActivity() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val periodicWorkRequest = PeriodicWorkRequest.Builder(ReleaseReminderWorker::class.java, 1, TimeUnit.DAYS)
-            .build()
-        WorkManager.getInstance(this).enqueue(periodicWorkRequest)
-
-        val nIntent = intent
-        if (nIntent != null && nIntent.hasExtra("tab_index")) {
-            val tabIndex = nIntent.getIntExtra("tab_index", 0)
-            bottomNavigationView.selectedItemId = tabIndex
-        }
+        ReleaseReminderWorker.scheduleWork(this)
 
         val accessToken = preferences.getString("access_token", null)
         val hasRunOnce = preferences.getBoolean("hasRunOnce", false)

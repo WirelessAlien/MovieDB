@@ -29,7 +29,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
-import androidx.work.OneTimeWorkRequest
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -82,20 +83,34 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
             }
         }
         cursorEpisode.close()
-        val workRequest: OneTimeWorkRequest = OneTimeWorkRequest.Builder(ReleaseReminderWorker::class.java)
-            .setInitialDelay(24, TimeUnit.HOURS)
-            .build()
-        WorkManager.getInstance(applicationContext).enqueue(workRequest)
         return Result.success()
     }
 
-    private fun createNotification(title: String) {
+    private fun hasNotificationBeenShownToday(key: String): Boolean {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val lastNotificationDate = sharedPreferences.getString(key, null)
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val currentDate = sdf.format(Date())
+        return lastNotificationDate == currentDate
+    }
 
+    private fun setNotificationShownToday(key: String) {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val editor = sharedPreferences.edit()
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val currentDate = sdf.format(Date())
+        editor.putString(key, currentDate)
+        editor.apply()
+    }
+
+    private fun createNotification(title: String) {
+        val notificationKey = "notification_movie_$title"
+        if (hasNotificationBeenShownToday(notificationKey)) return
+
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         val shouldNotify = sharedPreferences.getBoolean(NOTIFICATION_PREFERENCES, true)
         if (shouldNotify) {
             val intent = Intent(applicationContext, MainActivity::class.java)
-            intent.putExtra("tab_index", 3)
             val pendingIntent = PendingIntent.getActivity(
                 applicationContext,
                 0,
@@ -118,12 +133,15 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 return
             }
             notificationManager.notify(notificationIdMovie, builder.build())
+            setNotificationShownToday(notificationKey)
         }
     }
 
     private fun createEpisodeNotification(tvShowName: String, episodeName: String, episodeNumber: String) {
+        val notificationKey = "notification_episode_${tvShowName}_$episodeNumber"
+        if (hasNotificationBeenShownToday(notificationKey)) return
+
         val intent = Intent(applicationContext, MainActivity::class.java)
-        intent.putExtra("tab_index", 3)
         val pendingIntent = PendingIntent.getActivity(
             applicationContext,
             0,
@@ -152,11 +170,22 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
             return
         }
         notificationManager.notify(notificationIdEpisode, builder.build())
+        setNotificationShownToday(notificationKey)
     }
 
     companion object {
         private const val notificationIdMovie = 1
         private const val notificationIdEpisode = 2
         private const val NOTIFICATION_PREFERENCES = "key_get_notified_for_saved"
+
+        fun scheduleWork(context: Context) {
+            val periodicWorkRequest = PeriodicWorkRequest.Builder(ReleaseReminderWorker::class.java, 1, TimeUnit.DAYS)
+                .build()
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                "ReleaseReminderWorker",
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                periodicWorkRequest
+            )
+        }
     }
 }
