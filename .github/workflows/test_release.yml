@@ -37,7 +37,7 @@ jobs:
           BUILD_TOOLS_VERSION: "34.0.0"
 
       - name: Rename APK
-        run: mv ${{ steps.sign_app.outputs.signedReleaseFile }} app/build/outputs/apk/release/showcase(Dev2)${{ github.run_number }}.apk
+        run: mv ${{ steps.sign_app.outputs.signedReleaseFile }} app/build/outputs/apk/release/showcase\(Dev2\)${{ github.run_number }}.apk
 
       - name: Install curl
         run: sudo apt-get install -y curl
@@ -49,4 +49,4 @@ jobs:
         run: |
           curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
           -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
-          -F document=@app/build/outputs/apk/release/showcase(Dev2)${{ github.run_number }}.apk
+          -F document=@app/build/outputs/apk/release/showcase\(Dev2\)${{ github.run_number }}.apk
