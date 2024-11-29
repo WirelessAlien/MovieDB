@@ -73,6 +73,8 @@ import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -458,7 +460,6 @@ class DetailActivity : BaseActivity() {
                             binding.genreCv.setBackgroundColor(Color.TRANSPARENT)
                             binding.ratingCv.setBackgroundColor(Color.TRANSPARENT)
 
-                            binding.zeroDivider.dividerColor = mutedColor
                             binding.firstDivider.dividerColor = mutedColor
                             binding.secondDivider.dividerColor = mutedColor
                             binding.thirdDivider.dividerColor = mutedColor
@@ -1219,7 +1220,7 @@ class DetailActivity : BaseActivity() {
                 movieObject.getString("overview") != binding.movieDescription
                     .text.toString() && movieObject.getString("overview") != "" && movieObject.getString(
                     "overview"
-                ) != "null"
+                ) != "Overview not available"
             ) {
                 binding.movieDescription.text = movieObject.getString("overview")
             }
@@ -1247,21 +1248,38 @@ class DetailActivity : BaseActivity() {
 
                 // Add all the genres in one String.
                 val genreNames = StringBuilder()
+                val chipGroup = findViewById<ChipGroup>(R.id.genreChipGroup)
+                chipGroup.removeAllViews() // Clear previous chips if any
+
+                val inflater = LayoutInflater.from(this)
                 for (aGenreArray in genreArray) {
-                    genreNames.append(", ").append(
-                        sharedPreferences
-                            .getString(aGenreArray, aGenreArray)
-                    )
+                    val genreName = sharedPreferences.getString(aGenreArray, aGenreArray)
+                    genreNames.append(", ").append(genreName)
+
+                    val chip = inflater.inflate(R.layout.genre_chip_item, chipGroup, false) as Chip
+                    chip.text = genreName
+
+                    chipGroup.addView(chip)
+                }
+            }
+
+            if (movieObject.has("popularity")) {
+                val popularity = movieObject.getString("popularity")
+                binding.popularityText.text = popularity
+            }
+
+            if (movieObject.has("spoken_languages")) {
+                val spokenLanguagesArray = movieObject.getJSONArray("spoken_languages")
+                val languagesList = mutableListOf<String>()
+
+                for (i in 0 until spokenLanguagesArray.length()) {
+                    val languageObject = spokenLanguagesArray.getJSONObject(i)
+                    val languageName = languageObject.getString("name")
+                    languagesList.add(languageName)
                 }
 
-                // Remove the first ", " from the String and set the text.
-                if (genreNames.length > 2) {
-                    binding.genreText.text = genreNames.substring(2)
-                    genres = genreNames.substring(2)
-                } else {
-                    binding.genreText.text = ""
-                    genres = genreNames.substring(0)
-                }
+                val languagesText = languagesList.joinToString(", ")
+                binding.languageText.text = languagesText
             }
 
             if (!isMovie) {

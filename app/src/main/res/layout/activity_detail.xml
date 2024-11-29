@@ -113,9 +113,24 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="5dp"
                         android:textSize="14sp"
                         android:textStyle="bold"/>
+
+                    <HorizontalScrollView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none"
+                        android:scrollIndicators="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/genreChipGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:singleLine="true"
+                            app:singleSelection="false"
+                            app:chipSpacing="5dp"/>
+                    </HorizontalScrollView>
 
                     <com.google.android.flexbox.FlexboxLayout
                         android:layout_width="match_parent"
@@ -303,125 +318,255 @@
                 android:text="@string/edit"
                 android:visibility="gone"/>
 
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/zeroDivider"
-                android:layout_width="match_parent"
-                android:layout_height="3dp"
-                android:layout_below="@id/editIcon"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginBottom="10dp"/>
-
             <RelativeLayout
                 android:id="@+id/movieDetailsRl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/zeroDivider"
+                android:layout_below="@id/editIcon"
                 android:layout_marginStart="11dip"
                 android:layout_marginBottom="10dp">
 
-                <com.google.android.flexbox.FlexboxLayout
-                    android:id="@+id/movieDetailsRl2"
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:flexDirection="row"
-                    app:flexWrap="wrap">
+                    android:scrollbars="none"
+                    android:layout_marginEnd="16dp"
+                    android:scrollIndicators="none"
+                    tools:ignore="UselessParent">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/certificationCv"
-                        style="@style/Widget.Material3.CardView.Elevated"
+                    <LinearLayout
+                        android:id="@+id/movieDetailsRl2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_margin="3dp"
-                        app:cardCornerRadius="5dp">
+                        android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/certification"
+                        <LinearLayout
+                            android:id="@+id/certificationCv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:padding="5dp"
-                            android:text="Not Rated" />
-                    </com.google.android.material.card.MaterialCardView>
+                            android:layout_marginEnd="3dp"
+                            android:layout_marginTop="3dp"
+                            android:layout_marginBottom="3dp"
+                            android:layout_marginStart="4dp"
+                            android:orientation="vertical">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/ratingCv"
-                        style="@style/Widget.Material3.CardView.Elevated"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="3dp"
-                        app:cardCornerRadius="5dp">
+                            <TextView
+                                android:id="@+id/certification"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:text="Not Rated" />
 
-                        <TextView
-                            android:id="@+id/rating"
+                            <TextView
+                                android:id="@+id/certificationT"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:alpha="0.7"
+                                android:text="Certification"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_gravity="center_vertical"/>
+
+                        <LinearLayout
+                            android:id="@+id/ratingCv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:padding="5dp"
-                            android:text="7.6/10" />
-                    </com.google.android.material.card.MaterialCardView>
+                            android:layout_margin="3dp"
+                            android:orientation="vertical">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/releaseDateCv"
-                        style="@style/Widget.Material3.CardView.Elevated"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="3dp"
-                        app:cardCornerRadius="5dp">
+                            <TextView
+                                android:id="@+id/rating"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:text="7.6/10" />
 
-                        <TextView
-                            android:id="@+id/releaseDate"
+                            <TextView
+                                android:id="@+id/ratingT"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="10sp"
+                                android:alpha="0.7"
+                                android:layout_gravity="center_horizontal"
+                                android:text="Rating" />
+                        </LinearLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_gravity="center_vertical"/>
+
+                        <LinearLayout
+                            android:id="@+id/releaseDateCv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:padding="5dp"
-                            android:text="Unknown" />
-                    </com.google.android.material.card.MaterialCardView>
+                            android:layout_margin="3dp"
+                            android:orientation="vertical">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/runtimeCv"
-                        style="@style/Widget.Material3.CardView.Elevated"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="3dp"
-                        app:cardCornerRadius="5dp">
+                            <TextView
+                                android:id="@+id/releaseDate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:text="Unknown" />
 
-                        <TextView
-                            android:id="@+id/runtime"
+                            <TextView
+                                android:id="@+id/releaseDateT"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="10sp"
+                                android:alpha="0.7"
+                                android:layout_gravity="center_horizontal"
+                                android:text="Release Date" />
+                        </LinearLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_gravity="center_vertical"/>
+
+                        <LinearLayout
+                            android:id="@+id/runtimeCv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:padding="5dp"
-                            android:text="00h 00m" />
-                    </com.google.android.material.card.MaterialCardView>
+                            android:layout_margin="3dp"
+                            android:orientation="vertical">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/genreCv"
-                        style="@style/Widget.Material3.CardView.Elevated"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="3dp"
-                        app:cardCornerRadius="5dp">
+                            <TextView
+                                android:id="@+id/runtime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:text="00h 00m" />
 
-                        <TextView
-                            android:id="@+id/genreText"
+                            <TextView
+                                android:id="@+id/runtimeT"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="10sp"
+                                android:alpha="0.7"
+                                android:layout_gravity="center_horizontal"
+                                android:text="Runtime" />
+                        </LinearLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_gravity="center_vertical"/>
+
+                        <LinearLayout
+                            android:id="@+id/genreCv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:padding="5dp"
-                            android:text="Action, Science Fiction" />
-                    </com.google.android.material.card.MaterialCardView>
-                </com.google.android.flexbox.FlexboxLayout>
+                            android:layout_margin="3dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/popularityText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:text="76.594" />
+
+                            <TextView
+                                android:id="@+id/popularityTextT"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="10sp"
+                                android:alpha="0.7"
+                                android:layout_gravity="center_horizontal"
+                                android:text="Popularity" />
+                        </LinearLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_gravity="center_vertical"/>
+
+                        <LinearLayout
+                            android:id="@+id/languageCv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="3dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/languageText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:text="English" />
+
+                            <TextView
+                                android:id="@+id/languageTextT"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="10sp"
+                                android:alpha="0.7"
+                                android:layout_gravity="center_horizontal"
+                                android:text="Language" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </HorizontalScrollView>
             </RelativeLayout>
 
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/firstDivider"
+            <RelativeLayout
+                android:id="@+id/dividerLayout"
                 android:layout_width="match_parent"
-                android:layout_height="3dp"
-                android:layout_below="@id/movieDetailsRl"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_below="@id/movieDetailsRl">
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:id="@+id/firstDivider"
+                    android:layout_width="0dp"
+                    android:layout_height="3dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_toEndOf="@id/imageView"
+                    android:layout_marginStart="5dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="16dp"/>
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="60dp"
+                    android:layout_height="15dp"
+                    android:src="@drawable/ic_tmdb_long"
+                    android:layout_marginStart="15dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"/>
+            </RelativeLayout>
 
             <HorizontalScrollView
                 android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/firstDivider"
+                android:layout_below="@id/dividerLayout"
                 android:scrollbars="none">
                 <LinearLayout
                     android:layout_width="wrap_content"
