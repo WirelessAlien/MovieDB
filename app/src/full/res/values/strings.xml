@@ -19,7 +19,7 @@
   -->
 
 <resources>
-    <string name="app_name" translatable="false">ShowCase</string>
+    <string name="app_name" translatable="false">ShowCase Full</string>
 
     <!-- BaseActivity -->
     <string name="no_permission_dialog_ok">OK</string>
