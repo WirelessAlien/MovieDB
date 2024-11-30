@@ -454,11 +454,6 @@ class DetailActivity : BaseActivity() {
                         val colorStateList = ColorStateList.valueOf(mutedColor)
                         if (mutedColor != Color.TRANSPARENT) {
                             binding.fab.backgroundTintList = colorStateList
-                            binding.certificationCv.setBackgroundColor(Color.TRANSPARENT)
-                            binding.releaseDateCv.setBackgroundColor(Color.TRANSPARENT)
-                            binding.runtimeCv.setBackgroundColor(Color.TRANSPARENT)
-                            binding.genreCv.setBackgroundColor(Color.TRANSPARENT)
-                            binding.ratingCv.setBackgroundColor(Color.TRANSPARENT)
 
                             binding.firstDivider.dividerColor = mutedColor
                             binding.secondDivider.dividerColor = mutedColor
@@ -1051,12 +1046,8 @@ class DetailActivity : BaseActivity() {
                 cursor.moveToFirst()
                 // Set the rating to the personal rating of the user.
                 val localizedTen = String.format(Locale.getDefault(), "%d", 10)
-                binding.rating.text = String.format(
-                    Locale.getDefault(),
-                    "%.2f/%s",
-                    cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)),
-                    localizedTen
-                )
+                binding.movieRating.text = getString(R.string.rating_format, cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)), localizedTen)
+                binding.movieRating.visibility = View.VISIBLE
 
                 var dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
@@ -1579,7 +1570,8 @@ class DetailActivity : BaseActivity() {
 
                     // Update the view
                     val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
-                    binding.rating.text = String.format(Locale.getDefault(), "%.1f/%s", rating, localizedTen)
+                    binding.movieRating.text = getString(R.string.rating_format, rating, localizedTen)
+                    binding.movieRating.visibility = View.VISIBLE
                 }
             }
 

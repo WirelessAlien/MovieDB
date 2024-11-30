@@ -343,5 +343,6 @@
     <string name="certification_with_country" translatable="false">%1$s (%2$s)</string>
     <string name="items_count">Items: %1$d</string>
     <string name="refresh">Refresh</string>
+    <string name="rating_format">Rating: %.1f/%s</string>
 
 </resources>

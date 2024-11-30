@@ -282,4 +282,5 @@
     <string name="error_rating_exceeds_limit">Por favor introduzca un valor entre 0,0 y 10</string>
     <string name="items_count">Elementos: %1$d</string>
     <string name="refresh">Refresh</string>
+    <string name="rating_format">Valoración: %.1f/%s</string>
 </resources>
