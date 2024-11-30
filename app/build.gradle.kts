@@ -27,6 +27,19 @@ android {
     namespace = "com.wirelessalien.android.moviedb"
     compileSdk = 34
 
+    flavorDimensions.add("version")
+    productFlavors {
+        create("foss") {
+            dimension = "version"
+            applicationId = "com.wirelessalien.android.moviedb"
+        }
+        create("full") {
+            dimension = "version"
+            applicationId = "com.wirelessalien.android.moviedb.full"
+            versionNameSuffix = "-full"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.wirelessalien.android.moviedb"
         minSdk = 24
@@ -53,16 +66,29 @@ android {
             isDebuggable = true
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     buildFeatures {
         viewBinding = true
         buildConfig = true
     }
+
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    packaging {
+        resources.excludes.add("META-INF/DEPENDENCIES")
+    }
+}
+
+tasks.register("printVersionName") {
+    doLast {
+        println(android.defaultConfig.versionName)
     }
 }
 
@@ -70,7 +96,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.13.0-alpha06")
+    implementation("com.google.android.material:material:1.13.0-alpha08")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.code.gson:gson:2.10.1")
@@ -90,6 +116,14 @@ dependencies {
     implementation ("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.picasso:picasso:2.8")
 
+    //for Google Sign In
+    "fullImplementation"("com.google.android.gms:play-services-auth:21.2.0")
+    "fullImplementation"("com.google.apis:google-api-services-drive:v3-rev197-1.25.0")
+    "fullImplementation"("com.google.http-client:google-http-client-gson:1.40.0")
+    "fullImplementation"("androidx.credentials:credentials:1.3.0")
+    "fullImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "fullImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    "fullImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
