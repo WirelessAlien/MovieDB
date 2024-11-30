@@ -21,14 +21,14 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Generate Release APK
-        run: ./gradlew assembleRelease
+      - name: Generate Release APKs
+        run: ./gradlew assemblefossRelease assemblefullRelease
 
-      - name: Sign APK
+      - name: Sign APKs
         uses: r0adkll/sign-android-release@v1
-        id: sign_app
+        id: sign_foss
         with:
-          releaseDirectory: app/build/outputs/apk/release
+          releaseDirectory: app/build/outputs/apk/foss/release
           signingKeyBase64: ${{ secrets.KEYSTORE_FILE }}
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -36,17 +36,33 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Rename APK
-        run: mv ${{ steps.sign_app.outputs.signedReleaseFile }} app/build/outputs/apk/release/showcase\(master\)${{ github.run_number }}.apk
+      - name: Sign APKs
+        uses: r0adkll/sign-android-release@v1
+        id: sign_full
+        with:
+          releaseDirectory: app/build/outputs/apk/full/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_FILE }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
 
+      - name: Rename APKs
+        run: |
+          mv ${{ steps.sign_foss.outputs.signedReleaseFile }} app/build/outputs/apk/foss/release/showcase_foss_${{ github.run_number }}.apk
+          mv ${{ steps.sign_full.outputs.signedReleaseFile }} app/build/outputs/apk/full/release/showcase_full_${{ github.run_number }}.apk
       - name: Install curl
         run: sudo apt-get install -y curl
 
-      - name: Upload APK to Telegram
+      - name: Upload APKs to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
           -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
-          -F document=@app/build/outputs/apk/release/showcase\(master\)${{ github.run_number }}.apk
+          -F document=@app/build/outputs/apk/foss/release/showcase_foss_${{ github.run_number }}.apk
+          curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+          -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
+          -F document=@app/build/outputs/apk/full/release/showcase_full_${{ github.run_number }}.apk
