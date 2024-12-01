@@ -39,6 +39,7 @@ class DeleteEpisodeRating(
     private val context: Context?
 ) {
     private val accessToken: String?
+    private var success: Boolean = false
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
@@ -46,7 +47,6 @@ class DeleteEpisodeRating(
     }
 
     suspend fun deleteEpisodeRating() {
-        var success: Boolean
         val client = OkHttpClient()
         val request = Request.Builder()
             .url("https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber/episode/$episodeNumber/rating")
@@ -76,5 +76,9 @@ class DeleteEpisodeRating(
         } catch (e: JSONException) {
             e.printStackTrace()
         }
+    }
+
+    fun isSuccessful(): Boolean {
+        return success
     }
 }

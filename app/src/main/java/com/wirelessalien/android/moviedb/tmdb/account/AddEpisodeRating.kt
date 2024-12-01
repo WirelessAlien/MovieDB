@@ -40,6 +40,7 @@ class AddEpisodeRating(
     private val context: Context?
 ) {
     private val accessToken: String?
+    private var success: Boolean = false
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
@@ -74,15 +75,19 @@ class AddEpisodeRating(
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        val finalSuccess = success1 || success2
+        success = success1 || success2
         if (context is Activity) {
             context.runOnUiThread {
-                if (finalSuccess) {
+                if (success) {
                     Toast.makeText(context, R.string.rating_added_successfully, Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, R.string.failed_to_add_rating, Toast.LENGTH_SHORT).show()
                 }
             }
         }
+    }
+
+    fun isSuccessful(): Boolean {
+        return success
     }
 }

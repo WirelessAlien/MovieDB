@@ -311,13 +311,23 @@ class EpisodeAdapter(
             submitButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
                     val ratingS = ratingSlider.value.toDouble()
-                    AddEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, ratingS, context).addRating()
+                    val addEpisodeRating = AddEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, ratingS, context)
+                    addEpisodeRating.addRating()
+                    if (addEpisodeRating.isSuccessful()) {
+                        holder.binding.rating.text = context.getString(R.string.rating_tmdb) + String.format(
+                            Locale.getDefault(), "%.1f/" + String.format(Locale.getDefault(), "%d", 10), ratingS
+                        )
+                    }
                     dialog.dismiss()
                 }
             }
             deleteButton.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
-                    DeleteEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, context).deleteEpisodeRating()
+                    val deleteEpisodeRating = DeleteEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, context)
+                    deleteEpisodeRating.deleteEpisodeRating()
+                    if (deleteEpisodeRating.isSuccessful()) {
+                        holder.binding.rating.setText(R.string.episode_rating_tmdb_not_set)
+                    }
                     dialog.dismiss()
                 }
             }
