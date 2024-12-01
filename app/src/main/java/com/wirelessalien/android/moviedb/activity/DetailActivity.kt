@@ -1548,29 +1548,20 @@ class DetailActivity : BaseActivity() {
                 }
             }
 
-            // Listen to changes to the ShowRating EditText.
-            binding.showRating.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-                if (!hasFocus && binding.showRating.text.toString().isNotEmpty()) {
+            // Listen to changes to the ShowRating Slider.
+            binding.showRating.addOnChangeListener { _, value, fromUser ->
+                if (fromUser) {
                     // Save the number to the database
                     val showValues = ContentValues()
-                    var rating = binding.showRating.text.toString().toFloat()
-
-                    // Do not allow ratings outside of the range.
-                    if (rating > 10.0f) {
-                        rating = 10.0f
-                        binding.showRating.error = context.getString(R.string.error_rating_exceeds_limit)
-                    } else {
-                        binding.showRating.error = null
-                    }
-
-                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, rating)
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, value)
                     database = databaseHelper.writableDatabase
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
                     database.close()
 
                     // Update the view
                     val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
-                    binding.movieRating.text = getString(R.string.rating_format, rating, localizedTen)
+                    binding.movieRating.text =
+                        getString(R.string.rating_format, value, localizedTen)
                     binding.movieRating.visibility = View.VISIBLE
                 }
             }
@@ -1584,7 +1575,6 @@ class DetailActivity : BaseActivity() {
                     showValues.put(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW, review)
                     database = databaseHelper.writableDatabase
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
-                    Log.d("MovieReview", "Review: $review")
                     database.close()
 
                     if (review.isNotEmpty()) {
@@ -1607,7 +1597,6 @@ class DetailActivity : BaseActivity() {
 
             binding.categories.clearFocus()
             binding.timesWatched.clearFocus()
-            binding.showRating.clearFocus()
             binding.movieReview.clearFocus()
 
             fadeOutAndHideAnimation(binding.editShowDetails)
@@ -1695,7 +1684,7 @@ class DetailActivity : BaseActivity() {
                 }
             }
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) != "") {
-                binding.showRating.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)))
+                binding.showRating.value = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).toFloat()
             }
             if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) != "") {
                 binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))

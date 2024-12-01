@@ -251,47 +251,64 @@
                                 android:layout_marginStart="5dp"
                                 app:cornerRadius="5dp"
                                 android:drawableEnd="@drawable/ic_calendar"
-                                android:drawablePadding="5dip"
+                                android:drawablePadding="5dp"
                                 android:onClick="showDateSelectionDialog"
                                 android:tag="end_date" />
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_columnWeight="1"
-                                android:layout_gravity="fill"
-                                android:layout_marginEnd="5dp"
-                                android:hint="@string/change_watched_times"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/timesWatched"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:digits="0123456789"
-                                    android:gravity="center_vertical"
-                                    android:inputType="number"
-                                    android:text="@string/times_watched_default" />
-                            </com.google.android.material.textfield.TextInputLayout>
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_columnWeight="1"
-                                android:layout_marginStart="5dp"
-                                android:layout_gravity="fill"
-                                android:hint="@string/rating"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/showRating"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:gravity="center_vertical"
-                                    android:inputType="numberDecimal"
-                                    android:text="@string/show_rating_default" />
-                            </com.google.android.material.textfield.TextInputLayout>
                         </GridLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="fill"
+                            android:hint="@string/change_watched_times"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/timesWatched"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:digits="0123456789"
+                                android:gravity="center_vertical"
+                                android:inputType="number"
+                                android:text="@string/times_watched_default" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardCornerRadius="5dp"
+                            android:layout_marginTop="10dp"
+                            app:strokeWidth="2dp"
+                            style="@style/Widget.Material3.CardView.Outlined">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/ratingText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerVertical="true"
+                                android:padding="10dp"
+                                android:layout_marginStart="6dp"
+                                android:text="@string/rating"/>
+
+                            <com.google.android.material.slider.Slider
+                                android:id="@+id/showRating"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_toEndOf="@+id/ratingText"
+                                android:valueFrom="0.0"
+                                android:paddingTop="5dp"
+                                android:layout_marginStart="-10dp"
+                                android:paddingBottom="5dp"
+                                android:valueTo="10.0"
+                                android:stepSize="0.1"
+                                android:value="0.0"/>
+                        </RelativeLayout>
+                        </com.google.android.material.card.MaterialCardView>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"

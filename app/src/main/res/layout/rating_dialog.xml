@@ -54,7 +54,6 @@
         android:value="0.0"
         android:layout_margin="16dp" />
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
