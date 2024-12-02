@@ -33,5 +33,11 @@
 -dontwarn com.google.common.**
 -dontwarn com.google.api.client.util.**
 
--keep,allowshrinking class com.google.api.services.drive.model.** { *;}
--keep,allowshrinking class com.google.api.services.drive.** { *;}
+-keep class com.google.googlesignin.** { *; }
+-keepnames class com.google.googlesignin.* { *; }
+
+-keep class com.google.android.gms.auth.** { *; }
+
+-keep class * extends com.google.api.client.json.GenericJson { *; }
+-keep class com.google.api.services.drive.** { *; }
+-keepclassmembers class * { @com.google.api.client.util.Key <fields>; }
