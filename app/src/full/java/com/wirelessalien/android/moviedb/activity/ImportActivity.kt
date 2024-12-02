@@ -139,7 +139,10 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
     }
 
     private fun requestDrivePermissionsForDownload() {
-        val requestedScopes = listOf(Scope(DriveScopes.DRIVE_APPDATA))
+        val requestedScopes = listOf(
+            Scope(DriveScopes.DRIVE_APPDATA),
+            Scope(DriveScopes.DRIVE_FILE)
+        )
         val authorizationRequest = AuthorizationRequest.Builder()
             .setRequestedScopes(requestedScopes)
             .build()

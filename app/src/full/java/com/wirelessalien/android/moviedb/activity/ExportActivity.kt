@@ -301,7 +301,10 @@ class ExportActivity : AppCompatActivity() {
     }
 
     private fun requestDrivePermissions() {
-        val requestedScopes = listOf(Scope(DriveScopes.DRIVE_APPDATA))
+        val requestedScopes = listOf(
+            Scope(DriveScopes.DRIVE_APPDATA),
+            Scope(DriveScopes.DRIVE_FILE)
+        )
         val authorizationRequest = AuthorizationRequest.Builder()
             .setRequestedScopes(requestedScopes)
             .build()

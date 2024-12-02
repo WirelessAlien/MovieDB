@@ -25,7 +25,13 @@
 # A resource is loaded with a relative path so the package of this class must be preserved.
 -keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
 
--if class androidx.credentials.CredentialManager
 -keep class androidx.credentials.playservices.** {
   *;
 }
+
+# For Google Drive API
+-dontwarn com.google.common.**
+-dontwarn com.google.api.client.util.**
+
+-keep,allowshrinking class com.google.api.services.drive.model.** { *;}
+-keep,allowshrinking class com.google.api.services.drive.** { *;}
