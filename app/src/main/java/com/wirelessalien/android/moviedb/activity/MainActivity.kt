@@ -69,7 +69,7 @@ import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
 import com.wirelessalien.android.moviedb.fragment.HomeFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment
-import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newInstance
+import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newSavedInstance
 import com.wirelessalien.android.moviedb.fragment.LoginFragment
 import com.wirelessalien.android.moviedb.fragment.PersonFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
@@ -165,7 +165,7 @@ class MainActivity : BaseActivity() {
                     selectedFragment = newInstance(TV)
                 }
                 R.id.nav_saved -> {
-                    selectedFragment = newInstance()
+                    selectedFragment = newSavedInstance()
                 }
                 R.id.nav_account -> {
                     selectedFragment = AccountDataFragment()

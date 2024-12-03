@@ -1024,18 +1024,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     companion object {
         private var mDatabaseUpdate = false
 
-        /**
-         * Creates a new ListFragment object and returns it.
-         *
-         * @return the newly created ListFragment object.
-         */
-        fun newInstance(): ListFragment {
+        fun newSavedInstance(): ListFragment {
             return ListFragment()
         }
 
-        /**
-         * Creates and sets a new adapter when ListFragment is resumed.
-         */
         fun databaseUpdate() {
             mDatabaseUpdate = true
         }
