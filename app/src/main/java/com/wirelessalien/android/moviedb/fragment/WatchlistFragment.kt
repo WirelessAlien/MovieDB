@@ -51,6 +51,7 @@ class WatchlistFragment : BaseFragment() {
     private var pastVisibleItems = 0
     private var visibleItemCount = 0
     private var totalItemCount = 0
+    private var totalPages = 0
 
     @Volatile
     private var isLoadingData = false
@@ -94,6 +95,7 @@ class WatchlistFragment : BaseFragment() {
         showIdSet.clear()
         mShowAdapter.notifyDataSetChanged()
         currentPage = 1
+        totalPages = 0
         mListType = if ("movie" == mListType) "tv" else "movie"
         loadWatchList(mListType, 1)
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
@@ -142,7 +144,7 @@ class WatchlistFragment : BaseFragment() {
                         visibleThreshold
                     }
                     if (!loading && visibleItemCount + pastVisibleItems + threshold >= totalItemCount) {
-                        if (mShowArrayList.isNotEmpty()) {
+                        if (mShowArrayList.isNotEmpty() && hasMoreItemsToLoad()) {
                             currentPage++
                             loadWatchList(mListType, currentPage)
                         }
@@ -202,6 +204,7 @@ class WatchlistFragment : BaseFragment() {
 
             try {
                 val reader = JSONObject(response)
+                totalPages = reader.getInt("total_pages")
                 val arrayData = reader.getJSONArray("results")
                 val newItems = mutableListOf<JSONObject>()
                 for (i in 0 until arrayData.length()) {
@@ -225,6 +228,10 @@ class WatchlistFragment : BaseFragment() {
             }
         }
         loading = false
+    }
+
+    private fun hasMoreItemsToLoad(): Boolean {
+        return currentPage < totalPages
     }
 
     companion object {
