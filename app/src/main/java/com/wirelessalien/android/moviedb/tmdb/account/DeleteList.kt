@@ -58,7 +58,9 @@ class DeleteList(
             val response = withContext(Dispatchers.IO) {
                 client.newCall(request).execute()
             }
-            val jsonResponse = JSONObject(response.body()!!.string())
+            val jsonResponse = withContext(Dispatchers.IO) {
+                JSONObject(response.body()!!.string())
+            }
             success = jsonResponse.getBoolean("success")
         } catch (e: Exception) {
             e.printStackTrace()
