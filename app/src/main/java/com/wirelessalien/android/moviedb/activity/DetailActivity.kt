@@ -36,6 +36,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.icu.text.DateFormat
 import android.icu.text.DateFormatSymbols
+import android.icu.text.NumberFormat
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
@@ -1256,8 +1257,9 @@ class DetailActivity : BaseActivity() {
             }
 
             if (movieObject.has("popularity")) {
-                val popularity = movieObject.getString("popularity")
-                binding.popularityText.text = popularity
+                val popularity = movieObject.getString("popularity").toDouble()
+                val formattedPopularity = NumberFormat.getNumberInstance(Locale.getDefault()).format(popularity)
+                binding.popularityText.text = formattedPopularity
             }
 
             if (movieObject.has("spoken_languages")) {
