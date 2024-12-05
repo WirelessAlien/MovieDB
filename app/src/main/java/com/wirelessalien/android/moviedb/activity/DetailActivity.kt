@@ -35,6 +35,7 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.icu.text.DateFormat
+import android.icu.text.DateFormatSymbols
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
@@ -1721,31 +1722,30 @@ class DetailActivity : BaseActivity() {
                 if (view.tag == "start_date") {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateText)
                     val button = findViewById<Button>(R.id.startDateButton)
-                    button.text = getString(R.string.month_year_format, month, selectedYear)
+                    button.text = String.format("%02d-%d", month.toInt(), selectedYear)
                     binding.movieStartDate.text = getString(R.string.start_date, formatDateString(dateText))
                 } else {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
                     val button = findViewById<Button>(R.id.endDateButton)
-                    button.text = getString(R.string.month_year_format, month, selectedYear)
+                    button.text = String.format("%02d-%d", month.toInt(), selectedYear)
                     binding.movieFinishDate.text = getString(R.string.finish_date, formatDateString(dateText))
                 }
                 database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
                 // Update the UI component immediately
                 when (view.tag) {
                     "start_date" -> {
-                        binding.startDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.startDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
                         binding.movieStartDate.text = getString(R.string.start_date, formatDateString(dateText))
                         binding.movieStartDate.visibility = View.VISIBLE
                     }
                     "end_date" -> {
-                        binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.endDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
                         binding.movieFinishDate.text = getString(R.string.finish_date, formatDateString(dateText))
                         binding.movieFinishDate.visibility = View.VISIBLE
                     }
                     else -> {
-                        binding.endDateButton.text = getString(R.string.month_year_format, month, selectedYear)
+                        binding.endDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
                         binding.movieFinishDate.text = getString(R.string.start_date_unknown)
-
                     }
                 }
                 dialog.dismiss()
@@ -1790,10 +1790,7 @@ class DetailActivity : BaseActivity() {
         yearPicker.maxValue = currentYear
         yearPicker.value = currentYear
 
-        val months = arrayOf(
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        )
+        val months = DateFormatSymbols.getInstance(Locale.getDefault()).months
         monthPicker.minValue = 0
         monthPicker.maxValue = months.size - 1
         monthPicker.displayedValues = months

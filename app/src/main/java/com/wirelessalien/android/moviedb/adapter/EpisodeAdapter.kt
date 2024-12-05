@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.icu.text.DateFormat
+import android.icu.text.DateFormatSymbols
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.os.Handler
@@ -348,10 +349,7 @@ class EpisodeAdapter(
         yearPicker.maxValue = currentYear
         yearPicker.value = currentYear
 
-        val months = arrayOf(
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        )
+        val months = DateFormatSymbols.getInstance(Locale.getDefault()).months
         monthPicker.minValue = 0
         monthPicker.maxValue = months.size - 1
         monthPicker.displayedValues = months
