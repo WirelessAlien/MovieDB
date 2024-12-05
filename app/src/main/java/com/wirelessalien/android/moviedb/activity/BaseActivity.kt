@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.icu.util.TimeZone
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
@@ -133,16 +134,9 @@ open class BaseActivity : AppCompatActivity() {
 
     companion object {
         private const val API_LANGUAGE_PREFERENCE = "key_api_language"
+        private const val API_REGION_PREFERENCE = "key_api_region"
+        private const val API_TIMEZONE_PREFERENCE = "key_api_timezone"
 
-        /**
-         * Returns the language that is used by the phone.
-         * Usage: this is only meant to be used at the end of the API url.
-         * Otherwise an ampersand needs to be added manually at the end
-         * and the possibility that an empty string can be returned
-         * (which will interfere with the manual ampersand) must be
-         * taken into account.
-         */
-        @JvmStatic
         fun getLanguageParameter(context: Context?): String {
             val languageParameter = "&language="
             val language = Locale.getDefault().language
@@ -165,6 +159,42 @@ open class BaseActivity : AppCompatActivity() {
             return if (!userPickedLanguage.isNullOrEmpty()) {
                 languageParameter + userPickedLanguage
             } else languageParameter + language
+        }
+
+        fun getRegionParameter(context: Context?): String {
+            val regionParameter = "region="
+            val region = Locale.getDefault().country
+            val preferences = PreferenceManager.getDefaultSharedPreferences(
+                context!!
+            )
+            val userPickedRegion = preferences.getString(API_REGION_PREFERENCE, null)
+            return if (!userPickedRegion.isNullOrEmpty()) {
+                regionParameter + userPickedRegion
+            } else regionParameter + region
+        }
+
+        fun getRegionParameter2(context: Context?): String {
+            val regionParameter = "watch_region="
+            val region = Locale.getDefault().country
+            val preferences = PreferenceManager.getDefaultSharedPreferences(
+                context!!
+            )
+            val userPickedRegion = preferences.getString(API_REGION_PREFERENCE, null)
+            return if (!userPickedRegion.isNullOrEmpty()) {
+                regionParameter + userPickedRegion
+            } else regionParameter + region
+        }
+
+        fun getTimeZoneParameter(context: Context?): String {
+            val timeZoneParameter = "timezone="
+            val timeZone = TimeZone.getDefault().id
+            val preferences = PreferenceManager.getDefaultSharedPreferences(
+                context!!
+            )
+            val userPickedTimeZone = preferences.getString(API_TIMEZONE_PREFERENCE, null)
+            return if (!userPickedTimeZone.isNullOrEmpty()) {
+                timeZoneParameter + userPickedTimeZone
+            } else timeZoneParameter + timeZone
         }
     }
 }

@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -58,7 +59,7 @@ import java.util.Locale
 import java.util.Optional
 
 class ShowFragment : BaseFragment() {
-    private var API_KEY: String? = null
+    private var apiKey: String? = null
     private var mListType: String? = null
     override var mSearchView = false
     private var mSearchQuery: String? = null
@@ -74,12 +75,14 @@ class ShowFragment : BaseFragment() {
     private var visibleItemCount = 0
     private var totalItemCount = 0
     private var mShowListLoaded = false
+    private val dateFormat = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+    val date = Date()
     private val showIdSet = HashSet<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        API_KEY = ConfigHelper.getConfigValue(requireContext().applicationContext, "api_key")
+        apiKey = ConfigHelper.getConfigValue(requireContext().applicationContext, "api_key")
         mListType = if (arguments != null) {
             requireArguments().getString(ARG_LIST_TYPE)
         } else {
@@ -97,6 +100,13 @@ class ShowFragment : BaseFragment() {
             preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false
         )
         (requireActivity() as BaseActivity).checkNetwork()
+
+        // Set filterParameter based on mListType
+        filterParameter = if (mListType == SectionsPagerAdapter.MOVIE) {
+            "sort_by=popularity.desc&" + BaseActivity.getRegionParameter(requireContext())
+        } else {
+            "sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
+        }
 
         // Use persistent filtering if it is enabled.
         if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
@@ -176,15 +186,40 @@ class ShowFragment : BaseFragment() {
             FilterActivity.FILTER_PREFERENCES,
             Context.MODE_PRIVATE
         )
+
+        val calendar: android.icu.util.Calendar = android.icu.util.Calendar.getInstance()
+        calendar.time = date
+        calendar.add(android.icu.util.Calendar.DAY_OF_YEAR, 500)
+        val dateAfterYear = calendar.time
+
         var sortPreference: String?
         if (sharedPreferences.getString(FilterActivity.FILTER_SORT, null)
                 .also { sortPreference = it } != null
         ) filterParameter = when (sortPreference) {
-            "best_rated" -> "sort_by=vote_average.desc"
-            "release_date" -> "sort_by=release_date.desc"
-            "alphabetic_order" -> "sort_by=original_title.desc"
-            else ->  // This will also be selected when 'most_popular' is checked.
-                "sort_by=popularity.desc"
+            "best_rated" ->
+                if (mListType == SectionsPagerAdapter.MOVIE) {
+                    BaseActivity.getRegionParameter(requireContext()) + "&sort_by=vote_average.desc"
+                } else {
+                    "sort_by=vote_average.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
+                }
+            "release_date" ->
+                if (mListType == SectionsPagerAdapter.MOVIE) {
+                    BaseActivity.getRegionParameter(requireContext()) + "&primary_release_date.lte=" + dateFormat.format(dateAfterYear) + "&sort_by=primary_release_date.desc"
+                } else {
+                    "sort_by=first_air_date.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
+                }
+            "alphabetic_order" ->
+                if (mListType == SectionsPagerAdapter.MOVIE) {
+                    "sort_by=title.desc"
+                } else {
+                    "sort_by=name.desc"
+                }
+            else ->
+                if (mListType == SectionsPagerAdapter.MOVIE) {
+                    "sort_by=popularity.desc&" + BaseActivity.getRegionParameter(requireContext())
+                } else {
+                    "sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
+                }
         }
 
 
@@ -377,9 +412,8 @@ class ShowFragment : BaseFragment() {
                             requireContext().applicationContext,
                             "api_read_access_token"
                         )
-                        val url = URL(
-                            "https://api.themoviedb.org/3/discover/" + listType + "?" + filterParameter + "&page=" + page + BaseActivity.getLanguageParameter(context)
-                        )
+                        val url = URL("https://api.themoviedb.org/3/discover/" + listType + "?" + filterParameter + "&page=" + page + BaseActivity.getLanguageParameter(context))
+                        Log.d("TAG4", url.toString())
                         val client = OkHttpClient()
                         val request = Request.Builder()
                             .url(url)
@@ -490,7 +524,7 @@ class ShowFragment : BaseFragment() {
                         val url = URL(
                             "https://api.themoviedb.org/3/search/" +
                                     listType + "?query=" + query + "&page=" + page +
-                                    "&api_key=" + API_KEY + BaseActivity.getLanguageParameter(context)
+                                    "&api_key=" + apiKey + BaseActivity.getLanguageParameter(context)
                         )
                         val urlConnection = url.openConnection()
                         val bufferedReader = BufferedReader(InputStreamReader(urlConnection.getInputStream()))

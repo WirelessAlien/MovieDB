@@ -20,11 +20,14 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.content.Intent
+import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -57,6 +60,8 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URL
+import java.util.Date
+import java.util.Locale
 import java.util.Optional
 
 class HomeFragment : BaseFragment() {
@@ -68,6 +73,8 @@ class HomeFragment : BaseFragment() {
     private lateinit var mUpcomingMovieView: RecyclerView
     private var api_key: String? = null
     private var mShowListLoaded = false
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+    val date = Date()
     private lateinit var mHomeShowAdapter: NowPlayingMovieAdapter
     private lateinit var mTVShowArrayList: ArrayList<JSONObject>
     private lateinit var mHomeShowArrayList: ArrayList<JSONObject>
@@ -267,11 +274,7 @@ class HomeFragment : BaseFragment() {
         val response = withContext(Dispatchers.IO) {
             var response: String? = null
             try {
-                val url = URL(
-                    "https://api.themoviedb.org/3/movie/now_playing" + BaseActivity.getLanguageParameter2(
-                        requireContext()
-                    ) + "&page=1"
-                )
+                val url = URL("https://api.themoviedb.org/3/movie/now_playing" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
                 val client = OkHttpClient()
                 val request = Request.Builder()
                     .url(url)
@@ -320,11 +323,8 @@ class HomeFragment : BaseFragment() {
         val response = withContext(Dispatchers.IO) {
             var response: String? = null
             try {
-                val url = URL(
-                    "https://api.themoviedb.org/3/tv/airing_today" + BaseActivity.getLanguageParameter2(
-                        requireContext()
-                    ) + "&page=1"
-                )
+                val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(date)+ "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
+                Log.d("TAG", url.toString())
                 val client = OkHttpClient()
                 val request = Request.Builder()
                     .url(url)
@@ -370,14 +370,14 @@ class HomeFragment : BaseFragment() {
     }
 
     private suspend fun fetchUpcomingTVShows() {
+        val calendar: Calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.DAY_OF_YEAR, 7)
+        val dateAfterWeek = calendar.time
         val response = withContext(Dispatchers.IO) {
             var response: String? = null
             try {
-                val url = URL(
-                    "https://api.themoviedb.org/3/tv/on_the_air" + BaseActivity.getLanguageParameter2(
-                        requireContext()
-                    ) + "&page=1"
-                )
+                val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
                 val client = OkHttpClient()
                 val request = Request.Builder()
                     .url(url)
@@ -426,11 +426,7 @@ class HomeFragment : BaseFragment() {
         val response = withContext(Dispatchers.IO) {
             var response: String? = null
             try {
-                val url = URL(
-                    "https://api.themoviedb.org/3/movie/upcoming" + BaseActivity.getLanguageParameter2(
-                        requireContext()
-                    ) + "&page=1"
-                )
+                val url = URL("https://api.themoviedb.org/3/movie/upcoming" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
                 val client = OkHttpClient()
                 val request = Request.Builder()
                     .url(url)
@@ -478,11 +474,7 @@ class HomeFragment : BaseFragment() {
         val response = withContext(Dispatchers.IO) {
             var response: String? = null
             try {
-                val url = URL(
-                    "https://api.themoviedb.org/3/trending/all/day" + BaseActivity.getLanguageParameter2(
-                        requireContext()
-                    )
-                )
+                val url = URL("https://api.themoviedb.org/3/trending/all/day" + BaseActivity.getLanguageParameter2(requireContext()))
                 val client = OkHttpClient()
                 val request = Request.Builder()
                     .url(url)
