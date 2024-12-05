@@ -344,5 +344,9 @@
     <string name="items_count">Items: %1$d</string>
     <string name="refresh">Refresh</string>
     <string name="rating_format">Rating: %.1f/%s</string>
+    <string name="summary_api_region">Set the region of the API data (otherwise defaults to system region).</string>
+    <string name="summary_api_timezone">Set the timezone of the API data (otherwise defaults to system timezone).</string>
+    <string name="title_api_region">API region</string>
+    <string name="title_api_timezone">API timezone</string>
 
 </resources>

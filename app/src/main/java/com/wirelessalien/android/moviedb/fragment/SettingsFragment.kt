@@ -31,34 +31,15 @@ import androidx.preference.PreferenceFragmentCompat
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
-import com.wirelessalien.android.moviedb.preference.NPPDialogFragmentCompat
-import com.wirelessalien.android.moviedb.preference.NumberPickerPreference
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        // Load the preferences from an XML resource
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-
-        // Find the preference and set an OnPreferenceClickListener
-        val numberPickerPreference = findPreference<NumberPickerPreference>("key_grid_size_number")
-        if (numberPickerPreference != null) {
-            numberPickerPreference.onPreferenceClickListener =
-                Preference.OnPreferenceClickListener { preference: Preference ->
-                    // Create a new instance of NumberPickerPreferenceDialogFragmentCompat
-                    val dialogFragment = NPPDialogFragmentCompat.newInstance(preference.key)
-                    // Set the target fragment for use later when sending results
-                    dialogFragment.setTargetFragment(this, 0)
-                    // Show the dialog
-                    dialogFragment.show(parentFragmentManager, null)
-                    true
-                }
-        }
         val aboutPreference = findPreference<Preference>("about_key")
         if (aboutPreference != null) {
             aboutPreference.onPreferenceClickListener =
                 Preference.OnPreferenceClickListener {
-                    // Show AboutFragment as a dialog
                     AboutFragment().show(parentFragmentManager, "about_dialog")
                     true
                 }
@@ -74,7 +55,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                         val customTabsIntent = builder.build()
                         customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
                     } catch (e: Exception) {
-                        // Fallback to default browser if Chrome Custom Tabs is not available
                         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                         startActivity(browserIntent)
                     }
@@ -84,23 +64,22 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         val searchEngineKey = findPreference<Preference>("key_search_engine") as EditTextPreference
         searchEngineKey.setOnBindEditTextListener {
-            it.hint = "https://www.google.com/search?q="
+            it.hint = "Example: https://www.google.com/search?q="
         }
 
-    }
+        val apiLanguageKey = findPreference<Preference>("key_api_language") as EditTextPreference
+        apiLanguageKey.setOnBindEditTextListener {
+            it.hint = "Example: en-US or en"
+        }
 
-    override fun onDisplayPreferenceDialog(preference: Preference) {
-        // Check if the preference is a NumberPickerPreference
-        if (preference is NumberPickerPreference) {
-            // Create a new instance of the dialog fragment
-            val dialogFragment = NPPDialogFragmentCompat.newInstance(preference.getKey())
-            // Set the target fragment for use later when sending results
-            dialogFragment.setTargetFragment(this, 0)
-            // Show the dialog
-            dialogFragment.show(parentFragmentManager, null)
-        } else {
-            // Delegate the showing of the dialog to the super class
-            super.onDisplayPreferenceDialog(preference)
+        val apiRegionKey = findPreference<Preference>("key_api_region") as EditTextPreference
+        apiRegionKey.setOnBindEditTextListener {
+            it.hint = "Example: US (the iso3166-1 tag)"
+        }
+
+        val apiTimezoneKey = findPreference<Preference>("key_api_timezone") as EditTextPreference
+        apiTimezoneKey.setOnBindEditTextListener {
+            it.hint = "Example: America/New_York"
         }
     }
 
