@@ -172,7 +172,7 @@ class EpisodeAdapter(
                         holder.binding.episodeDbRating.text =
                             context.getString(R.string.rating_db) + " " + formattedRating
                     }
-                    if (details.watchDate != "0000-00-00") {
+                    if (details.watchDate != "0000-00-00" && details.watchDate != "00-00-0000") {
                         val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                         try {
                             val date = originalFormat.parse(details.watchDate)
@@ -195,6 +195,8 @@ class EpisodeAdapter(
                         } catch (e: ParseException) {
                             e.printStackTrace()
                         }
+                    } else {
+                        holder.binding.watchedDate.text = context.getString(R.string.watched_on_not_set)
                     }
                     holder.binding.episodeReview.text = details.review
                 }

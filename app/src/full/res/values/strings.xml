@@ -347,5 +347,8 @@
     <string name="upload_in_progress">Uploading</string>
     <string name="could_not_import_backup">Could not import backup: %1$s</string>
     <string name="backup_failed">Could not backup the database: %1$s</string>
-
+    <string name="summary_api_region">Set the region of the API data (otherwise defaults to system region).</string>
+    <string name="summary_api_timezone">Set the timezone of the API data (otherwise defaults to system timezone).</string>
+    <string name="title_api_region">API region</string>
+    <string name="title_api_timezone">API timezone</string>
 </resources>

@@ -49,7 +49,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         if (privacyKey != null) {
             privacyKey.onPreferenceClickListener =
                 Preference.OnPreferenceClickListener {
-                    val url = "https://sites.google.com/view/privacy-policy-showcase"
+                    val url = "https://showcase-app.blogspot.com/2024/11/privacy-policy.html"
                     try {
                         val builder = CustomTabsIntent.Builder()
                         val customTabsIntent = builder.build()

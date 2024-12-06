@@ -196,7 +196,7 @@
                     android:id="@+id/episodeDbReviewTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Review"
+                    android:text="@string/review"
                     android:layout_marginStart="-8dp"
                     android:layout_below="@id/relativeLayout3"
                     app:drawableLeftCompat="@drawable/ic_dot" />
@@ -216,7 +216,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="10dp"
-                    android:text="No review" />
+                    android:text="@string/no_reviews" />
                 </com.google.android.material.card.MaterialCardView>
             </RelativeLayout>
 
