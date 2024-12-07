@@ -185,8 +185,10 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
                 // Any custom motion to run when mask size changes
                 holder.showTitle.translationX = maskRect.left
                 holder.showDate.translationX = maskRect.left
+                holder.trendingText.translationX = maskRect.left
                 holder.showTitle.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
                 holder.showDate.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
+                holder.trendingText.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
             }
         }
     }
@@ -203,6 +205,7 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
     class ShowItemViewHolder internal constructor(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
         val showView: View
+        val trendingText: TextView
         val showTitle: TextView
         val showImage: ImageView
         val showDate: TextView
@@ -211,6 +214,7 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
 
         init {
             showView = itemView.findViewById(R.id.cardView2)
+            trendingText = itemView.findViewById(R.id.trendingText)
             showTitle = itemView.findViewById(R.id.movieTitle)
             showImage = itemView.findViewById(R.id.movieImage)
             movieInfo = itemView.findViewById(R.id.movieInfo)

@@ -71,7 +71,7 @@ class HomeFragment : BaseFragment() {
     private lateinit var tvShowView: RecyclerView
     private lateinit var mUpcomingTVShowView: RecyclerView
     private lateinit var mUpcomingMovieView: RecyclerView
-    private var api_key: String? = null
+    private var apiKey: String? = null
     private var mShowListLoaded = false
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
     val date = Date()
@@ -92,7 +92,7 @@ class HomeFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        api_key = ConfigHelper.getConfigValue(
+        apiKey = ConfigHelper.getConfigValue(
             requireContext().applicationContext,
             "api_read_access_token"
         )
@@ -280,7 +280,7 @@ class HomeFragment : BaseFragment() {
                     .url(url)
                     .get()
                     .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $api_key")
+                    .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
                     if (res.body() != null) {
@@ -330,7 +330,7 @@ class HomeFragment : BaseFragment() {
                     .url(url)
                     .get()
                     .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $api_key")
+                    .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
                     if (res.body() != null) {
@@ -383,7 +383,7 @@ class HomeFragment : BaseFragment() {
                     .url(url)
                     .get()
                     .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $api_key")
+                    .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
                     if (res.body() != null) {
@@ -432,7 +432,7 @@ class HomeFragment : BaseFragment() {
                     .url(url)
                     .get()
                     .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $api_key")
+                    .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
                     if (res.body() != null) {
@@ -455,6 +455,7 @@ class HomeFragment : BaseFragment() {
             try {
                 val reader = JSONObject(response)
                 val arrayData = reader.getJSONArray("results")
+                mUpcomingMovieArrayList.clear()
                 for (i in 0 until arrayData.length()) {
                     val websiteData = arrayData.getJSONObject(i)
                     mUpcomingMovieArrayList.add(websiteData)
@@ -480,7 +481,7 @@ class HomeFragment : BaseFragment() {
                     .url(url)
                     .get()
                     .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $api_key")
+                    .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
                     if (res.body() != null) {
@@ -551,7 +552,7 @@ class HomeFragment : BaseFragment() {
                 .url(url)
                 .get()
                 .addHeader("Content-Type", "application/json;charset=utf-8")
-                .addHeader("Authorization", "Bearer $api_key")
+                .addHeader("Authorization", "Bearer $apiKey")
                 .build()
             try {
                 client.newCall(request).execute().use { res ->

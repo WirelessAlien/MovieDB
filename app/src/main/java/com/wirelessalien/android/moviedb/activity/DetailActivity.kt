@@ -1897,100 +1897,69 @@ class DetailActivity : BaseActivity() {
 
     // Load the list of actors.
     private suspend fun fetchCastList() {
-        withContext(Dispatchers.IO) {
-            var line: String?
-            val stringBuilder = StringBuilder()
-            val movie = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-
-            // Load the list with actors that played in the movie.
+        val response = withContext(Dispatchers.IO) {
+            var response: String? = null
             try {
-                val url = URL(
-                    "https://api.themoviedb.org/3/" + movie + "/" +
-                            movieId + "/credits?api_key=" + apiKey +
-                            getLanguageParameter(applicationContext)
-                )
-                val urlConnection = url.openConnection()
-                try {
-                    val bufferedReader = BufferedReader(
-                        InputStreamReader(
-                            urlConnection.getInputStream()
-                        )
-                    )
-
-                    // Create one long string of the webpage.
-                    while (bufferedReader.readLine().also { line = it } != null) {
-                        stringBuilder.append(line).append("\n")
+                val movie = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
+                val url = URL("https://api.themoviedb.org/3/$movie/$movieId/credits" + getLanguageParameter2(applicationContext))
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Content-Type", "application/json;charset=utf-8")
+                    .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                    .build()
+                client.newCall(request).execute().use { res ->
+                    if (res.body() != null) {
+                        response = res.body()!!.string()
                     }
-
-                    // Close connection and return the data from the webpage.
-                    bufferedReader.close()
-                    val response = stringBuilder.toString()
-                    withContext(Dispatchers.Main) {
-                        onCastPostExecute(response)
-                    }
-                } catch (ioe: IOException) {
-                    ioe.printStackTrace()
                 }
-            } catch (ioe: IOException) {
-                ioe.printStackTrace()
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
+            response
+        }
+
+        if (!response.isNullOrEmpty()) {
+            onCastPostExecute(response)
         }
     }
 
     private fun onCastPostExecute(response: String?) {
         if (!response.isNullOrEmpty()) {
-            // Set all the actors in a list and send that to the adapter.
             try {
                 val reader = JSONObject(response)
 
                 // Add the cast to the castView
                 if (reader.getJSONArray("cast").length() <= 0) {
-                    // This movie has no available cast,
-                    // do not show the cast related views.
                     binding.castTitle.visibility = View.GONE
                     binding.secondDivider.visibility = View.GONE
                     binding.castRecyclerView.visibility = View.GONE
                 } else {
                     val castArray = reader.getJSONArray("cast")
-
-                    // Clear the castArrayList before adding new data
                     castArrayList.clear()
                     for (i in 0 until castArray.length()) {
                         val castData = castArray.getJSONObject(i)
                         castArrayList.add(castData)
                     }
-                    castAdapter = CastBaseAdapter(
-                        castArrayList,
-                        applicationContext
-                    )
+                    castAdapter = CastBaseAdapter(castArrayList, applicationContext)
                     binding.castRecyclerView.adapter = castAdapter
                 }
 
                 // Add the crew to the crewView
                 if (reader.getJSONArray("crew").length() <= 0) {
-                    // This movie has no available cast,
-                    // do not show the cast related views.
                     binding.crewTitle.visibility = View.GONE
                     binding.thirdDivider.visibility = View.GONE
                     binding.crewRecyclerView.visibility = View.GONE
                 } else {
                     val crewArray = reader.getJSONArray("crew")
-
-                    // Clear the crewArrayList before adding new data
                     crewArrayList.clear()
                     for (i in 0 until crewArray.length()) {
                         val crewData = crewArray.getJSONObject(i)
-
-                        // Before adding the JSONObject to the Array,
-                        // "camouflage" it as an actor so it can use
-                        // the CastBaseAdapter
                         crewData.put("character", crewData.getString("job"))
                         crewArrayList.add(crewData)
                     }
-                    crewAdapter = CastBaseAdapter(
-                        crewArrayList,
-                        applicationContext
-                    )
+                    crewAdapter = CastBaseAdapter(crewArrayList, applicationContext)
                     binding.crewRecyclerView.adapter = crewAdapter
                 }
                 mCastAndCrewLoaded = true
@@ -1999,59 +1968,45 @@ class DetailActivity : BaseActivity() {
             }
         }
         hideEmptyRecyclerView(binding.castRecyclerView, binding.castTitle)
-        hideEmptyRecyclerView(binding.castRecyclerView, binding.crewTitle)
+        hideEmptyRecyclerView(binding.crewRecyclerView, binding.crewTitle)
     }
 
     private fun startSimilarMovieList() {
         lifecycleScope.launch {
-            val response = doInBackground()
+            val response = fetchSimilarMovies()
             onPostExecuteSimilarMovies(response)
         }
     }
 
-    private suspend fun doInBackground(): String? = withContext(Dispatchers.IO) {
-        var line: String?
-        val stringBuilder = StringBuilder()
+    private suspend fun fetchSimilarMovies(): String? = withContext(Dispatchers.IO) {
+        var response: String? = null
         val movie = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-
-        // Load the webpage with the list of similar movies.
+        val url = "https://api.themoviedb.org/3/$movie/$movieId/recommendations" + getLanguageParameter2(applicationContext)
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .addHeader("Content-Type", "application/json;charset=utf-8")
+            .addHeader("Authorization", "Bearer $apiReadAccessToken")
+            .build()
         try {
-            val url = URL(
-                "https://api.themoviedb.org/3/" + movie + "/" +
-                        movieId + "/recommendations?api_key=" +
-                        apiKey + getLanguageParameter(applicationContext)
-            )
-            val urlConnection = url.openConnection()
-            try {
-                val bufferedReader = BufferedReader(
-                    InputStreamReader(urlConnection.getInputStream())
-                )
-
-                // Create one long string of the webpage.
-                while (bufferedReader.readLine().also { line = it } != null) {
-                    stringBuilder.append(line).append("\n")
+            client.newCall(request).execute().use { res ->
+                if (res.body() != null) {
+                    response = res.body()!!.string()
                 }
-
-                // Close connection and return the data from the webpage.
-                bufferedReader.close()
-                return@withContext stringBuilder.toString()
-            } catch (ioe: IOException) {
-                ioe.printStackTrace()
             }
-        } catch (ioe: IOException) {
-            ioe.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
-
-        // Loading the dataset failed, return null.
-        return@withContext null
+        response
     }
 
     private fun onPostExecuteSimilarMovies(response: String?) {
         if (!response.isNullOrEmpty()) {
-            // Set all the similar movies in a list and send that to the adapter.
             try {
                 val reader = JSONObject(response)
                 val similarMovieArray = reader.getJSONArray("results")
+                similarMovieArrayList.clear()
                 for (i in 0 until similarMovieArray.length()) {
                     val movieData = similarMovieArray.getJSONObject(i)
                     similarMovieArrayList.add(movieData)

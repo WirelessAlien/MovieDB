@@ -35,6 +35,7 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,22 +48,15 @@ import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityCastBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
 import java.net.URL
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 /**
  * This class displays information about person objects.
@@ -79,6 +73,8 @@ class CastActivity : BaseActivity() {
     private lateinit var target: Target
     private lateinit var palette: Palette
     private var apiKey: String? = null
+    private var apiReaT: String? = null
+    private lateinit var preferences: SharedPreferences
 
     /*
     * This class provides an overview for actors.
@@ -100,8 +96,9 @@ class CastActivity : BaseActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.title = getString(R.string.title_people)
         setBackButtons()
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        preferences = PreferenceManager.getDefaultSharedPreferences(this)
         apiKey = ConfigHelper.getConfigValue(applicationContext, "api_key")
+        apiReaT = ConfigHelper.getConfigValue(applicationContext, "api_read_access_token")
         context = this
 
         // Create a variable with the application context that can be used
@@ -133,30 +130,11 @@ class CastActivity : BaseActivity() {
             binding.crewMovieRecyclerView.visibility = View.GONE
         }
 
-        // Get the actorObject from the intent that contains the necessary
-        // data to display the right person and related RecyclerViews.
-        // Send the JSONObject to setActorData() so all the data
-        // will be displayed on the screen.
         val intent = intent
         try {
             setActorData(JSONObject(intent.getStringExtra("actorObject")))
             actorObject = JSONObject(intent.getStringExtra("actorObject"))
 
-            // Set the adapter with the (still) empty ArrayList.
-            castMovieArrayList = ArrayList()
-            castMovieAdapter = SimilarMovieBaseAdapter(
-                castMovieArrayList,
-                applicationContext
-            )
-            binding.castMovieRecyclerView.adapter = castMovieAdapter
-
-            // Set the adapter with the (still) empty ArrayList.
-            crewMovieArrayList = ArrayList()
-            crewMovieAdapter = SimilarMovieBaseAdapter(
-                crewMovieArrayList,
-                applicationContext
-            )
-            binding.crewMovieRecyclerView.adapter = crewMovieAdapter
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -185,7 +163,8 @@ class CastActivity : BaseActivity() {
                 val imageUrl: String = try {
                     "https://image.tmdb.org/t/p/h632" + actorObject.getString("profile_path")
                 } catch (e: JSONException) {
-                    throw RuntimeException(e)
+                    e.printStackTrace()
+                    ""
                 }
                 // Set the loaded bitmap to your ImageView before generating the Palette
                 target = object : Target {
@@ -383,66 +362,43 @@ class CastActivity : BaseActivity() {
      */
 
     private fun fetchActorMovies() {
-        CoroutineScope(Dispatchers.Main).launch {
-            val response = withContext(Dispatchers.IO) { doInBackground() }
-            onPostExecute(response)
-        }
-    }
-
-    private fun doInBackground(): String? {
-        var line: String?
-        val stringBuilder = StringBuilder()
-
-        // Load the webpage with the person's shows.
-        try {
-            val url = URL(
-                "https://api.themoviedb.org/3/person/" +
-                        actorId + "/combined_credits?api_key=" + apiKey + getLanguageParameter(
-                    applicationContext
-                )
-            )
-            val urlConnection = url.openConnection()
-            try {
-                val bufferedReader = BufferedReader(
-                    InputStreamReader(
-                        urlConnection.getInputStream()
-                    )
-                )
-
-                // Create one long string of the webpage.
-                while (bufferedReader.readLine().also { line = it } != null) {
-                    stringBuilder.append(line).append("\n")
+        lifecycleScope.launch(Dispatchers.IO) {
+            val response = try {
+                val url = URL("https://api.themoviedb.org/3/person/$actorId/combined_credits" + getLanguageParameter2(applicationContext))
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Content-Type", "application/json;charset=utf-8")
+                    .addHeader("Authorization", "Bearer $apiReaT")
+                    .build()
+                client.newCall(request).execute().use { res ->
+                    res.body()?.string()
                 }
-
-                // Close connection and return the data from the webpage.
-                bufferedReader.close()
-                return stringBuilder.toString()
-            } catch (ioe: IOException) {
-                ioe.printStackTrace()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                null
             }
-        } catch (ioe: IOException) {
-            ioe.printStackTrace()
-        }
 
-        // Loading the dataset failed, return null.
-        return null
+            withContext(Dispatchers.Main) {
+                onPostExecute(response)
+            }
+        }
     }
 
     private fun onPostExecute(response: String?) {
         if (!response.isNullOrEmpty()) {
-            // Break the JSON dataset down and add the JSONObjects to the array.
             try {
                 val reader = JSONObject(response)
 
                 // Add the cast roles to the movieView
                 if (reader.getJSONArray("cast").length() <= 0) {
-                    // This person has no roles as cast, do not show the
-                    // cast related views.
                     binding.castMovieTitle.visibility = View.GONE
                     binding.secondDivider.visibility = View.GONE
                     binding.castMovieRecyclerView.visibility = View.GONE
                 } else {
                     val castMovieArray = reader.getJSONArray("cast")
+                    castMovieArrayList.clear()
                     for (i in 0 until castMovieArray.length()) {
                         val actorMovies = castMovieArray.getJSONObject(i)
                         castMovieArrayList.add(actorMovies)
@@ -458,18 +414,14 @@ class CastActivity : BaseActivity() {
 
                 // Add the crew roles to the crewMovieView
                 if (reader.getJSONArray("crew").length() <= 0) {
-                    // This person has no roles as crew, do not show the
-                    // crew related views.
                     binding.crewMovieTitle.visibility = View.GONE
                     binding.thirdDivider.visibility = View.GONE
                     binding.crewMovieRecyclerView.visibility = View.GONE
                 } else {
                     val crewMovieArray = reader.getJSONArray("crew")
+                    crewMovieArrayList.clear()
                     for (i in 0 until crewMovieArray.length()) {
                         val crewMovies = crewMovieArray.getJSONObject(i)
-
-                        // TODO: Build a lightweight duplicate checker
-                        // (any heavy ones will cause the application to crash).
                         crewMovieArrayList.add(crewMovies)
                     }
 
@@ -490,28 +442,15 @@ class CastActivity : BaseActivity() {
     /**
      * Coroutine that retrieves the details of the person from the API.
      */
-    // Define a single instance of OkHttpClient
-    private val client: OkHttpClient by lazy {
-        OkHttpClient.Builder()
-            .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
-            .build()
-    }
-
-    // Use a fixed thread pool for coroutines
-    private val coroutineDispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
-
     private fun fetchActorDetails() {
-        CoroutineScope(coroutineDispatcher).launch {
-            val baseUrl = "https://api.themoviedb.org/3/person/$actorId?api_key=$apiKey"
-            val urlWithLanguage = baseUrl + getLanguageParameter(applicationContext)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val baseUrl = "https://api.themoviedb.org/3/person/$actorId"
+            val urlWithLanguage = baseUrl + getLanguageParameter2(applicationContext)
             try {
-                // First request with language parameter
-                var actorData = fetchActorDetails(client, urlWithLanguage)
+                var actorData = fetchActorDetails(urlWithLanguage)
 
-                // Check if biography is empty
                 if (actorData.getString("biography").isEmpty()) {
-                    // Second request without language parameter
-                    actorData = fetchActorDetails(client, baseUrl)
+                    actorData = fetchActorDetails(baseUrl)
                 }
                 withContext(Dispatchers.Main) {
                     actorObject = actorData
@@ -524,20 +463,19 @@ class CastActivity : BaseActivity() {
     }
 
     @Throws(IOException::class, JSONException::class)
-    private fun fetchActorDetails(client: OkHttpClient, url: String): JSONObject {
+    private fun fetchActorDetails(url: String): JSONObject {
+        val client = OkHttpClient()
         val request = Request.Builder()
             .url(url)
             .get()
+            .addHeader("Content-Type", "application/json;charset=utf-8")
+            .addHeader("Authorization", "Bearer $apiReaT")
             .build()
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
             val responseBody = response.body()!!.string()
             return JSONObject(responseBody)
         }
-    }
-
-    private fun onPostExecute(actorData: JSONObject?) {
-        actorData?.let { setActorData(it) }
     }
 
     companion object {
