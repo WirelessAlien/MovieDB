@@ -135,6 +135,15 @@ class CastActivity : BaseActivity() {
             setActorData(JSONObject(intent.getStringExtra("actorObject")))
             actorObject = JSONObject(intent.getStringExtra("actorObject"))
 
+            // Set the adapter with the (still) empty ArrayList.
+            castMovieArrayList = ArrayList()
+            castMovieAdapter = SimilarMovieBaseAdapter(castMovieArrayList, applicationContext)
+            binding.castMovieRecyclerView.adapter = castMovieAdapter
+
+            // Set the adapter with the (still) empty ArrayList.
+            crewMovieArrayList = ArrayList()
+            crewMovieAdapter = SimilarMovieBaseAdapter(crewMovieArrayList, applicationContext)
+            binding.crewMovieRecyclerView.adapter = crewMovieAdapter
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -147,17 +156,10 @@ class CastActivity : BaseActivity() {
             Color.WHITE
         }
 
-        // Set a listener to change the visibility when the TextView is clicked.
-        setTitleClickListener(
-            binding.castMovieTitle,
-            binding.castMovieRecyclerView,
-            CAST_MOVIE_VIEW_PREFERENCE
-        )
-        setTitleClickListener(
-            binding.crewMovieTitle,
-            binding.crewMovieRecyclerView,
-            CREW_MOVIE_VIEW_PREFERENCE
-        )
+        setTitleClickListener(binding.castMovieTitle, binding.castMovieRecyclerView, CAST_MOVIE_VIEW_PREFERENCE)
+
+        setTitleClickListener(binding.crewMovieTitle, binding.crewMovieRecyclerView, CREW_MOVIE_VIEW_PREFERENCE)
+
         if (preferences.getBoolean(DYNAMIC_COLOR_DETAILS_ACTIVITY, false)) {
             if (actorObject.has("profile_path") && binding.actorImage.drawable == null) {
                 val imageUrl: String = try {
