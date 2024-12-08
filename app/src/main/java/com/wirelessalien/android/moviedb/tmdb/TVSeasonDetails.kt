@@ -62,11 +62,11 @@ class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, 
                     return@launch
                 }
 
-                seasonName = if (seasonNumber == 0) "Specials" else jsonResponse!!.getString("name")
-                seasonOverview = jsonResponse?.getString("overview") ?: ""
-                seasonPosterPath = jsonResponse?.getString("poster_path") ?: ""
-                seasonVoteAverage = jsonResponse?.getDouble("vote_average") ?: 0.0
-                val response = jsonResponse?.getJSONArray("episodes") ?: JSONArray()
+                seasonName = if (seasonNumber == 0) "Specials" else jsonResponse.getString("name")
+                seasonOverview = jsonResponse.getString("overview") ?: ""
+                seasonPosterPath = jsonResponse.getString("poster_path") ?: ""
+                seasonVoteAverage = jsonResponse.getDouble("vote_average")
+                val response = jsonResponse.getJSONArray("episodes") ?: JSONArray()
                 episodes = mutableListOf()
                 for (i in 0 until response.length()) {
                     val episodeJson = response.getJSONObject(i)

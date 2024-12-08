@@ -343,6 +343,7 @@
     <string name="certification_with_country" translatable="false">%1$s (%2$s)</string>
     <string name="items_count">Items: %1$d</string>
     <string name="refresh">Refresh</string>
+    <string name="rating_format">Rating: %.1f/%s</string>
     <string name="drive_access_failed">Could not access Google Drive</string>
     <string name="upload_in_progress">Uploading</string>
     <string name="could_not_import_backup">Could not import backup: %1$s</string>
@@ -355,4 +356,8 @@
     <string name="authorize_google_drive">Authorize Google Drive</string>
     <string name="restore_database_from_google_drive">Restore Database from Google Drive</string>
     <string name="backup_settings">Backup Settings</string>
+    <string name="certification">Certification</string>
+    <string name="runtime">Runtime</string>
+    <string name="popularity">Popularity</string>
+    <string name="language">Language</string>
 </resources>
