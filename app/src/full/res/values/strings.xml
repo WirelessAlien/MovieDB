@@ -351,4 +351,8 @@
     <string name="summary_api_timezone">Set the timezone of the API data (otherwise defaults to system timezone).</string>
     <string name="title_api_region">API region</string>
     <string name="title_api_timezone">API timezone</string>
+    <string name="backup_to_google_drive">Backup to Google Drive</string>
+    <string name="authorize_google_drive">Authorize Google Drive</string>
+    <string name="restore_database_from_google_drive">Restore Database from Google Drive</string>
+    <string name="backup_settings">Backup Settings</string>
 </resources>

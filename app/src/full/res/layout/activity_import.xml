@@ -91,7 +91,7 @@
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
                 app:cornerRadius="5dp"
-                android:text="Restore Database from Google Drive"/>
+                android:text="@string/restore_database_from_google_drive"/>
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressIndicator"

@@ -380,7 +380,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
-                                android:text="Not Rated" />
+                                android:text="@string/not_rated" />
 
                             <TextView
                                 android:id="@+id/certificationT"
@@ -388,7 +388,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
                                 android:alpha="0.7"
-                                android:text="Certification"
+                                android:text="@string/certification"
                                 android:textSize="10sp" />
                         </LinearLayout>
 
@@ -446,7 +446,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_horizontal"
-                                android:text="Unknown" />
+                                android:text="@string/unknown" />
 
                             <TextView
                                 android:id="@+id/releaseDateT"
@@ -455,7 +455,7 @@
                                 android:textSize="10sp"
                                 android:alpha="0.7"
                                 android:layout_gravity="center_horizontal"
-                                android:text="Release Date" />
+                                android:text="@string/release_date" />
                         </LinearLayout>
 
                         <com.google.android.material.divider.MaterialDivider
@@ -488,7 +488,7 @@
                                 android:textSize="10sp"
                                 android:alpha="0.7"
                                 android:layout_gravity="center_horizontal"
-                                android:text="Runtime" />
+                                android:text="@string/runtime" />
                         </LinearLayout>
 
                         <com.google.android.material.divider.MaterialDivider
@@ -521,7 +521,7 @@
                                 android:textSize="10sp"
                                 android:alpha="0.7"
                                 android:layout_gravity="center_horizontal"
-                                android:text="Popularity" />
+                                android:text="@string/popularity" />
                         </LinearLayout>
 
                         <com.google.android.material.divider.MaterialDivider
@@ -554,7 +554,7 @@
                                 android:textSize="10sp"
                                 android:alpha="0.7"
                                 android:layout_gravity="center_horizontal"
-                                android:text="Language" />
+                                android:text="@string/language" />
                         </LinearLayout>
                     </LinearLayout>
                 </HorizontalScrollView>
@@ -724,6 +724,7 @@
                     android:text="@string/episodes"
                     android:textSize="16sp"
                     android:textStyle="bold" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/allEpisodeBtn"
                     android:layout_width="wrap_content"

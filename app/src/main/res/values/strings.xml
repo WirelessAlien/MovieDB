@@ -348,5 +348,9 @@
     <string name="summary_api_timezone">Set the timezone of the API data (otherwise defaults to system timezone).</string>
     <string name="title_api_region">API region</string>
     <string name="title_api_timezone">API timezone</string>
+    <string name="certification">Certification</string>
+    <string name="runtime">Runtime</string>
+    <string name="popularity">Popularity</string>
+    <string name="language">Language</string>
 
 </resources>

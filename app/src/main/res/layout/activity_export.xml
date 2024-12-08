@@ -35,7 +35,6 @@
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
             app:layout_scrollFlags="noScroll"/>
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -79,7 +78,6 @@
                    android:layout_alignParentEnd="true"
                    android:layout_centerVertical="true"
                    android:src="@drawable/ic_edit"/>
-
            </RelativeLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -129,7 +127,6 @@
                     android:inputType="number"
                     android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
-
 
             <TextView
                 android:id="@+id/info_text"
