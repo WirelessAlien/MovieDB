@@ -69,13 +69,7 @@ class PersonBaseAdapter
             val imageSize = if (loadHDImage) "w780" else "w342"
             holder.personName.text = personData.getString("name")
             if (personData.getString("profile_path") == null) {
-                holder.personImage.setImageDrawable(
-                    ResourcesCompat.getDrawable(
-                        context.resources,
-                        R.drawable.ic_broken_image,
-                        null
-                    )
-                )
+                holder.personImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
             } else {
                 Picasso.get().load(
                     "https://image.tmdb.org/t/p/" + imageSize

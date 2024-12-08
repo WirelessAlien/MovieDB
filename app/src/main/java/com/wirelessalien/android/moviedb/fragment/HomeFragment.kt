@@ -140,7 +140,7 @@ class HomeFragment : BaseFragment() {
                     handler.removeCallbacks(workRunnable!!)
                 }
                 workRunnable = Runnable { performSearch(s.toString()) }
-                handler.postDelayed(workRunnable!!, 300)
+                handler.postDelayed(workRunnable!!, 1000)
             }
 
             override fun afterTextChanged(s: Editable) {}
@@ -575,7 +575,9 @@ class HomeFragment : BaseFragment() {
             val arrayData = reader.getJSONArray("results")
             for (i in 0 until arrayData.length()) {
                 val movieData = arrayData.getJSONObject(i)
-                mHomeSearchShowArrayList.add(movieData)
+                if (movieData.getString("media_type") != "person") {
+                    mHomeSearchShowArrayList.add(movieData)
+                }
             }
             mHomeSearchShowAdapter.notifyDataSetChanged()
             loading = false

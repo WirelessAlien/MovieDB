@@ -65,13 +65,7 @@ class NowPlayingMovieAdapter (private val mShowArrayList: ArrayList<JSONObject>?
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w500"
             if (showData.getString(KEY_POSTER) == "null") {
-                holder.showImage.setImageDrawable(
-                    ResourcesCompat.getDrawable(
-                        context.resources,
-                        R.drawable.ic_broken_image,
-                        null
-                    )
-                )
+                holder.showImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
             } else {
                 Picasso.get().load(
                     "https://image.tmdb.org/t/p/$imageSize" + showData.getString(

@@ -210,7 +210,7 @@ class CastActivity : BaseActivity() {
 
                     override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
                         // Ensure placeHolderDrawable is not null
-                        placeHolderDrawable ?: ContextCompat.getColor(context, R.color.md_theme_primary)
+                        placeHolderDrawable ?: ContextCompat.getColor(context, R.color.md_theme_outline)
                         binding.actorImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
                     }
                 }

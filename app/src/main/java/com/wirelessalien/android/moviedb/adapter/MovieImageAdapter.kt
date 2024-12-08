@@ -54,7 +54,7 @@ class MovieImageAdapter(private val context: Context, private val movieImages: L
         val imageUrl = "https://image.tmdb.org/t/p/w300" + movieImages[position].getFilePath()
         Picasso.get()
             .load(imageUrl)
-            .placeholder(R.drawable.ic_broken_image)
+            .placeholder(R.color.md_theme_outline)
             .into(holder.imageView)
         val lp = holder.imageView.layoutParams
         if (lp is FlexboxLayoutManager.LayoutParams) {

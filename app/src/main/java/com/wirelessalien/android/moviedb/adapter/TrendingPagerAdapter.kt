@@ -86,13 +86,7 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
             val isDarkTheme = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
             try {
                 if (showData.getString(KEY_IMAGE) == "null") {
-                    holder.showImage.setImageDrawable(
-                        ResourcesCompat.getDrawable(
-                            context.resources,
-                            R.drawable.ic_broken_image,
-                            null
-                        )
-                    )
+                    holder.showImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
                 } else {
                     val imageUrl = "https://image.tmdb.org/t/p/$imageSize" + showData.getString(
                         KEY_IMAGE
@@ -127,7 +121,7 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
 
                         override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
                             // Ensure placeHolderDrawable is not null
-                            placeHolderDrawable ?: ContextCompat.getColor(context, R.color.md_theme_primary)
+                            placeHolderDrawable ?: ContextCompat.getColor(context, R.color.md_theme_outline)
                             holder.showImage.setBackgroundColor(
                                 ContextCompat.getColor(context, R.color.md_theme_surface)
                             )

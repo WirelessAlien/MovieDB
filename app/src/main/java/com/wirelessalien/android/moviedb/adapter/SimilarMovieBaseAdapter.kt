@@ -81,13 +81,7 @@ class SimilarMovieBaseAdapter // Create the adapter with the list of similar sho
 
             // Either show the poster or an icon indicating that the poster is not available.
             if (movieData.getString("backdrop_path") == null) {
-                holder.movieImage.setImageDrawable(
-                    ResourcesCompat.getDrawable(
-                        context.resources,
-                        R.drawable.ic_broken_image,
-                        null
-                    )
-                )
+                holder.movieImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
             } else {
                 Picasso.get().load(
                     "https://image.tmdb.org/t/p/" + imageSize +

@@ -58,7 +58,7 @@
                         android:layout_height="match_parent"
                         android:contentDescription="@string/image_description"
                         android:scaleType="fitXY"
-                        android:src="@color/md_theme_primary"
+                        android:src="@color/md_theme_outline"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
