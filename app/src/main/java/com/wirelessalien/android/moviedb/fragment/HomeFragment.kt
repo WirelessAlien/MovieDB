@@ -283,8 +283,8 @@ class HomeFragment : BaseFragment() {
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    if (res.body() != null) {
-                        response = res.body()!!.string()
+                    if (res.body != null) {
+                        response = res.body!!.string()
                     }
                 }
             } catch (e: IOException) {
@@ -333,8 +333,8 @@ class HomeFragment : BaseFragment() {
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    if (res.body() != null) {
-                        response = res.body()!!.string()
+                    if (res.body != null) {
+                        response = res.body!!.string()
                     }
                 }
             } catch (e: IOException) {
@@ -386,8 +386,8 @@ class HomeFragment : BaseFragment() {
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    if (res.body() != null) {
-                        response = res.body()!!.string()
+                    if (res.body != null) {
+                        response = res.body!!.string()
                     }
                 }
             } catch (e: IOException) {
@@ -435,8 +435,8 @@ class HomeFragment : BaseFragment() {
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    if (res.body() != null) {
-                        response = res.body()!!.string()
+                    if (res.body != null) {
+                        response = res.body!!.string()
                     }
                 }
             } catch (e: IOException) {
@@ -484,8 +484,8 @@ class HomeFragment : BaseFragment() {
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    if (res.body() != null) {
-                        response = res.body()!!.string()
+                    if (res.body != null) {
+                        response = res.body!!.string()
                     }
                 }
             } catch (e: IOException) {
@@ -556,8 +556,8 @@ class HomeFragment : BaseFragment() {
                 .build()
             try {
                 client.newCall(request).execute().use { res ->
-                    if (res.body() != null) {
-                        response = res.body()!!.string()
+                    if (res.body != null) {
+                        response = res.body!!.string()
                     }
                 }
             } catch (ioe: IOException) {

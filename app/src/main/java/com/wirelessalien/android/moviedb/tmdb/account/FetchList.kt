@@ -59,7 +59,7 @@ class FetchList(
                 client.newCall(request).execute()
             }
             val responseBody = withContext(Dispatchers.IO) {
-                response.body()?.string()
+                response.body?.string()
             }
             val jsonResponse = JSONObject(responseBody!!)
             val results = jsonResponse.getJSONArray("results")

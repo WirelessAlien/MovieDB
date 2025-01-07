@@ -97,8 +97,8 @@ class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw IOException("Unexpected code $response")
                 var responseBody: String? = null
-                if (response.body() != null) {
-                    responseBody = response.body()!!.string()
+                if (response.body != null) {
+                    responseBody = response.body!!.string()
                 }
                 if (responseBody != null) {
                     return@withContext JSONObject(responseBody)

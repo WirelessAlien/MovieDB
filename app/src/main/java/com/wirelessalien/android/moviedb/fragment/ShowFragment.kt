@@ -422,7 +422,7 @@ class ShowFragment : BaseFragment() {
                             .addHeader("Authorization", "Bearer $api_key")
                             .build()
                         client.newCall(request).execute().use { response ->
-                            response.body()?.string()
+                            response.body?.string()
                         }
                     } catch (e: IOException) {
                         e.printStackTrace()

@@ -27,10 +27,10 @@ import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 class TMDbAuthV4(private val context: Context) {
@@ -42,7 +42,7 @@ class TMDbAuthV4(private val context: Context) {
             var accessToken: String? = null
             try {
                 val client = OkHttpClient()
-                val JSON = MediaType.parse("application/json; charset=utf-8")
+                val jSON = "application/json; charset=utf-8".toMediaTypeOrNull()
 
                 // Create JSON object with redirect_to URL
                 val json = JSONObject()
@@ -52,17 +52,15 @@ class TMDbAuthV4(private val context: Context) {
                 val requestTokenRequest = Request.Builder()
                     .url("https://api.themoviedb.org/4/auth/request_token")
                     .post(
-                        RequestBody.create(
-                            JSON,
-                            json.toString()
-                        )
+                        json.toString()
+                            .toRequestBody(jSON)
                     ) // provide JSON object as request body
                     .addHeader("accept", "application/json")
                     .addHeader("content-type", "application/json")
                     .addHeader("authorization", "Bearer $apiKey")
                     .build()
                 val requestTokenResponse = client.newCall(requestTokenRequest).execute()
-                val responseBody = requestTokenResponse.body()!!.string()
+                val responseBody = requestTokenResponse.body!!.string()
 
                 // Parse the JSON response body
                 val jsonObject = JSONObject(responseBody)

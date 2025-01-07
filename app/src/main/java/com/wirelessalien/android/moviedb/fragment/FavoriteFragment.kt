@@ -186,7 +186,7 @@ class FavoriteFragment : BaseFragment() {
             .build()
         return try {
             client.newCall(request).execute().use { response ->
-                response.body()?.string()
+                response.body?.string()
             }
         } catch (e: IOException) {
             e.printStackTrace()

@@ -56,7 +56,7 @@ class DeleteRating(
         try {
             withContext(Dispatchers.IO) {
                 client.newCall(request).execute().use { response ->
-                    val responseBody = response.body()!!.string()
+                    val responseBody = response.body!!.string()
                     val jsonResponse = JSONObject(responseBody)
                     val statusCode = jsonResponse.getInt("status_code")
                     success = statusCode == 13

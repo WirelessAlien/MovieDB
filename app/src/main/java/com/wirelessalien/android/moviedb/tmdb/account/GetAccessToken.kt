@@ -28,9 +28,11 @@ import com.wirelessalien.android.moviedb.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 class GetAccessToken(
@@ -55,10 +57,8 @@ class GetAccessToken(
                 val postBody = JSONObject().apply {
                     put("request_token", requestToken)
                 }
-                val body = RequestBody.create(
-                    MediaType.parse("application/json; charset=utf-8"),
-                    postBody.toString()
-                )
+                val body = postBody.toString()
+                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
                 val sessionRequest = Request.Builder()
                     .url("https://api.themoviedb.org/4/auth/access_token")
                     .post(body)
@@ -67,7 +67,7 @@ class GetAccessToken(
                     .addHeader("authorization", "Bearer $apiKey")
                     .build()
                 val sessionResponse = client.newCall(sessionRequest).execute()
-                val sessionResponseBody = sessionResponse.body()!!.string()
+                val sessionResponseBody = sessionResponse.body!!.string()
                 if (sessionResponse.isSuccessful) {
                     handler?.post {
                         Toast.makeText(

@@ -53,7 +53,7 @@ class GetListDetails(
                 client.newCall(request).execute()
             }
             val responseBody = withContext(Dispatchers.IO) {
-                response.body()!!.string()
+                response.body!!.string()
             }
             val jsonResponse = JSONObject(responseBody)
             val items = jsonResponse.getJSONArray("results")

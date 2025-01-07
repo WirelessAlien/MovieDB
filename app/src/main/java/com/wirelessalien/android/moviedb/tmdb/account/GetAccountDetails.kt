@@ -65,7 +65,7 @@ class GetAccountDetails(private val context: Context?, private val callback: Acc
                     .build()
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    val jsonResponse = JSONObject(response.body()!!.string())
+                    val jsonResponse = JSONObject(response.body!!.string())
                     accountIdInt = jsonResponse.getInt("id")
                     val name = jsonResponse.getString("name")
                     val username = jsonResponse.getString("username")

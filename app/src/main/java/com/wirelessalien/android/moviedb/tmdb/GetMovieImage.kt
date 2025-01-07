@@ -53,7 +53,7 @@ class GetMovieImage(
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 val response = client.newCall(request).execute()
-                val responseBody = response.body()!!.string()
+                val responseBody = response.body!!.string()
                 val jsonObject = JSONObject(responseBody)
                 val jsonArray = jsonObject.getJSONArray("backdrops")
                 val movieImages: MutableList<MovieImage> = ArrayList()

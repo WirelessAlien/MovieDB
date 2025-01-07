@@ -31,9 +31,11 @@ import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Date
@@ -56,7 +58,7 @@ class AddToList(
         var success = false
         try {
             val client = OkHttpClient()
-            val mediaType = MediaType.parse("application/json")
+            val mediaType = "application/json".toMediaTypeOrNull()
             val jsonParam = JSONObject()
             val itemsArray = JSONArray()
             val itemObject = JSONObject()
@@ -64,7 +66,7 @@ class AddToList(
             itemObject.put("media_id", mediaId)
             itemsArray.put(itemObject)
             jsonParam.put("items", itemsArray)
-            val body = RequestBody.create(mediaType, jsonParam.toString())
+            val body = jsonParam.toString().toRequestBody(mediaType)
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/4/list/$listId/items")
                 .post(body)
@@ -78,7 +80,7 @@ class AddToList(
             }
 
             val jsonResponse = withContext(Dispatchers.IO) {
-                JSONObject(response.body()!!.string())
+                JSONObject(response.body!!.string())
             }
 
             success = jsonResponse.getBoolean("success")

@@ -27,10 +27,10 @@ import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 class AccountLogout(private val context: Context, private val handler: Handler) {
@@ -40,12 +40,12 @@ class AccountLogout(private val context: Context, private val handler: Handler) 
         withContext(Dispatchers.IO) {
             try {
                 val client = OkHttpClient()
-                val JSON = MediaType.parse("application/json; charset=utf-8")
+                val jSON = "application/json; charset=utf-8".toMediaTypeOrNull()
                 val accessToken = preferences.getString("access_token", null)
                 if (accessToken != null) {
                     val json = JSONObject()
                     json.put("access_token", accessToken)
-                    val body = RequestBody.create(JSON, json.toString())
+                    val body = json.toString().toRequestBody(jSON)
                     val request = Request.Builder()
                         .url("https://api.themoviedb.org/4/auth/access_token")
                         .delete(body)

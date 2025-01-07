@@ -57,7 +57,7 @@ class GetAccountState(
                     .addHeader("Authorization", "Bearer $accessToken")
                     .build()
                 val response = client.newCall(request).execute()
-                val responseBody = response.body()!!.string()
+                val responseBody = response.body!!.string()
                 val jsonResponse = JSONObject(responseBody)
                 isInFavourites = jsonResponse.getBoolean("favorite")
                 isInWatchlist = jsonResponse.getBoolean("watchlist")

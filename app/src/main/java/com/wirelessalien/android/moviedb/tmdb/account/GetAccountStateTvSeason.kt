@@ -56,7 +56,7 @@ class GetAccountStateTvSeason(
                     .addHeader("Authorization", "Bearer $accessToken")
                     .build()
                 val response = client.newCall(request).execute()
-                val responseBody = response.body()!!.string()
+                val responseBody = response.body!!.string()
                 val jsonResponse = JSONObject(responseBody)
                 val results = jsonResponse.getJSONArray("results")
                 for (i in 0 until results.length()) {

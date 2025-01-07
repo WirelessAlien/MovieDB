@@ -113,8 +113,9 @@ dependencies {
 
     implementation("androidx.core:core-splashscreen:1.0.1")
 
-    implementation ("de.hdodenhof:circleimageview:3.1.0")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.picasso:picasso:2.8")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     //for Google Sign In
     "fullImplementation"("com.google.android.gms:play-services-auth:21.2.0")

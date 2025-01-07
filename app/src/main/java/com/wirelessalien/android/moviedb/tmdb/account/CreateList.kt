@@ -27,10 +27,11 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 class CreateList(
@@ -50,7 +51,7 @@ class CreateList(
         var success = false
         try {
             val client = OkHttpClient()
-            val mediaType = MediaType.parse("application/json")
+            val mediaType = "application/json".toMediaTypeOrNull()
             val jsonParam = JSONObject().apply {
                 put("name", listName)
                 put("description", description)
@@ -58,7 +59,7 @@ class CreateList(
                 put("iso_639_1", "en")
                 put("public", isPublic)
             }
-            val body = RequestBody.create(mediaType, jsonParam.toString())
+            val body = jsonParam.toString().toRequestBody(mediaType)
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/4/list")
                 .post(body)
@@ -69,7 +70,7 @@ class CreateList(
             val response = withContext(Dispatchers.IO) {
                 client.newCall(request).execute()
             }
-            val jsonResponse = JSONObject(response.body()!!.string())
+            val jsonResponse = JSONObject(response.body!!.string())
             success = jsonResponse.getBoolean("success")
             if (success) {
                 ListDatabaseHelper(context).addList(jsonResponse.getInt("id"), listName)

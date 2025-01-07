@@ -375,7 +375,7 @@ class CastActivity : BaseActivity() {
                     .addHeader("Authorization", "Bearer $apiReaT")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    res.body()?.string()
+                    res.body?.string()
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -475,7 +475,7 @@ class CastActivity : BaseActivity() {
             .build()
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
-            val responseBody = response.body()!!.string()
+            val responseBody = response.body!!.string()
             return JSONObject(responseBody)
         }
     }
