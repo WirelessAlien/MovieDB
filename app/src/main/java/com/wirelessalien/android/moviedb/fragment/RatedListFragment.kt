@@ -46,11 +46,7 @@ class RatedListFragment : BaseFragment() {
     private var mListType: String? = null
     private var visibleThreshold = 0
     private var currentPage = 0
-    private var previousTotal = 0
     private var loading = true
-    private var pastVisibleItems = 0
-    private var visibleItemCount = 0
-    private var totalItemCount = 0
     private var totalPages = 0
 
     @Volatile
@@ -94,7 +90,7 @@ class RatedListFragment : BaseFragment() {
         mShowArrayList.clear()
         showIdSet.clear()
         mShowAdapter.notifyDataSetChanged()
-        currentPage = 1
+        currentPage = 0
         totalPages = 0
         mListType = if ("movie" == mListType) "tv" else "movie"
         loadRatedList(mListType, 1)
@@ -129,14 +125,9 @@ class RatedListFragment : BaseFragment() {
         mShowView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (dy > 0 && recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
-                    visibleItemCount = mShowLinearLayoutManager.childCount
-                    totalItemCount = mShowLinearLayoutManager.itemCount
-                    pastVisibleItems = mShowLinearLayoutManager.findFirstVisibleItemPosition()
-                    if (loading && totalItemCount > previousTotal) {
-                        loading = false
-                        previousTotal = totalItemCount
-                        currentPage++
-                    }
+                    val visibleItemCount = mShowLinearLayoutManager.childCount
+                    val totalItemCount = mShowLinearLayoutManager.itemCount
+                    val pastVisibleItems = mShowLinearLayoutManager.findFirstVisibleItemPosition()
                     val threshold = if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
                         val gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3)
                         gridSizePreference * gridSizePreference
@@ -145,10 +136,9 @@ class RatedListFragment : BaseFragment() {
                     }
                     if (!loading && visibleItemCount + pastVisibleItems + threshold >= totalItemCount) {
                         if (mShowArrayList.isNotEmpty() && hasMoreItemsToLoad()) {
-                            currentPage++
-                            loadRatedList(mListType, currentPage)
+                            loading = true
+                            loadRatedList(mListType, currentPage + 1)
                         }
-                        loading = true
                     }
                 }
             }
@@ -223,6 +213,8 @@ class RatedListFragment : BaseFragment() {
                 mShowView.adapter = mShowAdapter
                 mShowView.scrollToPosition(position)
                 mShowListLoaded = true
+                if (reader.has("page"))
+                    currentPage = reader.getInt(("page"))
             } catch (je: JSONException) {
                 je.printStackTrace()
             }
