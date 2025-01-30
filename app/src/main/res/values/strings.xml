@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     ShowCase is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     ShowCase is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <string name="not_watched">Not Watched</string>
+    <string name="i_am_watching">Watching Now!</string>
+    <string name="list_add">Add to List</string>
+    <string name="add_to_history">Add to History</string>
+    <string name="add_to_collection">Add to Collection</string>
+    <string name="add_details">Add Details</string>
+    <string name="mark_as_watched">Mark as Watched</string>
+    <string name="progress">Progress</string>
+    <string name="collection">Collection</string>
+    <string name="history">History</string>
+    <string name="in_collection">Collected</string>
+    <string name="in_history">Watched</string>
+    <string name="rated_at">Rated at</string>
+    <string name="add_to_watchlist">Add to Watchlist</string>
+    <string name="select_time">Select Time</string>
+    <string name="public_list">Public</string>
+    <string name="last_watched">Last Watched: %1$s</string>
+    <string name="collected">Collected</string>
+    <string name="episode_title_format">%1$s (S:%2$d E:%3$d %4$s)</string>
+    <string name="start_date2">Start date:</string>
+    <string name="fetching_data">Fetching data...</string>
+    <string name="select_options">Select Options</string>
+    <string name="movie_collection">Movie Collection</string>
+    <string name="show_collection">Show Collection</string>
+    <string name="movie_watched">Movie Watched</string>
+    <string name="show_watched">Show Watched</string>
+    <string name="list_items">List Items</string>
+    <string name="fetching_movie_collection">Fetching Movie Collection...</string>
+    <string name="fetching_show_collection">Fetching Show Collection...</string>
+    <string name="fetching_movie_watched">Fetching Movie Watched...</string>
+    <string name="fetching_show_watched">Fetching Show Watched...</string>
+    <string name="fetching_history">Fetching History...</string>
+    <string name="fetching_rating">Fetching Rating...</string>
+    <string name="fetching_watchlist">Fetching Watchlist...</string>
+    <string name="fetching_favorite">Fetching Favorite...</string>
+    <string name="fetching_lists">Fetching Lists...</string>
+    <string name="fetching_list_items">Fetching List Items...</string>
+    <string name="fetching_tmdb_data">Fetching TMDB data...</string>
+    <string name="episode">Episode</string>
+    <string name="show">Show</string>
+    <string name="season1">Season</string>
+    <string name="hide_the_account_tab_tkt">Hide the \'Account (TRAKT)\' tab</string>
+    <string name="search_people">Search People</string>
+    <string name="search_movies">Search movies...</string>
+    <string name="search_series">Search shows...</string>
+    <string name="search_saved">Search saved...</string>
+    <string name="error_loading_data">Failed to load data</string>
+
+    <string-array name="media_types">
+        <item>digital</item>
+        <item>bluray</item>
+        <item>hddvd</item>
+        <item>dvd</item>
+        <item>vcd</item>
+        <item>vhs</item>
+        <item>betamax</item>
+        <item>laserdisc</item>
+    </string-array>
+    <string-array name="resolutions">
+        <item>uhd_4k</item>
+        <item>hd_1080p</item>
+        <item>hd_1080i</item>
+        <item>hd_720p</item>
+        <item>sd_480p</item>
+        <item>sd_480i</item>
+        <item>sd_576p</item>
+        <item>sd_576i</item>
+    </string-array>
+    <string-array name="hdr_types">
+        <item>dolby_vision</item>
+        <item>hdr10</item>
+        <item>hdr10_plus</item>
+        <item>hlg</item>
+    </string-array>
+    <string-array name="audio_types">
+        <item>dolby_digital</item>
+        <item>dolby_digital_plus</item>
+        <item>dolby_digital_plus_atmos</item>
+        <item>dolby_truehd</item>
+        <item>dolby_atmos</item>
+        <item>dolby_prologic</item>
+        <item>dts</item>
+        <item>dts_ma</item>
+        <item>dts_hr</item>
+        <item>dts_x</item>
+        <item>auro_3d</item>
+        <item>mp3</item>
+        <item>mp2</item>
+        <item>aac</item>
+        <item>lpcm</item>
+        <item>ogg</item>
+        <item>ogg_opus</item>
+        <item>wma</item>
+        <item>flac</item>
+    </string-array>
+    <string-array name="audio_channels">
+        <item>1.0</item>
+        <item>2.0</item>
+        <item>2.1</item>
+        <item>3.0</item>
+        <item>3.1</item>
+        <item>4.0</item>
+        <item>4.1</item>
+        <item>5.0</item>
+        <item>5.1</item>
+        <item>5.1.2</item>
+        <item>5.1.4</item>
+        <item>6.1</item>
+        <item>7.1</item>
+        <item>7.1.2</item>
+        <item>7.1.4</item>
+        <item>9.1</item>
+        <item>10.1</item>
+    </string-array>
+</resources>
