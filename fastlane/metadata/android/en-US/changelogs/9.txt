@@ -1,0 +1,7 @@
+Bug fix
+ - Multiple notification issue #56
+ - Scrolling issue (account tab) #57
+ - A few small fix
+Other
+ - Migrate rating input method to slider
+ - Minor UI change
