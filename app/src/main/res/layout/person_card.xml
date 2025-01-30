@@ -29,7 +29,7 @@
         android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="5dp"
+        app:cardCornerRadius="10dp"
         android:layout_margin="5dp">
         <RelativeLayout
             android:layout_width="wrap_content"

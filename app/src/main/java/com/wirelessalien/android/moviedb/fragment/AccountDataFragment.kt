@@ -22,74 +22,58 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.MainActivity
+import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentAccountDataBinding
 
 class AccountDataFragment : BaseFragment() {
     private lateinit var sPreferences: SharedPreferences
-    private lateinit var tabLayout: TabLayout
     private var sessionId: String? = null
     private var accountId: String? = null
-    private lateinit var fab: FloatingActionButton
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
+    private lateinit var binding: FragmentAccountDataBinding
+    private lateinit var activityBinding: ActivityMainBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_account_data, container, false)
+        savedInstanceState: Bundle?): View {
+        binding = FragmentAccountDataBinding.inflate(inflater, container, false)
+        val view = binding.root
+        activityBinding = (activity as MainActivity).getBinding()
         sPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        tabLayout = view.findViewById(R.id.tabs)
-        fab = requireActivity().findViewById(R.id.fab)
-        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
-        fab2.visibility = View.GONE
+        activityBinding.fab2.visibility = View.GONE
         sessionId = sPreferences.getString("access_token", null)
         accountId = sPreferences.getString("account_id", null)
-        fab.isEnabled = !(sessionId == null || accountId == null)
+        activityBinding.fab.isEnabled = !(sessionId == null || accountId == null)
+
         setupTabs()
         return view
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        val item = menu.findItem(R.id.action_search)
-        if (item != null) {
-            item.setVisible(false)
-            item.setEnabled(false)
-        }
-    }
-
     override fun onResume() {
         super.onResume()
-        fab.isEnabled = !(sessionId == null || accountId == null)
-        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
-        fab2.visibility = View.GONE
+        activityBinding.fab.isEnabled = !(sessionId == null || accountId == null)
+        activityBinding.fab2.visibility = View.GONE
     }
 
     private fun setupTabs() {
-        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.watchlist)))
-        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.favourite)))
-        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.rated)))
-        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.lists)))
-        tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener {
+        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.watchlist)))
+        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.favourite)))
+        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.rated)))
+        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.lists)))
+        binding.tabs.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 val selectedFragment: Fragment? = when (tab.position) {
                     0 -> WatchlistFragment()
                     1 -> FavoriteFragment()
                     2 -> RatedListFragment()
-                    3 -> MyListsFragment()
+                    3 -> ListFragmentTmdb()
                     else -> null
                 }
                 if (selectedFragment != null) {

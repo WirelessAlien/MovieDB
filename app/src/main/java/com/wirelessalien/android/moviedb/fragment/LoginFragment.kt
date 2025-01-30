@@ -39,14 +39,16 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetails
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.tmdb.account.AccountLogout
+import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetails
 import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthV4
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.coroutines.launch
 
 class LoginFragment : BottomSheetDialogFragment() {
     private lateinit var preferences: SharedPreferences
+    private var clientId: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -59,6 +61,8 @@ class LoginFragment : BottomSheetDialogFragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_login, container, false)
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        clientId = ConfigHelper.getConfigValue(requireContext().applicationContext, "client_id")
+
         val customTabsIntent = CustomTabsIntent.Builder().build()
         customTabsIntent.intent.setPackage("com.android.chrome")
         CustomTabsClient.bindCustomTabsService(
@@ -75,6 +79,7 @@ class LoginFragment : BottomSheetDialogFragment() {
                 override fun onServiceDisconnected(name: ComponentName) {}
             })
         val loginButton = view.findViewById<Button>(R.id.login)
+        val loginTktButton = view.findViewById<Button>(R.id.loginTkt)
         val logoutButton = view.findViewById<Button>(R.id.logout)
         val loginStatus = view.findViewById<TextView>(R.id.login_status)
         val signUpButton = view.findViewById<Button>(R.id.signup)
@@ -114,6 +119,9 @@ class LoginFragment : BottomSheetDialogFragment() {
                 }
             }
         }
+        loginTktButton.setOnClickListener {
+            redirectToTraktAuthorization()
+        }
 
         if (preferences.getString("access_token", null) != null) {
             lifecycleScope.launch {
@@ -143,5 +151,13 @@ class LoginFragment : BottomSheetDialogFragment() {
             }
         }
         return view
+    }
+
+    private fun redirectToTraktAuthorization() {
+        val redirectUri = "trakt.wirelessalien.showcase://callback"
+        val authUrl = "https://trakt.tv/oauth/authorize?response_type=code&client_id=$clientId&redirect_uri=$redirectUri"
+
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
+        startActivity(intent)
     }
 }

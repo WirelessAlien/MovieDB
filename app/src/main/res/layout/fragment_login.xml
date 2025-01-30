@@ -59,6 +59,14 @@
         android:text="@string/login" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/loginTkt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:cornerRadius="5dp"
+        android:text="Login TrakT" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/signup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

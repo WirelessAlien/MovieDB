@@ -21,6 +21,7 @@
 <resources>
 
     <color name="colorRed">#FF0000</color>
+    <color name="shimmer_color">#dddddd</color>
     <color name="colorBackground">#234766</color>
     <color name="md_theme_primary">#37618E</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>

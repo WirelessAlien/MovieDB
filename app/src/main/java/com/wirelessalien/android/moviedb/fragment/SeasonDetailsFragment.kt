@@ -22,7 +22,6 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.ContentValues
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -56,6 +55,8 @@ class SeasonDetailsFragment : Fragment() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var viewPager: ViewPager2
     private var tvShowId = 0
+    private var tvShowName: String = ""
+    private var traktId = 0
     private var seasonNumber = 0
     private var currentTabNumber = 1
     private lateinit var pageChangeCallback: ViewPager2.OnPageChangeCallback
@@ -78,6 +79,8 @@ class SeasonDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
         seasonNumber = requireArguments().getInt(ARG_SEASON_NUMBER)
+        traktId = requireArguments().getInt(ARG_TRAKT_ID)
+        tvShowName = requireArguments().getString(ARG_TV_SHOW_NAME)?: ""
         toolbar = requireActivity().findViewById(R.id.toolbar)
         toolbar.title = getString(R.string.seasons)
         rvEpisodes = view.findViewById(R.id.episodeRecyclerView)
@@ -106,7 +109,7 @@ class SeasonDetailsFragment : Fragment() {
                 val tvSeasonDetails = TVSeasonDetails(tvShowId, seasonNumber, requireContext())
                 tvSeasonDetails.fetchSeasonDetails(object : TVSeasonDetails.SeasonDetailsCallback {
                     override fun onSeasonDetailsFetched(episodes: List<Episode>) {
-                        val adapter = EpisodeAdapter(requireContext(), episodes, seasonNumber, tvShowId)
+                        val adapter = EpisodeAdapter(requireContext(), episodes, seasonNumber, tvShowName, tvShowId, traktId)
                         rvEpisodes.layoutManager = LinearLayoutManager(requireContext())
                         rvEpisodes.adapter = adapter
                         rvEpisodes.visibility = View.VISIBLE
@@ -268,7 +271,6 @@ class SeasonDetailsFragment : Fragment() {
                             db.addEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
                         }
                     }
-                    Log.d("SeasonDetailsFragment", "Episodes added $tvShowId $currentTabNumber ${episodes.map { it.episodeNumber }}")
                     item.setIcon(R.drawable.ic_visibility)
                     Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT).show()
                 } else {
@@ -290,17 +292,20 @@ class SeasonDetailsFragment : Fragment() {
         private const val ARG_TV_SHOW_ID = "tvShowId"
         private const val ARG_SEASON_NUMBER = "seasonNumber"
         private const val ARG_TV_SHOW_NAME = "tvShowName"
+        private const val ARG_TRAKT_ID = "traktId"
 
         fun newInstance(
             tvShowId: Int,
             seasonNumber: Int,
-            tvShowName: String?
+            tvShowName: String?,
+            traktId: Int
         ): SeasonDetailsFragment {
             val fragment = SeasonDetailsFragment()
             val args = Bundle()
             args.putInt(ARG_TV_SHOW_ID, tvShowId)
             args.putInt(ARG_SEASON_NUMBER, seasonNumber)
             args.putString(ARG_TV_SHOW_NAME, tvShowName)
+            args.putInt(ARG_TRAKT_ID, traktId)
             fragment.arguments = args
             return fragment
         }

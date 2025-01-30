@@ -52,7 +52,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
 
-class ListBottomSheetDialogFragment(
+class ListBottomSheetFragment(
     private val movieId: Int,
     private val mediaType: String?,
     private val context: Context?,
@@ -67,7 +67,7 @@ class ListBottomSheetDialogFragment(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.dialog_list_bottom_sheet, container, false)
+        return inflater.inflate(R.layout.list_bottom_sheet, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

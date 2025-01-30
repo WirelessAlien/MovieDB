@@ -22,20 +22,22 @@ package com.wirelessalien.android.moviedb.tmdb.account
 import android.app.Activity
 import android.content.Context
 import android.widget.Toast
+import androidx.paging.PagingData
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+
 
 class DeleteFromList(
     private val mediaId: Int,
@@ -44,7 +46,7 @@ class DeleteFromList(
     private val context: Context,
     private val position: Int,
     private val showList: ArrayList<JSONObject>?,
-    private val adapter: ShowBaseAdapter?
+    private val adapter: ShowPagingAdapter?
 ) {
     private val accessToken: String?
 
@@ -103,7 +105,12 @@ class DeleteFromList(
                 if (finalSuccess) {
                     Toast.makeText(context, R.string.media_removed_from_list, Toast.LENGTH_SHORT).show()
                     showList?.removeAt(position)
-                    adapter?.notifyItemRemoved(position)
+                    adapter?.let {
+                        val newData = showList?.toList() ?: emptyList()
+                        CoroutineScope(Dispatchers.Main).launch {
+                            it.submitData(PagingData.from(newData))
+                        }
+                    }
                 } else {
                     Toast.makeText(context, R.string.failed_to_remove_media_from_list, Toast.LENGTH_SHORT).show()
                 }

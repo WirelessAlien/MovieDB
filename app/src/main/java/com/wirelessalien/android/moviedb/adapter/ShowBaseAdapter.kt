@@ -19,10 +19,10 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.icu.text.DateFormat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,10 +38,6 @@ import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
@@ -92,6 +88,7 @@ class ShowBaseAdapter(
         // Fill the views with the needed data.
         val showData = mShowArrayList[position]
         val context = holder.showView.context
+        Log.d("genreIdTestShoBaseAdater", "onBindViewHolder: $mGenreHashMap")
 
         // Fills the views with show details.
         try {
@@ -150,20 +147,17 @@ class ShowBaseAdapter(
             }
             holder.showDate.text = dateString
 
-            // Only if the shows are presented in a list.
             if (!mGridView) {
                 holder.showDescription?.text = showData.getString(KEY_DESCRIPTION)
 
-// Divide the rating in two so it fits in the five stars.
                 holder.showRating?.rating = showData.getString(KEY_RATING).toFloat() / 2
 
                 // Remove the [ and ] from the String
-                val genreIds = showData.getString(KEY_GENRES)
-                    .substring(
-                        1, showData.getString(KEY_GENRES)
-                            .length - 1
-                    )
-
+                val genreIds = if (showData.getString(KEY_GENRES).length > 2) {
+                    showData.getString(KEY_GENRES).substring(1, showData.getString(KEY_GENRES).length - 1)
+                } else {
+                    ""
+                }
                 // Split the String with ids and set them into an array.
                 val genreArray =
                     genreIds.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -199,37 +193,37 @@ class ShowBaseAdapter(
             }
             view.context.startActivity(intent)
         }
-        if (showDeleteButton) {
-            holder.deleteButton.visibility = View.VISIBLE
-            holder.deleteButton.setOnClickListener {
-                val mediaId: Int
-                val type: String
-                try {
-                    mediaId = showData.getInt(KEY_ID)
-                    type = if (showData.has(KEY_TITLE)) "movie" else "tv"
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    return@setOnClickListener
-                }
-                val listId =
-                    PreferenceManager.getDefaultSharedPreferences(context).getInt("listId", 0)
-                val activity = context as Activity
-                val deleteThread = DeleteFromList(
-                    mediaId,
-                    listId,
-                    type,
-                    activity,
-                    position,
-                    mShowArrayList,
-                    this
-                )
-                CoroutineScope(Dispatchers.Main).launch {
-                    deleteThread.deleteFromList()
-                }
-            }
-        } else {
-            holder.deleteButton.visibility = View.GONE
-        }
+//        if (showDeleteButton) {
+//            holder.deleteButton.visibility = View.VISIBLE
+//            holder.deleteButton.setOnClickListener {
+//                val mediaId: Int
+//                val type: String
+//                try {
+//                    mediaId = showData.getInt(KEY_ID)
+//                    type = if (showData.has(KEY_TITLE)) "movie" else "tv"
+//                } catch (e: JSONException) {
+//                    e.printStackTrace()
+//                    return@setOnClickListener
+//                }
+//                val listId =
+//                    PreferenceManager.getDefaultSharedPreferences(context).getInt("listId", 0)
+//                val activity = context as Activity
+//                val deleteThread = DeleteFromList(
+//                    mediaId,
+//                    listId,
+//                    type,
+//                    activity,
+//                    position,
+//                    mShowArrayList,
+//                    this
+//                )
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    deleteThread.deleteFromList()
+//                }
+//            }
+//        } else {
+//            holder.deleteButton.visibility = View.GONE
+//        }
     }
 
     override fun getItemId(position: Int): Long {

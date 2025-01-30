@@ -21,6 +21,7 @@ package com.wirelessalien.android.moviedb.activity
 
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -36,51 +37,69 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
-import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
-import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
-import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.navigation.NavigationBarView
+import com.google.android.material.shape.MaterialShapeDrawable
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
+import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
+import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
 import com.wirelessalien.android.moviedb.fragment.HomeFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newSavedInstance
 import com.wirelessalien.android.moviedb.fragment.LoginFragment
-import com.wirelessalien.android.moviedb.fragment.PersonFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
+import com.wirelessalien.android.moviedb.pagingSource.SearchPagingSource
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
 import com.wirelessalien.android.moviedb.work.ReleaseReminderWorker
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -89,24 +108,32 @@ import java.io.FileReader
 import java.io.IOException
 
 class MainActivity : BaseActivity() {
-    private lateinit var bottomNavigationView: BottomNavigationView
 
-    // Variables used for searching
-    private var mSearchAction: MenuItem? = null
-    private var isSearchOpened = false
     private lateinit var preferences: SharedPreferences
     private lateinit var apiReadAccessToken: String
+    private var clientId: String? = null
+    private var clientSecret: String? = null
     private lateinit var context: Context
+    private lateinit var binding: ActivityMainBinding
     private lateinit var prefListener: OnSharedPreferenceChangeListener
     private lateinit var settingsActivityResultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var mHomeSearchShowAdapter: ShowPagingAdapter
+    private lateinit var mDatabaseSearchAdapter: ShowBaseAdapter
+    private lateinit var mShowLinearLayoutManager: LinearLayoutManager
+    private lateinit var mShowGenreList: HashMap<String, String?>
+    private lateinit var mDatabaseHelper: MovieDatabaseHelper
 
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+
+    @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         DynamicColors.applyToActivityIfAvailable(this)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        mDatabaseHelper = MovieDatabaseHelper(this)
+
         context = this
 
         val fileName = "Crash_Log.txt"
@@ -145,13 +172,19 @@ class MainActivity : BaseActivity() {
 
         // Set the default preference values.
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
+
+//        binding.toolbar.setNavigationOnClickListener {
+//
+//        }
+
+        binding.appBar.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)
 
         apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")!!
+        clientId = ConfigHelper.getConfigValue(this, "client_id")
+        clientSecret = ConfigHelper.getConfigValue(this, "client_secret")
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        bottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.setOnItemSelectedListener(NavigationBarView.OnItemSelectedListener setOnItemSelectedListener@{ item: MenuItem ->
+        binding.bottomNavigation.setOnItemSelectedListener { item: MenuItem ->
             val itemId = item.itemId
             var selectedFragment: Fragment? = null
             when (itemId) {
@@ -170,19 +203,27 @@ class MainActivity : BaseActivity() {
                 R.id.nav_account -> {
                     selectedFragment = AccountDataFragment()
                 }
+                R.id.nav_account_tkt -> {
+                    selectedFragment = AccountDataFragmentTkt()
+                }
             }
             if (selectedFragment != null) {
-                supportFragmentManager.beginTransaction().replace(R.id.container, selectedFragment)
-                    .commit()
+                supportFragmentManager.beginTransaction().replace(R.id.container, selectedFragment).commit()
+                updateSearchBarTitle(selectedFragment)
+                updateSearchViewHint(selectedFragment)
                 return@setOnItemSelectedListener true
             }
             false
-        })
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction().replace(R.id.container, HomeFragment())
-                .commit()
         }
-        val menu = bottomNavigationView.menu
+
+        if (savedInstanceState == null) {
+            val initialFragment = HomeFragment()
+            supportFragmentManager.beginTransaction().replace(R.id.container, initialFragment).commit()
+            updateSearchBarTitle(initialFragment)
+            updateSearchViewHint(initialFragment)
+        }
+
+        val menu = binding.bottomNavigation.menu
         menu.findItem(R.id.nav_movie)
             .setVisible(!preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false))
         menu.findItem(R.id.nav_series)
@@ -191,69 +232,107 @@ class MainActivity : BaseActivity() {
             .setVisible(!preferences.getBoolean(HIDE_SAVED_PREFERENCE, false))
         menu.findItem(R.id.nav_account)
             .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false))
+        menu.findItem(R.id.nav_account_tkt)
+            .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false))
         prefListener = OnSharedPreferenceChangeListener { _: SharedPreferences?, key: String? ->
-            if (key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE) {
-                val menu1 = bottomNavigationView.menu
+            if (key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE) {
+                val menu1 = binding.bottomNavigation.menu
                 menu1.findItem(R.id.nav_movie)
                     .setVisible(!preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false))
-                menu1.findItem(R.id.nav_series).setVisible(
-                    !preferences.getBoolean(
-                        HIDE_SERIES_PREFERENCE, false
-                    )
-                )
+                menu1.findItem(R.id.nav_series)
+                    .setVisible(!preferences.getBoolean(HIDE_SERIES_PREFERENCE, false))
                 menu1.findItem(R.id.nav_saved)
                     .setVisible(!preferences.getBoolean(HIDE_SAVED_PREFERENCE, false))
-                menu1.findItem(R.id.nav_account).setVisible(
-                    !preferences.getBoolean(
-                        HIDE_ACCOUNT_PREFERENCE, false
-                    )
-                )
+                menu1.findItem(R.id.nav_account)
+                    .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false))
+                menu1.findItem(R.id.nav_account_tkt)
+                    .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false))
             }
         }
 
         preferences.registerOnSharedPreferenceChangeListener(prefListener)
-        val fab = findViewById<FloatingActionButton>(R.id.fab)
-        val fab2 = findViewById<FloatingActionButton>(R.id.fab2)
 
-        bottomNavigationView.viewTreeObserver.addOnGlobalLayoutListener {
-            val bottomNavHeight = bottomNavigationView.height
+        val menuHost: MenuHost = this
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_main, menu)
+                val currentFragment = supportFragmentManager.findFragmentById(R.id.container)
+                val searchMenuItem = menu.findItem(R.id.action_search)
+                searchMenuItem.isVisible =
+                    !(currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                val id = menuItem.itemId
+
+                if (id == R.id.action_search) {
+                    binding.searchView.show()
+                    return true
+                }
+
+                if (id == R.id.action_settings) {
+                    val intent = Intent(applicationContext, SettingsActivity::class.java)
+                    settingsActivityResultLauncher.launch(intent)
+                    return true
+                }
+
+                if (id == R.id.action_login) {
+                    val loginFragment = LoginFragment()
+                    loginFragment.show(supportFragmentManager, "login")
+                    return true
+                }
+                return false
+            }
+        }, this, Lifecycle.State.RESUMED)
+
+        binding.bottomNavigation.viewTreeObserver.addOnGlobalLayoutListener {
+            val bottomNavHeight = binding.bottomNavigation.height
 
             // Adjust the position of the first FAB
-            val paramsFab = fab.layoutParams as CoordinatorLayout.LayoutParams
+            val paramsFab = binding.fab.layoutParams as CoordinatorLayout.LayoutParams
             paramsFab.bottomMargin = bottomNavHeight + 16
-            fab.layoutParams = paramsFab
+            binding.fab.layoutParams = paramsFab
 
             // Adjust the position of the second FAB above the first FAB with a 16dp margin
-            val paramsFab2 = fab2.layoutParams as CoordinatorLayout.LayoutParams
-            paramsFab2.bottomMargin = bottomNavHeight + fab.height + 32 // 16dp margin + fab height + 16dp margin
-            fab2.layoutParams = paramsFab2
+            val paramsFab2 = binding.fab2.layoutParams as CoordinatorLayout.LayoutParams
+            paramsFab2.bottomMargin = bottomNavHeight + binding.fab.height + 32 // 16dp margin + fab height + 16dp margin
+            binding.fab2.layoutParams = paramsFab2
         }
 
-        val fragmentContainerView = findViewById<FragmentContainerView>(R.id.container)
-        fragmentContainerView.viewTreeObserver.addOnGlobalLayoutListener {
-            val bottomNavHeight = bottomNavigationView.height
-            val params = fragmentContainerView.layoutParams as CoordinatorLayout.LayoutParams
+        binding.container.viewTreeObserver.addOnGlobalLayoutListener {
+            val bottomNavHeight = binding.bottomNavigation.height
+            val params = binding.container.layoutParams as CoordinatorLayout.LayoutParams
             params.bottomMargin = bottomNavHeight
-            fragmentContainerView.layoutParams = params
+            binding.container.layoutParams = params
         }
 
-        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
-            override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
-                super.onFragmentResumed(fm, f)
-                updateToolbarTitle(f)
-            }
-        }, true)
+        mShowGenreList = HashMap()
+        mHomeSearchShowAdapter = ShowPagingAdapter(mShowGenreList, gridView = true, showDeleteButton = false)
 
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3))
+        binding.searchResultsRecyclerView.layoutManager = mShowGridView
+        mShowLinearLayoutManager = mShowGridView
 
-        OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
+        binding.searchResultsRecyclerView.adapter = mHomeSearchShowAdapter
+
+        setupSearchView()
+
+        val callback = object : OnBackPressedCallback(false) {
             override fun handleOnBackPressed() {
-                if (isSearchOpened) {
-                    handleMenuSearch()
-                } else {
-                    finish()
-                }
+                binding.searchView.hide()
             }
-        })
+        }
+
+        onBackPressedDispatcher.addCallback(this, callback)
+
+        binding.searchView.addTransitionListener { _, _, newState ->
+            if (newState === com.google.android.material.search.SearchView.TransitionState.SHOWING) {
+                callback.isEnabled = true
+            } else if (newState === com.google.android.material.search.SearchView.TransitionState.HIDING) {
+                callback.isEnabled = false
+                clearSearchData()
+            }
+        }
 
         settingsActivityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -385,7 +464,16 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun updateToolbarTitle(fragment: Fragment) {
+    private fun clearSearchData() {
+        // Clear the search results
+        binding.searchResultsRecyclerView.adapter = null
+    }
+
+    private fun getCurrentFragment(): Fragment? {
+        return supportFragmentManager.findFragmentById(R.id.container)
+    }
+
+    private fun updateSearchBarTitle(fragment: Fragment) {
         val title = when (fragment) {
             is HomeFragment -> getString(R.string.app_name)
             is ShowFragment -> {
@@ -396,12 +484,193 @@ class MainActivity : BaseActivity() {
             is AccountDataFragment -> getString(R.string.title_account)
             else -> getString(R.string.app_name)
         }
-        supportActionBar?.title = title
+        binding.toolbar.title = title
+    }
+
+    private fun setupSearchView() {
+        val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, false)
+
+        if (liveSearch) {
+            binding.searchView.editText.addTextChangedListener(object : TextWatcher {
+                private val handler = Handler(Looper.getMainLooper())
+                private var workRunnable: Runnable? = null
+                override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                    if (workRunnable != null) {
+                        handler.removeCallbacks(workRunnable!!)
+                    }
+                    workRunnable = Runnable {
+                        val currentFragment = getCurrentFragment()
+                        if (currentFragment is HomeFragment) {
+                            multiSearch(s.toString())
+                        } else if (currentFragment is ShowFragment) {
+                            val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                            if (listType == "movie") {
+                                showSearch(listType, s.toString())
+                            } else if (listType == "tv") {
+                                showSearch(listType, s.toString())
+                            }
+                        } else if (currentFragment is ListFragment) {
+                            databaseSearch(s.toString())
+                        } else if (currentFragment is AccountDataFragment) {
+                            multiSearch(s.toString())
+                        } else if (currentFragment is AccountDataFragmentTkt) {
+                            multiSearch(s.toString())
+                        }
+                    }
+                    handler.postDelayed(workRunnable!!, 500)
+                }
+
+                override fun afterTextChanged(s: Editable) {}
+            })
+        } else {
+            binding.searchView.editText.setOnEditorActionListener { v, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    val query = v.text.toString()
+                    val currentFragment = getCurrentFragment()
+                    if (currentFragment is HomeFragment) {
+                        multiSearch(query)
+                    } else if (currentFragment is ShowFragment) {
+                        val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                        if (listType == "movie") {
+                            showSearch(listType, query)
+                        } else if (listType == "tv") {
+                            showSearch(listType, query)
+                        }
+                    } else if (currentFragment is ListFragment) {
+                        databaseSearch(query)
+                    } else if (currentFragment is AccountDataFragment) {
+                        multiSearch(query)
+                    } else if (currentFragment is AccountDataFragmentTkt) {
+                        multiSearch(query)
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    private fun updateSearchViewHint(fragment: Fragment) {
+        val hint = when (fragment) {
+            is HomeFragment -> getString(R.string.search_movie_show)
+            is ShowFragment -> {
+                val listType = fragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                if (listType == "movie") getString(R.string.search_movies) else getString(R.string.search_series)
+            }
+            is ListFragment -> getString(R.string.search_saved)
+//            is AccountDataFragment -> getString(R.string.search_account)
+//            is AccountDataFragmentTkt -> getString(R.string.search_account_tkt)
+            else -> getString(R.string.hint_search)
+        }
+        binding.searchView.editText.hint = hint
+    }
+
+    fun multiSearch(query: String?) {
+        if (query.isNullOrEmpty()) {
+            return
+        }
+
+        binding.searchResultsRecyclerView.adapter =  mHomeSearchShowAdapter
+
+        lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                MultiSearchPagingSource(apiReadAccessToken, query, context)
+            }.flow.collectLatest { pagingData ->
+                mHomeSearchShowAdapter.submitData(pagingData)
+            }
+        }
+
+        mHomeSearchShowAdapter.addLoadStateListener { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.searchResultsRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.error_loading_data),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    fun showSearch(listType: String, query: String?) {
+        if (query.isNullOrEmpty()) {
+            return
+        }
+
+        binding.searchResultsRecyclerView.adapter =  mHomeSearchShowAdapter
+
+        lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                SearchPagingSource(listType, query, apiReadAccessToken, context)
+            }.flow.collectLatest { pagingData ->
+                mHomeSearchShowAdapter.submitData(pagingData)
+            }
+        }
+
+        mHomeSearchShowAdapter.addLoadStateListener { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.searchResultsRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.error_loading_data),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    fun databaseSearch(query: String) {
+        if (query.isNotEmpty()) {
+            val currentFragment = getCurrentFragment()
+            if (currentFragment is ListFragment) {
+                val showsFromDatabase = currentFragment.getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
+                mDatabaseSearchAdapter = ShowBaseAdapter(
+                    showsFromDatabase, mShowGenreList,
+                    preferences.getBoolean(BaseFragment.SHOWS_LIST_PREFERENCE, true), false
+                )
+                binding.searchResultsRecyclerView.adapter = mDatabaseSearchAdapter
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         val uri = intent.data
+        Log.d("MainActivity", "URI received: $uri")
         if (uri != null) {
             if (uri.toString().startsWith("com.wirelessalien.android.moviedb://callback")) {
                 val requestToken = preferences.getString("request_token", null)
@@ -474,8 +743,58 @@ class MainActivity : BaseActivity() {
                         getAccessToken.fetchAccessToken()
                     }
                 }
+            } else if (uri.toString().startsWith("trakt.wirelessalien.showcase://callback")) {
+                val code = uri.getQueryParameter("code")
+                if (code != null) {
+                    Log.d("MainActivity", "Authorization code received: $code")
+                    exchangeCodeForAccessToken(code)
+                } else {
+                    Log.e("MainActivity", "Authorization code not found in the redirect URI")
+                }
             }
         }
+    }
+
+    private fun exchangeCodeForAccessToken(code: String) {
+        val redirectUri = "trakt.wirelessalien.showcase://callback"
+        val grantType = "authorization_code"
+
+        val requestBody = FormBody.Builder()
+            .add("code", code)
+            .add("client_id", clientId ?: "")
+            .add("client_secret", clientSecret ?: "")
+            .add("redirect_uri", redirectUri)
+            .add("grant_type", grantType)
+            .build()
+
+        val request = Request.Builder()
+            .url("https://api.trakt.tv/oauth/token")
+            .post(requestBody)
+            .build()
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                Log.e("MainActivity", "Token exchange failed: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val responseBody = response.peekBody(Long.MAX_VALUE).string()
+                    val jsonObject = JSONObject(responseBody)
+                    val accessToken = jsonObject.getString("access_token")
+                    val refreshToken = jsonObject.getString("refresh_token")
+                    // Save the tokens for future use
+                    preferences.edit().putString("trakt_access_token", accessToken).apply()
+                    preferences.edit().putString("trakt_refresh_token", refreshToken).apply()
+                    Log.d("MainActivity", "Access token and refresh token saved to preferences $response")
+                } else {
+                    // Handle error
+                    Log.e("MainActivity", "Error: ${response.message}")
+                }
+            }
+        })
     }
 
     override fun doNetworkWork() {
@@ -492,43 +811,6 @@ class MainActivity : BaseActivity() {
         super.onDestroy()
         // Unregister the listener
         preferences.unregisterOnSharedPreferenceChangeListener(prefListener)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        val inflater = menuInflater
-        inflater.inflate(R.menu.menu_main, menu)
-        inflater.inflate(R.menu.options_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        val id = item.itemId
-
-        // Search action
-        if (id == R.id.action_search) {
-            handleMenuSearch()
-            return true
-        }
-
-        if (id == R.id.action_settings) {
-            val intent = Intent(applicationContext, SettingsActivity::class.java)
-            settingsActivityResultLauncher.launch(intent)
-            return true
-        }
-        if (id == R.id.action_login) {
-            val loginFragment = LoginFragment()
-            loginFragment.show(supportFragmentManager, "login")
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        mSearchAction = menu.findItem(R.id.action_search)
-        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onRequestPermissionsResult(
@@ -557,75 +839,8 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Handles input from the search bar and icon.
-     */
-    private fun handleMenuSearch() {
-        val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, true)
-        val searchView = mSearchAction!!.actionView as SearchView?
-        if (isSearchOpened) {
-            if (searchView != null && searchView.query.toString() == "") {
-                searchView.isIconified = true
-                mSearchAction!!.collapseActionView()
-                isSearchOpened = false
-                cancelSearchInFragment()
-            }
-        } else {
-            mSearchAction!!.expandActionView()
-            isSearchOpened = true
-            searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String): Boolean {
-                    searchInFragment(query)
-                    return true
-                }
-
-                override fun onQueryTextChange(newText: String): Boolean {
-                    if (liveSearch) {
-                        searchInFragment(newText)
-                    }
-                    return true
-                }
-            })
-        }
-    }
-
-    private fun searchInFragment(query: String) {
-        // This is a hack
-        val fragmentManager = supportFragmentManager
-        val mCurrentFragment = fragmentManager.findFragmentById(R.id.container)
-        if (mCurrentFragment != null) {
-            if (mCurrentFragment is ShowFragment) {
-                mCurrentFragment.search(query)
-            }
-            if (mCurrentFragment is ListFragment) {
-                mCurrentFragment.search(query)
-            }
-            if (mCurrentFragment is PersonFragment) {
-                mCurrentFragment.search(query)
-            }
-        } else {
-            Log.d("MainActivity", "Current fragment is null")
-        }
-    }
-
-    /**
-     * Cancel the searching process in the fragment.
-     */
-    private fun cancelSearchInFragment() {
-        // This is a hack
-        val fragmentManager = supportFragmentManager
-        val mCurrentFragment = fragmentManager.findFragmentById(R.id.container)
-        if (mCurrentFragment != null) {
-            if (mCurrentFragment is ShowFragment) {
-                mCurrentFragment.cancelSearch()
-            }
-            if (mCurrentFragment is ListFragment) {
-                mCurrentFragment.cancelSearch()
-            }
-            if (mCurrentFragment is PersonFragment) {
-                mCurrentFragment.cancelSearch()
-            }
-        }
+    fun getBinding(): ActivityMainBinding {
+        return binding
     }
 
     companion object {
@@ -637,6 +852,7 @@ class MainActivity : BaseActivity() {
         const val HIDE_SERIES_PREFERENCE = "key_hide_series_tab"
         const val HIDE_SAVED_PREFERENCE = "key_hide_saved_tab"
         const val HIDE_ACCOUNT_PREFERENCE = "key_hide_account_tab"
+        const val HIDE_ACCOUNT_TKT_PREFERENCE = "key_hide_account_tkt_tab"
         const val MOVIE = "movie"
         const val TV = "tv"
         private const val REQUEST_CODE = 101

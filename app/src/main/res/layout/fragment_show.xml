@@ -30,9 +30,27 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:padding="8dp"
+        android:paddingStart="11dp"
+        android:paddingEnd="11dp"
         tools:listitem="@layout/show_grid_card"
         android:scrollbars="none"/>
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerFrameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:shimmer_duration="700">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <include layout="@layout/show_skeleton" />
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
@@ -41,6 +59,7 @@
         android:layout_gravity="center"
         app:waveAmplitude="10dp"
         app:wavelength="32dp"
+        android:visibility="gone"
         app:waveSpeed="0dp"
         android:indeterminate="true" />
 </FrameLayout>

@@ -68,6 +68,17 @@
                     android:host="callback"
                     android:scheme="com.wirelessalien.android.moviedb" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="callback"
+                    android:scheme="trakt.wirelessalien.showcase" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".activity.DetailActivity"
@@ -98,7 +109,7 @@
             android:theme="@style/AppTheme">
         </activity>
 
-        <activity android:name=".activity.MyListDetailsActivity"
+        <activity android:name=".activity.ListItemActivityTmdb"
             android:theme="@style/AppTheme">
         </activity>
 
@@ -107,6 +118,10 @@
         </activity>
 
         <activity android:name=".activity.PersonActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.ListItemActivityTkt"
             android:theme="@style/AppTheme">
         </activity>
     </application>

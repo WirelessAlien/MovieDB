@@ -24,7 +24,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="10dp">
+    android:padding="16dp">
 
     <ImageView
         android:layout_width="60dp"
@@ -32,6 +32,7 @@
         android:layout_marginTop="10dp"
         android:src="@drawable/ic_tmdb_long"
         android:layout_gravity="center"/>
+
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
@@ -39,11 +40,10 @@
         android:layout_gravity="center"
         android:text="@string/rate_movie"
         android:layout_marginTop="10dp"
-        android:layout_marginStart="16dp"
         android:textAlignment="center"
-        android:layout_marginEnd="16dp"
         android:textSize="20sp"
         android:textStyle="bold" />
+
     <com.google.android.material.slider.Slider
         android:id="@+id/ratingSlider"
         android:layout_width="match_parent"
@@ -53,15 +53,14 @@
         android:stepSize="1.0"
         android:value="0.0"
         app:labelBehavior="visible"
-        android:layout_margin="16dp" />
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
         android:layout_marginBottom="20dp">
 
     <com.google.android.material.button.MaterialButton
@@ -69,14 +68,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        style="@style/Widget.Material3.Button.TextButton.Dialog"
+        app:cornerRadius="10dp"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:text="@string/delete" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSubmit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        style="@style/Widget.Material3.Button.TextButton.Dialog"
+        app:cornerRadius="10dp"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:text="@string/save" />
 
     <com.google.android.material.button.MaterialButton
@@ -84,7 +86,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        style="@style/Widget.Material3.Button.TextButton.Dialog"
+        app:cornerRadius="10dp"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:text="@string/cancel" />
     </LinearLayout>
 </LinearLayout>

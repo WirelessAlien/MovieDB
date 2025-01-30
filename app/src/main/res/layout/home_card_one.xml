@@ -28,7 +28,7 @@
         android:id="@+id/cardView"
         android:layout_width="120dp"
         android:layout_height="230dp"
-        app:cardCornerRadius="5dp"
+        app:cardCornerRadius="10dp"
         style="@style/Widget.Material3.CardView.Elevated"
         android:layout_margin="5dp">
 
@@ -40,7 +40,7 @@
                 android:id="@+id/cardView2"
                 android:layout_width="295dp"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="5dip"
+                app:cardCornerRadius="10dp"
                 style="@style/Widget.Material3.CardView.Elevated">
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/imagePercentLayout"
@@ -93,12 +93,12 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/cardView2"
                 android:ellipsize="marquee"
-                android:paddingStart="4dip"
-                android:paddingEnd="4dip"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
                 android:text="Title"
                 android:layout_centerVertical="true"
-                android:paddingTop="4dip"
-                android:paddingBottom="4dip"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
                 android:singleLine="true"
                 android:textStyle="bold" />
 
@@ -109,13 +109,13 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/title"
                 android:ellipsize="marquee"
-                android:paddingStart="4dip"
-                android:paddingEnd="4dip"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
                 android:layout_centerVertical="true"
 
                 android:text="02/04/2004"
                 android:textSize="12sp"
-                android:paddingBottom="4dip"
+                android:paddingBottom="4dp"
                 android:singleLine="true"
                 android:textStyle="bold"
                 android:alpha="0.8"/>

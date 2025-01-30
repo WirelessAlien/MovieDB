@@ -19,4 +19,4 @@
  */
 package com.wirelessalien.android.moviedb.data
 
-class EpisodeDbDetails(val rating: Float?, val watchDate: String, val review: String)
+class EpisodeDbDetails(val rating: Float?, val watchDate: String?, val review: String)

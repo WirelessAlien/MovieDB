@@ -51,6 +51,7 @@ import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.activity.ExportActivity
@@ -84,7 +85,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private lateinit var mDatabase: SQLiteDatabase
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
 
-    // Used to restore scroll position
     private var mScrollPosition: Int? = null
     private lateinit var filterActivityResultLauncher: ActivityResultLauncher<Intent>
     override fun onAdapterDataChangedListener() {
@@ -93,6 +93,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
         mDatabaseHelper = MovieDatabaseHelper(requireContext().applicationContext)
 
         filterActivityResultLauncher = registerForActivityResult(
@@ -105,8 +107,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
-        // Get all entries from the database,
-        // put them in JSONObjects and send them to the ShowBaseAdapter.
         mShowArrayList = ArrayList()
         mShowView = RecyclerView(requireContext())
         preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity())
@@ -117,7 +117,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val fragmentView = inflater.inflate(R.layout.fragment_show, container, false)
         showShowList(fragmentView)
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
@@ -827,7 +826,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      * @return an ArrayList filled with the shows from the database
      * (optionally filtered and sorted on the given query and order).
      */
-    private fun getShowsFromDatabase(searchQuery: String?, order: String?): ArrayList<JSONObject> {
+    fun getShowsFromDatabase(searchQuery: String?, order: String?): ArrayList<JSONObject> {
         // Add the order that the output should be sorted on.
         // When no order is specified leave the string empty.
         val dbOrder: String = if (order != null) {

@@ -22,12 +22,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.wirelessalien.android.moviedb.activity.MainActivity">
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/hint_search"
+        app:showAsAction="always" />
+
     <item
         android:id="@+id/action_settings"
         android:title="@string/action_settings"
         android:icon="@drawable/ic_settings"
-        android:orderInCategory="100"
-        app:showAsAction="always"/>
+        app:showAsAction="never"/>
+
     <item
         android:id="@+id/action_login"
         android:icon="@drawable/ic_account_border"

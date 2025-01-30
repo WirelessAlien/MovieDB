@@ -22,7 +22,9 @@ package com.wirelessalien.android.moviedb.trakt
 
 import android.content.ContentValues
 import android.content.Context
+import android.util.Log
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper.Companion.USER_LISTS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,7 +33,7 @@ import okhttp3.Request
 import org.json.JSONArray
 import java.io.IOException
 
-class GetTraktSyncData(private val context: Context, private val accessToken: String?, private val clientId: String?) {
+class GetTraktSyncData(context: Context, private val accessToken: String?, private val clientId: String?) {
 
     private val client = OkHttpClient()
     private val dbHelper = TraktDatabaseHelper(context)
@@ -39,15 +41,48 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
     fun fetchData() {
         CoroutineScope(Dispatchers.IO).launch {
             fetchCollectionData()
-            fetchWatchedData()
+            fetchCollectionShowData()
+            fetchWatchedDataMovie()
+            fetchWatchedDataShow()
             fetchHistoryData()
             fetchRatingData()
             fetchWatchlistData()
             fetchFavoriteData()
+            fetchUserLists()
+            fetchAllListItems()
         }
     }
 
-    private fun fetchFavoriteData() {
+    fun fetchAllListItems() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = dbHelper.readableDatabase
+            val cursor = db.query(
+                USER_LISTS,
+                arrayOf(TraktDatabaseHelper.COL_TRAKT_ID),
+                null,
+                null,
+                null,
+                null,
+                null
+            )
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val listId = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)).toString()
+                    fetchListItemData(listId)
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+        }
+    }
+
+    private fun fetchListItemData(listId: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            getListsItems(listId)
+        }
+    }
+
+    fun fetchFavoriteData() {
         val url = "https://api.trakt.tv/sync/favorites"
         val request = createRequest(url)
         executeRequest(request) { response ->
@@ -56,29 +91,29 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
                 val jsonObject = jsonArray.getJSONObject(i)
                 val type = jsonObject.getString("type")
                 val values = ContentValues().apply {
-                    put("rank", jsonObject.getInt("rank"))
-                    put("listed_at", jsonObject.getString("listed_at"))
-                    put("notes", jsonObject.getString("notes"))
-                    put("type", type)
+                    put(TraktDatabaseHelper.COL_RANK, jsonObject.getInt("rank"))
+                    put(TraktDatabaseHelper.COL_LISTED_AT, jsonObject.getString("listed_at"))
+                    put(TraktDatabaseHelper.COL_NOTES, jsonObject.getString("notes"))
+                    put(TraktDatabaseHelper.COL_TYPE, type)
                     when (type) {
                         "movie" -> {
                             val movie = jsonObject.getJSONObject("movie")
-                            put("title", movie.getString("title"))
-                            put("year", movie.getInt("year"))
-                            put("trakt_id", movie.getJSONObject("ids").getInt("trakt"))
-                            put("slug", movie.getJSONObject("ids").getString("slug"))
-                            put("imdb", movie.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", movie.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").getInt("tmdb"))
                         }
                         "show" -> {
                             val show = jsonObject.getJSONObject("show")
-                            put("title", show.getString("title"))
-                            put("year", show.getInt("year"))
-                            put("trakt_id", show.getJSONObject("ids").getInt("trakt"))
-                            put("slug", show.getJSONObject("ids").getString("slug"))
-                            put("tvdb", show.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", show.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", show.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, show.getJSONObject("ids").getInt("tmdb"))
                         }
                     }
                 }
@@ -87,7 +122,7 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    private fun fetchWatchlistData() {
+    fun fetchWatchlistData() {
         val url = "https://api.trakt.tv/sync/watchlist"
         val request = createRequest(url)
         executeRequest(request) { response ->
@@ -96,45 +131,61 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
                 val jsonObject = jsonArray.getJSONObject(i)
                 val type = jsonObject.getString("type")
                 val values = ContentValues().apply {
-                    put("rank", jsonObject.getInt("rank"))
-                    put("listed_at", jsonObject.getString("listed_at"))
-                    put("notes", jsonObject.getString("notes"))
-                    put("type", type)
+                    put(TraktDatabaseHelper.COL_RANK, jsonObject.getInt("rank"))
+                    put(TraktDatabaseHelper.COL_LISTED_AT, jsonObject.getString("listed_at"))
+                    put(TraktDatabaseHelper.COL_NOTES, jsonObject.getString("notes"))
+                    put(TraktDatabaseHelper.COL_TYPE, type)
                     when (type) {
                         "movie" -> {
                             val movie = jsonObject.getJSONObject("movie")
-                            put("title", movie.getString("title"))
-                            put("year", movie.getInt("year"))
-                            put("trakt_id", movie.getJSONObject("ids").getInt("trakt"))
-                            put("slug", movie.getJSONObject("ids").getString("slug"))
-                            put("imdb", movie.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", movie.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").getInt("tmdb"))
                         }
                         "show" -> {
                             val show = jsonObject.getJSONObject("show")
-                            put("title", show.getString("title"))
-                            put("year", show.getInt("year"))
-                            put("trakt_id", show.getJSONObject("ids").getInt("trakt"))
-                            put("slug", show.getJSONObject("ids").getString("slug"))
-                            put("tvdb", show.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", show.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", show.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, show.getJSONObject("ids").getInt("tmdb"))
                         }
                         "season" -> {
                             val season = jsonObject.getJSONObject("season")
-                            put("number", season.getInt("number"))
-                            put("tvdb", season.getJSONObject("ids").getInt("tvdb"))
-                            put("tmdb", season.getJSONObject("ids").getInt("tmdb"))
+                            val show = jsonObject.getJSONObject("show")
+                            put(TraktDatabaseHelper.COL_SEASON, season.getInt("number"))
+                            put(TraktDatabaseHelper.COL_TVDB, season.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, season.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").getInt("tmdb"))
                         }
                         "episode" -> {
                             val episode = jsonObject.getJSONObject("episode")
-                            put("season", episode.getInt("season"))
-                            put("number", episode.getInt("number"))
-                            put("title", episode.getString("title"))
-                            put("trakt_id", episode.getJSONObject("ids").getInt("trakt"))
-                            put("tvdb", episode.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", episode.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", episode.getJSONObject("ids").getInt("tmdb"))
+                            val show = jsonObject.getJSONObject("show")
+                            put(TraktDatabaseHelper.COL_SEASON, episode.getInt("season"))
+                            put(TraktDatabaseHelper.COL_NUMBER, episode.getInt("number"))
+                            put(TraktDatabaseHelper.COL_TITLE, episode.getString("title"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, episode.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_TVDB, episode.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_IMDB, episode.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, episode.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").getInt("tmdb"))
                         }
                     }
                 }
@@ -143,7 +194,7 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    private fun fetchRatingData() {
+    fun fetchRatingData() {
         val url = "https://api.trakt.tv/sync/ratings"
         val request = createRequest(url)
         executeRequest(request) { response ->
@@ -152,44 +203,60 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
                 val jsonObject = jsonArray.getJSONObject(i)
                 val type = jsonObject.getString("type")
                 val values = ContentValues().apply {
-                    put("rated_at", jsonObject.getString("rated_at"))
-                    put("rating", jsonObject.getInt("rating"))
-                    put("type", type)
+                    put(TraktDatabaseHelper.COL_RATED_AT, jsonObject.getString("rated_at"))
+                    put(TraktDatabaseHelper.COL_RATING, jsonObject.getInt("rating"))
+                    put(TraktDatabaseHelper.COL_TYPE, type)
                     when (type) {
                         "movie" -> {
                             val movie = jsonObject.getJSONObject("movie")
-                            put("title", movie.getString("title"))
-                            put("year", movie.getInt("year"))
-                            put("trakt_id", movie.getJSONObject("ids").getInt("trakt"))
-                            put("slug", movie.getJSONObject("ids").getString("slug"))
-                            put("imdb", movie.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", movie.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").getInt("tmdb"))
                         }
                         "show" -> {
                             val show = jsonObject.getJSONObject("show")
-                            put("title", show.getString("title"))
-                            put("year", show.getInt("year"))
-                            put("trakt_id", show.getJSONObject("ids").getInt("trakt"))
-                            put("slug", show.getJSONObject("ids").getString("slug"))
-                            put("tvdb", show.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", show.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", show.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, show.getJSONObject("ids").getInt("tmdb"))
                         }
                         "season" -> {
                             val season = jsonObject.getJSONObject("season")
-                            put("number", season.getInt("number"))
-                            put("tvdb", season.getJSONObject("ids").getInt("tvdb"))
-                            put("tmdb", season.getJSONObject("ids").getInt("tmdb"))
+                            val show = jsonObject.getJSONObject("show")
+                            put(TraktDatabaseHelper.COL_SEASON, season.getInt("number"))
+                            put(TraktDatabaseHelper.COL_TVDB, season.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, season.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").getInt("tmdb"))
                         }
                         "episode" -> {
                             val episode = jsonObject.getJSONObject("episode")
-                            put("season", episode.getInt("season"))
-                            put("number", episode.getInt("number"))
-                            put("title", episode.getString("title"))
-                            put("trakt_id", episode.getJSONObject("ids").getInt("trakt"))
-                            put("tvdb", episode.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", episode.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", episode.getJSONObject("ids").getInt("tmdb"))
+                            val show = jsonObject.getJSONObject("show")
+                            put(TraktDatabaseHelper.COL_SEASON, episode.getInt("season"))
+                            put(TraktDatabaseHelper.COL_NUMBER, episode.getInt("number"))
+                            put(TraktDatabaseHelper.COL_TITLE, episode.getString("title"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, episode.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_TVDB, episode.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_IMDB, episode.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, episode.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").getInt("tmdb"))
                         }
                     }
                 }
@@ -198,53 +265,46 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    private fun fetchHistoryData() {
-        val url = "https://api.trakt.tv/sync/history"
+    fun fetchHistoryData() {
+        val url = "https://api.trakt.tv/sync/history?page=1&limit=50"
         val request = createRequest(url)
         executeRequest(request) { response ->
             val jsonArray = JSONArray(response)
+            Log.d("GetTraktSyncData2", jsonArray.toString())
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
                 val type = jsonObject.getString("type")
                 val values = ContentValues().apply {
-                    put("watched_at", jsonObject.getString("watched_at"))
-                    put("action_", jsonObject.getString("action"))
-                    put("type", type)
+                    put(TraktDatabaseHelper.COL_WATCHED_AT, jsonObject.getString("watched_at"))
+                    put(TraktDatabaseHelper.COL_ACTION, jsonObject.getString("action"))
+                    put(TraktDatabaseHelper.COL_TYPE, type)
                     when (type) {
                         "movie" -> {
                             val movie = jsonObject.getJSONObject("movie")
-                            put("title", movie.getString("title"))
-                            put("year", movie.getInt("year"))
-                            put("trakt_id", movie.getJSONObject("ids").getInt("trakt"))
-                            put("slug", movie.getJSONObject("ids").getString("slug"))
-                            put("imdb", movie.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", movie.getJSONObject("ids").getInt("tmdb"))
-                        }
-                        "show" -> {
-                            val show = jsonObject.getJSONObject("show")
-                            put("title", show.getString("title"))
-                            put("year", show.getInt("year"))
-                            put("trakt_id", show.getJSONObject("ids").getInt("trakt"))
-                            put("slug", show.getJSONObject("ids").getString("slug"))
-                            put("tvdb", show.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", show.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", show.getJSONObject("ids").getInt("tmdb"))
-                        }
-                        "season" -> {
-                            val season = jsonObject.getJSONObject("season")
-                            put("number", season.getInt("number"))
-                            put("tvdb", season.getJSONObject("ids").getInt("tvdb"))
-                            put("tmdb", season.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").optString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").optInt("tmdb", -1))
                         }
                         "episode" -> {
                             val episode = jsonObject.getJSONObject("episode")
-                            put("season", episode.getInt("season"))
-                            put("number", episode.getInt("number"))
-                            put("title", episode.getString("title"))
-                            put("trakt_id", episode.getJSONObject("ids").getInt("trakt"))
-                            put("tvdb", episode.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", episode.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", episode.getJSONObject("ids").getInt("tmdb"))
+                            val show = jsonObject.getJSONObject("show")
+                            put(TraktDatabaseHelper.COL_SEASON, episode.getInt("season"))
+                            put(TraktDatabaseHelper.COL_NUMBER, episode.getInt("number"))
+                            put(TraktDatabaseHelper.COL_TITLE, episode.getString("title"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, episode.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_TVDB, episode.getJSONObject("ids").optInt("tvdb", -1))
+                            put(TraktDatabaseHelper.COL_IMDB, episode.getJSONObject("ids").optString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, episode.getJSONObject("ids").optInt("tmdb", -1))
+                            put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").optInt("tvdb", -1))
+                            put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").optString("imdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").optInt("tmdb", -1))
                         }
                     }
                 }
@@ -253,48 +313,227 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    private fun fetchWatchedData() {
-        val url = "https://api.trakt.tv/sync/watched"
+    fun fetchWatchedDataMovie() {
+        val url = "https://api.trakt.tv/sync/watched/movies"
         val request = createRequest(url)
         executeRequest(request) { response ->
             val jsonArray = JSONArray(response)
+            Log.d("GetTraktSyncData", jsonArray.toString())
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
-                val type = jsonObject.getString("type")
                 val values = ContentValues().apply {
-                    put("plays", jsonObject.getInt("plays"))
-                    put("last_watched_at", jsonObject.getString("last_watched_at"))
-                    put("last_updated_at", jsonObject.getString("last_updated_at"))
-                    put("type", type)
-                    when (type) {
-                        "movie" -> {
-                            val movie = jsonObject.getJSONObject("movie")
-                            put("title", movie.getString("title"))
-                            put("year", movie.getInt("year"))
-                            put("trakt_id", movie.getJSONObject("ids").getInt("trakt"))
-                            put("slug", movie.getJSONObject("ids").getString("slug"))
-                            put("imdb", movie.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", movie.getJSONObject("ids").getInt("tmdb"))
-                        }
-                        "show" -> {
-                            val show = jsonObject.getJSONObject("show")
-                            put("title", show.getString("title"))
-                            put("year", show.getInt("year"))
-                            put("trakt_id", show.getJSONObject("ids").getInt("trakt"))
-                            put("slug", show.getJSONObject("ids").getString("slug"))
-                            put("tvdb", show.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", show.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", show.getJSONObject("ids").getInt("tmdb"))
-                        }
-                    }
+                    put(TraktDatabaseHelper.COL_PLAYS, jsonObject.getInt("plays"))
+                    put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, jsonObject.getString("last_watched_at"))
+                    put(TraktDatabaseHelper.COL_LAST_UPDATED_AT, jsonObject.getString("last_updated_at"))
                 }
-                dbHelper.insertWatchedData(values)
+
+                if (jsonObject.has("movie")) {
+                    val movie = jsonObject.getJSONObject("movie")
+                    values.apply {
+                        put(TraktDatabaseHelper.COL_TYPE, "movie")
+                        put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                        put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                        put(TraktDatabaseHelper.COL_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                        put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                        put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").getString("imdb"))
+                        put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").optInt("tmdb", -1))
+                    }
+                    dbHelper.insertWatchedData(values)
+                }
             }
         }
     }
 
-    private fun fetchCollectionData() {
-        val url = "https://api.trakt.tv/sync/collection"
+    fun fetchWatchedDataShow() {
+        val url = "https://api.trakt.tv/sync/watched/shows"
+        val request = createRequest(url)
+        executeRequest(request) { response ->
+            val jsonArray = JSONArray(response)
+            Log.d("GetTraktSyncData", jsonArray.toString())
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val values = ContentValues().apply {
+                    put(TraktDatabaseHelper.COL_PLAYS, jsonObject.getInt("plays"))
+                    put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, jsonObject.getString("last_watched_at"))
+                    put(TraktDatabaseHelper.COL_LAST_UPDATED_AT, jsonObject.getString("last_updated_at"))
+                }
+
+                if (jsonObject.has("show")) {
+                    val show = jsonObject.getJSONObject("show")
+                    val showTraktId = show.getJSONObject("ids").getInt("trakt")
+                    val showTmdbId = show.getJSONObject("ids").optInt("tmdb", -1)
+
+                    val showValues = ContentValues(values).apply {
+                        put(TraktDatabaseHelper.COL_TYPE, "show")
+                        put(TraktDatabaseHelper.COL_TITLE, show.getString("title"))
+                        put(TraktDatabaseHelper.COL_YEAR, show.getInt("year"))
+                        put(TraktDatabaseHelper.COL_TRAKT_ID, showTraktId)
+                        put(TraktDatabaseHelper.COL_SLUG, show.getJSONObject("ids").getString("slug"))
+                        put(TraktDatabaseHelper.COL_TVDB, show.getJSONObject("ids").optInt("tvdb", -1))
+                        put(TraktDatabaseHelper.COL_IMDB, show.getJSONObject("ids").optString("imdb"))
+                        put(TraktDatabaseHelper.COL_TMDB, showTmdbId)
+                    }
+
+                    dbHelper.insertWatchedShowData(showValues)
+
+                    val seasons = jsonObject.getJSONArray("seasons")
+                    for (j in 0 until seasons.length()) {
+                        val season = seasons.getJSONObject(j)
+                        val seasonNumber = season.getInt("number")
+                        val episodes = season.getJSONArray("episodes")
+
+                        for (k in 0 until episodes.length()) {
+                            val episode = episodes.getJSONObject(k)
+                            val episodeNumber = episode.getInt("number")
+
+                            val episodeValues = ContentValues().apply {
+                                put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, showTraktId)
+                                put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, showTmdbId)
+                                put(TraktDatabaseHelper.COL_SEASON_NUMBER, seasonNumber)
+                                put(TraktDatabaseHelper.COL_EPISODE_NUMBER, episodeNumber)
+                                put(TraktDatabaseHelper.COL_PLAYS, episode.getInt("plays"))
+                                put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, episode.getString("last_watched_at"))
+                            }
+                            dbHelper.insertSeasonEpisodeWatchedData(episodeValues)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun fetchCollectionData() {
+        val url = "https://api.trakt.tv/sync/collection/movies?extended=metadata"
+        val request = createRequest(url)
+        executeRequest(request) { response ->
+            val jsonArray = JSONArray(response)
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val values = ContentValues().apply {
+                    put(TraktDatabaseHelper.COL_COLLECTED_AT, jsonObject.getString("collected_at"))
+                    put(TraktDatabaseHelper.COL_UPDATED_AT, jsonObject.getString("updated_at"))
+                }
+
+                if (jsonObject.has("movie")) {
+                    val movie = jsonObject.getJSONObject("movie")
+                    values.apply {
+                        put(TraktDatabaseHelper.COL_TYPE, "movie")
+                        put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                        put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                        put(TraktDatabaseHelper.COL_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                        put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                        put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").getString("imdb"))
+                        put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").getInt("tmdb"))
+                    }
+                }
+
+                if (jsonObject.has("metadata")) {
+                    val metadata = jsonObject.getJSONObject("metadata")
+                    values.apply {
+                        put(TraktDatabaseHelper.COL_MEDIA_TYPE, metadata.getString("media_type"))
+                        put(TraktDatabaseHelper.COL_RESOLUTION, metadata.getString("resolution"))
+                        put(TraktDatabaseHelper.COL_HDR, metadata.getString("hdr"))
+                        put(TraktDatabaseHelper.COL_AUDIO, metadata.getString("audio"))
+                        put(TraktDatabaseHelper.COL_AUDIO_CHANNELS, metadata.getString("audio_channels"))
+                        put(TraktDatabaseHelper.COL_THD, metadata.getBoolean("3d"))
+                    }
+                }
+
+                dbHelper.insertCollectionData(values)
+            }
+        }
+    }
+    fun fetchCollectionShowData() {
+        val url = "https://api.trakt.tv/sync/collection/shows?extended=metadata"
+        val request = createRequest(url)
+        executeRequest(request) { response ->
+            val jsonArray = JSONArray(response)
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val values = ContentValues().apply {
+                    put(TraktDatabaseHelper.COL_COLLECTED_AT, jsonObject.getString("last_collected_at"))
+                    put(TraktDatabaseHelper.COL_UPDATED_AT, jsonObject.getString("last_updated_at"))
+                }
+
+                if (jsonObject.has("show")) {
+                    val show = jsonObject.getJSONObject("show")
+                    val showValues = ContentValues(values).apply {
+                        put(TraktDatabaseHelper.COL_TYPE, "show")
+                        put(TraktDatabaseHelper.COL_TITLE, show.getString("title"))
+                        put(TraktDatabaseHelper.COL_YEAR, show.getInt("year"))
+                        put(TraktDatabaseHelper.COL_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                        put(TraktDatabaseHelper.COL_SLUG, show.getJSONObject("ids").getString("slug"))
+                        put(TraktDatabaseHelper.COL_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                        put(TraktDatabaseHelper.COL_IMDB, show.getJSONObject("ids").getString("imdb"))
+                        put(TraktDatabaseHelper.COL_TMDB, show.getJSONObject("ids").getInt("tmdb"))
+                    }
+
+                    val seasons = jsonObject.getJSONArray("seasons")
+                    for (j in 0 until seasons.length()) {
+                        val season = seasons.getJSONObject(j)
+                        val seasonNumber = season.getInt("number")
+                        val episodes = season.getJSONArray("episodes")
+                        for (k in 0 until episodes.length()) {
+                            val episode = episodes.getJSONObject(k)
+                            val episodeValues = ContentValues(showValues).apply {
+                                put(TraktDatabaseHelper.COL_SEASON, seasonNumber)
+                                put(TraktDatabaseHelper.COL_NUMBER, episode.getInt("number"))
+                                put(TraktDatabaseHelper.COL_COLLECTED_AT, episode.getString("collected_at"))
+                            }
+
+                            if (episode.has("metadata")) {
+                                val metadata = episode.getJSONObject("metadata")
+                                episodeValues.apply {
+                                    put(TraktDatabaseHelper.COL_MEDIA_TYPE, metadata.getString("media_type"))
+                                    put(TraktDatabaseHelper.COL_RESOLUTION, metadata.getString("resolution"))
+                                    put(TraktDatabaseHelper.COL_HDR, metadata.getString("hdr"))
+                                    put(TraktDatabaseHelper.COL_AUDIO, metadata.getString("audio"))
+                                    put(TraktDatabaseHelper.COL_AUDIO_CHANNELS, metadata.getString("audio_channels"))
+                                    put(TraktDatabaseHelper.COL_THD, metadata.getBoolean("3d"))
+                                }
+                            }
+
+                            dbHelper.insertCollectionData(episodeValues)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun fetchUserLists() {
+        val url = "https://api.trakt.tv/users/me/lists"
+        val request = createRequest(url)
+        executeRequest(request) { response ->
+            val jsonArray = JSONArray(response)
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val values = ContentValues().apply {
+                    put(TraktDatabaseHelper.COL_NAME, jsonObject.getString("name"))
+                    put(TraktDatabaseHelper.COL_DESCRIPTION, jsonObject.getString("description"))
+                    put(TraktDatabaseHelper.COL_PRIVACY, jsonObject.getString("privacy"))
+                    put(TraktDatabaseHelper.COL_SHARE_LINK, jsonObject.getString("share_link"))
+                    put(TraktDatabaseHelper.COL_TYPE, jsonObject.getString("type"))
+                    put(TraktDatabaseHelper.COL_DISPLAY_NUMBERS, jsonObject.getBoolean("display_numbers"))
+                    put(TraktDatabaseHelper.COL_ALLOW_COMMENTS, jsonObject.getBoolean("allow_comments"))
+                    put(TraktDatabaseHelper.COL_SORT_BY, jsonObject.getString("sort_by"))
+                    put(TraktDatabaseHelper.COL_SORT_HOW, jsonObject.getString("sort_how"))
+                    put(TraktDatabaseHelper.COL_CREATED_AT, jsonObject.getString("created_at"))
+                    put(TraktDatabaseHelper.COL_UPDATED_AT, jsonObject.getString("updated_at"))
+                    put(TraktDatabaseHelper.COL_ITEM_COUNT, jsonObject.getInt("item_count"))
+                    put(TraktDatabaseHelper.COL_COMMENT_COUNT, jsonObject.getInt("comment_count"))
+                    put(TraktDatabaseHelper.COL_LIKES, jsonObject.getInt("likes"))
+                    val ids = jsonObject.getJSONObject("ids")
+                    put(TraktDatabaseHelper.COL_TRAKT_ID, ids.getInt("trakt"))
+                    put(TraktDatabaseHelper.COL_SLUG, ids.getString("slug"))
+                }
+                dbHelper.insertUserListData(values)
+            }
+        }
+    }
+
+    private fun getListsItems(listId: String) {
+        val url = "https://api.trakt.tv/users/me/lists/$listId/items/"
         val request = createRequest(url)
         executeRequest(request) { response ->
             val jsonArray = JSONArray(response)
@@ -302,32 +541,74 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
                 val jsonObject = jsonArray.getJSONObject(i)
                 val type = jsonObject.getString("type")
                 val values = ContentValues().apply {
-                    put("collected_at", jsonObject.getString("collected_at"))
-                    put("updated_at", jsonObject.getString("updated_at"))
-                    put("type", type)
+                    put(TraktDatabaseHelper.COL_LIST_ID, listId)
+                    put(TraktDatabaseHelper.COL_RANK, jsonObject.getInt("rank"))
+                    put(TraktDatabaseHelper.COL_LISTED_AT, jsonObject.getString("listed_at"))
+                    put(TraktDatabaseHelper.COL_NOTES, jsonObject.optString("notes"))
+                    put(TraktDatabaseHelper.COL_TYPE, type)
                     when (type) {
                         "movie" -> {
                             val movie = jsonObject.getJSONObject("movie")
-                            put("title", movie.getString("title"))
-                            put("year", movie.getInt("year"))
-                            put("trakt_id", movie.getJSONObject("ids").getInt("trakt"))
-                            put("slug", movie.getJSONObject("ids").getString("slug"))
-                            put("imdb", movie.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", movie.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").getInt("tmdb"))
                         }
                         "show" -> {
                             val show = jsonObject.getJSONObject("show")
-                            put("title", show.getString("title"))
-                            put("year", show.getInt("year"))
-                            put("trakt_id", show.getJSONObject("ids").getInt("trakt"))
-                            put("slug", show.getJSONObject("ids").getString("slug"))
-                            put("tvdb", show.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", show.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", show.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, show.getJSONObject("ids").getInt("tmdb"))
+                        }
+                        "season" -> {
+                            val season = jsonObject.getJSONObject("season")
+                            val show = jsonObject.getJSONObject("show")
+                            put(TraktDatabaseHelper.COL_SEASON, season.getInt("number"))
+                            put(TraktDatabaseHelper.COL_TVDB, season.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, season.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").getInt("tmdb"))
+                        }
+                        "episode" -> {
+                            val episode = jsonObject.getJSONObject("episode")
+                            val show = jsonObject.getJSONObject("show")
+                            put(TraktDatabaseHelper.COL_SEASON, episode.getInt("season"))
+                            put(TraktDatabaseHelper.COL_NUMBER, episode.getInt("number"))
+                            put(TraktDatabaseHelper.COL_TITLE, episode.getString("title"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, episode.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_TVDB, episode.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_IMDB, episode.getJSONObject("ids").optString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, episode.getJSONObject("ids").getInt("tmdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                            put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                            put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").getInt("tvdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").getInt("tmdb"))
+                        }
+                        "person" -> {
+                            val person = jsonObject.getJSONObject("person")
+                            put(TraktDatabaseHelper.COL_NAME, person.getString("name"))
+                            put(TraktDatabaseHelper.COL_TRAKT_ID, person.getJSONObject("ids").getInt("trakt"))
+                            put(TraktDatabaseHelper.COL_SLUG, person.getJSONObject("ids").getString("slug"))
+                            put(TraktDatabaseHelper.COL_IMDB, person.getJSONObject("ids").getString("imdb"))
+                            put(TraktDatabaseHelper.COL_TMDB, person.getJSONObject("ids").getInt("tmdb"))
                         }
                     }
                 }
-                dbHelper.insertCollectionData(values)
+                dbHelper.insertListItemData(values)
             }
         }
     }
@@ -353,10 +634,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
                 }
             } else {
                 // Handle the error
+
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            // Handle the exception
         }
     }
 }

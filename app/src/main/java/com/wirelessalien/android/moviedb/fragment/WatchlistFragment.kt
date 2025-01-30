@@ -24,214 +24,114 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
-import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.wirelessalien.android.moviedb.activity.MainActivity
+import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
+import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentShowBinding
+import com.wirelessalien.android.moviedb.pagingSource.WatchlistPagingSource
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.IOException
-import java.util.Optional
 
 class WatchlistFragment : BaseFragment() {
-    private var mListType: String? = null
-    private var visibleThreshold = 0
-    private var currentPage = 0
-    private var previousTotal = 0
-    private var loading = true
-    private var pastVisibleItems = 0
-    private var visibleItemCount = 0
-    private var totalItemCount = 0
-    private var totalPages = 0
 
-    @Volatile
-    private var isLoadingData = false
-    private var mShowListLoaded = false
-    private val showIdSet = HashSet<Int>()
+    private var mListType: String? = null
+    private lateinit var pagingAdapter: ShowPagingAdapter
+    private lateinit var binding: FragmentShowBinding
+    private lateinit var activityBinding: ActivityMainBinding
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3)
-        visibleThreshold = gridSizePreference * gridSizePreference
-        createShowList(mListType)
-    }
-
-    override fun doNetworkWork() {
-        if (!mShowListLoaded) {
-            loadWatchList(mListType, 1)
-        }
+        mListType = if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) "tv" else "movie"
+        mShowArrayList = ArrayList()
+        createShowList()
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val fragmentView = inflater.inflate(R.layout.fragment_show, container, false)
-        mListType = if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) "tv" else "movie"
-        loadWatchList(mListType, 1)
-        showShowList(fragmentView)
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        updateFabIcon(fab, mListType)
-        fab.setOnClickListener { toggleListTypeAndLoad() }
+    ): View {
+        binding = FragmentShowBinding.inflate(inflater, container, false)
+        val fragmentView = binding.root
+        activityBinding = (activity as MainActivity).getBinding()
+        showPagingList(fragmentView)
+        updateFabIcon(activityBinding.fab, mListType)
+        activityBinding.fab.setOnClickListener { toggleListTypeAndLoad() }
         return fragmentView
     }
 
     private fun toggleListTypeAndLoad() {
-        if (isLoadingData) {
-            Toast.makeText(context, R.string.loading_in_progress, Toast.LENGTH_SHORT).show()
-            return
-        }
-        mShowArrayList.clear()
-        showIdSet.clear()
-        mShowAdapter.notifyDataSetChanged()
-        currentPage = 1
-        totalPages = 0
         mListType = if ("movie" == mListType) "tv" else "movie"
-        loadWatchList(mListType, 1)
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        updateFabIcon(fab, mListType)
+        pagingAdapter.refresh()
+        updateFabIcon(activityBinding.fab, mListType)
     }
 
     override fun onResume() {
         super.onResume()
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.visibility = View.VISIBLE
-        updateFabIcon(fab, mListType)
-        fab.setOnClickListener { toggleListTypeAndLoad() }
+        activityBinding.fab.visibility = View.VISIBLE
+        updateFabIcon(activityBinding.fab, mListType)
+        activityBinding.fab.setOnClickListener { toggleListTypeAndLoad() }
     }
 
     private fun updateFabIcon(fab: FloatingActionButton, listType: String?) {
         fab.setImageResource(if ("movie" == listType) R.drawable.ic_movie else R.drawable.ic_tv_show)
     }
 
-    private fun createShowList(mode: String?) {
-        mShowArrayList = ArrayList()
+    private fun createShowList() {
         mShowGenreList = HashMap()
-        mShowAdapter = ShowBaseAdapter(
-            mShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false
+        pagingAdapter = ShowPagingAdapter(
+            mShowGenreList,
+            preferences.getBoolean(SHOWS_LIST_PREFERENCE, false),
+            false
         )
         (requireActivity() as BaseActivity).checkNetwork()
     }
 
-    override fun showShowList(fragmentView: View) {
-        super.showShowList(fragmentView)
-        mShowView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0 && recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
-                    visibleItemCount = mShowLinearLayoutManager.childCount
-                    totalItemCount = mShowLinearLayoutManager.itemCount
-                    pastVisibleItems = mShowLinearLayoutManager.findFirstVisibleItemPosition()
-                    if (loading && totalItemCount > previousTotal) {
-                        loading = false
-                        previousTotal = totalItemCount
-                        currentPage++
-                    }
-                    val threshold = if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
-                        val gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3)
-                        gridSizePreference * gridSizePreference
-                    } else {
-                        visibleThreshold
-                    }
-                    if (!loading && visibleItemCount + pastVisibleItems + threshold >= totalItemCount) {
-                        if (mShowArrayList.isNotEmpty() && hasMoreItemsToLoad()) {
-                            currentPage++
-                            loadWatchList(mListType, currentPage)
-                        }
-                        loading = true
-                    }
+    override fun showPagingList(fragmentView: View) {
+        super.showPagingList(fragmentView)
+        mShowView.adapter = pagingAdapter
+
+        lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                WatchlistPagingSource(mListType, preferences)
+            }.flow.collectLatest { pagingData ->
+                pagingAdapter.submitData(pagingData)
+            }
+        }
+
+        pagingAdapter.addLoadStateListener { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.showRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+                is LoadState.NotLoading -> {
+                    binding.showRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+                is LoadState.Error -> {
+                    binding.showRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.error_loading_data),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-        })
-    }
-
-    private fun loadWatchList(listType: String?, page: Int) {
-        CoroutineScope(Dispatchers.Main).launch {
-            isLoadingData = true
-            if (!isAdded) return@launch
-
-            val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
-            progressBar.ifPresent { it.visibility = View.VISIBLE }
-
-            val response = withContext(Dispatchers.IO) {
-                fetchWatchListFromApi(listType, page)
-            }
-
-            handleResponse(response)
-            progressBar.ifPresent { it.visibility = View.GONE }
-            isLoadingData = false
         }
-    }
-
-    private fun fetchWatchListFromApi(listType: String?, page: Int): String? {
-        val accessToken = preferences.getString("access_token", "")
-        val accountId = preferences.getString("account_id", "")
-        val url = "https://api.themoviedb.org/4/account/$accountId/$listType/watchlist?page=$page"
-        val client = OkHttpClient()
-        val request = Request.Builder()
-            .url(url)
-            .get()
-            .addHeader("Content-Type", "application/json;charset=utf-8")
-            .addHeader("Authorization", "Bearer $accessToken")
-            .build()
-        return try {
-            client.newCall(request).execute().use { response ->
-                response.body?.string()
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun handleResponse(response: String?) {
-        if (isAdded && !response.isNullOrEmpty()) {
-            val position = try {
-                mShowLinearLayoutManager.findFirstVisibleItemPosition()
-            } catch (npe: NullPointerException) {
-                0
-            }
-
-            try {
-                val reader = JSONObject(response)
-                totalPages = reader.getInt("total_pages")
-                val arrayData = reader.getJSONArray("results")
-                val newItems = mutableListOf<JSONObject>()
-                for (i in 0 until arrayData.length()) {
-                    val websiteData = arrayData.getJSONObject(i)
-                    val showId = websiteData.getInt("id")
-                    if (!showIdSet.contains(showId)) {
-                        if (websiteData.getString("overview").isEmpty()) {
-                            websiteData.put("overview", "Overview may not be available in the specified language.")
-                        }
-                        newItems.add(websiteData)
-                        showIdSet.add(showId)
-                    }
-                }
-                mShowArrayList.addAll(newItems)
-                mShowAdapter.notifyItemRangeInserted(mShowArrayList.size - newItems.size, newItems.size)
-                mShowView.adapter = mShowAdapter
-                mShowView.scrollToPosition(position)
-                mShowListLoaded = true
-            } catch (je: JSONException) {
-                je.printStackTrace()
-            }
-        }
-        loading = false
-    }
-
-    private fun hasMoreItemsToLoad(): Boolean {
-        return currentPage < totalPages
     }
 
     companion object {

@@ -26,8 +26,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.core.content.res.ResourcesCompat
+import androidx.paging.PagingDataAdapter
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
@@ -36,52 +37,29 @@ import com.wirelessalien.android.moviedb.adapter.PersonBaseAdapter.PersonItemVie
 import org.json.JSONException
 import org.json.JSONObject
 
-/*
-* This class provides a list of cards containing the given persons. 
-* The card interaction (going to ActorActivity when clicking) can also be found here.
-*/
-class PersonBaseAdapter
-/**
- * Create the adapter with the list of persons and the context
- *
- * @param personList the list of people to be displayed.
- */(private val mPersonList: ArrayList<JSONObject>) :
-    RecyclerView.Adapter<PersonItemViewHolder?>() {
-    override fun getItemCount(): Int {
-        // Return the amount of items in the list.
-        return mPersonList.size
-    }
+
+class PersonBaseAdapter : PagingDataAdapter<JSONObject, PersonItemViewHolder>(DIFF_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PersonItemViewHolder {
-        // Create a new CardItem when needed.
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.person_card, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.person_card, parent, false)
         return PersonItemViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: PersonItemViewHolder, position: Int) {
-        // Fill the views with the needed data.
-        val personData = mPersonList[position]
+        val personData = getItem(position) ?: return
         val context = holder.cardView.context
+
         try {
             val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w342"
             holder.personName.text = personData.getString("name")
-            if (personData.getString("profile_path") == null) {
-                holder.personImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
-            } else {
-                Picasso.get().load(
-                    "https://image.tmdb.org/t/p/" + imageSize
-                            + personData.getString("profile_path")
-                )
-                    .into(holder.personImage)
-            }
+            Picasso.get().load("https://image.tmdb.org/t/p/$imageSize${personData.getString("profile_path")}")
+                .into(holder.personImage)
         } catch (je: JSONException) {
             je.printStackTrace()
         }
 
-        // Send the person data and the user to CastActivity when clicking on a card.
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, CastActivity::class.java)
             intent.putExtra("actorObject", personData.toString())
@@ -89,29 +67,23 @@ class PersonBaseAdapter
         }
     }
 
-    override fun getItemId(position: Int): Long {
-        // The id is the same as the position,
-        // therefore returning the position is enough.
-        return position.toLong()
-    }
-
-    /**
-     * Views that each CardItem will contain.
-     */
-    class PersonItemViewHolder internal constructor(itemView: View) :
-        RecyclerView.ViewHolder(itemView) {
-        val cardView: CardView
-        val personName: TextView
-        val personImage: ImageView
-
-        init {
-            cardView = itemView.findViewById(R.id.cardView)
-            personName = itemView.findViewById(R.id.personName)
-            personImage = itemView.findViewById(R.id.personImage)
-        }
+    class PersonItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val cardView: CardView = itemView.findViewById(R.id.cardView)
+        val personName: TextView = itemView.findViewById(R.id.personName)
+        val personImage: ImageView = itemView.findViewById(R.id.personImage)
     }
 
     companion object {
         private const val HD_IMAGE_SIZE = "key_hq_images"
+
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<JSONObject>() {
+            override fun areItemsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
+                return oldItem.getInt("id") == newItem.getInt("id")
+            }
+
+            override fun areContentsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
+                return oldItem.toString() == newItem.toString()
+            }
+        }
     }
 }

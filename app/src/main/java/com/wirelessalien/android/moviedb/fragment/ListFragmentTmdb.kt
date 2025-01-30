@@ -26,37 +26,46 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.activity.MyListDetailsActivity
+import com.wirelessalien.android.moviedb.activity.ListItemActivityTmdb
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ListAdapter
 import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentMyListsBinding
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import kotlinx.coroutines.launch
 
-class MyListsFragment : BaseFragment() {
+class ListFragmentTmdb : BaseFragment() {
     private var listAdapter: ListAdapter? = null
+    private lateinit var activityBinding: ActivityMainBinding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+        savedInstanceState: Bundle?): View {
+
         val binding = FragmentMyListsBinding.inflate(inflater, container, false)
         val view: View = binding.root
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.setImageResource(R.drawable.ic_add)
+
+        activityBinding = (activity as MainActivity).getBinding()
+
+        activityBinding.fab.setImageResource(R.drawable.ic_add)
+
         listAdapter = ListAdapter(ArrayList(), object : ListAdapter.OnItemClickListener {
             override fun onItemClick(listData: ListData?) {
-                val intent = Intent(activity, MyListDetailsActivity::class.java)
+                val intent = Intent(activity, ListItemActivityTmdb::class.java)
                 intent.putExtra("listId", listData?.id)
+                intent.putExtra("listName", listData?.name)
                 startActivity(intent)
             }
         }, true)
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = listAdapter
         binding.progressBar.visibility = View.VISIBLE
+
         val fetcher = FetchList(context, null)
+
         requireActivity().lifecycleScope.launch {
             val listData = fetcher.fetchLists()
             requireActivity().runOnUiThread {
@@ -64,12 +73,13 @@ class MyListsFragment : BaseFragment() {
                 binding.progressBar.visibility = View.GONE
             }
         }
-        fab.setOnClickListener {
-            val listBottomSheetDialogFragment =
-                ListBottomSheetDialogFragment(0, null, context, false)
-            listBottomSheetDialogFragment.show(
+
+        activityBinding.fab.setOnClickListener {
+            val listBottomSheetFragment =
+                ListBottomSheetFragment(0, null, context, false)
+            listBottomSheetFragment.show(
                 childFragmentManager,
-                listBottomSheetDialogFragment.tag
+                listBottomSheetFragment.tag
             )
         }
         return view
@@ -77,14 +87,13 @@ class MyListsFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.visibility = View.VISIBLE
-        fab.setOnClickListener {
-            val listBottomSheetDialogFragment =
-                ListBottomSheetDialogFragment(0, null, context, false)
-            listBottomSheetDialogFragment.show(
+        activityBinding.fab.visibility = View.VISIBLE
+        activityBinding.fab.setOnClickListener {
+            val listBottomSheetFragment =
+                ListBottomSheetFragment(0, null, context, false)
+            listBottomSheetFragment.show(
                 childFragmentManager,
-                listBottomSheetDialogFragment.tag
+                listBottomSheetFragment.tag
             )
         }
     }

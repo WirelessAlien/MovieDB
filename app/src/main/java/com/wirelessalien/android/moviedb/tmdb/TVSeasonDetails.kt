@@ -70,6 +70,7 @@ class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, 
                 episodes = mutableListOf()
                 for (i in 0 until response.length()) {
                     val episodeJson = response.getJSONObject(i)
+                    val id = episodeJson.getInt("id")
                     val name = episodeJson.getString("name")
                     val overview = episodeJson.getString("overview")
                     val airDate = episodeJson.getString("air_date")
@@ -77,7 +78,7 @@ class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, 
                     val runtime = if (episodeJson.isNull("runtime")) 0 else episodeJson.getInt("runtime")
                     val posterPath = episodeJson.getString("still_path")
                     val voteAverage = episodeJson.getDouble("vote_average")
-                    episodes.add(Episode(airDate, episodeNumber, name, overview, runtime, posterPath, voteAverage))
+                    episodes.add(Episode(id, airDate, episodeNumber, name, overview, runtime, posterPath, voteAverage))
                 }
                 callback.onSeasonDetailsFetched(episodes)
             } catch (e: Exception) {

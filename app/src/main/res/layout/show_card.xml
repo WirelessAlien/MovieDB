@@ -24,10 +24,9 @@
     android:id="@+id/cardView"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    card_view:cardCornerRadius="5dip"
+    card_view:cardCornerRadius="10dp"
     style="@style/Widget.Material3.CardView.Elevated"
     card_view:cardUseCompatPadding="true">
-
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/deleteButton"
@@ -36,18 +35,20 @@
         android:layout_gravity="top|end"
         card_view:icon="@drawable/ic_close"
         android:visibility="gone"
-        card_view:cornerRadius="5dip"
+        card_view:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="165dip"
         android:gravity="center_horizontal"
-        android:padding="6dip">
+        android:padding="5dp">
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="100dp"
             android:layout_height="150dp"
             style="@style/Widget.Material3.CardView.Elevated"
-            card_view:cardCornerRadius="5dp">
+            card_view:cardCornerRadius="10dp">
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -72,10 +73,21 @@
                     android:gravity="center"
                     android:visibility="gone"
                     android:padding="8dp"/>
+
+                <TextView
+                    android:id="@+id/seasonEpisodeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Your Text Here"
+                    android:textColor="@android:color/white"
+                    android:background="#99000000"
+                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_gravity="top|center_horizontal"
+                    android:padding="8dp"/>
             </FrameLayout>
-
         </com.google.android.material.card.MaterialCardView>
-
 
         <View
             android:layout_width="6dp"
@@ -104,7 +116,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignWithParentIfMissing="true"
                 android:layout_below="@id/title"
-                android:layout_marginBottom="5dip"
+                android:layout_marginBottom="5dp"
                 android:ellipsize="end"
                 android:maxLines="3" />
 
@@ -115,7 +127,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignWithParentIfMissing="true"
                 android:layout_below="@id/description"
-                android:layout_marginBottom="5dip"
+                android:layout_marginBottom="5dp"
                 android:ellipsize="end"
                 android:maxLines="1" />
 
@@ -125,7 +137,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/genre"
-                android:layout_marginBottom="5dip"
+                android:layout_marginBottom="5dp"
                 android:numStars="5"
                 android:rating="3.5" />
 
@@ -137,10 +149,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="3dp"
                 android:textSize="11sp"/>
-
         </RelativeLayout>
-
     </LinearLayout>
-
 </com.google.android.material.card.MaterialCardView>
 

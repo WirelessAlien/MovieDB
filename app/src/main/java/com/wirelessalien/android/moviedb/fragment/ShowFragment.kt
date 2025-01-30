@@ -23,83 +23,63 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.activity.FilterActivity
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
-import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
+import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentShowBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.wirelessalien.android.moviedb.pagingSource.ShowPagingSource
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
-import java.util.Optional
 
 class ShowFragment : BaseFragment() {
+
     private var apiKey: String? = null
     private var mListType: String? = null
-    override var mSearchView = false
-    private var mSearchQuery: String? = null
     private var filterParameter = ""
     private var filterChanged = false
 
-    private var visibleThreshold = 0
-    private var currentPage = 0
-    private var currentSearchPage = 0
-    private var previousTotal = 0
-    private var loading = true
-    private var pastVisibleItems = 0
-    private var visibleItemCount = 0
-    private var totalItemCount = 0
-    private var mShowListLoaded = false
-    private val dateFormat = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
-    val date = Date()
-    private val showIdSet = HashSet<Int>()
+    private lateinit var pagingAdapter: ShowPagingAdapter
+    private lateinit var binding: FragmentShowBinding
+    private lateinit var activityBinding: ActivityMainBinding
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
         apiKey = ConfigHelper.getConfigValue(requireContext().applicationContext, "api_key")
-        mListType = if (arguments != null) {
-            requireArguments().getString(ARG_LIST_TYPE)
-        } else {
-            // Movie is the default case.
-            SectionsPagerAdapter.MOVIE
-        }
+        mListType = arguments?.getString(ARG_LIST_TYPE) ?: SectionsPagerAdapter.MOVIE
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3)
-        visibleThreshold = gridSizePreference * gridSizePreference
 
         mShowArrayList = ArrayList()
         mShowGenreList = HashMap()
-        mShowAdapter = ShowBaseAdapter(
-            mShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false
+        pagingAdapter = ShowPagingAdapter(
+            mShowGenreList,
+            preferences.getBoolean(SHOWS_LIST_PREFERENCE, false),
+            false
         )
-        (requireActivity() as BaseActivity).checkNetwork()
 
         // Set filterParameter based on mListType
         filterParameter = if (mListType == SectionsPagerAdapter.MOVIE) {
@@ -112,48 +92,33 @@ class ShowFragment : BaseFragment() {
         if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
             filterShows()
         } else {
-            fetchShowList(arrayOf(mListType, "1"))
-        }
-    }
-
-    override fun doNetworkWork() {
-        if (!mGenreListLoaded) {
-            fetchGenreList(mListType!!)
-        }
-        if (!mShowListLoaded) {
-            fetchShowList(arrayOf(mListType, "1"))
+            loadInitialData()
         }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        val fragmentView = inflater.inflate(R.layout.fragment_show, container, false)
-        showShowList(fragmentView)
-        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
-        fab2.visibility = View.GONE
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.setImageResource(R.drawable.ic_filter_list)
-        fab.isEnabled = true
-        fab.setOnClickListener {
-            // Start the FilterActivity
+    ): View {
+        binding = FragmentShowBinding.inflate(inflater, container, false)
+        val fragmentView = binding.root
+        activityBinding = (activity as MainActivity).getBinding()
+        showPagingList(fragmentView)
+        activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
+        activityBinding.fab.isEnabled = true
+        activityBinding.fab.setOnClickListener {
             filterRequestLauncher.launch(Intent())
         }
+
         return fragmentView
     }
 
     override fun onResume() {
         super.onResume()
-        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
-        fab2.visibility = View.GONE
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.visibility = View.VISIBLE
-        fab.setImageResource(R.drawable.ic_filter_list)
-        fab.isEnabled = true
-        fab.setOnClickListener {
-            // Start the FilterActivity
+        activityBinding.fab.visibility = View.VISIBLE
+        activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
+        activityBinding.fab.isEnabled = true
+        activityBinding.fab.setOnClickListener {
             filterRequestLauncher.launch(Intent())
         }
     }
@@ -181,47 +146,48 @@ class ShowFragment : BaseFragment() {
      * Filters the list of shows based on the preferences set in FilterActivity.
      */
     private fun filterShows() {
-        // Get the parameters from the filter activity and reload the adapter
         val sharedPreferences = requireActivity().getSharedPreferences(
             FilterActivity.FILTER_PREFERENCES,
             Context.MODE_PRIVATE
         )
 
         val calendar: android.icu.util.Calendar = android.icu.util.Calendar.getInstance()
-        calendar.time = date
+        calendar.time = Date()
         calendar.add(android.icu.util.Calendar.DAY_OF_YEAR, 500)
         val dateAfterYear = calendar.time
+        val dateFormat = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
 
         var sortPreference: String?
         if (sharedPreferences.getString(FilterActivity.FILTER_SORT, null)
                 .also { sortPreference = it } != null
-        ) filterParameter = when (sortPreference) {
-            "best_rated" ->
-                if (mListType == SectionsPagerAdapter.MOVIE) {
-                    BaseActivity.getRegionParameter(requireContext()) + "&sort_by=vote_average.desc"
-                } else {
-                    "sort_by=vote_average.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
-                }
-            "release_date" ->
-                if (mListType == SectionsPagerAdapter.MOVIE) {
-                    BaseActivity.getRegionParameter(requireContext()) + "&primary_release_date.lte=" + dateFormat.format(dateAfterYear) + "&sort_by=primary_release_date.desc"
-                } else {
-                    "sort_by=first_air_date.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
-                }
-            "alphabetic_order" ->
-                if (mListType == SectionsPagerAdapter.MOVIE) {
-                    "sort_by=title.desc"
-                } else {
-                    "sort_by=name.desc"
-                }
-            else ->
-                if (mListType == SectionsPagerAdapter.MOVIE) {
-                    "sort_by=popularity.desc&" + BaseActivity.getRegionParameter(requireContext())
-                } else {
-                    "sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
-                }
+        ) {
+            filterParameter = when (sortPreference) {
+                "best_rated" ->
+                    if (mListType == SectionsPagerAdapter.MOVIE) {
+                        BaseActivity.getRegionParameter(requireContext()) + "&sort_by=vote_average.desc"
+                    } else {
+                        "sort_by=vote_average.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
+                    }
+                "release_date" ->
+                    if (mListType == SectionsPagerAdapter.MOVIE) {
+                        BaseActivity.getRegionParameter(requireContext()) + "&primary_release_date.lte=" + dateFormat.format(dateAfterYear) + "&sort_by=primary_release_date.desc"
+                    } else {
+                        "sort_by=first_air_date.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
+                    }
+                "alphabetic_order" ->
+                    if (mListType == SectionsPagerAdapter.MOVIE) {
+                        "sort_by=title.desc"
+                    } else {
+                        "sort_by=name.desc"
+                    }
+                else ->
+                    if (mListType == SectionsPagerAdapter.MOVIE) {
+                        "sort_by=popularity.desc&" + BaseActivity.getRegionParameter(requireContext())
+                    } else {
+                        "sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext()) + "&with_watch_monetization_types=flatrate|free|ads|rent|buy"
+                    }
+            }
         }
-
 
         // Add the dates as constraints to the new API call.
         var datePreference: String?
@@ -232,9 +198,9 @@ class ShowFragment : BaseFragment() {
                 "in_theater" -> {
                     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                     val today = simpleDateFormat.format(Date())
-                    val calendar = GregorianCalendar.getInstance()
-                    calendar.time = Date()
-                    calendar.add(Calendar.DAY_OF_YEAR, -31)
+                    val calendar1 = GregorianCalendar.getInstance()
+                    calendar1.time = Date()
+                    calendar1.add(Calendar.DAY_OF_YEAR, -31)
                     val monthAgo = simpleDateFormat.format(calendar.time)
                     filterParameter += ("&primary_release_date.gte=" + monthAgo
                             + "&primary_release_date.lte=" + today)
@@ -307,280 +273,52 @@ class ShowFragment : BaseFragment() {
             filterParameter += "&without_keywords=$withoutKeywords"
         }
         filterChanged = true
-        fetchShowList(arrayOf(mListType, "1"))
+        loadInitialData()
     }
 
     /**
-     * Visualises the list of shows on the screen.
-     *
-     * @param fragmentView the view to attach the ListView to.
+     * Loads the initial data using Paging 3.
      */
-    override fun showShowList(fragmentView: View) {
-        super.showShowList(fragmentView)
-
-        // Dynamically load new pages when user scrolls down.
-        mShowView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0 && recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) { // Check for scroll down and if user is actively scrolling.
-                    visibleItemCount = mShowLinearLayoutManager.childCount
-                    totalItemCount = mShowLinearLayoutManager.itemCount
-                    pastVisibleItems = mShowLinearLayoutManager.findFirstVisibleItemPosition()
-                    if (loading) {
-                        if (totalItemCount > previousTotal) {
-                            loading = false
-                            previousTotal = totalItemCount
-                        }
-                    }
-                    var threshold = visibleThreshold
-                    if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
-                        // It is a grid view, so the threshold should be bigger.
-                        val gridSizePreference = preferences.getInt(GRID_SIZE_PREFERENCE, 3)
-                        threshold = gridSizePreference * gridSizePreference
-                    }
-
-                    // When no new pages are being loaded,
-                    // but the user is at the end of the list, load the new page.
-                    if (!loading && visibleItemCount + pastVisibleItems + threshold >= totalItemCount) {
-                        // Load the next page of the content in the background.
-                        if (mSearchView) {
-                            searchList(mListType, currentSearchPage, mSearchQuery)
-                        } else {
-                            // Check if the previous request returned any data
-                            if (mShowArrayList.size > 0) {
-                                currentPage++
-                                fetchShowList(arrayOf(mListType, currentPage.toString()))
-                            }
-                        }
-                        loading = true
-                    }
-                }
+    private fun loadInitialData() {
+        lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                ShowPagingSource(mListType, filterParameter, apiKey, requireContext())
+            }.flow.collectLatest { pagingData ->
+                pagingAdapter.submitData(pagingData)
             }
-        })
-    }
+        }
 
-    /**
-     * Creates the ShowBaseAdapter with the (still empty) ArrayList.
-     * Also starts an AsyncTask to load the items for the empty ArrayList.
-     *
-     * @param query the query to start the AsyncTask with (and that will be added to the
-     * API call as search query).
-     */
-    fun search(query: String?) {
-        // Create a separate adapter for the search results.
-        mSearchShowArrayList = ArrayList()
-        mSearchShowAdapter = ShowBaseAdapter(
-            mSearchShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, false), false
-        )
-
-        // Cancel old AsyncTask if it exists.
-        currentSearchPage = 1
-        mSearchQuery = query
-        searchList(mListType, 1, query)
-    }
-
-    /**
-     * Sets the search variable to false and sets original adapter in the RecyclerView.
-     */
-    override fun cancelSearch() {
-        mSearchView = false
-        mShowView.adapter = mShowAdapter
-        mShowAdapter.notifyDataSetChanged()
-    }
-
-    /**
-     * Uses Coroutine to retrieve the list with popular shows.
-     */
-    private fun fetchShowList(params: Array<String?>) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val listType: String?
-            val page: Int
-
-            try {
-                if (!isAdded) {
-                    return@launch
-                }
-                val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
-                progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
-
-                listType = params[0]
-                page = params[1]!!.toInt()
-
-                val response = withContext(Dispatchers.IO) {
-                    try {
-                        val api_key = ConfigHelper.getConfigValue(
-                            requireContext().applicationContext,
-                            "api_read_access_token"
-                        )
-                        val url = URL("https://api.themoviedb.org/3/discover/" + listType + "?" + filterParameter + "&page=" + page + BaseActivity.getLanguageParameter(context))
-                        Log.d("TAG4", url.toString())
-                        val client = OkHttpClient()
-                        val request = Request.Builder()
-                            .url(url)
-                            .get()
-                            .addHeader("Content-Type", "application/json;charset=utf-8")
-                            .addHeader("Authorization", "Bearer $api_key")
-                            .build()
-                        client.newCall(request).execute().use { response ->
-                            response.body?.string()
-                        }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                        null
-                    }
+        pagingAdapter.addLoadStateListener { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.showRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
                 }
 
-                if (isAdded) {
-                    handleResponse(response, page)
+                is LoadState.NotLoading -> {
+                    binding.showRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                if (isAdded) {
-                    val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
-                    progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
+
+                is LoadState.Error -> {
+                    binding.showRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.error_loading_data),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
 
-    private fun handleResponse(response: String?, page: Int) {
-        if (isAdded && !response.isNullOrEmpty()) {
-            // Keep the user at the same position in the list.
-            val position: Int = try {
-                mShowLinearLayoutManager.findFirstVisibleItemPosition()
-            } catch (npe: NullPointerException) {
-                0
-            }
-
-            // If the filter has changed, remove the old items
-            if (filterChanged) {
-                mShowArrayList.clear()
-                showIdSet.clear() // Clear the set of IDs
-
-                // Set the previous total back to zero.
-                previousTotal = 0
-
-                // Set filterChanged back to false.
-                filterChanged = false
-            }
-
-            // Convert the JSON data from the webpage into JSONObjects
-            try {
-                val reader = JSONObject(response)
-                val arrayData = reader.getJSONArray("results")
-                for (i in 0 until arrayData.length()) {
-                    val websiteData = arrayData.getJSONObject(i)
-                    val showId = websiteData.getInt("id")
-
-                    // Check if the ID is already in the set
-                    if (!showIdSet.contains(showId)) {
-                        if (websiteData.getString("overview").isEmpty()) {
-                            websiteData.put("overview", "Overview may not be available in the specified language.")
-                        }
-                        mShowArrayList.add(websiteData)
-                        showIdSet.add(showId) // Add the ID to the set
-                    }
-                }
-
-                // Reload the adapter (with the new page)
-                // and set the user to his old position.
-                mShowView.adapter = mShowAdapter
-                if (page != 1) {
-                    mShowView.scrollToPosition(position)
-                }
-                mShowListLoaded = true
-            } catch (je: JSONException) {
-                je.printStackTrace()
-            }
-        }
-        loading = false
-    }
-
-    /**
-     * Uses Coroutine to retrieve the list with shows that fulfill the search query
-     * (and are of the requested type which means that nothing will turn up if you
-     * search for a series in the movies tab (and there are no movies with the same name).
-     */
-    private fun searchList(
-        listType: String?,
-        page: Int,
-        query: String?,
-    ) {
-        if (query.isNullOrEmpty()) {
-            // If the query is empty, show the original show list
-            cancelSearch()
-            return
-        }
-
-        CoroutineScope(Dispatchers.Main).launch {
-            if (isAdded) {
-                val progressBar = Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
-                progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.VISIBLE }
-
-                val response = withContext(Dispatchers.IO) {
-                    var result: String? = null
-                    try {
-                        val url = URL(
-                            "https://api.themoviedb.org/3/search/" +
-                                    listType + "?query=" + query + "&page=" + page +
-                                    "&api_key=" + apiKey + BaseActivity.getLanguageParameter(context)
-                        )
-                        val urlConnection = url.openConnection()
-                        val bufferedReader = BufferedReader(InputStreamReader(urlConnection.getInputStream()))
-                        val stringBuilder = StringBuilder()
-                        var line: String?
-                        while (bufferedReader.readLine().also { line = it } != null) {
-                            stringBuilder.append(line).append("\n")
-                        }
-                        bufferedReader.close()
-                        result = stringBuilder.toString()
-                    } catch (ioe: IOException) {
-                        ioe.printStackTrace()
-                    }
-                    result
-                }
-
-                handleResponse(response)
-                progressBar.ifPresent { bar: ProgressBar -> bar.visibility = View.GONE }
-            }
-        }
-    }
-
-    private fun handleResponse(
-        response: String?
-    ) {
-        requireActivity().runOnUiThread {
-            val position: Int = try {
-                mShowLinearLayoutManager.findFirstVisibleItemPosition()
-            } catch (npe: NullPointerException) {
-                0
-            }
-
-            if (currentSearchPage <= 0) {
-                mSearchShowArrayList.clear()
-            }
-
-            if (!response.isNullOrEmpty()) {
-                try {
-                    val reader = JSONObject(response)
-                    val arrayData = reader.getJSONArray("results")
-                    for (i in 0 until arrayData.length()) {
-                        val websiteData = arrayData.getJSONObject(i)
-                        if (websiteData.getString("overview").isEmpty()) {
-                            websiteData.put("overview", "Overview may not available in the specified language.")
-                        }
-                        mSearchShowArrayList.add(websiteData)
-                    }
-
-                    mSearchView = true
-                    mShowView.adapter = mSearchShowAdapter
-                    mShowView.scrollToPosition(position)
-                } catch (je: JSONException) {
-                    je.printStackTrace()
-                }
-            }
-        }
+    override fun showPagingList(fragmentView: View) {
+        super.showPagingList(fragmentView)
+        mShowView.adapter = pagingAdapter
     }
 
     companion object {

@@ -54,6 +54,7 @@ import android.view.animation.AnimationUtils
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.TextView
@@ -73,13 +74,20 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.materialswitch.MaterialSwitch
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.slider.Slider
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.TimeFormat
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Picasso.LoadedFrom
 import com.squareup.picasso.Target
@@ -90,21 +98,29 @@ import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
-import com.wirelessalien.android.moviedb.fragment.ListBottomSheetDialogFragment
+import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragment
+import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.databaseUpdate
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.AddRating
 import com.wirelessalien.android.moviedb.tmdb.account.AddToFavourites
 import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlist
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteRating
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountState
+import com.wirelessalien.android.moviedb.trakt.TraktSync
 import com.wirelessalien.android.moviedb.view.NotifyingScrollView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -118,6 +134,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.abs
 
 /**
@@ -126,7 +143,9 @@ import kotlin.math.abs
  */
 class DetailActivity : BaseActivity() {
     private var apiKey: String? = null
+    private var tktaccessToken: String? = null
     private var apiReadAccessToken: String? = null
+    private var tktApiKey: String? = null
     private lateinit var castAdapter: CastBaseAdapter
     private lateinit var crewAdapter: CastBaseAdapter
     private lateinit var castArrayList: ArrayList<JSONObject>
@@ -152,6 +171,10 @@ class DetailActivity : BaseActivity() {
     private var isMovie = true
     private var context: Context = this
     private lateinit var jMovieObject: JSONObject
+    private lateinit var movieDataObject: JSONObject
+    private var imdbId: String? = null
+    private var traktCheckingObject: JSONObject? = null
+    private var traktMediaObject: JSONObject? = null
     private var genres: String? = ""
     private var startDate: Date? = null
     private var finishDate: Date? = null
@@ -201,8 +224,11 @@ class DetailActivity : BaseActivity() {
             layoutInflater
         )
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        preferences = PreferenceManager.getDefaultSharedPreferences(this)
         apiKey = getConfigValue(applicationContext, "api_key")
         apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
+        tktApiKey = getConfigValue(applicationContext, "client_id")
+        tktaccessToken = preferences.getString("trakt_access_token", null)
         setContentView(binding.root)
         setNavigationDrawer()
         supportActionBar!!.title = ""
@@ -218,6 +244,7 @@ class DetailActivity : BaseActivity() {
         movieId = 0
         context = this
         seenEpisode = 0
+        movieDataObject = JSONObject()
 
         // RecyclerView to display the cast of the show.
         binding.castRecyclerView.setHasFixedSize(true) // Improves performance (if size is static)
@@ -247,7 +274,6 @@ class DetailActivity : BaseActivity() {
         binding.categories.setAdapter(adapter)
 
         // Make the views invisible if the user collapsed the view.
-        preferences = PreferenceManager.getDefaultSharedPreferences(this)
         if (!preferences.getBoolean(CAST_VIEW_PREFERENCE, false)) {
             binding.castRecyclerView.visibility = View.GONE
             binding.castTitle.visibility = View.GONE
@@ -263,21 +289,84 @@ class DetailActivity : BaseActivity() {
             val similarMovieTitle = binding.similarMovieTitle
             similarMovieTitle.visibility = View.GONE
         }
+
+        when (preferences.getString("selected_episode_edit_button", "LOCAL")) {
+            "TMDB" -> {
+                binding.toggleButtonGroup.check(R.id.btnTmdb)
+                binding.btnAddToTraktWatchlist.visibility = View.GONE
+                binding.btnAddToTraktFavorite.visibility = View.GONE
+                binding.btnAddToTraktCollection.visibility = View.GONE
+                binding.btnAddToTraktHistory.visibility = View.GONE
+                binding.btnAddToTraktList.visibility = View.GONE
+                binding.btnAddTraktRating.visibility = View.GONE
+                binding.ratingBtnTmdb.visibility = View.VISIBLE
+                binding.favouriteButtonTmdb.visibility = View.VISIBLE
+                binding.addToListTmdb.visibility = View.VISIBLE
+                binding.watchListButtonTmdb.visibility = View.VISIBLE
+
+            }
+            "TRAKT" -> {
+                binding.toggleButtonGroup.check(R.id.btnTrakt)
+                binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
+                binding.btnAddToTraktFavorite.visibility = View.VISIBLE
+                binding.btnAddToTraktCollection.visibility = View.VISIBLE
+                binding.btnAddToTraktHistory.visibility = View.VISIBLE
+                binding.btnAddToTraktList.visibility = View.VISIBLE
+                binding.btnAddTraktRating.visibility = View.VISIBLE
+                binding.ratingBtnTmdb.visibility = View.GONE
+                binding.favouriteButtonTmdb.visibility = View.GONE
+                binding.addToListTmdb.visibility = View.GONE
+                binding.watchListButtonTmdb.visibility = View.GONE
+
+            }
+        }
+
+        binding.toggleButtonGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                when (checkedId) {
+                    R.id.btnTmdb -> {
+                        binding.btnAddToTraktWatchlist.visibility = View.GONE
+                        binding.btnAddToTraktFavorite.visibility = View.GONE
+                        binding.btnAddToTraktCollection.visibility = View.GONE
+                        binding.btnAddToTraktHistory.visibility = View.GONE
+                        binding.btnAddToTraktList.visibility = View.GONE
+                        binding.btnAddTraktRating.visibility = View.GONE
+                        binding.ratingBtnTmdb.visibility = View.VISIBLE
+                        binding.favouriteButtonTmdb.visibility = View.VISIBLE
+                        binding.addToListTmdb.visibility = View.VISIBLE
+                        binding.watchListButtonTmdb.visibility = View.VISIBLE
+                    }
+                    R.id.btnTrakt -> {
+                        binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
+                        binding.btnAddToTraktFavorite.visibility = View.VISIBLE
+                        binding.btnAddToTraktCollection.visibility = View.VISIBLE
+                        binding.btnAddToTraktHistory.visibility = View.VISIBLE
+                        binding.btnAddToTraktList.visibility = View.VISIBLE
+                        binding.btnAddTraktRating.visibility = View.VISIBLE
+                        binding.ratingBtnTmdb.visibility = View.GONE
+                        binding.favouriteButtonTmdb.visibility = View.GONE
+                        binding.addToListTmdb.visibility = View.GONE
+                        binding.watchListButtonTmdb.visibility = View.GONE
+                    }
+                }
+            }
+        }
+
         sessionId = preferences.getString("access_token", null)
         accountId = preferences.getString("account_id", null)
         if (sessionId == null || accountId == null) {
             // Disable the buttons
-            binding.watchListButton.isEnabled = false
-            binding.favouriteButton.isEnabled = false
-            binding.ratingBtn.isEnabled = false
-            binding.addToList.isEnabled = false
+            binding.watchListButtonTmdb.isEnabled = false
+            binding.favouriteButtonTmdb.isEnabled = false
+            binding.ratingBtnTmdb.isEnabled = false
+            binding.addToListTmdb.isEnabled = false
             //            binding.episodeRateBtn.setEnabled(false);
         } else {
             // Enable the buttons
-            binding.watchListButton.isEnabled = true
-            binding.favouriteButton.isEnabled = true
-            binding.ratingBtn.isEnabled = true
-            binding.addToList.isEnabled = true
+            binding.watchListButtonTmdb.isEnabled = true
+            binding.favouriteButtonTmdb.isEnabled = true
+            binding.ratingBtnTmdb.isEnabled = true
+            binding.addToListTmdb.isEnabled = true
             //            binding.episodeRateBtn.setEnabled(true);
         }
 
@@ -291,6 +380,7 @@ class DetailActivity : BaseActivity() {
             setMovieData(JSONObject(intent.getStringExtra("movieObject")))
             jMovieObject = JSONObject(intent.getStringExtra("movieObject"))
 
+            Log.d("genreIdTestDetailActivity", jMovieObject.getString("genre_ids"))
             // Set the adapter with the (still) empty ArrayList.
             castArrayList = ArrayList()
             castAdapter = CastBaseAdapter(castArrayList, applicationContext)
@@ -350,34 +440,34 @@ class DetailActivity : BaseActivity() {
 
                 withContext(Dispatchers.Main) {
                     if (isInWatchlist) {
-                        binding.watchListButton.icon = ContextCompat.getDrawable(
+                        binding.watchListButtonTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_bookmark
                         )
                     } else {
-                        binding.watchListButton.icon = ContextCompat.getDrawable(
+                        binding.watchListButtonTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_bookmark_border
                         )
                     }
                     if (isFavourite) {
-                        binding.favouriteButton.icon = ContextCompat.getDrawable(
+                        binding.favouriteButtonTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_favorite
                         )
                     } else {
-                        binding.favouriteButton.icon = ContextCompat.getDrawable(
+                        binding.favouriteButtonTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_favorite_border
                         )
                     }
                     if (ratingValue != 0.0) {
-                        binding.ratingBtn.icon = ContextCompat.getDrawable(
+                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_thumb_up
                         )
                     } else {
-                        binding.ratingBtn.icon = ContextCompat.getDrawable(
+                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_thumb_up_border
                         )
@@ -457,7 +547,6 @@ class DetailActivity : BaseActivity() {
                         if (mutedColor != Color.TRANSPARENT) {
                             binding.fab.backgroundTintList = colorStateList
 
-                            binding.firstDivider.dividerColor = mutedColor
                             binding.secondDivider.dividerColor = mutedColor
                             binding.thirdDivider.dividerColor = mutedColor
                             binding.forthDivider.dividerColor = mutedColor
@@ -470,6 +559,33 @@ class DetailActivity : BaseActivity() {
                             binding.fabSave.backgroundTintList = colorStateList
                             binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
                             binding.collapsingToolbar.setContentScrimColor(mutedColor)
+                            binding.showRating.backgroundTintList = colorStateList
+
+                            binding.ratingCard.setCardBackgroundColor(Color.TRANSPARENT)
+                            binding.toggleButtonGroup.addOnButtonCheckedListener { group, checkedId, isChecked ->
+                                if (isChecked) {
+                                    val checkedButton = group.findViewById<MaterialButton>(checkedId)
+                                    checkedButton.backgroundTintList = colorStateList
+                                } else {
+                                    val uncheckedButton = group.findViewById<MaterialButton>(checkedId)
+                                    uncheckedButton.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+                                }
+                            }
+
+                            binding.btnAddToTraktWatchlist.backgroundTintList = colorStateList
+                            binding.btnAddToTraktFavorite.backgroundTintList = colorStateList
+                            binding.btnAddToTraktCollection.backgroundTintList = colorStateList
+                            binding.btnAddToTraktHistory.backgroundTintList = colorStateList
+                            binding.btnAddToTraktList.backgroundTintList = colorStateList
+                            binding.btnAddTraktRating.backgroundTintList = colorStateList
+                            binding.ratingBtnTmdb.backgroundTintList = colorStateList
+                            binding.favouriteButtonTmdb.backgroundTintList = colorStateList
+                            binding.addToListTmdb.backgroundTintList = colorStateList
+                            binding.watchListButtonTmdb.backgroundTintList = colorStateList
+
+                            binding.homepage.chipBackgroundColor = colorStateList
+                            binding.imdbBtn.chipBackgroundColor = colorStateList
+                            binding.searchBtn.chipBackgroundColor = colorStateList
                         }
                         val animation = AnimationUtils.loadAnimation(
                             applicationContext, R.anim.slide_in_right
@@ -527,7 +643,7 @@ class DetailActivity : BaseActivity() {
             }
         }
 
-        binding.watchListButton.setOnClickListener {
+        binding.watchListButtonTmdb.setOnClickListener {
             lifecycleScope.launch {
                 if (accountId != null) {
                     val typeCheck = if (isMovie) "movie" else "tv"
@@ -541,44 +657,44 @@ class DetailActivity : BaseActivity() {
 
                     withContext(Dispatchers.Main) {
                         if (isInWatchlist) {
-                            binding.watchListButton.icon = ContextCompat.getDrawable(
+                            binding.watchListButtonTmdb.icon = ContextCompat.getDrawable(
                                 context,
                                 R.drawable.ic_bookmark_border
                             )
                             withContext(Dispatchers.IO) {
                                 AddToWatchlist(movieId, typeCheck, false, mActivity).addToWatchlist()
                             }
-                            binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            binding.watchListButtonTmdb.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         } else {
-                            binding.watchListButton.icon = ContextCompat.getDrawable(
+                            binding.watchListButtonTmdb.icon = ContextCompat.getDrawable(
                                 context,
                                 R.drawable.ic_bookmark
                             )
                             withContext(Dispatchers.IO) {
                                 AddToWatchlist(movieId, typeCheck, true, mActivity).addToWatchlist()
                             }
-                            binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            binding.watchListButtonTmdb.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
                 } else {
                     Toast.makeText(
                         applicationContext,
                         getString(R.string.failed_to_retrieve_account_id), Toast.LENGTH_SHORT).show()
-                    binding.watchListButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    binding.watchListButtonTmdb.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 }
             }
         }
 
-        binding.addToList.setOnClickListener {
+        binding.addToListTmdb.setOnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
-            val listBottomSheetDialogFragment =
-                ListBottomSheetDialogFragment(movieId, typeCheck, mActivity, true)
-            listBottomSheetDialogFragment.show(
+            val listBottomSheetFragment =
+                ListBottomSheetFragment(movieId, typeCheck, mActivity, true)
+            listBottomSheetFragment.show(
                 supportFragmentManager,
-                listBottomSheetDialogFragment.tag
+                listBottomSheetFragment.tag
             )
         }
-        binding.favouriteButton.setOnClickListener {
+        binding.favouriteButtonTmdb.setOnClickListener {
             lifecycleScope.launch {
                 if (accountId != null) {
                     val typeCheck = if (isMovie) "movie" else "tv"
@@ -592,34 +708,34 @@ class DetailActivity : BaseActivity() {
 
                     withContext(Dispatchers.Main) {
                         if (isInFavourites) {
-                            binding.favouriteButton.icon = ContextCompat.getDrawable(
+                            binding.favouriteButtonTmdb.icon = ContextCompat.getDrawable(
                                 context,
                                 R.drawable.ic_favorite_border
                             )
                             withContext(Dispatchers.IO) {
                                 AddToFavourites(movieId, typeCheck, false, mActivity).addToFavourites()
                             }
-                            binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            binding.favouriteButtonTmdb.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         } else {
-                            binding.favouriteButton.icon = ContextCompat.getDrawable(
+                            binding.favouriteButtonTmdb.icon = ContextCompat.getDrawable(
                                 context,
                                 R.drawable.ic_favorite
                             )
                             withContext(Dispatchers.IO) {
                                 AddToFavourites(movieId, typeCheck, true, mActivity).addToFavourites()
                             }
-                            binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            binding.favouriteButtonTmdb.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
                 } else {
                     Toast.makeText(applicationContext,
                         getString(R.string.account_id_fail_try_login_again), Toast.LENGTH_SHORT).show()
-                    binding.favouriteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    binding.favouriteButtonTmdb.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 }
             }
         }
 
-        binding.ratingBtn.setOnClickListener {
+        binding.ratingBtnTmdb.setOnClickListener {
             val dialog = BottomSheetDialog(mActivity)
             val inflater = layoutInflater
             val dialogView = inflater.inflate(R.layout.rating_dialog, null)
@@ -704,11 +820,22 @@ class DetailActivity : BaseActivity() {
             binding.episodeText.visibility = View.GONE
         }
         binding.allEpisodeBtn.setOnClickListener {
-            val iiintent = Intent(applicationContext, TVSeasonDetailsActivity::class.java)
-            iiintent.putExtra("tvShowId", movieId)
-            iiintent.putExtra("numSeasons", numSeason)
-            iiintent.putExtra("tvShowName", showName)
-            startActivity(iiintent)
+            binding.progressBar.visibility = View.VISIBLE
+
+            lifecycleScope.launch {
+                val traktId = fetchTraktId(movieId, imdbId)
+                binding.progressBar.visibility = View.GONE
+
+                if (traktId == null) {
+                    Toast.makeText(applicationContext, "Trakt ID not found", Toast.LENGTH_SHORT).show()
+                }
+                val iIntent = Intent(applicationContext, TVSeasonDetailsActivity::class.java)
+                iIntent.putExtra("tvShowId", movieId)
+                iIntent.putExtra("numSeasons", numSeason)
+                iIntent.putExtra("tvShowName", showName)
+                iIntent.putExtra("traktId", traktId)
+                startActivity(iIntent)
+            }
         }
         binding.moreImageBtn.setOnClickListener {
             val imageintent = Intent(applicationContext, MovieImageActivity::class.java)
@@ -822,8 +949,658 @@ class DetailActivity : BaseActivity() {
             }
         })
 
+        val isInCollection = TraktDatabaseHelper(context).use { db ->
+            db.isMovieInCollection(movieId)
+        }
+
+        val isInWatchlist = TraktDatabaseHelper(context).use { db ->
+            db.isMovieInWatchlist(movieId)
+        }
+
+        val isInFavorites = TraktDatabaseHelper(context).use { db ->
+            db.isMovieInFavorite(movieId)
+        }
+
+        val isInWatched = TraktDatabaseHelper(context).use { db ->
+            db.isMovieInWatched(movieId)
+        }
+
+        val isInRating = TraktDatabaseHelper(context).use { db ->
+            db.isMovieInRating(movieId)
+        }
+
+        val rating = TraktDatabaseHelper(context).use { db ->
+            db.getMovieRating(movieId)
+        }
+
+        binding.btnAddToTraktWatchlist.icon = if (isInWatchlist) {
+            ContextCompat.getDrawable(context, R.drawable.ic_bookmark)
+        } else {
+            ContextCompat.getDrawable(context, R.drawable.ic_bookmark_border)
+        }
+
+        binding.btnAddToTraktFavorite.icon = if (isInFavorites) {
+            ContextCompat.getDrawable(context, R.drawable.ic_favorite)
+        } else {
+            ContextCompat.getDrawable(context, R.drawable.ic_favorite_border)
+        }
+
+        binding.btnAddToTraktCollection.icon = if (isInCollection) {
+            ContextCompat.getDrawable(context, R.drawable.ic_collection)
+        } else {
+            ContextCompat.getDrawable(context, R.drawable.ic_collection_border)
+        }
+
+        binding.btnAddTraktRating.icon = if (isInRating) {
+            ContextCompat.getDrawable(context, R.drawable.ic_thumb_up)
+        } else {
+            ContextCompat.getDrawable(context, R.drawable.ic_thumb_up_border)
+        }
+
+        if (isInWatched) {
+            binding.btnAddToTraktHistory.icon = ContextCompat.getDrawable(context, R.drawable.ic_done_2)
+            binding.btnAddToTraktHistory.text = getString(R.string.history)
+        } else {
+            binding.btnAddToTraktHistory.icon = ContextCompat.getDrawable(context, R.drawable.ic_history)
+            binding.btnAddToTraktHistory.text = getString(R.string.history)
+
+        }
+
         binding.editIcon.setOnClickListener {
             editDetails()
+        }
+
+        binding.btnAddToTraktHistory.setOnClickListener {
+            showWatchOptionsDialog()
+        }
+
+        binding.btnAddToTraktCollection.setOnClickListener {
+            if (isInCollection) {
+                syncTraktData("sync/collection/remove", 0, "")
+            } else {
+                showCollectionDialog()
+            }
+        }
+
+        binding.btnAddToTraktWatchlist.setOnClickListener {
+            if (isInWatchlist) {
+                syncTraktData("sync/watchlist/remove", 0, "")
+            } else {
+                syncTraktData("sync/watchlist", 0, "")
+            }
+        }
+
+        binding.btnAddToTraktFavorite.setOnClickListener {
+            if (isInFavorites) {
+                syncTraktData("sync/favorites/remove", 0, "")
+            } else {
+                syncTraktData("sync/favorites", 0, "")
+            }
+        }
+
+        binding.btnAddTraktRating.setOnClickListener {
+            showRateOptionDialog()
+        }
+
+        binding.btnAddToTraktList.setOnClickListener {
+            val typeCheck = if (isMovie) "movie" else "tv"
+            val jsonBody = JSONObject().apply {
+                if (isMovie) {
+                    put("movies", JSONArray().apply { put(traktMediaObject) })
+                } else {
+                    put("shows", JSONArray().apply { put(traktMediaObject) })
+                }
+            }
+            val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(movieId, mActivity, true, typeCheck, jsonBody)
+            listBottomSheetFragmentTkt.show(supportFragmentManager, listBottomSheetFragmentTkt.tag)
+        }
+    }
+
+    private fun showCollectionDialog() {
+        val dialog = BottomSheetDialog(this)
+        val dialogView = layoutInflater.inflate(R.layout.collection_dialog_trakt, null)
+        dialog.setContentView(dialogView)
+        dialog.show()
+
+        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
+        val selectedDateEditText = dialogView.findViewById<TextInputEditText>(R.id.etSelectedDate)
+        val mediaTypeView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.mediaType)
+        val resolutionView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.resolution)
+        val hdrView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.hdr)
+        val audioView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.audio)
+        val audioChannelsView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.audioChannels)
+        val switch3D = dialogView.findViewById<MaterialSwitch>(R.id.switch3D)
+        val progressBar = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
+        val removeCollection = dialogView.findViewById<ImageView>(R.id.removeCollection)
+        val saveBtn = dialogView.findViewById<Button>(R.id.btnSave)
+
+        val mediaTypes = resources.getStringArray(R.array.media_types)
+        val resolutions = resources.getStringArray(R.array.resolutions)
+        val hdrTypes = resources.getStringArray(R.array.hdr_types)
+        val audioTypes = resources.getStringArray(R.array.audio_types)
+        val audioChannels = resources.getStringArray(R.array.audio_channels)
+
+        val mediaTypeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, mediaTypes)
+        val resolutionAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, resolutions)
+        val hdrAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, hdrTypes)
+        val audioAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, audioTypes)
+        val audioChannelsAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, audioChannels)
+
+        mediaTypeView.setAdapter(mediaTypeAdapter)
+        resolutionView.setAdapter(resolutionAdapter)
+        hdrView.setAdapter(hdrAdapter)
+        audioView.setAdapter(audioAdapter)
+        audioChannelsView.setAdapter(audioChannelsAdapter)
+
+        movieTitle.text = showTitle
+        progressBar.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val isInCollection = TraktDatabaseHelper(context).use { db ->
+                db.isMovieInCollection(movieId)
+            }
+            progressBar.visibility = View.GONE
+            val isCollectedTextView = dialogView.findViewById<TextView>(R.id.isCollected)
+            val collectedCard = dialogView.findViewById<MaterialCardView>(R.id.collectedCard)
+            if (isInCollection) {
+                isCollectedTextView.visibility = View.VISIBLE
+                collectedCard.visibility = View.VISIBLE
+
+            } else {
+                isCollectedTextView.visibility = View.GONE
+                collectedCard.visibility = View.GONE
+
+            }
+        }
+
+        removeCollection.setOnClickListener {
+            val dialogBuilder = MaterialAlertDialogBuilder(this)
+            dialogBuilder.setTitle("Remove from collection")
+            dialogBuilder.setMessage("Are you sure you want to remove this item from your collection?")
+            dialogBuilder.setPositiveButton("Yes") { _, _ ->
+                syncTraktData("sync/collection/remove", 0, "")
+                dialog.dismiss()
+            }
+            dialogBuilder.setNegativeButton("No") { _, _ -> }
+            dialogBuilder.show()
+        }
+
+        selectDateButton.setOnClickListener {
+            showDatePicker { selectedDate ->
+                selectedDateEditText.setText(selectedDate)
+            }
+        }
+
+        saveBtn.setOnClickListener {
+            val selectedDate = selectedDateEditText.text.toString()
+            val mediaType = mediaTypeView.text.toString()
+            val resolution = resolutionView.text.toString()
+            val hdr = hdrView.text.toString()
+            val audio = audioView.text.toString()
+            val audioChannel = audioChannelsView.text.toString()
+            val is3D = switch3D.isChecked
+
+            updateMediaObjectWithMetadata(selectedDate, mediaType, resolution, hdr, audio, audioChannel, is3D)
+            dialog.dismiss()
+        }
+    }
+
+    private fun updateMediaObjectWithMetadata(selectedDate: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean) {
+        selectedDate?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("collected_at", it) }
+        mediaType?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("media_type", it) }
+        resolution?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("resolution", it) }
+        hdr?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("hdr", it) }
+        audio?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("audio", it) }
+        audioChannels?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("audio_channels", it) }
+        traktMediaObject?.put("3d", is3D)
+        syncTraktData("sync/collection", 0, "")
+    }
+
+    private fun showWatchOptionsDialog() {
+        val dialog = BottomSheetDialog(this)
+        val dialogView = layoutInflater.inflate(R.layout.history_dialog_trakt, null)
+        dialog.setContentView(dialogView)
+        dialog.show()
+
+        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val watchingNowButton = dialogView.findViewById<Button>(R.id.btnWatchingNow)
+        val watchedAtReleaseButton = dialogView.findViewById<Button>(R.id.btnWatchedAtRelease)
+        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
+        val selectedDateEditText = dialogView.findViewById<TextInputEditText>(R.id.etSelectedDate)
+        val updateButton = dialogView.findViewById<Button>(R.id.btnSave)
+        val timesPlayed = dialogView.findViewById<TextView>(R.id.timePlayed)
+        val lastWatched = dialogView.findViewById<TextView>(R.id.lastWatched)
+        val historyCard = dialogView.findViewById<MaterialCardView>(R.id.historyCard)
+        val removeHistory = dialogView.findViewById<ImageView>(R.id.removeHistory)
+
+        val progressBar = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
+
+        movieTitle.text = showTitle
+
+        if (!isMovie) {
+            watchingNowButton.isEnabled = false
+        }
+
+        progressBar.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val watchedData = withContext(Dispatchers.IO) {
+                val dbHelper = TraktDatabaseHelper(context)
+                val timesPlayedD = dbHelper.getTimesPlayed(movieId)
+                val lastWatchedD = dbHelper.getLastWatched(movieId)
+                if (lastWatchedD != null) {
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                    val date = dateFormat.parse(lastWatchedD)
+                    val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(date)
+                    Pair(timesPlayedD, formattedDate)
+                } else {
+                    null
+                }
+            }
+
+            progressBar.visibility = View.GONE
+            if (watchedData != null) {
+                historyCard.visibility = View.VISIBLE
+                timesPlayed.text = watchedData.first.toString()
+                lastWatched.text = getString(R.string.last_watched, watchedData.second)
+            } else {
+                timesPlayed.visibility = View.GONE
+                lastWatched.visibility = View.GONE
+                historyCard.visibility = View.GONE
+            }
+        }
+
+        removeHistory.setOnClickListener {
+            val dialogBuilder = MaterialAlertDialogBuilder(this)
+            dialogBuilder.setTitle("Remove from history")
+            dialogBuilder.setMessage("Are you sure you want to remove this item from your history?")
+            dialogBuilder.setPositiveButton("Yes") { _, _ ->
+                syncTraktData("sync/history/remove", 0, "")
+                dialog.dismiss()
+            }
+            dialogBuilder.setNegativeButton("No") { _, _ -> }
+            dialogBuilder.show()
+        }
+
+        watchingNowButton.setOnClickListener {
+            traktCheckin("/checkin")
+            dialog.dismiss()
+        }
+
+        watchedAtReleaseButton.setOnClickListener {
+            updateMediaObjectWithWatchedAt("released")
+            dialog.dismiss()
+        }
+
+        selectDateButton.setOnClickListener {
+            updateButton.visibility = View.VISIBLE
+            showDatePicker { selectedDate ->
+                selectedDateEditText.setText(selectedDate)
+            }
+        }
+
+        updateButton.setOnClickListener {
+            val selectedDate = selectedDateEditText.text.toString()
+            if (selectedDate.isNotEmpty()) {
+                updateMediaObjectWithWatchedAt(selectedDate)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(this, "Please select a date and time first", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showRateOptionDialog() {
+        val dialog = BottomSheetDialog(this)
+        val dialogView = layoutInflater.inflate(R.layout.rating_dialog_trakt, null)
+        dialog.setContentView(dialogView)
+        dialog.show()
+
+        val ratingSlider = dialogView.findViewById<Slider>(R.id.ratingSlider)
+        val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
+        val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
+        val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
+        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val ratedAt = dialogView.findViewById<TextInputEditText>(R.id.ratedDate)
+        val progressIndicator = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
+        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
+
+        movieTitle.text = showTitle
+        progressIndicator.visibility = View.VISIBLE
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val rating = TraktDatabaseHelper(context).use { db ->
+                db.getMovieRating(movieId)
+            }
+
+            withContext(Dispatchers.Main) {
+                progressIndicator.visibility = View.GONE
+                ratingSlider.value = rating.toFloat()
+            }
+        }
+
+        val currentDateTime = android.icu.text.SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            Locale.getDefault()
+        ).format(Date())
+        ratedAt.setText(currentDateTime)
+
+        selectDateButton.setOnClickListener {
+            showDatePicker { selectedDate ->
+                ratedAt.setText(selectedDate)
+            }
+        }
+
+        submitButton.setOnClickListener {
+            val rating = ratingSlider.value.toInt()
+            val selectedDate = ratedAt.text.toString()
+            if (selectedDate.isNotEmpty()) {
+                updateMediaObjectWithRating(rating, selectedDate)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(this, "Please select a date and time first", Toast.LENGTH_SHORT).show()
+            }
+            dialog.dismiss()
+        }
+
+        deleteButton.setOnClickListener {
+            syncTraktData("sync/ratings/remove", 0, "")
+            dialog.dismiss()
+        }
+
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+    }
+
+    private fun showDatePicker(onDateSelected: (String) -> Unit) {
+        val builder = MaterialDatePicker.Builder.datePicker()
+        builder.setTitleText("Select a date")
+        val datePicker = builder.build()
+        datePicker.show(supportFragmentManager, datePicker.toString())
+        datePicker.addOnPositiveButtonClickListener { selection ->
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = selection
+
+            val timePicker = MaterialTimePicker.Builder()
+                .setTimeFormat(TimeFormat.CLOCK_24H)
+                .setHour(calendar.get(Calendar.HOUR_OF_DAY))
+                .setMinute(calendar.get(Calendar.MINUTE))
+                .setTitleText("Select a time")
+                .build()
+            timePicker.show(supportFragmentManager, timePicker.toString())
+
+            timePicker.addOnPositiveButtonClickListener {
+                calendar.set(Calendar.HOUR_OF_DAY, timePicker.hour)
+                calendar.set(Calendar.MINUTE, timePicker.minute)
+
+                val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                sdf.timeZone = TimeZone.getTimeZone("UTC")
+                val selectedDateTime = sdf.format(calendar.time)
+                onDateSelected(selectedDateTime)
+            }
+        }
+    }
+
+    private fun updateMediaObjectWithWatchedAt(watchedAt: String) {
+        traktMediaObject?.put("watched_at", watchedAt)
+        syncTraktData("sync/history", 0, watchedAt)
+    }
+
+    private fun updateMediaObjectWithRating(rating: Int, ratedAt: String) {
+        traktMediaObject?.put("rated_at", ratedAt)
+        traktMediaObject?.put("rating", rating)
+        syncTraktData("sync/ratings", rating, "")
+    }
+    private fun syncTraktData(endpoint: String, rating: Int, watchedAt: String) {
+        val traktApiService = TraktSync(tktaccessToken!!)
+        val jsonBody = JSONObject().apply {
+            if (isMovie) {
+                put("movies", JSONArray().apply { put(traktMediaObject) })
+            } else {
+                put("shows", JSONArray().apply { put(traktMediaObject) })
+            }
+        }
+        traktApiService.post(endpoint, jsonBody, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@DetailActivity, "Failed to sync $endpoint", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                runOnUiThread {
+                    val message = if (response.isSuccessful) {
+                        updateTraktButtonsUI(endpoint)
+                        lifecycleScope.launch {
+                            withContext(Dispatchers.IO) {
+                                handleDatabaseUpdate(endpoint, rating, watchedAt)
+                                addItemtoTmdb()
+                            }
+                        }
+                        "Success"
+                    } else {
+                        response.message
+                    }
+                    Toast.makeText(this@DetailActivity, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    private fun addItemtoTmdb() {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val tmdbId = movieDataObject.optInt("id")
+        val name = movieDataObject.optString("title")?: movieDataObject.optString("name")
+        val backdropPath = movieDataObject.optString("backdrop_path")
+        val posterPath = movieDataObject.optString("poster_path")
+        val summary = movieDataObject.optString("overview")
+        val voteAverage = movieDataObject.optDouble("vote_average")
+        val type = if (isMovie) "movie" else "show"
+        val releaseDate = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+        val genreIds = movieDataObject.optJSONArray("genres")?.let { genresArray ->
+            val ids = (0 until genresArray.length()).joinToString(",") { i ->
+                genresArray.getJSONObject(i).getInt("id").toString()
+            }
+            "[$ids]"
+        }
+        val seasonEpisodeCount = movieDataObject.optJSONArray("seasons")
+        val seasonsEpisodes = StringBuilder()
+
+        for (i in 0 until (seasonEpisodeCount?.length() ?: 0)) {
+            val season = seasonEpisodeCount?.getJSONObject(i)
+            val seasonNumber = season?.getInt("season_number")
+
+            // Skip specials (season_number == 0)
+            if (seasonNumber == 0) continue
+
+            val episodeCount = season?.getInt("episode_count")?: 0
+            val episodesList = (1..episodeCount).toList()
+
+            seasonsEpisodes.append("$seasonNumber{${episodesList.joinToString(",")}}")
+            if (i < (seasonEpisodeCount?.length() ?: 0) - 1) {
+                seasonsEpisodes.append(",")
+            }
+        }
+
+        dbHelper.addItem(
+            tmdbId,
+            name,
+            backdropPath,
+            posterPath,
+            summary,
+            voteAverage,
+            releaseDate,
+            genreIds?: "",
+            seasonsEpisodes.toString(),
+            type
+        )
+    }
+
+    private fun updateTraktButtonsUI(endpoint: String) {
+        when (endpoint) {
+            "sync/watchlist" -> {
+                binding.btnAddToTraktWatchlist.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_bookmark
+                )
+            }
+            "sync/watchlist/remove" -> {
+                binding.btnAddToTraktWatchlist.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_bookmark_border
+                )
+            }
+            "sync/favorites" -> {
+                binding.btnAddToTraktFavorite.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_favorite
+                )
+            }
+            "sync/favorites/remove" -> {
+                binding.btnAddToTraktFavorite.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_favorite_border
+                )
+            }
+            "sync/collection" -> {
+                binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_collection
+                )
+            }
+            "sync/collection/remove" -> {
+                binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_collection_border
+                )
+            }
+            "sync/ratings" -> {
+                binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_thumb_up
+                )
+            }
+            "sync/ratings/remove" -> {
+                binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_thumb_up_border
+                )
+            }
+            "sync/history" -> {
+                binding.btnAddToTraktHistory.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_done_2
+                )
+                binding.btnAddToTraktHistory.text = getString(R.string.history)
+            }
+            "sync/history/remove" -> {
+                binding.btnAddToTraktHistory.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_history
+                )
+                binding.btnAddToTraktHistory.text = getString(R.string.history)
+            }
+        }
+    }
+
+    private fun handleDatabaseUpdate(endpoint: String, rating: Int, watchedAt: String) {
+        val dbHelper = TraktDatabaseHelper(context)
+        val movieTitle = if (isMovie) movieDataObject.optString("title") else movieDataObject.optString("name")
+        val tmdbId = movieDataObject.optInt("id")
+        val type = if (isMovie) "movie" else "show"
+        val watchedAtN = if (watchedAt == "released") {
+            if (isMovie) {
+                movieDataObject.optString("release_date")
+            } else {
+                movieDataObject.optString("first_air_date")
+            }
+        } else {
+            watchedAt
+        }
+
+        when (endpoint) {
+            "sync/watchlist" -> dbHelper.addMovieToWatchlist(movieTitle, type, tmdbId)
+            "sync/watchlist/remove" -> dbHelper.removeMovieFromWatchlist(tmdbId)
+            "sync/favorites" -> dbHelper.addMovieToFavorites(movieTitle, type, tmdbId)
+            "sync/favorites/remove" -> dbHelper.removeMovieFromFavorites(tmdbId)
+            "sync/collection" -> dbHelper.addMovieToCollection(movieTitle, type, tmdbId)
+            "sync/collection/remove" -> dbHelper.removeFromCollection(tmdbId)
+            "sync/history" -> {
+                dbHelper.addMovieToHistory(movieTitle, type, tmdbId)
+                dbHelper.addMovieToWatched(movieTitle, type, tmdbId, watchedAtN)
+            }
+            "sync/history/remove" -> {
+                dbHelper.removeMovieFromHistory(tmdbId)
+                dbHelper.removeMovieFromWatched(tmdbId)
+            }
+            "sync/ratings" -> dbHelper.addMovieRating(movieTitle, type, tmdbId, rating)
+            "sync/ratings/remove" -> dbHelper.removeMovieRating(tmdbId)
+        }
+    }
+    private fun traktCheckin(endpoint: String) {
+        val traktApiService = TraktSync(tktaccessToken!!)
+        val jsonBody = traktCheckingObject ?: JSONObject()
+        traktApiService.post(endpoint, jsonBody, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@DetailActivity, "Failed to sync $endpoint", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                runOnUiThread {
+                    val message = when (response.code) {
+                        201 -> "Success"
+                        204 -> "Deleted"
+                        else -> response.message
+                    }
+                    Toast.makeText(this@DetailActivity, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    private suspend fun fetchTraktId(tmdbId: Int, imdbId: String?): Int? {
+        return withContext(Dispatchers.IO) {
+            val client = OkHttpClient()
+
+            var url = "https://api.trakt.tv/search/tmdb/$tmdbId?type=show"
+            var request = Request.Builder()
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("trakt-api-version", "2")
+                .addHeader("trakt-api-key", tktApiKey ?: "")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val jsonArray = JSONArray(response.body!!.string())
+                    if (jsonArray.length() > 0) {
+                        return@withContext jsonArray.getJSONObject(0).getJSONObject("show").getJSONObject("ids").getInt("trakt")
+                    }
+                }
+            }
+
+            if (!imdbId.isNullOrEmpty()) {
+                url = "https://api.trakt.tv/search/imdb/$imdbId?type=show"
+                request = Request.Builder()
+                    .url(url)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("trakt-api-version", "2")
+                    .addHeader("trakt-api-key", tktApiKey ?: "")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val jsonArray = JSONArray(response.body!!.string())
+                        if (jsonArray.length() > 0) {
+                            return@withContext jsonArray.getJSONObject(0).getJSONObject("show").getJSONObject("ids").getInt("trakt")
+                        }
+                    }
+                }
+            }
+
+            return@withContext null
         }
     }
 
@@ -1225,11 +2002,7 @@ class DetailActivity : BaseActivity() {
                 // the new text with genres will be compared to the old one.
 
                 // Remove the [ and ] from the String
-                val genreIds = movieObject.getString("genre_ids")
-                    .substring(
-                        1, movieObject.getString("genre_ids")
-                            .length - 1
-                    )
+                val genreIds = movieObject.getString("genre_ids").substring(1, movieObject.getString("genre_ids").length - 1)
 
                 // Split the String with the ids and set them into an array.
                 val genreArray =
@@ -1910,8 +2683,8 @@ class DetailActivity : BaseActivity() {
                     .addHeader("Authorization", "Bearer $apiReadAccessToken")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    if (res.body() != null) {
-                        response = res.body()!!.string()
+                    if (res.body != null) {
+                        response = res.body!!.string()
                     }
                 }
             } catch (e: IOException) {
@@ -1991,8 +2764,8 @@ class DetailActivity : BaseActivity() {
             .build()
         try {
             client.newCall(request).execute().use { res ->
-                if (res.body() != null) {
-                    response = res.body()!!.string()
+                if (res.body != null) {
+                    response = res.body!!.string()
                 }
             }
         } catch (e: IOException) {
@@ -2033,7 +2806,7 @@ class DetailActivity : BaseActivity() {
             .addHeader("Authorization", "Bearer $apiReadAccessToken")
             .build()
         client.newCall(request).execute().use { response ->
-            val responseBody = response.body()!!.string()
+            val responseBody = response.body!!.string()
             return JSONObject(responseBody)
         }
     }
@@ -2108,7 +2881,7 @@ class DetailActivity : BaseActivity() {
     private fun showExternalIds(movieData: JSONObject) {
         try {
             val externalIdsObject = movieData.getJSONObject("external_ids")
-            val imdbId = externalIdsObject.getString("imdb_id")
+            imdbId = externalIdsObject.getString("imdb_id")
             if (imdbId == "null") {
                 binding.imdbBtn.isEnabled = false
             } else {
@@ -2190,6 +2963,12 @@ class DetailActivity : BaseActivity() {
                 withContext(Dispatchers.Main) {
                     onPostExecute(movieData)
                 }
+
+                withContext(Dispatchers.IO) {
+                    movieDataObject = movieData
+                    traktMediaObject = createTraktMediaObject(movieData)
+                    traktCheckingObject = createTraktCheckinObject(movieData)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -2232,6 +3011,66 @@ class DetailActivity : BaseActivity() {
         if (certification.isNotEmpty()) {
             binding.certification.text = certification
         } else binding.certification.setText(R.string.not_rated)
+    }
+
+    private fun createTraktMediaObject(tmdbMovieData: JSONObject): JSONObject? {
+        return try {
+            val tmdbId = tmdbMovieData.getInt("id")
+            val imdbId = tmdbMovieData.optString("imdb_id")
+            val title = tmdbMovieData.getString(if (isMovie) "title" else "name")
+            val year = tmdbMovieData.getString(if (isMovie) "release_date" else "first_air_date").substring(0, 4).toInt()
+
+            val ids = JSONObject().apply {
+                put("tmdb", tmdbId)
+                put("imdb", imdbId)
+            }
+
+            val traktMediaObject = JSONObject().apply {
+                put("title", title)
+                put("year", year)
+                put("ids", ids)
+            }
+
+            traktMediaObject
+
+        } catch (e: JSONException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun createTraktCheckinObject(tmdbMovieData: JSONObject): JSONObject? {
+        return try {
+            val tmdbId = tmdbMovieData.getInt("id")
+            val imdbId = tmdbMovieData.optString("imdb_id")
+            val title = tmdbMovieData.getString(if (isMovie) "title" else "name")
+            val year = tmdbMovieData.getString(if (isMovie) "release_date" else "first_air_date").substring(0, 4).toInt()
+
+            val ids = JSONObject().apply {
+                put("trakt", 0)
+                put("slug", "")
+                put("tmdb", tmdbId)
+                put("imdb", imdbId)
+            }
+
+            val traktCheckinObject = JSONObject().apply {
+                put("title", title)
+                put("year", year)
+                put("ids", ids)
+            }
+
+            JSONObject().apply {
+                if (isMovie) {
+                    put("movie", traktCheckinObject)
+                } else {
+                    put("show", traktCheckinObject)
+                }
+            }
+
+        } catch (e: JSONException) {
+            e.printStackTrace()
+            null
+        }
     }
 
     companion object {

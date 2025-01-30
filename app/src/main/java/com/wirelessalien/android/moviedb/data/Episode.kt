@@ -20,6 +20,7 @@
 package com.wirelessalien.android.moviedb.data
 
 class Episode(
+    var id: Int,
     var airDate: String,
     var episodeNumber: Int,
     var name: String,

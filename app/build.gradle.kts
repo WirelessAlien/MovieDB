@@ -96,7 +96,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.13.0-alpha08")
+    implementation("com.google.android.material:material:1.13.0-alpha10")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.code.gson:gson:2.10.1")
@@ -116,6 +116,9 @@ dependencies {
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.picasso:picasso:2.8")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    //facebook shimmer
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
 
     //for Google Sign In
     "fullImplementation"("com.google.android.gms:play-services-auth:21.2.0")

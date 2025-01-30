@@ -18,7 +18,6 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -29,14 +28,39 @@
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <com.google.android.material.search.SearchBar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"
-            app:layout_scrollFlags="noScroll">
-        </com.google.android.material.appbar.MaterialToolbar>
+            android:hint="@string/search_people">
+        </com.google.android.material.search.SearchBar>
     </com.google.android.material.appbar.AppBarLayout>
+
+    <com.google.android.material.search.SearchView
+        android:id="@+id/search_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_anchor="@id/toolbar"
+        android:hint="@string/search_people">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/search_results_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:scrollbars="none" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/search_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:waveAmplitude="10dp"
+            app:wavelength="32dp"
+            app:waveSpeed="0dp"
+            android:indeterminate="true"
+            android:visibility="gone" />
+    </com.google.android.material.search.SearchView>
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container"
@@ -50,7 +74,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ic_filter_list"
         android:layout_gravity="bottom|end"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
         android:layout_margin="16dp"
         android:contentDescription="@string/filter_people_list" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

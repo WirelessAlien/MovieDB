@@ -31,7 +31,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        app:cardCornerRadius="5dp">
+        app:cardCornerRadius="10dp">
 
         <LinearLayout
             android:layout_width="wrap_content"

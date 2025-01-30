@@ -27,6 +27,7 @@
     tools:context="com.wirelessalien.android.moviedb.activity.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true">
@@ -35,11 +36,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"
-            app:layout_scrollFlags="noScroll">
-
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:navigationIcon="@drawable/ic_action_name">
         </com.google.android.material.appbar.MaterialToolbar>
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <com.google.android.material.search.SearchView
@@ -47,8 +46,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:hapticFeedbackEnabled="true"
-        android:hint="@string/search_movie_show"
-        app:iconifiedByDefault="true">
+        android:hint="@string/search_movie_show">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/search_results_recycler_view"
@@ -57,16 +55,22 @@
             android:padding="2dip"
             android:scrollbars="none" />
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/search_progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
-            app:waveAmplitude="10dp"
-            app:wavelength="32dp"
-            app:waveSpeed="0dp"
-            android:indeterminate="true"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
     </com.google.android.material.search.SearchView>
 
     <androidx.fragment.app.FragmentContainerView
@@ -83,7 +87,7 @@
         style="?attr/floatingActionButtonSmallStyle"
         android:layout_gravity="bottom|end"
         android:visibility="gone"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
         android:layout_margin="16dp"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -92,7 +96,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ic_filter_list"
         android:layout_gravity="bottom|end"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
         android:layout_margin="16dp"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

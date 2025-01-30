@@ -23,7 +23,7 @@
     android:id="@+id/movie_image"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="10dip"
+    android:padding="10dp"
     android:scaleType="centerCrop"
     android:contentDescription="Movie Image">
 </ImageView>

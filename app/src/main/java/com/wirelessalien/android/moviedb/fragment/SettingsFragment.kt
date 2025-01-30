@@ -25,6 +25,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.Uri
 import android.os.Bundle
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -37,50 +38,59 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
         val aboutPreference = findPreference<Preference>("about_key")
-        if (aboutPreference != null) {
-            aboutPreference.onPreferenceClickListener =
-                Preference.OnPreferenceClickListener {
-                    AboutFragment().show(parentFragmentManager, "about_dialog")
-                    true
-                }
+        aboutPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            AboutFragment().show(parentFragmentManager, "about_dialog")
+            true
         }
 
         val privacyKey = findPreference<Preference>("privacy_key")
-        if (privacyKey != null) {
-            privacyKey.onPreferenceClickListener =
-                Preference.OnPreferenceClickListener {
-                    val url = "https://showcase-app.blogspot.com/2024/11/privacy-policy.html"
-                    try {
-                        val builder = CustomTabsIntent.Builder()
-                        val customTabsIntent = builder.build()
-                        customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
-                    } catch (e: Exception) {
-                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        startActivity(browserIntent)
-                    }
-                    true
-                }
+        privacyKey?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val url = "https://showcase-app.blogspot.com/2024/11/privacy-policy.html"
+            try {
+                val builder = CustomTabsIntent.Builder()
+                val customTabsIntent = builder.build()
+                customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
+            } catch (e: Exception) {
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(browserIntent)
+            }
+            true
         }
 
-        val searchEngineKey = findPreference<Preference>("key_search_engine") as EditTextPreference
-        searchEngineKey.setOnBindEditTextListener {
+        val searchEngineKey = findPreference<EditTextPreference>("key_search_engine")
+        searchEngineKey?.setOnBindEditTextListener {
             it.hint = "Example: https://www.google.com/search?q="
         }
 
-        val apiLanguageKey = findPreference<Preference>("key_api_language") as EditTextPreference
-        apiLanguageKey.setOnBindEditTextListener {
+        val apiLanguageKey = findPreference<EditTextPreference>("key_api_language")
+        apiLanguageKey?.setOnBindEditTextListener {
             it.hint = "Example: en-US or en"
         }
 
-        val apiRegionKey = findPreference<Preference>("key_api_region") as EditTextPreference
-        apiRegionKey.setOnBindEditTextListener {
+        val apiRegionKey = findPreference<EditTextPreference>("key_api_region")
+        apiRegionKey?.setOnBindEditTextListener {
             it.hint = "Example: US (the iso3166-1 tag)"
         }
 
-        val apiTimezoneKey = findPreference<Preference>("key_api_timezone") as EditTextPreference
-        apiTimezoneKey.setOnBindEditTextListener {
+        val apiTimezoneKey = findPreference<EditTextPreference>("key_api_timezone")
+        apiTimezoneKey?.setOnBindEditTextListener {
             it.hint = "Example: America/New_York"
         }
+
+        val hideAccountTab = findPreference<CheckBoxPreference>("key_hide_account_tab")
+        val hideAccountTktTab = findPreference<CheckBoxPreference>("key_hide_account_tkt_tab")
+
+        val preferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
+            if (preference.key == "key_hide_account_tab") {
+                hideAccountTktTab?.isChecked = !(newValue as Boolean)
+            } else if (preference.key == "key_hide_account_tkt_tab") {
+                hideAccountTab?.isChecked = !(newValue as Boolean)
+            }
+            true
+        }
+
+        hideAccountTab?.onPreferenceChangeListener = preferenceChangeListener
+        hideAccountTktTab?.onPreferenceChangeListener = preferenceChangeListener
     }
 
     override fun onResume() {

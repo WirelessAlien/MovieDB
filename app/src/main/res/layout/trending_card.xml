@@ -95,9 +95,7 @@
                         android:textStyle="bold" />
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
-
         </RelativeLayout>
     </com.google.android.material.card.MaterialCardView>
-
 </com.google.android.material.carousel.MaskableFrameLayout>
 

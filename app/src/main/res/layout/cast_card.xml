@@ -22,10 +22,10 @@
 
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/cardView"
-    android:layout_width="100dip"
-    android:layout_height="178dip"
-    android:layout_margin="16dip"
-    app:cardCornerRadius="5dp"
+    android:layout_width="100dp"
+    android:layout_height="178dp"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="10dp"
     style="@style/Widget.Material3.CardView.Outlined"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -36,13 +36,13 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/castCard"
-            android:layout_width="100dip"
-            android:layout_height="100dip"
-            app:cardCornerRadius="5dip">
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:cardCornerRadius="10dp">
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/castImage"
-                android:layout_width="100dip"
-                android:layout_height="100dip"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
                 android:layout_centerHorizontal="true"
                 android:scaleType="centerCrop" />
         </com.google.android.material.card.MaterialCardView>
@@ -55,7 +55,7 @@
             android:layout_centerHorizontal="true"
             android:textAlignment="center"
             android:textStyle="bold"
-            android:padding="2dip"
+            android:padding="2dp"
             android:maxLines="2"
             android:ellipsize="end" />
 
@@ -66,7 +66,7 @@
             android:layout_below="@id/characterName"
             android:layout_centerHorizontal="true"
             android:textAlignment="center"
-            android:padding="2dip"
+            android:padding="2dp"
             android:maxLines="2"
             android:ellipsize="end" />
     </RelativeLayout>

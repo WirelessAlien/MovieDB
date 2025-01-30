@@ -29,9 +29,9 @@
         android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="5dip"
+        app:cardCornerRadius="5dp"
         style="@style/Widget.Material3.CardView.Elevated"
-        android:layout_margin="5dip">
+        android:layout_margin="5dp">
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -41,13 +41,15 @@
                 android:id="@+id/cardView2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="5dip"
+                app:cardCornerRadius="5dp"
                 style="@style/Widget.Material3.CardView.Elevated">
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/imagePercentLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintDimensionRatio="H,1:1.4">
+
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -77,17 +79,32 @@
                         android:visibility="gone"
                         android:padding="8dp"/>
 
+                    <TextView
+                        android:id="@+id/seasonEpisodeText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Your Text Here"
+                        android:textColor="@android:color/white"
+                        android:background="#99000000"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:layout_gravity="top|center_horizontal"
+                        android:padding="8dp"/>
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/deleteButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|end"
+                        app:cornerRadius="10dp"
                         app:icon="@drawable/ic_close"
                         android:visibility="gone"
                         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
                 </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
+
             <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
@@ -103,7 +120,6 @@
                 android:singleLine="true"
                 android:textStyle="bold" />
 
-
             <TextView
                 android:id="@+id/date"
                 android:layout_width="wrap_content"
@@ -113,7 +129,6 @@
                 android:paddingStart="4dip"
                 android:paddingEnd="4dip"
                 android:layout_centerVertical="true"
-
                 android:text="02/04/2004"
                 android:textSize="12sp"
                 android:paddingBottom="4dip"
@@ -121,7 +136,5 @@
                 android:textStyle="bold"
                 android:alpha="0.8"/>
         </RelativeLayout>
-
     </com.google.android.material.card.MaterialCardView>
-
 </LinearLayout>

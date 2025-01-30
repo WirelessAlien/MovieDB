@@ -47,11 +47,12 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         val seasonNumber = intent.getIntExtra("seasonNumber", 1)
         val numSeasons = intent.getIntExtra("numSeasons", 1)
         val showName = intent.getStringExtra("tvShowName")
+        val traktId = intent.getIntExtra("traktId", -1)
         val viewPager = findViewById<ViewPager2>(R.id.view_pager)
         val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun createFragment(position: Int): Fragment {
-                return newInstance(tvShowId, position, showName)
+                return newInstance(tvShowId, position, showName, traktId)
             }
 
             override fun getItemCount(): Int {

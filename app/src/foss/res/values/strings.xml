@@ -257,7 +257,7 @@
     <string name="rating_db">Rating (DB): </string>
     <string name="watched_on_not_set">Watched On: Not set</string>
     <string name="account_data_tab_title">Account</string>
-    <string name="hide_the_account_tab">Hide the \'Account\' tab</string>
+    <string name="hide_the_account_tab">Hide the \'Account (TMDB)\' tab</string>
     <string name="loading_in_progress">Please wait, loading in progress…</string>
     <string name="save_to_database">Save to database</string>
     <string name="save">Save</string>

@@ -25,36 +25,55 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.inputmethod.EditorInfo
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.OnBackPressedDispatcher
-import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
-import com.google.android.material.appbar.MaterialToolbar
+import androidx.recyclerview.widget.GridLayoutManager
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.fragment.PersonFragment
+import com.wirelessalien.android.moviedb.adapter.PersonBaseAdapter
+import com.wirelessalien.android.moviedb.databinding.ActivityPersonBinding
+import com.wirelessalien.android.moviedb.fragment.BaseFragment
 import com.wirelessalien.android.moviedb.fragment.PersonFragment.Companion.newInstance
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
+import com.wirelessalien.android.moviedb.pagingSource.SearchPersonPagingSource
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class PersonActivity : BaseActivity() , AdapterDataChangedListener {
     private var mSearchAction: MenuItem? = null
-    private var isSearchOpened = false
+    private lateinit var binding: ActivityPersonBinding
     private lateinit var preferences: SharedPreferences
     private val REQUEST_CODE_ASK_PERMISSIONS_EXPORT = 123
     private val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
     private var exportDirectoryUri: String? = null
-
+    private lateinit var mSearchPersonAdapter: PersonBaseAdapter
+    private lateinit var mShowGridLayoutManager: GridLayoutManager
+    private var apiReadAccessToken: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_person)
+        binding = ActivityPersonBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.title = getString(R.string.title_people)
+        apiReadAccessToken = ConfigHelper.getConfigValue(applicationContext, "api_read_access_token")
+        setSupportActionBar(binding.toolbar)
+        binding.toolbar.title = getString(R.string.title_people)
 
         exportDirectoryUri = preferences.getString("db_export_directory", null)
 
@@ -64,145 +83,160 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
             transaction.add(R.id.fragment_container, personFragment, "PersonFragment")
             transaction.commit()
         }
-        OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
+
+        mSearchPersonAdapter = PersonBaseAdapter()
+
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3))
+        binding.searchResultsRecyclerView.layoutManager = mShowGridView
+        mShowGridLayoutManager = mShowGridView
+
+        binding.searchResultsRecyclerView.adapter = mSearchPersonAdapter
+
+        setupSearchView()
+        addMenuProvider()
+
+        val callback = object : OnBackPressedCallback(false) {
             override fun handleOnBackPressed() {
-                if (isSearchOpened) {
-                    handleMenuSearch()
-                } else {
-                    finish()
-                }
+                binding.searchView.hide()
             }
-        })
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        val inflater = menuInflater
-        inflater.inflate(R.menu.options_menu, menu)
-        inflater.inflate(R.menu.database_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-
-        // Search action
-        if (id == R.id.action_search) {
-            handleMenuSearch()
-            return true
         }
 
-        if (id == R.id.action_export)
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                        REQUEST_CODE_ASK_PERMISSIONS_EXPORT
-                    )
-                } else {
-                    //call export function from PeopleDatabaseHelper
-                    val peopleDatabaseHelper = PeopleDatabaseHelper(this)
-                    peopleDatabaseHelper.exportDatabase(this, exportDirectoryUri)
-                }
-            } else {
-                //call export function from PeopleDatabaseHelper
-                val peopleDatabaseHelper = PeopleDatabaseHelper(this)
-                peopleDatabaseHelper.exportDatabase(this, exportDirectoryUri)
+        onBackPressedDispatcher.addCallback(this, callback)
+
+        binding.searchView.addTransitionListener { _, _, newState ->
+            if (newState === com.google.android.material.search.SearchView.TransitionState.SHOWING) {
+                callback.isEnabled = true
+            } else if (newState === com.google.android.material.search.SearchView.TransitionState.HIDING) {
+                callback.isEnabled = false
             }
-
-        if (id == R.id.action_import)
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                        REQUEST_CODE_ASK_PERMISSIONS_IMPORT
-                    )
-                } else {
-                    val intent = Intent(this, ImportActivity::class.java)
-                    startActivity(intent)
-
-                }
-            } else {
-                val intent = Intent(this, ImportActivity::class.java)
-                startActivity(intent)
-
-            }
-
-        return super.onOptionsItemSelected(item)
+        }
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        mSearchAction = menu.findItem(R.id.action_search)
-        return super.onPrepareOptionsMenu(menu)
-    }
+    private fun setupSearchView() {
+        val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, false)
 
-    /**
-     * Handles input from the search bar and icon.
-     */
-    private fun handleMenuSearch() {
-        val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, true)
-        val searchView = mSearchAction!!.actionView as SearchView?
-        if (isSearchOpened) {
-            if (searchView != null && searchView.query.toString() == "") {
-                searchView.isIconified = true
-                mSearchAction!!.collapseActionView()
-                isSearchOpened = false
-                cancelSearchInFragment()
-            }
-        } else {
-            mSearchAction!!.expandActionView()
-            isSearchOpened = true
-            searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String): Boolean {
-                    searchInFragment(query)
-                    return true
-                }
-
-                override fun onQueryTextChange(newText: String): Boolean {
-                    if (liveSearch) {
-                        searchInFragment(newText)
+        if (liveSearch) {
+            binding.searchView.editText.addTextChangedListener(object : TextWatcher {
+                private val handler = Handler(Looper.getMainLooper())
+                private var workRunnable: Runnable? = null
+                override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                    if (workRunnable != null) {
+                        handler.removeCallbacks(workRunnable!!)
                     }
-                    return true
+                    workRunnable = Runnable {
+                        val query = s.toString()
+                        personSearch(query)
+                    }
+                    handler.postDelayed(workRunnable!!, 500)
                 }
+
+                override fun afterTextChanged(s: Editable) {}
             })
+        } else {
+            binding.searchView.editText.setOnEditorActionListener { v, actionId, event ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    val query = v.text.toString()
+                    personSearch(query)
+                    true
+                } else {
+                    false
+                }
+            }
         }
     }
 
-    private fun searchInFragment(query: String) {
-        val fragmentManager = supportFragmentManager
-        val fragmentList = fragmentManager.fragments
-        for (fragment in fragmentList) {
-            val personFragment = fragment as PersonFragment
-            personFragment.search(query)
+    fun personSearch(query: String?) {
+        if (query.isNullOrEmpty()) {
+//            cancelSearchPaging()
+            return
+        }
+
+        binding.searchResultsRecyclerView.adapter = mSearchPersonAdapter
+
+        lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                SearchPersonPagingSource(apiReadAccessToken?: "", query, this@PersonActivity)
+            }.flow.collectLatest { pagingData ->
+                mSearchPersonAdapter.submitData(pagingData)
+            }
         }
     }
 
-    /**
-     * Cancel the searching process in the fragment.
-     */
-    private fun cancelSearchInFragment() {
-        val fragmentManager = supportFragmentManager
-        val fragmentList = fragmentManager.fragments
-        for (fragment in fragmentList) {
-            val personFragment = fragment as PersonFragment
-            personFragment.cancelSearch()
-        }
+    private fun addMenuProvider() {
+        val menuHost: MenuHost = this
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_main, menu)
+                menuInflater.inflate(R.menu.database_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                val id = menuItem.itemId
+
+                if (id == R.id.action_export)
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                        if (ActivityCompat.checkSelfPermission(
+                                this@PersonActivity,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            ActivityCompat.requestPermissions(
+                                this@PersonActivity,
+                                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                                REQUEST_CODE_ASK_PERMISSIONS_EXPORT
+                            )
+                        } else {
+                            //call export function from PeopleDatabaseHelper
+                            val peopleDatabaseHelper = PeopleDatabaseHelper(this@PersonActivity)
+                            peopleDatabaseHelper.exportDatabase(this@PersonActivity, exportDirectoryUri)
+                        }
+                    } else {
+                        //call export function from PeopleDatabaseHelper
+                        val peopleDatabaseHelper = PeopleDatabaseHelper(this@PersonActivity)
+                        peopleDatabaseHelper.exportDatabase(this@PersonActivity, exportDirectoryUri)
+                    }
+
+                if (id == R.id.action_import)
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                        if (ActivityCompat.checkSelfPermission(
+                                this@PersonActivity,
+                                Manifest.permission.READ_EXTERNAL_STORAGE
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            ActivityCompat.requestPermissions(
+                                this@PersonActivity,
+                                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                                REQUEST_CODE_ASK_PERMISSIONS_IMPORT
+                            )
+                        } else {
+                            val intent = Intent(this@PersonActivity, ImportActivity::class.java)
+                            startActivity(intent)
+
+                        }
+                    } else {
+                        val intent = Intent(this@PersonActivity, ImportActivity::class.java)
+                        startActivity(intent)
+
+                    }
+
+                return false
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
+                mSearchAction = menu.findItem(R.id.action_search)
+                mSearchAction?.isVisible = false
+            }
+        }, this, Lifecycle.State.RESUMED)
     }
 
     override fun onAdapterDataChangedListener() {
         // Do nothing
     }
 
+    fun getBinding(): ActivityPersonBinding {
+        return binding
+    }
 
     companion object {
         private const val LIVE_SEARCH_PREFERENCE = "key_live_search"

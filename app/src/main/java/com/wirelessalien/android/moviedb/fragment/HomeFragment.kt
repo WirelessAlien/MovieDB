@@ -23,33 +23,25 @@ import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.CarouselSnapHelper
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import com.google.android.material.search.SearchBar
-import com.google.android.material.search.SearchView
+import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.activity.PersonActivity
 import com.wirelessalien.android.moviedb.adapter.NowPlayingMovieAdapter
 import com.wirelessalien.android.moviedb.adapter.TrendingPagerAdapter
+import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentHomeBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -65,12 +57,7 @@ import java.util.Locale
 import java.util.Optional
 
 class HomeFragment : BaseFragment() {
-    private var mSearchQuery: String? = null
-    private var currentSearchPage = 0
     private var loading = true
-    private lateinit var tvShowView: RecyclerView
-    private lateinit var mUpcomingTVShowView: RecyclerView
-    private lateinit var mUpcomingMovieView: RecyclerView
     private var apiKey: String? = null
     private var mShowListLoaded = false
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
@@ -83,15 +70,13 @@ class HomeFragment : BaseFragment() {
     private lateinit var mTVShowAdapter: NowPlayingMovieAdapter
     private lateinit var mUpcomingMovieAdapter: NowPlayingMovieAdapter
     private lateinit var mUpcomingTVAdapter: NowPlayingMovieAdapter
-    private lateinit var trandingRv: RecyclerView
-    private lateinit var searchBar: SearchBar
-    private lateinit var searchView: SearchView
-    private lateinit var searchResultsRecyclerView: RecyclerView
-    private lateinit var mHomeSearchShowAdapter: NowPlayingMovieAdapter
-    private lateinit var mHomeSearchShowArrayList: ArrayList<JSONObject>
+    private lateinit var binding: FragmentHomeBinding
+    private lateinit var activityBinding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
         apiKey = ConfigHelper.getConfigValue(
             requireContext().applicationContext,
             "api_read_access_token"
@@ -115,99 +100,48 @@ class HomeFragment : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val fragmentView = inflater.inflate(R.layout.fragment_home, container, false)
-        showMovieList(fragmentView)
-        showTVShowList(fragmentView)
-        showTrendingList(fragmentView)
-        showUpcomingMovieList(fragmentView)
-        showUpcomingTVShowList(fragmentView)
-        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
-        fab2.visibility = View.GONE
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.visibility = View.GONE
-        searchBar = fragmentView.findViewById(R.id.searchbar)
-        searchView = requireActivity().findViewById(R.id.search_view)
-        searchResultsRecyclerView =
-            requireActivity().findViewById(R.id.search_results_recycler_view)
-        searchBar.setOnClickListener { searchView.show() }
-        searchView.editText.addTextChangedListener(object : TextWatcher {
-            private val handler = Handler(Looper.getMainLooper())
-            private var workRunnable: Runnable? = null
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                if (workRunnable != null) {
-                    handler.removeCallbacks(workRunnable!!)
-                }
-                workRunnable = Runnable { performSearch(s.toString()) }
-                handler.postDelayed(workRunnable!!, 1000)
-            }
+    ): View {
+        binding = FragmentHomeBinding.inflate(inflater, container, false)
+        val fragmentView = binding.root
+        activityBinding = (activity as MainActivity).getBinding()
+        showMovieList()
+        showTVShowList()
+        showTrendingList()
+        showUpcomingMovieList()
+        showUpcomingTVShowList()
+        activityBinding.fab2.visibility = View.GONE
+        activityBinding.fab.visibility = View.GONE
+        activityBinding.searchView.setupWithSearchBar(binding.searchbar)
 
-            override fun afterTextChanged(s: Editable) {}
-        })
+        binding.searchbar.inflateMenu(R.menu.menu_person)
 
-        // Setup RecyclerView and Adapter for search results
-        mHomeSearchShowArrayList = ArrayList()
-        mHomeSearchShowAdapter = NowPlayingMovieAdapter(mHomeSearchShowArrayList)
-        val gridLayoutManager = GridLayoutManager(context, 3)
-        searchResultsRecyclerView.layoutManager = gridLayoutManager
-        searchResultsRecyclerView.adapter = mHomeSearchShowAdapter
-        searchResultsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0 && recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
-                    val visibleItemCount = gridLayoutManager.childCount
-                    val totalItemCount = gridLayoutManager.itemCount
-                    val pastVisibleItems = gridLayoutManager.findFirstVisibleItemPosition()
-                    if (!loading && visibleItemCount + pastVisibleItems >= totalItemCount) {
-                        loading = true
-                        currentSearchPage++
-                        performSearch(searchView.editText.text.toString())
-                    }
+        binding.searchbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_person -> {
+                    val intent = Intent(requireContext(), PersonActivity::class.java)
+                    startActivity(intent)
+                    true
                 }
+                else -> false
             }
-        })
-        val peopleBtn = fragmentView.findViewById<Button>(R.id.peopleBtn)
-        peopleBtn.setOnClickListener {
-            val intent = Intent(requireContext(), PersonActivity::class.java)
-            startActivity(intent)
         }
+
         return fragmentView
     }
 
-    private fun showTrendingList(fragmentView: View) {
-        trandingRv = fragmentView.findViewById(R.id.trendingViewPager)
+    private fun showTrendingList() {
         val layoutManager = CarouselLayoutManager()
-        trandingRv.layoutManager = layoutManager
+        binding.trendingViewPager.layoutManager = layoutManager
         val snapHelper = CarouselSnapHelper()
-        snapHelper.attachToRecyclerView(trandingRv)
+        snapHelper.attachToRecyclerView(binding.trendingViewPager)
         val adapter = TrendingPagerAdapter(ArrayList())
-        trandingRv.adapter = adapter
+        binding.trendingViewPager.adapter = adapter
     }
 
     override fun onResume() {
         super.onResume()
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.visibility = View.GONE
-        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
-        fab2.visibility = View.GONE
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        val item = menu.findItem(R.id.action_search)
-        if (item != null) {
-            item.setVisible(false)
-            item.setEnabled(false)
-        }
-    }
-
-    private fun performSearch(query: String) {
-        if (query != mSearchQuery) {
-            currentSearchPage = 1
-            mHomeSearchShowArrayList.clear()
-        }
-        mSearchQuery = query
-        searchAsync(query)
+        activityBinding.fab.visibility = View.GONE
+        activityBinding.fab2.visibility = View.GONE
     }
 
     private fun createShowList() {
@@ -215,8 +149,6 @@ class HomeFragment : BaseFragment() {
         mHomeShowAdapter = NowPlayingMovieAdapter(mHomeShowArrayList)
         mTVShowArrayList = ArrayList()
         mTVShowAdapter = NowPlayingMovieAdapter(mTVShowArrayList)
-        mHomeSearchShowArrayList = ArrayList()
-        mHomeSearchShowAdapter = NowPlayingMovieAdapter(mHomeSearchShowArrayList)
         mUpcomingTVShowArrayList = ArrayList()
         mUpcomingTVAdapter = NowPlayingMovieAdapter(mUpcomingTVShowArrayList)
         mUpcomingMovieArrayList = ArrayList()
@@ -233,48 +165,73 @@ class HomeFragment : BaseFragment() {
         recyclerView.adapter = adapter
     }
 
-    private fun showMovieList(fragmentView: View) {
-        mShowView = fragmentView.findViewById(R.id.nowPlayingRecyclerView)
+    private fun showMovieList() {
         val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-        setupRecyclerView(mShowView, layoutManager, mHomeShowAdapter)
+        setupRecyclerView(binding.nowPlayingRecyclerView, layoutManager, mHomeShowAdapter)
     }
 
-    private fun showTVShowList(fragmentView: View) {
-        tvShowView = fragmentView.findViewById(R.id.nowPlayingTVRecyclerView)
+    private fun showTVShowList() {
         val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-        setupRecyclerView(tvShowView, layoutManager, mTVShowAdapter)
+        setupRecyclerView(binding.nowPlayingTVRecyclerView, layoutManager, mTVShowAdapter)
     }
 
-    private fun showUpcomingTVShowList(fragmentView: View) {
-        mUpcomingTVShowView = fragmentView.findViewById(R.id.upcomingTVRecyclerView)
+    private fun showUpcomingTVShowList() {
         val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-        setupRecyclerView(mUpcomingTVShowView, layoutManager, mUpcomingTVAdapter)
+        setupRecyclerView(binding.upcomingTVRecyclerView, layoutManager, mUpcomingTVAdapter)
     }
 
-    private fun showUpcomingMovieList(fragmentView: View) {
-        mUpcomingMovieView = fragmentView.findViewById(R.id.upcomingMovieRecyclerView)
+    private fun showUpcomingMovieList() {
         val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-        setupRecyclerView(mUpcomingMovieView, layoutManager, mUpcomingMovieAdapter)
+        setupRecyclerView(binding.upcomingMovieRecyclerView, layoutManager, mUpcomingMovieAdapter)
     }
 
-    fun search(query: String) {
-        mHomeSearchShowArrayList = ArrayList()
-        mHomeSearchShowAdapter = NowPlayingMovieAdapter(mHomeSearchShowArrayList)
-        currentSearchPage = 1
-        mSearchQuery = query
-        searchAsync(query)
+    private suspend fun fetchUpcomingTVShows() {
+        val calendar: Calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.DAY_OF_YEAR, 7)
+        val dateAfterWeek = calendar.time
+        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
+        val response = fetchData(url)
+        if (isAdded && !response.isNullOrEmpty()) {
+            handleUpcomingTVResponse(response)
+        }
     }
 
-    override fun cancelSearch() {
-        mSearchView = false
-        mShowView.adapter = mHomeShowAdapter
+    private suspend fun fetchNowPlayingTVShows() {
+        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(date)+ "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
+        val response = fetchData(url)
+        if (isAdded && !response.isNullOrEmpty()) {
+            handleTVResponse(response)
+        }
+    }
+
+    private suspend fun fetchUpcomingMovies() {
+        val url = URL("https://api.themoviedb.org/3/movie/upcoming" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
+        val response = fetchData(url)
+        if (isAdded && !response.isNullOrEmpty()) {
+            handleUpcomingMovieResponse(response)
+        }
     }
 
     private suspend fun fetchNowPlayingMovies() {
-        val response = withContext(Dispatchers.IO) {
-            var response: String? = null
+        val url = URL("https://api.themoviedb.org/3/movie/now_playing" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
+        val response = fetchData(url)
+        if (isAdded && !response.isNullOrEmpty()) {
+            handleMovieResponse(response)
+        }
+    }
+
+    private suspend fun fetchTrendingList() {
+        val url = URL("https://api.themoviedb.org/3/trending/all/day" + BaseActivity.getLanguageParameter2(requireContext()))
+        val response = fetchData(url)
+        if (isAdded && !response.isNullOrEmpty()) {
+            handleTrendingResponse(response)
+        }
+    }
+
+    private suspend fun fetchData(url: URL): String? {
+        return withContext(Dispatchers.IO) {
             try {
-                val url = URL("https://api.themoviedb.org/3/movie/now_playing" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
                 val client = OkHttpClient()
                 val request = Request.Builder()
                     .url(url)
@@ -283,18 +240,12 @@ class HomeFragment : BaseFragment() {
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
                 client.newCall(request).execute().use { res ->
-                    if (res.body != null) {
-                        response = res.body!!.string()
-                    }
+                    res.body?.string()
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
+                null
             }
-            response
-        }
-
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleMovieResponse(response)
         }
     }
 
@@ -308,7 +259,7 @@ class HomeFragment : BaseFragment() {
                     val websiteData = arrayData.getJSONObject(i)
                     mHomeShowArrayList.add(websiteData)
                 }
-                mShowView.adapter = mHomeShowAdapter
+                binding.nowPlayingRecyclerView.adapter = mHomeShowAdapter
                 mShowListLoaded = true
                 hideProgressBar()
             } catch (je: JSONException) {
@@ -317,35 +268,6 @@ class HomeFragment : BaseFragment() {
             }
         }
         loading = false
-    }
-
-    private suspend fun fetchNowPlayingTVShows() {
-        val response = withContext(Dispatchers.IO) {
-            var response: String? = null
-            try {
-                val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(date)+ "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
-                Log.d("TAG", url.toString())
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .build()
-                client.newCall(request).execute().use { res ->
-                    if (res.body != null) {
-                        response = res.body!!.string()
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            response
-        }
-
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleTVResponse(response)
-        }
     }
 
     private fun handleTVResponse(response: String?) {
@@ -358,7 +280,7 @@ class HomeFragment : BaseFragment() {
                     val websiteData = arrayData.getJSONObject(i)
                     mTVShowArrayList.add(websiteData)
                 }
-                tvShowView.adapter = mTVShowAdapter
+                binding.nowPlayingTVRecyclerView.adapter = mTVShowAdapter
                 mShowListLoaded = true
                 hideProgressBar()
             } catch (je: JSONException) {
@@ -367,38 +289,6 @@ class HomeFragment : BaseFragment() {
             }
         }
         loading = false
-    }
-
-    private suspend fun fetchUpcomingTVShows() {
-        val calendar: Calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.DAY_OF_YEAR, 7)
-        val dateAfterWeek = calendar.time
-        val response = withContext(Dispatchers.IO) {
-            var response: String? = null
-            try {
-                val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .build()
-                client.newCall(request).execute().use { res ->
-                    if (res.body != null) {
-                        response = res.body!!.string()
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            response
-        }
-
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleUpcomingTVResponse(response)
-        }
     }
 
     private fun handleUpcomingTVResponse(response: String?) {
@@ -411,7 +301,7 @@ class HomeFragment : BaseFragment() {
                     val websiteData = arrayData.getJSONObject(i)
                     mUpcomingTVShowArrayList.add(websiteData)
                 }
-                mUpcomingTVShowView.adapter = mUpcomingTVAdapter
+                binding.upcomingTVRecyclerView.adapter = mUpcomingTVAdapter
                 mShowListLoaded = true
                 hideProgressBar()
             } catch (je: JSONException) {
@@ -420,34 +310,6 @@ class HomeFragment : BaseFragment() {
             }
         }
         loading = false
-    }
-
-    private suspend fun fetchUpcomingMovies() {
-        val response = withContext(Dispatchers.IO) {
-            var response: String? = null
-            try {
-                val url = URL("https://api.themoviedb.org/3/movie/upcoming" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .build()
-                client.newCall(request).execute().use { res ->
-                    if (res.body != null) {
-                        response = res.body!!.string()
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            response
-        }
-
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleUpcomingMovieResponse(response)
-        }
     }
 
     private fun handleUpcomingMovieResponse(response: String?) {
@@ -460,7 +322,7 @@ class HomeFragment : BaseFragment() {
                     val websiteData = arrayData.getJSONObject(i)
                     mUpcomingMovieArrayList.add(websiteData)
                 }
-                mUpcomingMovieView.adapter = mUpcomingMovieAdapter
+                binding.upcomingMovieRecyclerView.adapter = mUpcomingMovieAdapter
                 mShowListLoaded = true
                 hideProgressBar()
             } catch (je: JSONException) {
@@ -469,34 +331,6 @@ class HomeFragment : BaseFragment() {
             }
         }
         loading = false
-    }
-
-    private suspend fun fetchTrendingList() {
-        val response = withContext(Dispatchers.IO) {
-            var response: String? = null
-            try {
-                val url = URL("https://api.themoviedb.org/3/trending/all/day" + BaseActivity.getLanguageParameter2(requireContext()))
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $apiKey")
-                    .build()
-                client.newCall(request).execute().use { res ->
-                    if (res.body != null) {
-                        response = res.body!!.string()
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            response
-        }
-
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleTrendingResponse(response)
-        }
     }
 
     private fun handleTrendingResponse(response: String?) {
@@ -513,7 +347,7 @@ class HomeFragment : BaseFragment() {
                         trendingArrayList.add(websiteData)
                     }
                 }
-                val adapter = trandingRv.adapter as TrendingPagerAdapter?
+                val adapter = binding.trendingViewPager.adapter as TrendingPagerAdapter?
                 if (adapter != null) {
                     adapter.updateData(trendingArrayList)
                     adapter.notifyDataSetChanged()
@@ -526,79 +360,12 @@ class HomeFragment : BaseFragment() {
         }
     }
 
-    private fun searchAsync(query: String) {
-        val progressBar = Optional.ofNullable(
-            searchView.findViewById<CircularProgressIndicator>(R.id.search_progress_bar)
-        )
-        progressBar.ifPresent { bar: CircularProgressIndicator -> bar.visibility = View.VISIBLE }
-        lifecycleScope.launch {
-            val response = withContext(Dispatchers.IO) { doInBackground(query) }
-            if (response != null) {
-                onPostExecute(response)
-            }
-            hideSearchProgressBar()
-        }
-    }
-
-    private fun doInBackground(query: String): String? {
-        var response: String? = null
-        try {
-            val url = URL(
-                "https://api.themoviedb.org/3/search/multi?"
-                        + "query=" + query + "&page=" + currentSearchPage
-            )
-            val client = OkHttpClient()
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("Content-Type", "application/json;charset=utf-8")
-                .addHeader("Authorization", "Bearer $apiKey")
-                .build()
-            try {
-                client.newCall(request).execute().use { res ->
-                    if (res.body != null) {
-                        response = res.body!!.string()
-                    }
-                }
-            } catch (ioe: IOException) {
-                ioe.printStackTrace()
-            }
-        } catch (ioe: IOException) {
-            ioe.printStackTrace()
-        }
-        return response
-    }
-
-    private fun onPostExecute(response: String) {
-        try {
-            val reader = JSONObject(response)
-            val arrayData = reader.getJSONArray("results")
-            for (i in 0 until arrayData.length()) {
-                val movieData = arrayData.getJSONObject(i)
-                if (movieData.getString("media_type") != "person") {
-                    mHomeSearchShowArrayList.add(movieData)
-                }
-            }
-            mHomeSearchShowAdapter.notifyDataSetChanged()
-            loading = false
-        } catch (je: JSONException) {
-            je.printStackTrace()
-        }
-    }
-
     private fun hideProgressBar() {
         if (isAdded) {
             val progressBar =
                 Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
             progressBar.ifPresent { bar: CircularProgressIndicator -> bar.visibility = View.GONE }
         }
-    }
-
-    private fun hideSearchProgressBar() {
-        val progressBar = Optional.ofNullable(
-            searchView.findViewById<CircularProgressIndicator>(R.id.search_progress_bar)
-        )
-        progressBar.ifPresent { bar: CircularProgressIndicator -> bar.visibility = View.GONE }
     }
 
     companion object {

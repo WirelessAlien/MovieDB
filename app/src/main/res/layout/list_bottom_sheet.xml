@@ -37,24 +37,24 @@
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
        android:layout_marginStart="5dip"
-       android:layout_marginBottom="16dip">
+       android:layout_marginBottom="16dp">
 
-       <TextView
-           android:id="@+id/previousListText"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/previous_lists"
-           android:textSize="20sp"
-           android:layout_centerVertical="true"
-           android:textStyle="bold" />
+        <TextView
+            android:id="@+id/previousListText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/previous_lists"
+            android:textSize="18sp"
+            android:layout_centerVertical="true"
+            android:textStyle="bold" />
 
-       <com.google.android.material.button.MaterialButton
-           android:id="@+id/infoBtn"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_alignParentEnd="true"
-           style="@style/Widget.Material3.Button.IconButton"
-           app:icon="@drawable/ic_info"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/infoBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            style="@style/Widget.Material3.Button.IconButton"
+            app:icon="@drawable/ic_info"/>
    </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -63,27 +63,48 @@
         android:layout_weight="1"
         android:id="@+id/recyclerView" />
 
-  <TextView
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/create_new_list"
-      android:textSize="20sp"
-      android:layout_marginStart="5dip"
-      android:textStyle="bold"
-      android:layout_marginTop="16dp"
-      android:layout_marginBottom="16dip"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/create_new_list"
+        android:textSize="18sp"
+        android:layout_marginStart="5dp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"/>
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/newListName"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/enter_list_name"/>
+        app:boxCornerRadiusTopStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/listDescription"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/newListName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/enter_list_name"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/description"/>
+        app:boxCornerRadiusTopStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        android:layout_marginTop="10dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/listDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/description"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.radiobutton.MaterialRadioButton
         android:id="@+id/privateRadioBtn"
@@ -94,7 +115,8 @@
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:text="@string/create_list"
         android:id="@+id/createListBtn"/>
 </LinearLayout>
