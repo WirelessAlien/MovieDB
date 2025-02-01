@@ -53,10 +53,6 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -76,16 +72,9 @@ import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
-import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.materialswitch.MaterialSwitch
-import com.google.android.material.progressindicator.LinearProgressIndicator
-import com.google.android.material.slider.Slider
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
-import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import com.squareup.picasso.Picasso
@@ -97,6 +86,11 @@ import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding
+import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
+import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
+import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBinding
+import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
+import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
@@ -232,7 +226,7 @@ class DetailActivity : BaseActivity() {
         setContentView(binding.root)
         setNavigationDrawer()
         supportActionBar!!.title = ""
-        episodeViewPager = findViewById(R.id.episodeViewPager)
+        episodeViewPager = binding.episodeViewPager
         episodePagerAdapter = EpisodePagerAdapter(this)
         // Make the transparency dependent on how far the user scrolled down.
         binding.scrollView.setOnScrollChangedListener(mOnScrollChangedListener)
@@ -290,8 +284,8 @@ class DetailActivity : BaseActivity() {
             similarMovieTitle.visibility = View.GONE
         }
 
-        when (preferences.getString("selected_episode_edit_button", "LOCAL")) {
-            "TMDB" -> {
+        when (preferences.getString("sync_provider", "local")) {
+            "tmdb" -> {
                 binding.toggleButtonGroup.check(R.id.btnTmdb)
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
@@ -305,7 +299,7 @@ class DetailActivity : BaseActivity() {
                 binding.watchListButtonTmdb.visibility = View.VISIBLE
 
             }
-            "TRAKT" -> {
+            "trakt" -> {
                 binding.toggleButtonGroup.check(R.id.btnTrakt)
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                 binding.btnAddToTraktFavorite.visibility = View.VISIBLE
@@ -377,27 +371,28 @@ class DetailActivity : BaseActivity() {
         val intent = intent
         isMovie = intent.getBooleanExtra("isMovie", true)
         try {
-            setMovieData(JSONObject(intent.getStringExtra("movieObject")))
-            jMovieObject = JSONObject(intent.getStringExtra("movieObject"))
+            val movieObjectString = intent.getStringExtra("movieObject")
+            if (movieObjectString != null) {
+                setMovieData(JSONObject(movieObjectString))
+                jMovieObject = JSONObject(movieObjectString)
 
-            Log.d("genreIdTestDetailActivity", jMovieObject.getString("genre_ids"))
-            // Set the adapter with the (still) empty ArrayList.
-            castArrayList = ArrayList()
-            castAdapter = CastBaseAdapter(castArrayList, applicationContext)
-            binding.castRecyclerView.adapter = castAdapter
+                // Set the adapter with the (still) empty ArrayList.
+                castArrayList = ArrayList()
+                castAdapter = CastBaseAdapter(castArrayList, applicationContext)
+                binding.castRecyclerView.adapter = castAdapter
 
-            // Set the adapter with the (still) empty ArrayList.
-            crewArrayList = ArrayList()
-            crewAdapter = CastBaseAdapter(crewArrayList, applicationContext)
-            binding.crewRecyclerView.adapter = crewAdapter
+                // Set the adapter with the (still) empty ArrayList.
+                crewArrayList = ArrayList()
+                crewAdapter = CastBaseAdapter(crewArrayList, applicationContext)
+                binding.crewRecyclerView.adapter = crewAdapter
 
-            // Set the adapter with the (still) empty ArrayList.
-            similarMovieArrayList = ArrayList()
-            similarMovieAdapter = SimilarMovieBaseAdapter(
-                similarMovieArrayList,
-                applicationContext
-            )
-            binding.movieRecyclerView.adapter = similarMovieAdapter
+                // Set the adapter with the (still) empty ArrayList.
+                similarMovieArrayList = ArrayList()
+                similarMovieAdapter = SimilarMovieBaseAdapter(similarMovieArrayList, applicationContext)
+                binding.movieRecyclerView.adapter = similarMovieAdapter
+            } else {
+                Log.e("DetailActivity", "movieObjectString is null")
+            }
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -413,17 +408,16 @@ class DetailActivity : BaseActivity() {
                     " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
                     "=" + movieId + " LIMIT 1", null
         )
-        try {
-            if (cursor.count > 0) {
+        cursor.use { cursor1 ->
+            if (cursor1.count > 0) {
                 // A record has been found
                 binding.fabSave.setImageResource(R.drawable.ic_star)
                 added = true
             }
-        } finally {
-            cursor.close()
         }
-        val progressBar = binding.progressBar
-        progressBar.visibility = View.VISIBLE
+
+        binding.shimmerFrameLayout1.visibility = View.VISIBLE
+        binding.shimmerFrameLayout1.startShimmer()
 
         lifecycleScope.launch {
             if (accountId != null && sessionId != null) {
@@ -488,7 +482,8 @@ class DetailActivity : BaseActivity() {
                     editor.apply()
                 }
             }
-            progressBar.visibility = View.GONE
+            binding.shimmerFrameLayout1.visibility = View.GONE
+            binding.shimmerFrameLayout1.stopShimmer()
         }
 
 
@@ -562,6 +557,14 @@ class DetailActivity : BaseActivity() {
                             binding.showRating.backgroundTintList = colorStateList
 
                             binding.ratingCard.setCardBackgroundColor(Color.TRANSPARENT)
+
+                            preferences.getString("sync_provider", "local")?.let {
+                                if (it == "tmdb") {
+                                    binding.btnTmdb.backgroundTintList = colorStateList
+                                } else {
+                                    binding.btnTrakt.backgroundTintList = colorStateList
+                                }
+                            }
                             binding.toggleButtonGroup.addOnButtonCheckedListener { group, checkedId, isChecked ->
                                 if (isChecked) {
                                     val checkedButton = group.findViewById<MaterialButton>(checkedId)
@@ -737,15 +740,15 @@ class DetailActivity : BaseActivity() {
 
         binding.ratingBtnTmdb.setOnClickListener {
             val dialog = BottomSheetDialog(mActivity)
-            val inflater = layoutInflater
-            val dialogView = inflater.inflate(R.layout.rating_dialog, null)
-            dialog.setContentView(dialogView)
+            val dialogViewBinding = RatingDialogTraktBinding.inflate(layoutInflater)
+            dialog.setContentView(dialogViewBinding.root)
             dialog.show()
-            val ratingBar = dialogView.findViewById<Slider>(R.id.ratingSlider)
-            val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
-            val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
-            val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
-            val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+
+            val ratingBar = dialogViewBinding.ratingSlider
+            val submitButton = dialogViewBinding.btnSubmit
+            val cancelButton = dialogViewBinding.btnCancel
+            val deleteButton = dialogViewBinding.btnDelete
+            val movieTitle = dialogViewBinding.tvTitle
             movieTitle.text = showTitle
             lifecycleScope.launch {
                 val typeCheck = if (isMovie) "movie" else "tv"
@@ -820,11 +823,13 @@ class DetailActivity : BaseActivity() {
             binding.episodeText.visibility = View.GONE
         }
         binding.allEpisodeBtn.setOnClickListener {
-            binding.progressBar.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
 
             lifecycleScope.launch {
                 val traktId = fetchTraktId(movieId, imdbId)
-                binding.progressBar.visibility = View.GONE
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
 
                 if (traktId == null) {
                     Toast.makeText(applicationContext, "Trakt ID not found", Toast.LENGTH_SHORT).show()
@@ -1058,22 +1063,22 @@ class DetailActivity : BaseActivity() {
 
     private fun showCollectionDialog() {
         val dialog = BottomSheetDialog(this)
-        val dialogView = layoutInflater.inflate(R.layout.collection_dialog_trakt, null)
-        dialog.setContentView(dialogView)
+        val dialogViewBinding = CollectionDialogTraktBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogViewBinding.root)
         dialog.show()
 
-        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
-        val selectedDateEditText = dialogView.findViewById<TextInputEditText>(R.id.etSelectedDate)
-        val mediaTypeView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.mediaType)
-        val resolutionView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.resolution)
-        val hdrView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.hdr)
-        val audioView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.audio)
-        val audioChannelsView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.audioChannels)
-        val switch3D = dialogView.findViewById<MaterialSwitch>(R.id.switch3D)
-        val progressBar = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
-        val removeCollection = dialogView.findViewById<ImageView>(R.id.removeCollection)
-        val saveBtn = dialogView.findViewById<Button>(R.id.btnSave)
+        val movieTitle = dialogViewBinding.tvTitle
+        val selectDateButton = dialogViewBinding.btnSelectDate
+        val selectedDateEditText = dialogViewBinding.etSelectedDate
+        val mediaTypeView = dialogViewBinding.mediaType
+        val resolutionView = dialogViewBinding.resolution
+        val hdrView = dialogViewBinding.hdr
+        val audioView = dialogViewBinding.audio
+        val audioChannelsView = dialogViewBinding.audioChannels
+        val switch3D = dialogViewBinding.switch3D
+        val progressBar = dialogViewBinding.progressIndicator
+        val removeCollection = dialogViewBinding.removeCollection
+        val saveBtn = dialogViewBinding.btnSave
 
         val mediaTypes = resources.getStringArray(R.array.media_types)
         val resolutions = resources.getStringArray(R.array.resolutions)
@@ -1100,15 +1105,13 @@ class DetailActivity : BaseActivity() {
                 db.isMovieInCollection(movieId)
             }
             progressBar.visibility = View.GONE
-            val isCollectedTextView = dialogView.findViewById<TextView>(R.id.isCollected)
-            val collectedCard = dialogView.findViewById<MaterialCardView>(R.id.collectedCard)
             if (isInCollection) {
-                isCollectedTextView.visibility = View.VISIBLE
-                collectedCard.visibility = View.VISIBLE
+                dialogViewBinding.isCollected.visibility = View.VISIBLE
+                dialogViewBinding.collectedCard.visibility = View.VISIBLE
 
             } else {
-                isCollectedTextView.visibility = View.GONE
-                collectedCard.visibility = View.GONE
+                dialogViewBinding.isCollected.visibility = View.GONE
+                dialogViewBinding.collectedCard.visibility = View.GONE
 
             }
         }
@@ -1158,22 +1161,21 @@ class DetailActivity : BaseActivity() {
 
     private fun showWatchOptionsDialog() {
         val dialog = BottomSheetDialog(this)
-        val dialogView = layoutInflater.inflate(R.layout.history_dialog_trakt, null)
-        dialog.setContentView(dialogView)
+        val dialogViewBinding = HistoryDialogTraktBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogViewBinding.root)
         dialog.show()
 
-        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-        val watchingNowButton = dialogView.findViewById<Button>(R.id.btnWatchingNow)
-        val watchedAtReleaseButton = dialogView.findViewById<Button>(R.id.btnWatchedAtRelease)
-        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
-        val selectedDateEditText = dialogView.findViewById<TextInputEditText>(R.id.etSelectedDate)
-        val updateButton = dialogView.findViewById<Button>(R.id.btnSave)
-        val timesPlayed = dialogView.findViewById<TextView>(R.id.timePlayed)
-        val lastWatched = dialogView.findViewById<TextView>(R.id.lastWatched)
-        val historyCard = dialogView.findViewById<MaterialCardView>(R.id.historyCard)
-        val removeHistory = dialogView.findViewById<ImageView>(R.id.removeHistory)
-
-        val progressBar = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
+        val movieTitle = dialogViewBinding.tvTitle
+        val watchingNowButton = dialogViewBinding.btnWatchingNow
+        val watchedAtReleaseButton = dialogViewBinding.btnWatchedAtRelease
+        val selectDateButton = dialogViewBinding.btnSelectDate
+        val selectedDateEditText = dialogViewBinding.etSelectedDate
+        val updateButton = dialogViewBinding.btnSave
+        val timesPlayed = dialogViewBinding.timePlayed
+        val lastWatched = dialogViewBinding.lastWatched
+        val historyCard = dialogViewBinding.historyCard
+        val removeHistory = dialogViewBinding.removeHistory
+        val progressBar = dialogViewBinding.progressIndicator
 
         movieTitle.text = showTitle
 
@@ -1251,18 +1253,18 @@ class DetailActivity : BaseActivity() {
 
     private fun showRateOptionDialog() {
         val dialog = BottomSheetDialog(this)
-        val dialogView = layoutInflater.inflate(R.layout.rating_dialog_trakt, null)
-        dialog.setContentView(dialogView)
+        val dialogViewBinding = RatingDialogTraktBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogViewBinding.root)
         dialog.show()
 
-        val ratingSlider = dialogView.findViewById<Slider>(R.id.ratingSlider)
-        val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
-        val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
-        val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
-        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-        val ratedAt = dialogView.findViewById<TextInputEditText>(R.id.ratedDate)
-        val progressIndicator = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
-        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
+        val ratingSlider = dialogViewBinding.ratingSlider
+        val submitButton = dialogViewBinding.btnSubmit
+        val cancelButton = dialogViewBinding.btnCancel
+        val deleteButton = dialogViewBinding.btnDelete
+        val movieTitle = dialogViewBinding.tvTitle
+        val ratedAt = dialogViewBinding.ratedDate
+        val progressIndicator = dialogViewBinding.progressIndicator
+        val selectDateButton = dialogViewBinding.btnSelectDate
 
         movieTitle.text = showTitle
         progressIndicator.visibility = View.VISIBLE
@@ -1604,6 +1606,56 @@ class DetailActivity : BaseActivity() {
         }
     }
 
+
+    private suspend fun fetchMovieDetailsByExternalId(externalId: String, type: String): JSONObject? {
+        return withContext(Dispatchers.IO) {
+            val client = OkHttpClient()
+            val url = "https://api.themoviedb.org/3/find/$externalId?external_source=$type"
+            val request = Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                .build()
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseBody = response.body!!.string()
+                    val jsonObject = JSONObject(responseBody)
+                    Log.d("DetailActivity", jsonObject.toString())
+                    val results = if (type == "imdb_id") jsonObject.getJSONArray("movie_results") else jsonObject.getJSONArray("tv_results")
+                    if (results.length() > 0) {
+                        return@withContext results.getJSONObject(0)
+                    }
+                }
+            }
+            return@withContext null
+        }
+    }
+
+    private suspend fun fetchMovieDetailsByTitleAndYear(type: String, title: String, year: String): JSONObject? {
+        return withContext(Dispatchers.IO) {
+            val client = OkHttpClient()
+            val url = "https://api.themoviedb.org/3/search/$type?query=$title&year=$year"
+            val request = Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                .build()
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseBody = response.body!!.string()
+                    val jsonObject = JSONObject(responseBody)
+                    val results = jsonObject.getJSONArray("results")
+                    if (results.length() > 0) {
+                        return@withContext results.getJSONObject(0)
+                    }
+                }
+            }
+            return@withContext null
+        }
+    }
+
     override fun doNetworkWork() {
         // Get the cast and crew for the CastListAdapter and get the movies for the MovieListAdapter.
         if (!mCastAndCrewLoaded) {
@@ -1615,7 +1667,6 @@ class DetailActivity : BaseActivity() {
             startSimilarMovieList()
         }
 
-        // Load movie details.
         if (!mMovieDetailsLoaded) {
             fetchMovieDetailsCoroutine()
         }
@@ -1637,14 +1688,14 @@ class DetailActivity : BaseActivity() {
     }
 
     private fun saveTotalEpisodes(totalEpisodes: Int) {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val sharedPreferences = getSharedPreferences("totalEpisodes", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putInt("totalEpisodes_$movieId", totalEpisodes)
         editor.commit()
     }
 
     private suspend fun updateMovieEpisodes() {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val sharedPreferences = getSharedPreferences("totalEpisodes", Context.MODE_PRIVATE)
         withContext(Dispatchers.IO) {
             seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
             totalEpisodes = sharedPreferences.getInt("totalEpisodes_$movieId", 0)
@@ -1771,6 +1822,60 @@ class DetailActivity : BaseActivity() {
      * @param movieObject JSONObject with the information about the show.
      */
     private fun setMovieData(movieObject: JSONObject) {
+
+        lifecycleScope.launch {
+            if (!movieObject.has("id")) {
+                val externalId = movieObject.optString("imdb")
+                var fetchedMovieObject = fetchMovieDetailsByExternalId(externalId, "imdb_id")
+
+                if (fetchedMovieObject == null && !isMovie) {
+                    val tvdbId = movieObject.optString("tvdb")
+                    fetchedMovieObject = fetchMovieDetailsByExternalId(tvdbId, "tvdb_id")
+                }
+
+                if (fetchedMovieObject == null) {
+                    val type = if (isMovie) "movie" else "tv"
+                    val title = movieObject.optString("title")
+                    val year = movieObject.optString("year")
+                    fetchedMovieObject = fetchMovieDetailsByTitleAndYear(type, title, year)
+                }
+
+                if (fetchedMovieObject != null) {
+                    if (fetchedMovieObject.has("id")) {
+                        movieId = fetchedMovieObject.getInt("id")
+
+                        if (!mCastAndCrewLoaded) {
+                            lifecycleScope.launch {
+                                fetchCastList()
+                            }
+                        }
+                        if (!mSimilarMoviesLoaded) {
+                            startSimilarMovieList()
+                        }
+
+                        if (!mMovieDetailsLoaded) {
+                            fetchMovieDetailsCoroutine()
+                        }
+                        if (!mVideosLoaded) {
+                            lifecycleScope.launch {
+                                fetchVideos()
+                            }
+                        }
+                    }
+                    return@launch
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@DetailActivity,
+                            getString(R.string.media_details_not_found),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
+                }
+            }
+        }
+
         val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
         val imageSize = if (loadHDImage) "w780" else "w500"
@@ -2014,18 +2119,17 @@ class DetailActivity : BaseActivity() {
 
                 // Add all the genres in one String.
                 val genreNames = StringBuilder()
-                val chipGroup = findViewById<ChipGroup>(R.id.genreChipGroup)
-                chipGroup.removeAllViews() // Clear previous chips if any
+                binding.genreChipGroup.removeAllViews() // Clear previous chips if any
 
                 val inflater = LayoutInflater.from(this)
                 for (aGenreArray in genreArray) {
                     val genreName = sharedPreferences.getString(aGenreArray, aGenreArray)
                     genreNames.append(", ").append(genreName)
 
-                    val chip = inflater.inflate(R.layout.genre_chip_item, chipGroup, false) as Chip
+                    val chip = inflater.inflate(R.layout.genre_chip_item,  binding.genreChipGroup, false) as Chip
                     chip.text = genreName
 
-                    chipGroup.addView(chip)
+                    binding.genreChipGroup.addView(chip)
                 }
             }
 
@@ -2474,19 +2578,16 @@ class DetailActivity : BaseActivity() {
         val context = view.context
         val dialog = BottomSheetDialog(context)
         val inflater = LayoutInflater.from(context)
-        val dialogView = inflater.inflate(R.layout.dialog_date_format, null)
-        dialog.setContentView(dialogView)
+        val dialogView = DialogDateFormatBinding.inflate(inflater)
+        dialog.setContentView(dialogView.root)
         dialog.show()
 
-        val fullDateBtn = dialogView.findViewById<Button>(R.id.btnFullDate)
-        val yearBtn = dialogView.findViewById<Button>(R.id.btnYear)
-
-        fullDateBtn.setOnClickListener {
+        dialogView.btnFullDate.setOnClickListener {
             selectDate(view)
             dialog.dismiss()
         }
 
-        yearBtn.setOnClickListener {
+        dialogView.btnYear.setOnClickListener {
             showYearMonthPickerDialog(context) { selectedYear, selectedMonth ->
                 // Save the selected year and month to the database
                 val movieValues = ContentValues()
@@ -2496,13 +2597,11 @@ class DetailActivity : BaseActivity() {
                 val dateText = "00-$month-$selectedYear"
                 if (view.tag == "start_date") {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateText)
-                    val button = findViewById<Button>(R.id.startDateButton)
-                    button.text = String.format("%02d-%d", month.toInt(), selectedYear)
+                    binding.startDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
                     binding.movieStartDate.text = getString(R.string.start_date, formatDateString(dateText))
                 } else {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
-                    val button = findViewById<Button>(R.id.endDateButton)
-                    button.text = String.format("%02d-%d", month.toInt(), selectedYear)
+                    binding.endDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
                     binding.movieFinishDate.text = getString(R.string.finish_date, formatDateString(dateText))
                 }
                 database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
@@ -2553,12 +2652,12 @@ class DetailActivity : BaseActivity() {
         context: Context,
         onYearMonthSelected: (Int, Int?) -> Unit
     ) {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_year_month_picker, null)
-        val yearPicker = dialogView.findViewById<NumberPicker>(R.id.yearPicker)
-        val monthPicker = dialogView.findViewById<NumberPicker>(R.id.monthPicker)
-        val monthTitle = dialogView.findViewById<TextView>(R.id.monthTitle)
-        val monthLayout = dialogView.findViewById<LinearLayout>(R.id.monthLayout)
-        val disableMonthPicker = dialogView.findViewById<MaterialCheckBox>(R.id.disableMonthPicker)
+        val dialogView = DialogYearMonthPickerBinding.inflate(LayoutInflater.from(context))
+        val yearPicker = dialogView.yearPicker
+        val monthPicker = dialogView.monthPicker
+        val monthTitle = dialogView.monthTitle
+        val monthLayout = dialogView.monthLayout
+        val disableMonthPicker = dialogView.disableMonthPicker
 
         val currentYear = android.icu.util.Calendar.getInstance().get(android.icu.util.Calendar.YEAR)
         yearPicker.minValue = 1900
@@ -2582,14 +2681,14 @@ class DetailActivity : BaseActivity() {
         }
 
         MaterialAlertDialogBuilder(context)
-            .setTitle(getString(R.string.select_year_and_month))
-            .setView(dialogView)
-            .setPositiveButton(getString(R.string.ok)) { _, _ ->
+            .setTitle(context.getString(R.string.select_year_and_month))
+            .setView(dialogView.root)
+            .setPositiveButton(context.getString(R.string.ok)) { _, _ ->
                 val selectedYear = yearPicker.value
                 val selectedMonth = if (disableMonthPicker.isChecked) null else monthPicker.value + 1
                 onYearMonthSelected(selectedYear, selectedMonth)
             }
-            .setNegativeButton(getString(R.string.cancel), null)
+            .setNegativeButton(context.getString(R.string.cancel), null)
             .show()
     }
 
@@ -2609,8 +2708,7 @@ class DetailActivity : BaseActivity() {
             val movieValues = ContentValues()
             if (view.tag == "start_date") {
                 movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateFormat)
-                val button = findViewById<Button>(R.id.startDateButton)
-                button.text = dateFormat
+                binding.startDateButton.text = dateFormat
 
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
@@ -2619,8 +2717,7 @@ class DetailActivity : BaseActivity() {
                 startDate = calendar.time
             } else {
                 movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateFormat)
-                val button = findViewById<Button>(R.id.endDateButton)
-                button.text = dateFormat
+                binding.endDateButton.text = dateFormat
 
                 // Convert the date to DateFormat.DEFAULT
                 val dateFormatDefault = DateFormat.getDateInstance(DateFormat.DEFAULT)
@@ -2732,6 +2829,10 @@ class DetailActivity : BaseActivity() {
                         crewData.put("character", crewData.getString("job"))
                         crewArrayList.add(crewData)
                     }
+
+                    // Sort the crewArrayList to show "director" first, then "producer", then others
+                    crewArrayList.sortWith(compareBy({ it.getString("job") != "Director" }, { it.getString("job") != "Producer" }))
+
                     crewAdapter = CastBaseAdapter(crewArrayList, applicationContext)
                     binding.crewRecyclerView.adapter = crewAdapter
                 }
@@ -2911,8 +3012,7 @@ class DetailActivity : BaseActivity() {
         try {
             val keywordsObject = movieData.getJSONObject("keywords")
             val keywordsArray = if (isMovie) keywordsObject.getJSONArray("keywords") else keywordsObject.getJSONArray("results")
-            val keywordsLayout = findViewById<FlexboxLayout>(R.id.keywordsLayout)
-            keywordsLayout.removeAllViews()
+            binding.keywordsLayout.removeAllViews()
             for (i in 0 until keywordsArray.length()) {
                 val keyword = keywordsArray.getJSONObject(i)
                 val keywordName = keyword.getString("name")
@@ -2932,12 +3032,11 @@ class DetailActivity : BaseActivity() {
                 )
                 params.setMargins(8, 8, 8, 8)
                 cardView.layoutParams = params
-                keywordsLayout.addView(cardView)
+                binding.keywordsLayout.addView(cardView)
             }
         } catch (e: JSONException) {
             e.printStackTrace()
-            val keywordsLayout = findViewById<FlexboxLayout>(R.id.keywordsLayout)
-            keywordsLayout.visibility = View.GONE
+            binding.keywordsLayout.visibility = View.GONE
         }
     }
 

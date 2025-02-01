@@ -72,7 +72,6 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="@android:color/transparent"
                 app:layout_collapseMode="pin" />
-
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -581,11 +580,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
-                android:spacing="5dp"
                 android:layout_below="@id/movieDetailsRl"
-                app:innerCornerSize="10dp"
-                style="@style/Widget.Material3.MaterialButtonGroup.Connected"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Small"
+                app:innerCornerSize="4dp"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
                 android:layout_centerHorizontal="true"
                 app:selectionRequired="true"
                 app:singleSelection="true">
@@ -594,14 +591,14 @@
                     android:id="@+id/btnTmdb"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:text="TMDB" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnTrakt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:text="TRAKT" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -1105,16 +1102,22 @@
         </RelativeLayout>
     </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerFrameLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/searchbar"
         android:visibility="gone"
-        app:waveAmplitude="10dp"
-        app:wavelength="32dp"
-        app:waveSpeed="0dp"
-        android:indeterminate="true"/>
+        app:shimmer_duration="700">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <include layout="@layout/show_skeleton" />
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
