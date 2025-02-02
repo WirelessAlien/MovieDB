@@ -29,11 +29,19 @@ import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
+import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
+
+    private val preferences: SharedPreferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(requireContext())
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
@@ -91,6 +99,38 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         hideAccountTab?.onPreferenceChangeListener = preferenceChangeListener
         hideAccountTktTab?.onPreferenceChangeListener = preferenceChangeListener
+
+        val syncProvider = findPreference<Preference>("sync_provider")
+
+        syncProvider?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            showSyncProviderDialog()
+            true
+        }
+    }
+
+    private fun showSyncProviderDialog() {
+        val dialogBinding = DialogSyncProviderBinding.inflate(layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogBinding.root)
+            .setCancelable(false)
+            .create()
+
+        dialogBinding.buttonOk.setOnClickListener {
+            val selectedProvider = when {
+                dialogBinding.radioTrakt.isChecked -> "trakt"
+                dialogBinding.radioTmdb.isChecked -> "tmdb"
+                else -> "local"
+            }
+
+            if (selectedProvider != "local") {
+                preferences.edit().putString("sync_provider", selectedProvider).apply()
+            }
+
+            preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     override fun onResume() {

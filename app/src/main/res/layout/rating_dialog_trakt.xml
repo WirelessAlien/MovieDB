@@ -70,7 +70,7 @@
         android:id="@+id/btnSelectDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select date"
+        android:text="@string/select_a_date"
         app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_margin="16dp"/>

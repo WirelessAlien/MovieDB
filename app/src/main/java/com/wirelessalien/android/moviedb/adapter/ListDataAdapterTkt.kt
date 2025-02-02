@@ -24,16 +24,14 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
-import android.widget.TextView
 import android.widget.Toast
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.materialswitch.MaterialSwitch
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.databinding.ListItemBinding
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.trakt.TraktSync
 import okhttp3.Call
@@ -54,30 +52,48 @@ class ListDataAdapterTkt(
     private val lists: MutableList<ListItem> = mutableListOf()
 
     fun setLists(newLists: List<ListItem>) {
+        val diffCallback = object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int {
+                return lists.size
+            }
+
+            override fun getNewListSize(): Int {
+                return newLists.size
+            }
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return lists[oldItemPosition].id == newLists[newItemPosition].id
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return lists[oldItemPosition] == newLists[newItemPosition]
+            }
+        }
+
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
         lists.clear()
         lists.addAll(newLists)
-        notifyDataSetChanged()
+        diffResult.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false)
-        return ViewHolder(view)
+        val binding = ListItemBinding.inflate(LayoutInflater.from(context), parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val listItem = lists[position]
         val (_, season, episodeNumber) = getSEIdFromMediaObject(mediaObject)
-        holder.nameTextView.text = listItem.name
-        holder.switch.setOnCheckedChangeListener(null)
-        holder.switch.isChecked = if (type == "season" || type == "episode") {
-            isEpisodeInList(listItem.id, season?: -1, episodeNumber?: -1)
+        holder.binding.listName.text = listItem.name
+        holder.binding.listSwitch.setOnCheckedChangeListener(null)
+        holder.binding.listSwitch.isChecked = if (type == "season" || type == "episode") {
+            isEpisodeInList(listItem.id, season ?: -1, episodeNumber ?: -1)
         } else {
             isMovieInList(listItem.id)
         }
         val listId = listItem.id
 
-        holder.switch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
-            Log.d("ListDataAdapterTkt", "onBindViewHolder: $listId")
+        holder.binding.listSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
             val endpoint = if (isChecked) "users/me/lists/$listId/items" else "users/me/lists/$listId/items/remove"
             traktSync(endpoint, mediaObject) { success ->
                 if (success) {
@@ -86,11 +102,11 @@ class ListDataAdapterTkt(
                     } else {
                         removeMovieFromList(listId)
                     }
-                    Toast.makeText(context, "Synced with Trakt", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.media_added_to_list), Toast.LENGTH_SHORT).show()
                 } else {
-                    holder.switch.setOnCheckedChangeListener(null)
-                    holder.switch.isChecked = !isChecked
-                    holder.switch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
+                    holder.binding.listSwitch.setOnCheckedChangeListener(null)
+                    holder.binding.listSwitch.isChecked = !isChecked
+                    holder.binding.listSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
                         traktSync(endpoint, mediaObject) { success ->
                             if (success) {
                                 if (isChecked) {
@@ -98,14 +114,14 @@ class ListDataAdapterTkt(
                                 } else {
                                     removeMovieFromList(listId)
                                 }
-                                Toast.makeText(context, "Synced with Trakt", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.media_added_to_list), Toast.LENGTH_SHORT).show()
                             } else {
-                                holder.switch.isChecked = !isChecked
-                                Toast.makeText(context, "Failed to sync with Trakt", Toast.LENGTH_SHORT).show()
+                                holder.binding.listSwitch.isChecked = !isChecked
+                                Toast.makeText(context, context.getString(R.string.failed_to_add_media_to_list), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
-                    Toast.makeText(context, "Failed to sync with Trakt", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.failed_to_add_media_to_list), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -198,11 +214,7 @@ class ListDataAdapterTkt(
         )
     }
 
-
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val nameTextView: TextView = itemView.findViewById(R.id.list_name)
-        val switch: MaterialSwitch = itemView.findViewById(R.id.list_switch)
-    }
+    class ViewHolder(val binding: ListItemBinding) : RecyclerView.ViewHolder(binding.root)
 
     data class ListItem(val id: Int, val name: String, val isInList: Boolean)
 }

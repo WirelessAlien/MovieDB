@@ -28,11 +28,6 @@ import android.icu.text.SimpleDateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
 import androidx.paging.PagingDataAdapter
 import androidx.preference.PreferenceManager
@@ -41,6 +36,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
+import com.wirelessalien.android.moviedb.databinding.ShowCardBinding
+import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromList
 import kotlinx.coroutines.CoroutineScope
@@ -68,12 +65,13 @@ class ShowPagingAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShowItemViewHolder {
-        val view = if (gridView) {
-            LayoutInflater.from(parent.context).inflate(R.layout.show_grid_card, parent, false)
+        return if (gridView) {
+            val gridBinding = ShowGridCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ShowItemViewHolder(null, gridBinding)
         } else {
-            LayoutInflater.from(parent.context).inflate(R.layout.show_card, parent, false)
+            val binding = ShowCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ShowItemViewHolder(binding, null)
         }
-        return ShowItemViewHolder(view, gridView)
     }
 
     override fun onBindViewHolder(holder: ShowItemViewHolder, position: Int) {
@@ -93,16 +91,11 @@ class ShowPagingAdapter(
                     )
                 )
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/$imageSize" + showData.getString(
-                    KEY_POSTER
-                ))
+                Picasso.get().load("https://image.tmdb.org/t/p/$imageSize" + showData.getString(KEY_POSTER))
                     .into(holder.showImage)
             }
 
-            val name = if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(
-                KEY_NAME
-            )
-
+            val name = if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(KEY_NAME)
             holder.showTitle.text = name
 
             if (showData.has(KEY_CATEGORIES)) {
@@ -114,17 +107,13 @@ class ShowPagingAdapter(
                     4 -> "Dropped"
                     else -> "Unknown"
                 }
-                (holder.categoryColorView as TextView).text = categoryText
-                holder.categoryColorView.visibility = View.VISIBLE
+                holder.binding?.categoryColor?.text = categoryText
+                holder.binding?.categoryColor?.visibility = View.VISIBLE
             } else {
-                holder.categoryColorView.visibility = View.GONE
+                holder.binding?.categoryColor?.visibility = View.GONE
             }
 
-            var dateString =
-                if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(
-                    KEY_DATE_SERIES
-                )
-
+            var dateString = if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(KEY_DATE_SERIES)
             val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             try {
                 val date = originalFormat.parse(dateString)
@@ -137,7 +126,6 @@ class ShowPagingAdapter(
 
             if (!gridView) {
                 holder.showDescription?.text = showData.getString(KEY_DESCRIPTION)
-
                 holder.showRating?.rating = showData.getString(KEY_RATING).toFloat() / 2
 
                 var genreIds = showData.getString(KEY_GENRES)
@@ -147,9 +135,7 @@ class ShowPagingAdapter(
                     ""
                 }
                 val genreArray = genreIds.split(",").dropLastWhile { it.isEmpty() }.toTypedArray()
-
                 val sharedPreferences = context.getSharedPreferences("GenreList", Context.MODE_PRIVATE)
-
                 val genreNames = StringBuilder()
                 for (aGenreArray in genreArray) {
                     if (genreList[aGenreArray] != null) {
@@ -158,7 +144,6 @@ class ShowPagingAdapter(
                         genreNames.append(", ").append(sharedPreferences.getString(aGenreArray, ""))
                     }
                 }
-
                 holder.showGenre?.text = if (genreNames.isNotEmpty()) genreNames.substring(2) else ""
             }
         } catch (e: JSONException) {
@@ -215,20 +200,19 @@ class ShowPagingAdapter(
         return dataList
     }
 
-    /**
-     * The View of every item that is displayed in the grid/list.
-     */
-    class ShowItemViewHolder internal constructor(itemView: View, gridView: Boolean) :
-        RecyclerView.ViewHolder(itemView) {
-        val showView: CardView = itemView.findViewById(R.id.cardView)
-        val showTitle: TextView = itemView.findViewById(R.id.title)
-        val showImage: ImageView = itemView.findViewById(R.id.image)
-        val categoryColorView: View = itemView.findViewById(R.id.categoryColor)
-        val showDescription: TextView? = if (!gridView) itemView.findViewById(R.id.description) else null
-        val showGenre: TextView? = if (!gridView) itemView.findViewById(R.id.genre) else null
-        val showRating: RatingBar? = if (!gridView) itemView.findViewById(R.id.rating) else null
-        val showDate: TextView = itemView.findViewById(R.id.date)
-        val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
+    class ShowItemViewHolder(
+        val binding: ShowCardBinding?,
+        val gridBinding: ShowGridCardBinding?
+    ) : RecyclerView.ViewHolder(gridBinding?.root ?: binding!!.root) {
+
+        val showView = gridBinding?.cardView ?: binding!!.cardView
+        val showTitle = gridBinding?.title ?: binding!!.title
+        val showImage = gridBinding?.image ?: binding!!.image
+        val showDescription = binding?.description
+        val showGenre = binding?.genre
+        val showRating = binding?.rating
+        val showDate = gridBinding?.date ?: binding!!.date
+        val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
     }
 
     companion object {

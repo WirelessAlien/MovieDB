@@ -32,53 +32,45 @@ import android.icu.text.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.RelativeLayout
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.animation.AnimationUtils
-import com.google.android.material.carousel.MaskableFrameLayout
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Picasso.LoadedFrom
 import com.squareup.picasso.Target
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
+import com.wirelessalien.android.moviedb.databinding.TrendingCardBinding
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) : RecyclerView.Adapter<TrendingPagerAdapter.ShowItemViewHolder>() {
+class TrendingPagerAdapter(private val mShowArrayList: ArrayList<JSONObject>?) : RecyclerView.Adapter<TrendingPagerAdapter.ShowItemViewHolder>() {
     fun updateData(newTrendingList: ArrayList<JSONObject>?) {
         mShowArrayList!!.clear()
         mShowArrayList.addAll(newTrendingList!!)
     }
 
     override fun getItemCount(): Int {
-        // Return the amount of items in the list.
         return mShowArrayList!!.size
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShowItemViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.trending_card, parent, false)
-        return ShowItemViewHolder(view)
+        val binding = TrendingCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ShowItemViewHolder(binding)
     }
 
     @SuppressLint("RestrictedApi")
     override fun onBindViewHolder(holder: ShowItemViewHolder, position: Int) {
-        val showData =
-            (if (!mShowArrayList.isNullOrEmpty()) mShowArrayList[position % mShowArrayList.size] else null) ?: return
-        val context = holder.showView.context
+        val showData = mShowArrayList?.get(position % mShowArrayList.size) ?: return
+        val context = holder.binding.root.context
 
-        // Fills the views with show details.
         try {
-            // Load the thumbnail with Picasso.
             val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w500"
@@ -86,45 +78,32 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
             val isDarkTheme = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
             try {
                 if (showData.getString(KEY_IMAGE) == "null") {
-                    holder.showImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
+                    holder.binding.movieImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
                 } else {
-                    val imageUrl = "https://image.tmdb.org/t/p/$imageSize" + showData.getString(
-                        KEY_IMAGE
-                    )
+                    val imageUrl = "https://image.tmdb.org/t/p/$imageSize" + showData.getString(KEY_IMAGE)
                     holder.target = object : Target {
                         override fun onBitmapLoaded(bitmap: Bitmap, from: LoadedFrom) {
-                            holder.showImage.setImageBitmap(bitmap)
+                            holder.binding.movieImage.setImageBitmap(bitmap)
                             val palette = Palette.from(bitmap).generate()
-                            val darkMutedColor = palette.getDarkMutedColor(
-                                palette.getMutedColor(Color.BLACK))
-
-                            val lightMutedColor = palette.getLightMutedColor(
-                                palette.getMutedColor(Color.WHITE))
-
+                            val darkMutedColor = palette.getDarkMutedColor(palette.getMutedColor(Color.BLACK))
+                            val lightMutedColor = palette.getLightMutedColor(palette.getMutedColor(Color.WHITE))
                             val foregroundGradientDrawable: GradientDrawable = if (isDarkTheme) {
-                                GradientDrawable(
-                                    GradientDrawable.Orientation.BOTTOM_TOP,
-                                    intArrayOf(darkMutedColor, darkMutedColor, darkMutedColor, Color.TRANSPARENT))
+                                GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(darkMutedColor, darkMutedColor, darkMutedColor, Color.TRANSPARENT))
                             } else {
-                                GradientDrawable(
-                                    GradientDrawable.Orientation.BOTTOM_TOP,
-                                    intArrayOf(lightMutedColor, lightMutedColor, lightMutedColor, Color.TRANSPARENT))
+                                GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(lightMutedColor, lightMutedColor, lightMutedColor, Color.TRANSPARENT))
                             }
-                            holder.movieInfo.background = foregroundGradientDrawable
+                            holder.binding.movieInfo.background = foregroundGradientDrawable
                         }
 
                         override fun onBitmapFailed(e: Exception, errorDrawable: Drawable?) {
                             val fallbackDrawable = errorDrawable ?: ContextCompat.getColor(context, R.color.md_theme_surface)
-                            holder.showImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
-                            holder.showImage.setBackgroundColor(fallbackDrawable as Int)
+                            holder.binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
+                            holder.binding.movieImage.setBackgroundColor(fallbackDrawable as Int)
                         }
 
                         override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                            // Ensure placeHolderDrawable is not null
                             placeHolderDrawable ?: ContextCompat.getColor(context, R.color.md_theme_outline)
-                            holder.showImage.setBackgroundColor(
-                                ContextCompat.getColor(context, R.color.md_theme_surface)
-                            )
+                            holder.binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
                         }
                     }
                     Picasso.get().load(imageUrl).into(holder.target)
@@ -133,40 +112,24 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
                 e.printStackTrace()
             }
 
-            // Check if the object has "title" if not,
-            // it is a series and "name" is used.
-            val name =
-                if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(
-                    KEY_NAME
-                )
+            val name = if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(KEY_NAME)
+            holder.binding.movieTitle.text = name
 
-            // Set the title and description.
-            holder.showTitle.text = name
-
-            // Check if the object has "title" if not,
-            // it is a series and "name" is used.
-            var dateString =
-                if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(
-                    KEY_DATE_SERIES
-                )
-
-            // Convert date to locale.
+            var dateString = if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(KEY_DATE_SERIES)
             val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             try {
                 val date = originalFormat.parse(dateString)
-                val localFormat =
-                    DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+                val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                 dateString = localFormat.format(date)
             } catch (e: ParseException) {
                 e.printStackTrace()
             }
-            holder.showDate.text = dateString
+            holder.binding.date.text = dateString
         } catch (e: JSONException) {
             e.printStackTrace()
         }
 
-        // Send the movie data and the user to DetailActivity when clicking on a card.
-        holder.itemView.setOnClickListener { view: View ->
+        holder.binding.root.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
             if (showData.has(KEY_NAME)) {
@@ -174,48 +137,22 @@ class TrendingPagerAdapter (private val mShowArrayList: ArrayList<JSONObject>?) 
             }
             view.context.startActivity(intent)
         }
-        if (holder.itemView is MaskableFrameLayout) {
-            (holder.itemView as MaskableFrameLayout).setOnMaskChangedListener { maskRect: RectF ->
-                // Any custom motion to run when mask size changes
-                holder.showTitle.translationX = maskRect.left
-                holder.showDate.translationX = maskRect.left
-                holder.trendingText.translationX = maskRect.left
-                holder.showTitle.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
-                holder.showDate.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
-                holder.trendingText.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
-            }
+        holder.binding.root.setOnMaskChangedListener { maskRect: RectF ->
+            holder.binding.movieTitle.translationX = maskRect.left
+            holder.binding.date.translationX = maskRect.left
+            holder.binding.trendingText.translationX = maskRect.left
+            holder.binding.movieTitle.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
+            holder.binding.date.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
+            holder.binding.trendingText.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
         }
     }
 
     override fun getItemId(position: Int): Long {
-        // The id is the same as the position,
-        // therefore returning the position is enough.
         return position.toLong()
     }
 
-    /**
-     * The View of every item that is displayed in the list.
-     */
-    class ShowItemViewHolder internal constructor(itemView: View) :
-        RecyclerView.ViewHolder(itemView) {
-        val showView: View
-        val trendingText: TextView
-        val showTitle: TextView
-        val showImage: ImageView
-        val showDate: TextView
-        var movieInfo: RelativeLayout
+    class ShowItemViewHolder(val binding: TrendingCardBinding) : RecyclerView.ViewHolder(binding.root) {
         lateinit var target: Target
-
-        init {
-            showView = itemView.findViewById(R.id.cardView2)
-            trendingText = itemView.findViewById(R.id.trendingText)
-            showTitle = itemView.findViewById(R.id.movieTitle)
-            showImage = itemView.findViewById(R.id.movieImage)
-            movieInfo = itemView.findViewById(R.id.movieInfo)
-
-            // Only used if presented in a list.
-            showDate = itemView.findViewById(R.id.date)
-        }
     }
 
     companion object {

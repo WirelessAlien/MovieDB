@@ -63,6 +63,12 @@
             android:title="@string/default_media_type"
             android:summary="@string/show_shows_as_default_in_the_account_tab"
             app:iconSpaceReserved="false"/>
+
+        <Preference
+            android:key="sync_provider"
+            app:title="Sync provider"
+            android:summary="Select the sync provider for the app"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/notification"

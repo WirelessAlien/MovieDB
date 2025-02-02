@@ -25,34 +25,31 @@ import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.databinding.ActivitySettingsBinding
 import com.wirelessalien.android.moviedb.fragment.SettingsFragment
 
 class SettingsActivity : AppCompatActivity() {
     var mTabsPreferenceChanged = false
+    private lateinit var binding: ActivitySettingsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // Set up the toolbar
-        val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
-        toolbar.title = getString(R.string.action_settings)
-        setSupportActionBar(toolbar)
+        binding.toolbar.title = getString(R.string.action_settings)
+        setSupportActionBar(binding.toolbar)
 
-        // Display the fragment as the main content.
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentCntainer, SettingsFragment())
             .commit()
 
-        // Add back button to the activity
         val actionBar = supportActionBar
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true)
             actionBar.setHomeButtonEnabled(true)
         }
 
-        // Handle back button press
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 finishActivity()

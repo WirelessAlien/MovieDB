@@ -25,22 +25,19 @@ import android.icu.text.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
+import com.wirelessalien.android.moviedb.databinding.BottomSheetSeasonEpisodeBinding
+import com.wirelessalien.android.moviedb.databinding.ShowCardTraktBinding
+import com.wirelessalien.android.moviedb.databinding.ShowGridCardTraktBinding
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import org.json.JSONArray
 import org.json.JSONException
@@ -66,17 +63,45 @@ class ShowProgressTraktAdapter(
     }
 
     override fun getItemCount(): Int {
-        // Return the amount of items in the list.
         return mShowArrayList.size
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShowItemViewHolder {
-        val view: View = if (mGridView) {
-            LayoutInflater.from(parent.context).inflate(R.layout.show_grid_card_trakt, parent, false)
-        } else {
-            LayoutInflater.from(parent.context).inflate(R.layout.show_card_trakt, parent, false)
+    class ShowDiffCallback(
+        private val oldList: List<JSONObject>,
+        private val newList: List<JSONObject>
+    ) : DiffUtil.Callback() {
+
+        override fun getOldListSize(): Int = oldList.size
+
+        override fun getNewListSize(): Int = newList.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].getString("auto_id") == newList[newItemPosition].getString("auto_id")
         }
-        return ShowItemViewHolder(view, mGridView)
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].toString() == newList[newItemPosition].toString()
+        }
+    }
+
+
+    fun updateShowList(newShowList: ArrayList<JSONObject>) {
+        val diffCallback = ShowDiffCallback(mShowArrayList, newShowList)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+
+        mShowArrayList.clear()
+        mShowArrayList.addAll(newShowList)
+        diffResult.dispatchUpdatesTo(this)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShowItemViewHolder {
+        return if (mGridView) {
+            val gridBinding = ShowGridCardTraktBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ShowItemViewHolder(null, gridBinding)
+        } else {
+            val binding = ShowCardTraktBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ShowItemViewHolder(binding, null)
+        }
     }
 
     override fun onBindViewHolder(holder: ShowItemViewHolder, position: Int) {
@@ -142,9 +167,9 @@ class ShowProgressTraktAdapter(
 
             holder.showSeasonBtn?.setOnClickListener {
                 val bottomSheetDialog = BottomSheetDialog(context)
-                val bottomSheetView = LayoutInflater.from(context).inflate(R.layout.bottom_sheet_season_episode, null)
-                val chipGroupSeasons = bottomSheetView.findViewById<ChipGroup>(R.id.chipGroupSeasons)
-                val recyclerViewEpisodes = bottomSheetView.findViewById<RecyclerView>(R.id.recyclerViewEpisodes)
+                val bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
+                val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
+                val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
 
                 recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
@@ -152,7 +177,7 @@ class ShowProgressTraktAdapter(
 
                 seasons.forEach { seasonNumber ->
                     val chip = Chip(context).apply {
-                        text = "Season $seasonNumber"
+                        text = context.getString(R.string.season_p, seasonNumber)
                         isCheckable = true
                         setOnClickListener {
                             val episodes = parseEpisodesForSeasonTmdb(showData.optString("seasons_episode_show_tmdb", ""), seasonNumber)
@@ -171,7 +196,7 @@ class ShowProgressTraktAdapter(
                     chipGroupSeasons.addView(chip)
                 }
 
-                bottomSheetDialog.setContentView(bottomSheetView)
+                bottomSheetDialog.setContentView(bottomSheetBinding.root)
                 bottomSheetDialog.show()
             }
 
@@ -257,34 +282,21 @@ class ShowProgressTraktAdapter(
         return position.toLong()
     }
 
+    class ShowItemViewHolder(
+        val binding: ShowCardTraktBinding?,
+        val gridBinding: ShowGridCardTraktBinding?
+    ) : RecyclerView.ViewHolder(gridBinding?.root ?: binding!!.root) {
 
-    fun addItems(newItems: ArrayList<JSONObject>) {
-        val startPosition = mShowArrayList.size
-        mShowArrayList.addAll(newItems)
-        notifyItemRangeInserted(startPosition, newItems.size)
-    }
-
-    fun updateData(newShowList: ArrayList<JSONObject>) {
-        mShowArrayList = newShowList
-        notifyDataSetChanged()
-    }
-
-    /**
-     * The View of every item that is displayed in the grid/list.
-     */
-    class ShowItemViewHolder internal constructor(itemView: View, gridView: Boolean) :
-        RecyclerView.ViewHolder(itemView) {
-        val showView: CardView = itemView.findViewById(R.id.cardView)
-        val showTitle: TextView = itemView.findViewById(R.id.title)
-        val showImage: ImageView = itemView.findViewById(R.id.image)
-        val showDescription: TextView? = if (!gridView) itemView.findViewById(R.id.description) else null
-        val showGenre: TextView? = if (!gridView) itemView.findViewById(R.id.genre) else null
-        val showRating: RatingBar? = if (!gridView) itemView.findViewById(R.id.rating) else null
-        val showDate: TextView = itemView.findViewById(R.id.date)
-        val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
-        val watchedProgressBar: LinearProgressIndicator? = itemView.findViewById(R.id.watchedProgress)
-        val showSeasonBtn: TextView? = itemView.findViewById(R.id.showSeasonsButton)
-
+        val showView = gridBinding?.cardView ?: binding!!.cardView
+        val showTitle = gridBinding?.title ?: binding!!.title
+        val showImage = gridBinding?.image ?: binding!!.image
+        val showDescription = binding?.description
+        val showGenre = binding?.genre
+        val showRating = binding?.rating
+        val showDate = gridBinding?.date ?: binding!!.date
+        val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
+        val watchedProgressBar = gridBinding?.watchedProgress ?: binding?.watchedProgress
+        val showSeasonBtn = gridBinding?.showSeasonsButton ?: binding?.showSeasonsButton
     }
 
     companion object {

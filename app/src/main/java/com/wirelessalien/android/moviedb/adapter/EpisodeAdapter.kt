@@ -33,34 +33,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.NumberPicker
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.card.MaterialCardView
-import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.materialswitch.MaterialSwitch
-import com.google.android.material.progressindicator.LinearProgressIndicator
-import com.google.android.material.slider.Slider
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
-import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter.EpisodeViewHolder
 import com.wirelessalien.android.moviedb.data.Episode
+import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
+import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
+import com.wirelessalien.android.moviedb.databinding.DialogEditEpisodeBinding
+import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBinding
 import com.wirelessalien.android.moviedb.databinding.EpisodeItemBinding
+import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
+import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
+import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -88,7 +84,7 @@ import java.util.Locale
 
 class EpisodeAdapter(
     private val context: Context,
-    val episodes: List<Episode>,
+    var episodes: List<Episode>,
     var seasonNumber: Int,
     private var showTitle: String,
     private var tvShowId: Int,
@@ -100,6 +96,7 @@ class EpisodeAdapter(
     private var mediaObject: JSONObject? = null
     private val tktaccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("trakt_access_token", null)
     private lateinit var clientId: String
+
     init {
         CoroutineScope(Dispatchers.Main).launch {
             val getAccountStateTvSeason = GetAccountStateTvSeason(tvShowId, seasonNumber, context, object : GetAccountStateTvSeason.OnDataFetchedListener {
@@ -120,12 +117,37 @@ class EpisodeAdapter(
         }
     }
 
+    class EpisodeDiffCallback(
+        private val oldList: List<Episode>,
+        private val newList: List<Episode>
+    ) : DiffUtil.Callback() {
+
+        override fun getOldListSize(): Int = oldList.size
+
+        override fun getNewListSize(): Int = newList.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].episodeNumber == newList[newItemPosition].episodeNumber
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition] == newList[newItemPosition]
+        }
+    }
+
+    fun updateEpisodes(newEpisodes: List<Episode>) {
+        val diffCallback = EpisodeDiffCallback(this.episodes, newEpisodes)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        this.episodes = newEpisodes
+        diffResult.dispatchUpdatesTo(this)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodeViewHolder {
         val binding = EpisodeItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         clientId = ConfigHelper.getConfigValue(context, "client_id")?:""
-        when (defaultSharedPreferences.getString("selected_episode_edit_button", "LOCAL")) {
-            "LOCAL" -> {
+        when (defaultSharedPreferences.getString("sync_provider", "local")) {
+            "local" -> {
                 binding.toggleButtonGroup.check(R.id.btnLocal)
                 binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
                 binding.btnWatchedToLocalDb.visibility = View.VISIBLE
@@ -136,7 +158,7 @@ class EpisodeAdapter(
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddTraktRating.visibility = View.GONE
             }
-            "TMDB" -> {
+            "tmdb" -> {
                 binding.toggleButtonGroup.check(R.id.btnTmdb)
                 binding.btnAddDetailsToLocalDb.visibility = View.GONE
                 binding.btnWatchedToLocalDb.visibility = View.GONE
@@ -148,7 +170,7 @@ class EpisodeAdapter(
                 binding.btnAddTraktRating.visibility = View.GONE
 
             }
-            "TRAKT" -> {
+            "trakt" -> {
                 binding.toggleButtonGroup.check(R.id.btnTrakt)
                 binding.btnAddDetailsToLocalDb.visibility = View.GONE
                 binding.btnWatchedToLocalDb.visibility = View.GONE
@@ -206,11 +228,23 @@ class EpisodeAdapter(
         val sessionId = defaultSharedPreferences.getString("access_token", null)
         val accountId = defaultSharedPreferences.getString("account_id", null)
 
-//        if (sessionId == null || accountId == null) {
-//            holder.binding.rateBtn.visibility = View.GONE
-//        } else {
-//            holder.binding.rateBtn.visibility = View.VISIBLE
-//        }
+        holder.binding.btnAddRatingToTmdb.isEnabled = !(sessionId == null || accountId == null)
+
+        val traktAccessToken = defaultSharedPreferences.getString("trakt_access_token", null)
+
+        if (traktAccessToken == null) {
+            holder.binding.btnAddToTraktCollection.isEnabled = false
+            holder.binding.btnAddToTraktHistory.isEnabled = false
+            holder.binding.btnAddToTraktList.isEnabled = false
+            holder.binding.btnAddToTraktWatchlist.isEnabled = false
+            holder.binding.btnAddTraktRating.isEnabled = false
+        } else {
+            holder.binding.btnAddToTraktCollection.isEnabled = true
+            holder.binding.btnAddToTraktHistory.isEnabled = true
+            holder.binding.btnAddToTraktList.isEnabled = true
+            holder.binding.btnAddToTraktWatchlist.isEnabled = true
+            holder.binding.btnAddTraktRating.isEnabled = true
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             val isInCollection = TraktDatabaseHelper(context).use { db ->
@@ -259,8 +293,10 @@ class EpisodeAdapter(
             MovieDatabaseHelper(context).use { db ->
                 if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
                     holder.binding.btnWatchedToLocalDb.text = context.getString(R.string.watched)
+                    holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
                 } else {
                     holder.binding.btnWatchedToLocalDb.text = context.getString(R.string.not_watched)
+                    holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
                 }
                 holder.binding.btnWatchedToLocalDb.setOnClickListener {
                     // If the episode is in the database, remove it
@@ -268,13 +304,13 @@ class EpisodeAdapter(
                         db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
 
                         holder.binding.btnWatchedToLocalDb.text = context.getString(R.string.not_watched)
-
+                        holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
                     } else {
                         // If the episode is not in the database, add it
                         db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
 
                         holder.binding.btnWatchedToLocalDb.text = context.getString(R.string.watched)
-
+                        holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
                     }
                 }
             }
@@ -365,57 +401,47 @@ class EpisodeAdapter(
 
         holder.binding.btnAddDetailsToLocalDb.setOnClickListener {
             val dialog = BottomSheetDialog(context)
-            val inflater = LayoutInflater.from(context)
-            val dialogView = inflater.inflate(R.layout.dialog_edit_episode, null)
-            dialog.setContentView(dialogView)
+            val binding = DialogEditEpisodeBinding.inflate(LayoutInflater.from(context))
+            dialog.setContentView(binding.root)
             dialog.show()
-            val dateTextView = dialogView.findViewById<TextInputEditText>(R.id.dateTextView)
-            val ratingSlider = dialogView.findViewById<Slider>(R.id.episodeRatingSlider)
-            val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
-            val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
-            val dateButton = dialogView.findViewById<Button>(R.id.dateButton)
-            val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-            val reviewEditText = dialogView.findViewById<TextInputEditText>(R.id.episodeReview)
-            episodeTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
+
+            binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
 
             // Fetch episode details from the database
             try {
                 MovieDatabaseHelper(context).use { db ->
                     val details = db.getEpisodeDetails(tvShowId, seasonNumber, episode.episodeNumber)
                     if (details != null) {
-                        dateTextView.text = Editable.Factory.getInstance().newEditable(details.watchDate)
+                        binding.dateTextView.text = Editable.Factory.getInstance().newEditable(details.watchDate)
                         if (details.rating?.toDouble() != 0.0 && details.rating != null) {
                             val rating1 = if (details.rating > 10.0) 10.0 else details.rating
-                            ratingSlider.value = rating1.toFloat()
+                            binding.episodeRatingSlider.value = rating1.toFloat()
                         }
-                        reviewEditText.setText(details.review)
+                        binding.episodeReview.setText(details.review)
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
-            dateButton.setOnClickListener {
+            binding.dateButton.setOnClickListener {
                 val formatDialog = BottomSheetDialog(context)
-                val formatView = inflater.inflate(R.layout.dialog_date_format, null)
-                formatDialog.setContentView(formatView)
+                val formatBinding = DialogDateFormatBinding.inflate(LayoutInflater.from(context))
+                formatDialog.setContentView(formatBinding.root)
                 formatDialog.show()
 
-                val yearButton = formatView.findViewById<Button>(R.id.btnYear)
-                val fullDateButton = formatView.findViewById<Button>(R.id.btnFullDate)
-
-                yearButton.setOnClickListener {
+                formatBinding.btnYear.setOnClickListener {
                     showYearMonthPickerDialog(context) { selectedYear, selectedMonth ->
                         if (selectedMonth == null) {
-                            dateTextView.text = Editable.Factory.getInstance().newEditable("$selectedYear-00-00")
+                            binding.dateTextView.text = Editable.Factory.getInstance().newEditable("$selectedYear-00-00")
                         } else {
-                            dateTextView.text = Editable.Factory.getInstance().newEditable(String.format(Locale.ENGLISH, "%d-%02d-00", selectedYear, selectedMonth))
+                            binding.dateTextView.text = Editable.Factory.getInstance().newEditable(String.format(Locale.ENGLISH, "%d-%02d-00", selectedYear, selectedMonth))
                         }
                     }
                     formatDialog.dismiss()
                 }
 
-                fullDateButton.setOnClickListener {
+                formatBinding.btnFullDate.setOnClickListener {
                     val datePicker = MaterialDatePicker.Builder.datePicker()
                         .setTitleText(context.getString(R.string.select_a_date))
                         .build()
@@ -423,19 +449,19 @@ class EpisodeAdapter(
                     datePicker.addOnPositiveButtonClickListener { selection: Long? ->
                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                         val selectedDate = sdf.format(Date(selection!!))
-                        dateTextView.text = Editable.Factory.getInstance().newEditable(selectedDate)
+                        binding.dateTextView.text = Editable.Factory.getInstance().newEditable(selectedDate)
                     }
                     formatDialog.dismiss()
                 }
             }
 
-            submitButton.setOnClickListener {
-                val episodeRating = ratingSlider.value
+            binding.btnSubmit.setOnClickListener {
+                val episodeRating = binding.episodeRatingSlider.value
                 if (episodeRating > 10.0) {
                     // This should not happen as the slider's max value is 10.0
                 } else {
-                    val date = dateTextView.text.toString()
-                    val review = reviewEditText.text.toString()
+                    val date = binding.dateTextView.text.toString()
+                    val review = binding.episodeReview.text.toString()
                     val adapterPosition = holder.bindingAdapterPosition
                     val episode1 = episodes[adapterPosition]
                     episode1.setWatchDate(date)
@@ -452,25 +478,26 @@ class EpisodeAdapter(
                     dialog.dismiss()
                 }
             }
-            cancelButton.setOnClickListener { dialog.dismiss() }
+            binding.btnCancel.setOnClickListener { dialog.dismiss() }
         }
 
         holder.binding.btnAddRatingToTmdb.setOnClickListener {
             val dialog = BottomSheetDialog(context)
-            val inflater = LayoutInflater.from(context)
-            val dialogView = inflater.inflate(R.layout.rating_dialog, null)
-            dialog.setContentView(dialogView)
+            val binding = RatingDialogBinding.inflate(LayoutInflater.from(context))
+            dialog.setContentView(binding.root)
             dialog.show()
-            val ratingSlider = dialogView.findViewById<Slider>(R.id.ratingSlider)
-            val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
-            val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
-            val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
-            val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-            episodeTitle.text = "S:" + seasonNumber + " " + "E:" + episode.episodeNumber + " " + episode.name
+
+            binding.tvTitle.text = context.getString(
+                R.string.season_episode_p,
+                seasonNumber,
+                episode.episodeNumber,
+                episode.name
+            )
+
             Handler(Looper.getMainLooper())
-            submitButton.setOnClickListener {
+            binding.btnSubmit.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
-                    val ratingS = ratingSlider.value.toDouble()
+                    val ratingS = binding.ratingSlider.value.toDouble()
                     val addEpisodeRating = AddEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, ratingS, context)
                     addEpisodeRating.addRating()
                     if (addEpisodeRating.isSuccessful()) {
@@ -481,7 +508,7 @@ class EpisodeAdapter(
                     dialog.dismiss()
                 }
             }
-            deleteButton.setOnClickListener {
+            binding.btnDelete.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
                     val deleteEpisodeRating = DeleteEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, context)
                     deleteEpisodeRating.deleteEpisodeRating()
@@ -491,7 +518,7 @@ class EpisodeAdapter(
                     dialog.dismiss()
                 }
             }
-            cancelButton.setOnClickListener { dialog.dismiss() }
+            binding.btnCancel.setOnClickListener { dialog.dismiss() }
         }
 
         holder.binding.btnAddToTraktWatchlist.setOnClickListener {
@@ -564,45 +591,35 @@ class EpisodeAdapter(
 
     private fun showRatingDialogTrakt(episode: Episode, holder: EpisodeViewHolder) {
         val dialog = BottomSheetDialog(context)
-        val inflater = LayoutInflater.from(context)
-        val dialogView = inflater.inflate(R.layout.rating_dialog_trakt, null)
-        dialog.setContentView(dialogView)
+        val binding = RatingDialogTraktBinding.inflate(LayoutInflater.from(context))
+        dialog.setContentView(binding.root)
         dialog.show()
 
-        val ratingSlider = dialogView.findViewById<Slider>(R.id.ratingSlider)
-        val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
-        val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
-        val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
-        val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-        val ratedAt = dialogView.findViewById<TextInputEditText>(R.id.ratedDate)
-        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
-        val progressIndicator = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
+        binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
 
-        episodeTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
-
-        progressIndicator.visibility = View.VISIBLE
+        binding.progressIndicator.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {
             val rating = TraktDatabaseHelper(context).use { db ->
                 db.getEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber)
             }
 
             withContext(Dispatchers.Main) {
-                progressIndicator.visibility = View.GONE
-                ratingSlider.value = rating.toFloat()
+                binding.progressIndicator.visibility = View.GONE
+                binding.ratingSlider.value = rating.toFloat()
             }
         }
 
         val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(Date())
-        ratedAt.setText(currentDateTime)
+        binding.ratedDate.setText(currentDateTime)
 
-        selectDateButton.setOnClickListener {
+        binding.btnSelectDate.setOnClickListener {
             showDatePicker { selectedDate ->
-                ratedAt.setText(selectedDate)
+                binding.ratedDate.setText(selectedDate)
             }
         }
 
-        submitButton.setOnClickListener {
-            progressIndicator.visibility = View.VISIBLE
+        binding.btnSubmit.setOnClickListener {
+            binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.IO).launch {
                 val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
                 val episodeObject = if (episodeData != null) {
@@ -613,8 +630,8 @@ class EpisodeAdapter(
                         put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
                     }
 
-                    val rating = ratingSlider.value.toInt()
-                    val ratedAtE = ratedAt.text.toString()
+                    val rating = binding.ratingSlider.value.toInt()
+                    val ratedAtE = binding.ratedDate.text.toString()
 
                     val episodeDetails = JSONObject().apply {
                         put("rated_at", ratedAtE)
@@ -632,17 +649,17 @@ class EpisodeAdapter(
                 withContext(Dispatchers.Main) {
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/ratings", episode, ratingSlider.value.toInt(), holder)
+                        traktSync("sync/ratings", episode, binding.ratingSlider.value.toInt(), holder)
                     }
-                    progressIndicator.visibility = View.GONE
+                    binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
                 }
             }
         }
 
-        cancelButton.setOnClickListener { dialog.dismiss() }
-        deleteButton.setOnClickListener {
-            progressIndicator.visibility = View.VISIBLE
+        binding.btnCancel.setOnClickListener { dialog.dismiss() }
+        binding.btnDelete.setOnClickListener {
+            binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.IO).launch {
                 val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
                 val episodeObject = if (episodeData != null) {
@@ -664,7 +681,7 @@ class EpisodeAdapter(
                         mediaObject = episodeObject
                         traktSync("sync/ratings/remove", episode, 0, holder)
                     }
-                    progressIndicator.visibility = View.GONE
+                    binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
                 }
             }
@@ -673,27 +690,13 @@ class EpisodeAdapter(
 
     private fun showWatchOptionsDialog(episode: Episode, holder: EpisodeViewHolder) {
         val dialog = BottomSheetDialog(context)
-        val inflater = LayoutInflater.from(context)
-        val dialogView = inflater.inflate(R.layout.history_dialog_trakt, null)
-        dialog.setContentView(dialogView)
+        val binding = HistoryDialogTraktBinding.inflate(LayoutInflater.from(context))
+        dialog.setContentView(binding.root)
         dialog.show()
 
-        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-        val watchingNowButton = dialogView.findViewById<Button>(R.id.btnWatchingNow)
-        val watchedAtReleaseButton = dialogView.findViewById<Button>(R.id.btnWatchedAtRelease)
-        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
-        val selectedDateEditText = dialogView.findViewById<TextInputEditText>(R.id.etSelectedDate)
-        val updateButton = dialogView.findViewById<Button>(R.id.btnSave)
-        val timesPlayed = dialogView.findViewById<TextView>(R.id.timePlayed)
-        val lastWatched = dialogView.findViewById<TextView>(R.id.lastWatched)
-        val historyCard = dialogView.findViewById<MaterialCardView>(R.id.historyCard)
-        val removeHistory = dialogView.findViewById<ImageView>(R.id.removeHistory)
+        binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
 
-        val progressBar = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
-
-        movieTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
-
-        progressBar.visibility = View.VISIBLE
+        binding.progressIndicator.visibility = View.VISIBLE
 
         CoroutineScope(Dispatchers.Main).launch {
             val watchedData = withContext(Dispatchers.IO) {
@@ -713,24 +716,24 @@ class EpisodeAdapter(
                 }
             }
 
-            progressBar.visibility = View.GONE
+            binding.progressIndicator.visibility = View.GONE
             if (watchedData != null) {
-                historyCard.visibility = View.VISIBLE
-                timesPlayed.text = watchedData.first.toString()
-                lastWatched.text = context.getString(R.string.last_watched, watchedData.second)
+                binding.historyCard.visibility = View.VISIBLE
+                binding.timePlayed.text = watchedData.first.toString()
+                binding.lastWatched.text = context.getString(R.string.last_watched, watchedData.second)
             } else {
-                timesPlayed.visibility = View.GONE
-                lastWatched.visibility = View.GONE
-                historyCard.visibility = View.GONE
+                binding.timePlayed.visibility = View.GONE
+                binding.lastWatched.visibility = View.GONE
+                binding.historyCard.visibility = View.GONE
             }
         }
 
-        removeHistory.setOnClickListener {
+        binding.removeHistory.setOnClickListener {
             val dialogBuilder = MaterialAlertDialogBuilder(context)
-            dialogBuilder.setTitle("Remove from history")
-            dialogBuilder.setMessage("Are you sure you want to remove this item from your history?")
-            dialogBuilder.setPositiveButton("Yes") { _, _ ->
-                progressBar.visibility = View.VISIBLE
+            dialogBuilder.setTitle(context.getString(R.string.remove_from_history))
+            dialogBuilder.setMessage(context.getString(R.string.remove_from_history_confirmation))
+            dialogBuilder.setPositiveButton(context.getString(R.string.yes)) { _, _ ->
+                binding.progressIndicator.visibility = View.VISIBLE
                 CoroutineScope(Dispatchers.Main).launch {
                     val episodeObject = withContext(Dispatchers.IO) {
                         val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -758,16 +761,16 @@ class EpisodeAdapter(
                         mediaObject = episodeObject
                         traktSync("sync/history/remove", episode, 0, holder)
                     }
-                    progressBar.visibility = View.GONE
+                    binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
                 }
             }
-            dialogBuilder.setNegativeButton("No") { _, _ -> }
+            dialogBuilder.setNegativeButton(context.getString(R.string.no)) { _, _ -> }
             dialogBuilder.show()
         }
 
-        watchingNowButton.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
+        binding.btnWatchingNow.setOnClickListener {
+            binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeObject = withContext(Dispatchers.IO) {
                     val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -795,13 +798,13 @@ class EpisodeAdapter(
                     mediaObject = episodeObject
                     traktSync("checkin", episode, 0, holder)
                 }
-                progressBar.visibility = View.GONE
+                binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
             }
         }
 
-        watchedAtReleaseButton.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
+        binding.btnWatchedAtRelease.setOnClickListener {
+            binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeObject = withContext(Dispatchers.IO) {
                     val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -830,22 +833,22 @@ class EpisodeAdapter(
                     mediaObject = episodeObject
                     traktSync("sync/history", episode, 0, holder)
                 }
-                progressBar.visibility = View.GONE
+                binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
             }
         }
 
-        selectDateButton.setOnClickListener {
-            updateButton.visibility = View.VISIBLE
+        binding.btnSelectDate.setOnClickListener {
+            binding.btnSave.visibility = View.VISIBLE
             showDatePicker { selectedDate ->
-                selectedDateEditText.setText(selectedDate)
+                binding.etSelectedDate.setText(selectedDate)
             }
         }
 
-        updateButton.setOnClickListener {
-            val selectedDate = selectedDateEditText.text.toString()
+        binding.btnSave.setOnClickListener {
+            val selectedDate = binding.etSelectedDate.text.toString()
             if (selectedDate.isNotEmpty()) {
-                progressBar.visibility = View.VISIBLE
+                binding.progressIndicator.visibility = View.VISIBLE
                 CoroutineScope(Dispatchers.Main).launch {
                     val episodeObject = withContext(Dispatchers.IO) {
                         val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -874,34 +877,22 @@ class EpisodeAdapter(
                         mediaObject = episodeObject
                         traktSync("sync/history", episode, 0, holder)
                     }
-                    progressBar.visibility = View.GONE
+                    binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
                 }
             } else {
-                selectedDateEditText.error = "Please select a date"
+                binding.etSelectedDate.error = context.getString(R.string.please_select_a_date)
             }
         }
     }
 
     private fun showCollectionDialog(episode: Episode, holder: EpisodeViewHolder) {
         val dialog = BottomSheetDialog(context)
-        val inflater = LayoutInflater.from(context)
-        val dialogView = inflater.inflate(R.layout.collection_dialog_trakt, null)
-        dialog.setContentView(dialogView)
+        val binding = CollectionDialogTraktBinding.inflate(LayoutInflater.from(context))
+        dialog.setContentView(binding.root)
         dialog.show()
 
-        val movieTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
-        val selectDateButton = dialogView.findViewById<Button>(R.id.btnSelectDate)
-        val selectedDateEditText = dialogView.findViewById<TextInputEditText>(R.id.etSelectedDate)
-        val mediaTypeView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.mediaType)
-        val resolutionView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.resolution)
-        val hdrView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.hdr)
-        val audioView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.audio)
-        val audioChannelsView = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.audioChannels)
-        val switch3D = dialogView.findViewById<MaterialSwitch>(R.id.switch3D)
-        val progressBar = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
-        val removeCollection = dialogView.findViewById<ImageView>(R.id.removeCollection)
-        val saveBtn = dialogView.findViewById<Button>(R.id.btnSave)
+        binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
 
         val mediaTypes = context.resources.getStringArray(R.array.media_types)
         val resolutions = context.resources.getStringArray(R.array.resolutions)
@@ -915,40 +906,36 @@ class EpisodeAdapter(
         val audioAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, audioTypes)
         val audioChannelsAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, audioChannels)
 
-        mediaTypeView.setAdapter(mediaTypeAdapter)
-        resolutionView.setAdapter(resolutionAdapter)
-        hdrView.setAdapter(hdrAdapter)
-        audioView.setAdapter(audioAdapter)
-        audioChannelsView.setAdapter(audioChannelsAdapter)
+        binding.mediaType.setAdapter(mediaTypeAdapter)
+        binding.resolution.setAdapter(resolutionAdapter)
+        binding.hdr.setAdapter(hdrAdapter)
+        binding.audio.setAdapter(audioAdapter)
+        binding.audioChannels.setAdapter(audioChannelsAdapter)
 
-        movieTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
-
-        progressBar.visibility = View.VISIBLE
+        binding.progressIndicator.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {
             val isInCollection = TraktDatabaseHelper(context).use { db ->
                 db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber)
             }
 
             withContext(Dispatchers.Main) {
-                progressBar.visibility = View.GONE
-                val isCollectedTextView = dialogView.findViewById<TextView>(R.id.isCollected)
-                val collectedCard = dialogView.findViewById<MaterialCardView>(R.id.collectedCard)
+                binding.progressIndicator.visibility = View.GONE
                 if (isInCollection) {
-                    isCollectedTextView.visibility = View.VISIBLE
-                    collectedCard.visibility = View.VISIBLE
+                    binding.isCollected.visibility = View.VISIBLE
+                    binding.collectedCard.visibility = View.VISIBLE
                 } else {
-                    isCollectedTextView.visibility = View.GONE
-                    collectedCard.visibility = View.GONE
+                    binding.isCollected.visibility = View.GONE
+                    binding.collectedCard.visibility = View.GONE
                 }
             }
         }
 
-        removeCollection.setOnClickListener {
+        binding.removeCollection.setOnClickListener {
             val dialogBuilder = MaterialAlertDialogBuilder(context)
-            dialogBuilder.setTitle("Remove from collection")
-            dialogBuilder.setMessage("Are you sure you want to remove this item from your collection?")
-            dialogBuilder.setPositiveButton("Yes") { _, _ ->
-                progressBar.visibility = View.VISIBLE
+            dialogBuilder.setTitle(context.getString(R.string.remove_from_collection))
+            dialogBuilder.setMessage(context.getString(R.string.remove_from_collection_confirmation))
+            dialogBuilder.setPositiveButton(context.getString(R.string.yes)) { _, _ ->
+                binding.progressIndicator.visibility = View.VISIBLE
                 CoroutineScope(Dispatchers.Main).launch {
                     val episodeObject = withContext(Dispatchers.IO) {
                         val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -976,30 +963,30 @@ class EpisodeAdapter(
                         mediaObject = episodeObject
                         traktSync("sync/collection/remove", episode, 0, holder)
                     }
-                    progressBar.visibility = View.GONE
+                    binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
                 }
             }
-            dialogBuilder.setNegativeButton("No") { _, _ -> }
+            dialogBuilder.setNegativeButton(context.getString(R.string.no)) { _, _ -> }
             dialogBuilder.show()
         }
 
-        selectDateButton.setOnClickListener {
+        binding.btnSelectDate.setOnClickListener {
             showDatePicker { selectedDate ->
-                selectedDateEditText.setText(selectedDate)
+                binding.etSelectedDate.setText(selectedDate)
             }
         }
 
-        saveBtn.setOnClickListener {
-            val selectedDate = selectedDateEditText.text.toString()
-            val mediaType = mediaTypeView.text.toString()
-            val resolution = resolutionView.text.toString()
-            val hdr = hdrView.text.toString()
-            val audio = audioView.text.toString()
-            val audioChannel = audioChannelsView.text.toString()
-            val is3D = switch3D.isChecked
+        binding.btnSave.setOnClickListener {
+            val selectedDate = binding.etSelectedDate.text.toString()
+            val mediaType = binding.mediaType.text.toString()
+            val resolution = binding.resolution.text.toString()
+            val hdr = binding.hdr.text.toString()
+            val audio = binding.audio.text.toString()
+            val audioChannel = binding.audioChannels.text.toString()
+            val is3D = binding.switch3D.isChecked
 
-            progressBar.visibility = View.VISIBLE
+            binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeObject = withContext(Dispatchers.IO) {
                     val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -1034,7 +1021,7 @@ class EpisodeAdapter(
                     mediaObject = episodeObject
                     traktSync("sync/collection", episode, 0, holder)
                 }
-                progressBar.visibility = View.GONE
+                binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
             }
         }
@@ -1082,7 +1069,8 @@ class EpisodeAdapter(
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(context, "Failed to sync $endpoint", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -1095,7 +1083,7 @@ class EpisodeAdapter(
                                 handleDatabaseUpdate(endpoint, episode, rating)
                             }
                         }
-                        "Success"
+                        context.getString(R.string.success)
                     } else {
                         response.message
                     }
@@ -1156,7 +1144,7 @@ class EpisodeAdapter(
             "sync/collection/remove" -> dbHelper.removeEpisodeFromCollection(tvShowId, seasonNumber, episode.episodeNumber)
             "sync/history" -> {
                 dbHelper.addEpisodeToHistory(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber)
-                dbHelper.addEpisodeToWatched(showTitle, traktId, tvShowId, "show", seasonNumber, episode.episodeNumber)
+                dbHelper.addEpisodeToWatched(showTitle, traktId, tvShowId, seasonNumber, episode.episodeNumber)
             }
             "sync/history/remove" -> {
                 dbHelper.removeEpisodeFromHistory(tvShowId, seasonNumber, episode.episodeNumber)
@@ -1197,7 +1185,7 @@ class EpisodeAdapter(
 
     private fun showDatePicker(onDateSelected: (String) -> Unit) {
         val builder = MaterialDatePicker.Builder.datePicker()
-        builder.setTitleText("Select a date")
+        builder.setTitleText(context.getString(R.string.select_a_date))
         val datePicker = builder.build()
         datePicker.show((context as FragmentActivity).supportFragmentManager, datePicker.toString())
         datePicker.addOnPositiveButtonClickListener { selection ->
@@ -1208,7 +1196,7 @@ class EpisodeAdapter(
                 .setTimeFormat(TimeFormat.CLOCK_24H)
                 .setHour(calendar.get(java.util.Calendar.HOUR_OF_DAY))
                 .setMinute(calendar.get(java.util.Calendar.MINUTE))
-                .setTitleText("Select a time")
+                .setTitleText(context.getString(R.string.select_a_time))
                 .build()
             timePicker.show(context.supportFragmentManager, timePicker.toString())
 
@@ -1226,37 +1214,33 @@ class EpisodeAdapter(
     }
 
     private fun showYearMonthPickerDialog(context: Context, onYearMonthSelected: (Int, Int?) -> Unit) {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_year_month_picker, null)
-        val yearPicker = dialogView.findViewById<NumberPicker>(R.id.yearPicker)
-        val monthPicker = dialogView.findViewById<NumberPicker>(R.id.monthPicker)
-        val monthTitle = dialogView.findViewById<TextView>(R.id.monthTitle)
-        val monthLayout = dialogView.findViewById<LinearLayout>(R.id.monthLayout)
-        val disableMonthPicker = dialogView.findViewById<MaterialCheckBox>(R.id.disableMonthPicker)
+        val binding = DialogYearMonthPickerBinding.inflate(LayoutInflater.from(context))
+        val dialogView = binding.root
 
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        yearPicker.minValue = 1900
-        yearPicker.maxValue = currentYear
-        yearPicker.value = currentYear
+        binding.yearPicker.minValue = 1900
+        binding.yearPicker.maxValue = currentYear
+        binding.yearPicker.value = currentYear
 
         val months = DateFormatSymbols.getInstance(Locale.getDefault()).months
-        monthPicker.minValue = 0
-        monthPicker.maxValue = months.size - 1
-        monthPicker.displayedValues = months
-        monthPicker.value = Calendar.getInstance().get(Calendar.MONTH)
+        binding.monthPicker.minValue = 0
+        binding.monthPicker.maxValue = months.size - 1
+        binding.monthPicker.displayedValues = months
+        binding.monthPicker.value = Calendar.getInstance().get(Calendar.MONTH)
 
-        disableMonthPicker.setOnCheckedChangeListener { _, isChecked ->
-            monthPicker.isEnabled = !isChecked
-            monthPicker.visibility = if (isChecked) View.GONE else View.VISIBLE
-            monthTitle.visibility = if (isChecked) View.GONE else View.VISIBLE
-            monthLayout.visibility = if (isChecked) View.GONE else View.VISIBLE
+        binding.disableMonthPicker.setOnCheckedChangeListener { _, isChecked ->
+            binding.monthPicker.isEnabled = !isChecked
+            binding.monthPicker.visibility = if (isChecked) View.GONE else View.VISIBLE
+            binding.monthTitle.visibility = if (isChecked) View.GONE else View.VISIBLE
+            binding.monthLayout.visibility = if (isChecked) View.GONE else View.VISIBLE
         }
 
         MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.select_year_and_month))
             .setView(dialogView)
             .setPositiveButton(context.getString(R.string.ok)) { _, _ ->
-                val selectedYear = yearPicker.value
-                val selectedMonth = if (disableMonthPicker.isChecked) null else monthPicker.value + 1
+                val selectedYear = binding.yearPicker.value
+                val selectedMonth = if (binding.disableMonthPicker.isChecked) null else binding.monthPicker.value + 1
                 onYearMonthSelected(selectedYear, selectedMonth)
             }
             .setNegativeButton(context.getString(R.string.cancel), null)

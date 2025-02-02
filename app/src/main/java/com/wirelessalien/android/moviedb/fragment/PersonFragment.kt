@@ -33,8 +33,8 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.PersonActivity
-import com.wirelessalien.android.moviedb.adapter.PersonBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.PersonDatabaseAdapter
+import com.wirelessalien.android.moviedb.adapter.PersonPagingAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityPersonBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentPersonBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
@@ -48,7 +48,7 @@ import org.json.JSONObject
 class PersonFragment : BaseFragment() {
 
     private lateinit var mPersonDatabaseAdapter: PersonDatabaseAdapter
-    private lateinit var mPersonAdapter: PersonBaseAdapter
+    private lateinit var mPersonAdapter: PersonPagingAdapter
     private var isShowingDatabasePeople = false
     private lateinit var mGridLayoutManager: GridLayoutManager
     private var apiKeyTmdb: String? = null
@@ -81,7 +81,7 @@ class PersonFragment : BaseFragment() {
             }
         }
 
-        mPersonAdapter = PersonBaseAdapter()
+        mPersonAdapter = PersonPagingAdapter()
         mPersonDatabaseAdapter = PersonDatabaseAdapter(ArrayList())
         showPersonList()
         createPersonList()
@@ -135,7 +135,7 @@ class PersonFragment : BaseFragment() {
     }
 
     private fun createPersonList() {
-        mPersonAdapter = PersonBaseAdapter()
+        mPersonAdapter = PersonPagingAdapter()
         binding.personRecyclerView.adapter = mPersonAdapter
 
         lifecycleScope.launch {

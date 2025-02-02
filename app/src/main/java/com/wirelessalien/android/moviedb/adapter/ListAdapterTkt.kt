@@ -25,6 +25,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ListItemActivityTkt
@@ -47,11 +48,31 @@ class ListAdapterTkt(
         return listData.size
     }
 
-    fun updateData(newData: List<JSONObject>?) {
-        if (newData != null) {
-            listData.addAll(newData)
-            notifyDataSetChanged()
+    class ListDiffCallback(
+        private val oldList: List<JSONObject>,
+        private val newList: List<JSONObject>
+    ) : DiffUtil.Callback() {
+
+        override fun getOldListSize(): Int = oldList.size
+
+        override fun getNewListSize(): Int = newList.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].getInt("trakt_list_id") == newList[newItemPosition].getInt("trakt_list_id")
         }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].toString() == newList[newItemPosition].toString()
+        }
+    }
+
+    fun updateList(newList: List<JSONObject>) {
+        val diffCallback = ListDiffCallback(listData, newList)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+
+        listData.clear()
+        listData.addAll(newList)
+        diffResult.dispatchUpdatesTo(this)
     }
 
     inner class ViewHolder(itemView: View) :
@@ -71,7 +92,6 @@ class ListAdapterTkt(
         fun bind(jsonObject: JSONObject) {
             listNameTextView.text = jsonObject.getString("name")
 
-            // Check if description is null or empty
             val description = jsonObject.getString("description")
             if (description.isEmpty()) {
                 descriptionTextView.setText(R.string.no_description)

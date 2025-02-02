@@ -29,7 +29,6 @@ import androidx.activity.OnBackPressedDispatcher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.flexbox.AlignItems
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
@@ -39,17 +38,21 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.MovieImageAdapter
 import com.wirelessalien.android.moviedb.data.MovieImage
+import com.wirelessalien.android.moviedb.databinding.ActivityMovieImageBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.tmdb.GetMovieImage
 
 class MovieImageActivity : AppCompatActivity() {
-    private lateinit var recyclerView: RecyclerView
     private lateinit var movieImages: List<MovieImage>
     private var movieId = 0
     private var type: String? = null
     private lateinit var popupWindow: PopupWindow
+    private lateinit var binding: ActivityMovieImageBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityMovieImageBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
         checkAndRequestPermission()
     }
@@ -100,21 +103,19 @@ class MovieImageActivity : AppCompatActivity() {
     }
 
     private fun initializeActivity() {
-        setContentView(R.layout.activity_movie_image)
         movieId = intent.getIntExtra("movieId", 0)
         type = if (intent.getBooleanExtra("isMovie", true)) "movie" else "tv"
         movieImages = emptyList()
         popupWindow = PopupWindow(this)
-        recyclerView = findViewById(R.id.movieimageRv)
         val layoutManager = FlexboxLayoutManager(this)
         layoutManager.flexWrap = FlexWrap.WRAP
         layoutManager.flexDirection = FlexDirection.ROW
         layoutManager.alignItems = AlignItems.STRETCH
         layoutManager.justifyContent = JustifyContent.SPACE_EVENLY
-        recyclerView.layoutManager = layoutManager
+        binding.movieimageRv.layoutManager = layoutManager
         val adapter = MovieImageAdapter(this, movieImages)
-        recyclerView.adapter = adapter
-        GetMovieImage(movieId, type!!, this, recyclerView).fetchMovieImages()
+        binding.movieimageRv.adapter = adapter
+        GetMovieImage(movieId, type!!, this, binding.movieimageRv).fetchMovieImages()
 
         // Handle back button press
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {

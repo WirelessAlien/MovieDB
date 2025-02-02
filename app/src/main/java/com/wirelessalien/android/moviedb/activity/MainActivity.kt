@@ -40,6 +40,7 @@ import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -74,6 +75,7 @@ import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -462,6 +464,11 @@ class MainActivity : BaseActivity() {
             cursor.close()
             preferences.edit().putBoolean("hasRunOnce", true).apply()
         }
+
+        val dialogShown = preferences.getBoolean("sync_provider_dialog_shown", false)
+        if (!dialogShown) {
+            showSyncProviderDialog()
+        }
     }
 
     private fun clearSearchData() {
@@ -524,8 +531,10 @@ class MainActivity : BaseActivity() {
                 override fun afterTextChanged(s: Editable) {}
             })
         } else {
-            binding.searchView.editText.setOnEditorActionListener { v, actionId, _ ->
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+            binding.searchView.editText.setOnEditorActionListener { v, actionId, event ->
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER) {
                     val query = v.text.toString()
                     val currentFragment = getCurrentFragment()
                     if (currentFragment is HomeFragment) {
@@ -610,6 +619,31 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private fun showSyncProviderDialog() {
+        val dialogBinding = DialogSyncProviderBinding.inflate(layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .setCancelable(false)
+            .create()
+
+        dialogBinding.buttonOk.setOnClickListener {
+            val selectedProvider = when {
+                dialogBinding.radioTrakt.isChecked -> "trakt"
+                dialogBinding.radioTmdb.isChecked -> "tmdb"
+                else -> "local"
+            }
+
+            if (selectedProvider != "local") {
+                preferences.edit().putString("sync_provider", selectedProvider).apply()
+            }
+
+            preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     fun showSearch(listType: String, query: String?) {
         if (query.isNullOrEmpty()) {
             return
@@ -660,7 +694,7 @@ class MainActivity : BaseActivity() {
                 val showsFromDatabase = currentFragment.getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
                 mDatabaseSearchAdapter = ShowBaseAdapter(
                     showsFromDatabase, mShowGenreList,
-                    preferences.getBoolean(BaseFragment.SHOWS_LIST_PREFERENCE, true), false
+                    preferences.getBoolean(BaseFragment.SHOWS_LIST_PREFERENCE, true)
                 )
                 binding.searchResultsRecyclerView.adapter = mDatabaseSearchAdapter
             }

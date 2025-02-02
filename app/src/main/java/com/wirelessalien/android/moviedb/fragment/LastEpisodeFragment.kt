@@ -27,15 +27,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.slider.Slider
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.FragmentLastEpisodeBinding
+import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRating
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRating
@@ -109,15 +107,14 @@ class LastEpisodeFragment : Fragment() {
                 }
                 binding.episodeRateBtn.setOnClickListener {
                     val dialog = BottomSheetDialog(requireContext())
-                    val dialogInflater = LayoutInflater.from(context)
-                    val dialogView = dialogInflater.inflate(R.layout.rating_dialog, null)
-                    dialog.setContentView(dialogView)
+                    val dialogView = RatingDialogBinding.inflate(LayoutInflater.from(context))
+                    dialog.setContentView(dialogView.root)
                     dialog.show()
-                    val ratingBar = dialogView.findViewById<Slider>(R.id.ratingSlider)
-                    val submitButton = dialogView.findViewById<Button>(R.id.btnSubmit)
-                    val cancelButton = dialogView.findViewById<Button>(R.id.btnCancel)
-                    val deleteButton = dialogView.findViewById<Button>(R.id.btnDelete)
-                    val episodeTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+                    val ratingBar = dialogView.ratingSlider
+                    val submitButton = dialogView.btnSubmit
+                    val cancelButton = dialogView.btnCancel
+                    val deleteButton = dialogView.btnDelete
+                    val episodeTitle = dialogView.tvTitle
                     episodeTitle.text = getString(R.string.episode_title, seasonNumber, episodeNumber, episodeName)
                     submitButton.setOnClickListener {
                         CoroutineScope(Dispatchers.Main).launch {
@@ -146,6 +143,7 @@ class LastEpisodeFragment : Fragment() {
                     }
                     cancelButton.setOnClickListener { dialog.dismiss() }
                 }
+
                 binding.episodeWathchBtn.setOnClickListener {
                     if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(episodeNumber))) {
                         Log.d("Episode", "Removed from database $movieId $seasonNumber $episodeNumber")

@@ -29,8 +29,6 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,6 +37,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.ChipGroup
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ListDataAdapterTkt
+import com.wirelessalien.android.moviedb.databinding.ListBottomSheetTktBinding
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.trakt.TraktSync
 import okhttp3.Call
@@ -54,11 +53,10 @@ class ListBottomSheetFragmentTkt(
     private val type: String,
     private val mediaObject: JSONObject
 ) : BottomSheetDialogFragment() {
-    private lateinit var newListName: EditText
-    private lateinit var listDescription: EditText
     private var listObject: JSONObject? = null
     private var tktaccessToken: String? = null
     private lateinit var preferences: SharedPreferences
+    private lateinit var binding: ListBottomSheetTktBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,28 +68,24 @@ class ListBottomSheetFragmentTkt(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.list_bottom_sheet_tkt, container, false)
+    ): View {
+        binding = ListBottomSheetTktBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
-        newListName = view.findViewById(R.id.newListName)
-        listDescription = view.findViewById(R.id.listDescription)
-        val createListButton = view.findViewById<Button>(R.id.createListBtn)
-        val listPrivacyChipGroup = view.findViewById<ChipGroup>(R.id.listPrivacyChip)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        recyclerView.adapter = ListDataAdapterTkt(requireContext(), movieId, type, tktaccessToken, mediaObject)
+        binding.recyclerView.layoutManager = LinearLayoutManager(context)
+        binding.recyclerView.adapter = ListDataAdapterTkt(requireContext(), movieId, type, tktaccessToken, mediaObject)
 
-        createListButton.setOnClickListener {
-            val selectedPrivacy = getSelectedPrivacy(listPrivacyChipGroup)
+        binding.createListBtn.setOnClickListener {
+            val selectedPrivacy = getSelectedPrivacy(binding.listPrivacyChip)
             createListObject(selectedPrivacy)
             traktSync("users/me/lists")
         }
 
         if (fetchList) {
-            loadPreviousLists(recyclerView)
+            loadPreviousLists(binding.recyclerView)
         }
     }
 
@@ -130,8 +124,8 @@ class ListBottomSheetFragmentTkt(
     }
 
     private fun createListObject(privacy: String) {
-        val name = newListName.text.toString()
-        val description = listDescription.text.toString()
+        val name = binding.newListName.text.toString()
+        val description = binding.listDescription.text.toString()
         listObject = JSONObject().apply {
             put("name", name)
             put("description", description)
@@ -149,7 +143,7 @@ class ListBottomSheetFragmentTkt(
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(context, "Failed to sync $endpoint", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -162,7 +156,7 @@ class ListBottomSheetFragmentTkt(
                             try {
                                 val responseObject = JSONObject(responseBodyString)
                                 saveListToDatabase(responseObject)
-                                Toast.makeText(context, "Success", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, getString(R.string.success), Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }

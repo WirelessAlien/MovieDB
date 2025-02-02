@@ -25,14 +25,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.chip.ChipGroup
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowTraktAdapter
+import com.wirelessalien.android.moviedb.databinding.FragmentWatchlistTktBinding
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -42,15 +40,13 @@ import org.json.JSONObject
 
 class RatingFragmentTkt : BaseFragment() {
 
-    private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ShowTraktAdapter
     private val ratingList = ArrayList<JSONObject>()
     private val fullRatinglist = ArrayList<JSONObject>()
     private lateinit var dbHelper: TraktDatabaseHelper
     private lateinit var tmdbHelper: TmdbDetailsDatabaseHelper
-    private lateinit var chipGroup: ChipGroup
-    private lateinit var progressBar: ProgressBar
     private lateinit var linearLayoutManager: LinearLayoutManager
+    private lateinit var binding: FragmentWatchlistTktBinding
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,13 +58,13 @@ class RatingFragmentTkt : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_watchlist_tkt, container, false)
-        recyclerView = view.findViewById(R.id.showRecyclerView)
+    ): View {
+        binding = FragmentWatchlistTktBinding.inflate(inflater, container, false)
+        val view = binding.root
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
 
-            if (recyclerView.layoutManager !is GridLayoutManager) {
+            if (binding.showRecyclerView.layoutManager !is GridLayoutManager) {
                 adapter = ShowTraktAdapter(
                     ratingList,
                     preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
@@ -77,11 +73,11 @@ class RatingFragmentTkt : BaseFragment() {
 
             val mShowGridView =
                 GridLayoutManager(requireActivity(), preferences.getInt(GRID_SIZE_PREFERENCE, 3))
-            recyclerView.layoutManager = mShowGridView
+            binding.showRecyclerView.layoutManager = mShowGridView
             linearLayoutManager = mShowGridView
         } else {
 
-            if (recyclerView.layoutManager !is LinearLayoutManager) {
+            if (binding.showRecyclerView.layoutManager !is LinearLayoutManager) {
                 adapter = ShowTraktAdapter(
                     ratingList,
                     preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
@@ -89,15 +85,12 @@ class RatingFragmentTkt : BaseFragment() {
             }
             linearLayoutManager =
                 LinearLayoutManager(requireActivity(), LinearLayoutManager.VERTICAL, false)
-            recyclerView.layoutManager = linearLayoutManager
+            binding.showRecyclerView.layoutManager = linearLayoutManager
         }
 
-        recyclerView.adapter = adapter
-        progressBar = view.findViewById(R.id.progressBar)
+        binding.showRecyclerView.adapter = adapter
 
-        chipGroup = view.findViewById(R.id.chipGroup)
-
-        chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+        binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
                     R.id.chipMovie -> filterRatingData("movie")
@@ -114,7 +107,7 @@ class RatingFragmentTkt : BaseFragment() {
 
     private fun loadRatingData() {
         lifecycleScope.launch {
-            progressBar.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.VISIBLE
             withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
@@ -125,6 +118,7 @@ class RatingFragmentTkt : BaseFragment() {
                 if (cursor.moveToFirst()) {
                     do {
                         val jsonObject = JSONObject().apply {
+                            put("auto_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ID)))
                             put("rated_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_RATED_AT)))
                             put("rating", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_RATING)))
                             put("type", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE)))
@@ -191,17 +185,13 @@ class RatingFragmentTkt : BaseFragment() {
                 }
                 cursor.close()
             }
-            ratingList.clear()
-            ratingList.addAll(fullRatinglist)
-            adapter.notifyDataSetChanged()
-            progressBar.visibility = View.GONE
+            adapter.updateShowList(fullRatinglist)
+            binding.progressBar.visibility = View.GONE
         }
     }
 
     private fun filterRatingData(type: String) {
         val filteredList = ArrayList(fullRatinglist.filter { it.getString("type") == type })
-        ratingList.clear()
-        ratingList.addAll(filteredList)
-        adapter.notifyDataSetChanged()
+        adapter.updateShowList(filteredList)
     }
 }

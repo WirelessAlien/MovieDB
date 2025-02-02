@@ -24,14 +24,11 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
-import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.CastActivity
+import com.wirelessalien.android.moviedb.databinding.PersonCardBinding
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -39,21 +36,21 @@ class PersonDatabaseAdapter(private val personList: List<JSONObject>) :
     RecyclerView.Adapter<PersonDatabaseAdapter.PersonItemViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PersonItemViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.person_card, parent, false)
-        return PersonItemViewHolder(view)
+        val binding = PersonCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return PersonItemViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: PersonItemViewHolder, position: Int) {
         val personData = personList[position]
-        val context = holder.cardView.context
+        val context = holder.binding.root.context
         try {
             val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w342"
-            holder.personName.text = personData.getString("name")
+            holder.binding.personName.text = personData.getString("name")
             Picasso.get().load(
                 "https://image.tmdb.org/t/p/$imageSize${personData.getString("profile_path")}"
-            ).into(holder.personImage)
+            ).into(holder.binding.personImage)
         } catch (je: JSONException) {
             je.printStackTrace()
         }
@@ -69,11 +66,7 @@ class PersonDatabaseAdapter(private val personList: List<JSONObject>) :
         return personList.size
     }
 
-    class PersonItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val cardView: CardView = itemView.findViewById(R.id.cardView)
-        val personName: TextView = itemView.findViewById(R.id.personName)
-        val personImage: ImageView = itemView.findViewById(R.id.personImage)
-    }
+    class PersonItemViewHolder(val binding: PersonCardBinding) : RecyclerView.ViewHolder(binding.root)
 
     companion object {
         private const val HD_IMAGE_SIZE = "key_hq_images"

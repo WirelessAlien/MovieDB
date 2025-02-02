@@ -25,14 +25,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.chip.ChipGroup
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowTraktAdapter
+import com.wirelessalien.android.moviedb.databinding.FragmentProgressTktBinding
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -42,16 +40,14 @@ import org.json.JSONObject
 
 class ListItemFragmentTkt : BaseFragment() {
 
-    private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ShowTraktAdapter
     private val listItemList = ArrayList<JSONObject>()
     private val fullListItemList = ArrayList<JSONObject>()
     private lateinit var dbHelper: TraktDatabaseHelper
     private lateinit var tmdbHelper: TmdbDetailsDatabaseHelper
-    private lateinit var chipGroup: ChipGroup
-    private lateinit var progressBar: ProgressBar
     private lateinit var linearLayoutManager: LinearLayoutManager
     private var listId: Int? = null
+    private lateinit var binding: FragmentProgressTktBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,34 +61,31 @@ class ListItemFragmentTkt : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_progress_tkt, container, false)
-        recyclerView = view.findViewById(R.id.showRecyclerView)
+    ): View {
+        binding = FragmentProgressTktBinding.inflate(inflater, container, false)
+        val view = binding.root
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
 
-            if (recyclerView.layoutManager !is GridLayoutManager) {
+            if (binding.showRecyclerView.layoutManager !is GridLayoutManager) {
                 adapter = ShowTraktAdapter(listItemList, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
             }
 
             val mShowGridView = GridLayoutManager(requireActivity(), preferences.getInt(GRID_SIZE_PREFERENCE, 3))
-            recyclerView.layoutManager = mShowGridView
+            binding.showRecyclerView.layoutManager = mShowGridView
             linearLayoutManager = mShowGridView
         } else {
 
-            if (recyclerView.layoutManager !is LinearLayoutManager) {
+            if (binding.showRecyclerView.layoutManager !is LinearLayoutManager) {
                 adapter = ShowTraktAdapter(listItemList, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
             }
             linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.VERTICAL, false)
-            recyclerView.layoutManager = linearLayoutManager
+            binding.showRecyclerView.layoutManager = linearLayoutManager
         }
 
-        recyclerView.adapter = adapter
+        binding.showRecyclerView.adapter = adapter
 
-        chipGroup = view.findViewById(R.id.chipGroup)
-        progressBar = view.findViewById(R.id.progressBar)
-
-        chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+        binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
                     R.id.chipMovie -> filterListItemData("movie")
@@ -107,7 +100,7 @@ class ListItemFragmentTkt : BaseFragment() {
 
     private fun loadListItemData() {
         lifecycleScope.launch {
-            progressBar.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.VISIBLE
             withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
@@ -125,6 +118,7 @@ class ListItemFragmentTkt : BaseFragment() {
                 if (cursor.moveToFirst()) {
                     do {
                         val jsonObject = JSONObject().apply {
+                            put("auto_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ID)))
                             put("listed_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_LISTED_AT)))
                             put("type", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE)))
                             put("title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE)))
@@ -187,17 +181,13 @@ class ListItemFragmentTkt : BaseFragment() {
                 }
                 cursor.close()
             }
-            listItemList.clear()
-            listItemList.addAll(fullListItemList)
-            adapter.notifyDataSetChanged()
-            progressBar.visibility = View.GONE
+            adapter.updateShowList(fullListItemList)
+            binding.progressBar.visibility = View.GONE
         }
     }
 
     private fun filterListItemData(type: String) {
         val filteredList = ArrayList(fullListItemList.filter { it.getString("type") == type })
-        listItemList.clear()
-        listItemList.addAll(filteredList)
-        adapter.notifyDataSetChanged()
+        adapter.updateShowList(filteredList)
     }
 }

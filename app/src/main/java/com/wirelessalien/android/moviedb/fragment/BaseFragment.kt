@@ -77,7 +77,7 @@ open class BaseFragment : Fragment() {
             if (mShowView.layoutManager !is GridLayoutManager) {
                 mShowAdapter = ShowBaseAdapter(
                     mShowArrayList, mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
                 )
             }
             val mShowGridView = GridLayoutManager(
@@ -91,7 +91,7 @@ open class BaseFragment : Fragment() {
             if (mShowView.layoutManager !is LinearLayoutManager) {
                 mShowAdapter = ShowBaseAdapter(
                     mShowArrayList, mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
                 )
             }
             mShowLinearLayoutManager = LinearLayoutManager(
@@ -132,19 +132,6 @@ open class BaseFragment : Fragment() {
             )
             mShowView.layoutManager = mShowLinearLayoutManager
         }
-        mShowView.adapter = mShowPagingAdapter
-    }
-
-    /**
-     * Sets the search view and adapter back to normal.
-     */
-    open fun cancelSearch() {
-        mSearchView = false
-        mShowView.adapter = mShowAdapter
-    }
-
-    open fun cancelSearchPaging() {
-        mSearchView = false
         mShowView.adapter = mShowPagingAdapter
     }
 
@@ -194,7 +181,11 @@ open class BaseFragment : Fragment() {
                 }
                 prefsEditor.putString("${mGenreType}GenreJSONArrayList", genreArray.toString())
                 prefsEditor.apply()
-                mShowAdapter.notifyDataSetChanged()
+
+                if (::mShowAdapter.isInitialized) {
+                    mShowAdapter.notifyDataSetChanged()
+                }
+
                 if (::mShowPagingAdapter.isInitialized) {
                     mShowPagingAdapter.notifyDataSetChanged()
                 }

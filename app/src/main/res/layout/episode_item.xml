@@ -208,10 +208,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
-                style="@style/Widget.Material3.MaterialButtonGroup.Connected"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
-                app:innerCornerSize="10dp"
+                app:checkedButton="@id/btnLocal"
+                app:innerCornerSize="4dp"
                 app:selectionRequired="true"
                 app:singleSelection="true">
 
@@ -219,21 +219,21 @@
                     android:id="@+id/btnLocal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:text="LOCAL" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnTmdb"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:text="TMDB" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnTrakt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:text="TRAKT" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
 

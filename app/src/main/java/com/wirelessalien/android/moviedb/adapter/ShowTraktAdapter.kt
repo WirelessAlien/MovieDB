@@ -25,17 +25,15 @@ import android.icu.text.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
+import com.wirelessalien.android.moviedb.databinding.ShowCardBinding
+import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -45,28 +43,54 @@ import java.util.Locale
 
 class ShowTraktAdapter(
     showList: ArrayList<JSONObject>, gridView: Boolean
-) : RecyclerView.Adapter<ShowTraktAdapter.ShowItemViewHolder?>() {
+) : RecyclerView.Adapter<ShowTraktAdapter.ShowItemViewHolder>() {
     private var mShowArrayList: ArrayList<JSONObject>
     private val mGridView: Boolean
 
     init {
-
         mShowArrayList = showList
         mGridView = gridView
     }
 
     override fun getItemCount(): Int {
-        // Return the amount of items in the list.
         return mShowArrayList.size
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShowItemViewHolder {
-        val view: View = if (mGridView) {
-            LayoutInflater.from(parent.context).inflate(R.layout.show_grid_card, parent, false)
-        } else {
-            LayoutInflater.from(parent.context).inflate(R.layout.show_card, parent, false)
+    class ShowDiffCallback(
+        private val oldList: List<JSONObject>,
+        private val newList: List<JSONObject>
+    ) : DiffUtil.Callback() {
+
+        override fun getOldListSize(): Int = oldList.size
+
+        override fun getNewListSize(): Int = newList.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].getString("auto_id") == newList[newItemPosition].getString("auto_id")
         }
-        return ShowItemViewHolder(view, mGridView)
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].toString() == newList[newItemPosition].toString()
+        }
+    }
+
+    fun updateShowList(newShowList: ArrayList<JSONObject>) {
+        val diffCallback = ShowDiffCallback(mShowArrayList, newShowList)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+
+        mShowArrayList.clear()
+        mShowArrayList.addAll(newShowList)
+        diffResult.dispatchUpdatesTo(this)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShowItemViewHolder {
+        return if (mGridView) {
+            val gridBinding = ShowGridCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ShowItemViewHolder(null, gridBinding)
+        } else {
+            val binding = ShowCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ShowItemViewHolder(binding, null)
+        }
     }
 
     override fun onBindViewHolder(holder: ShowItemViewHolder, position: Int) {
@@ -85,7 +109,7 @@ class ShowTraktAdapter(
             val name = showData.optString(KEY_TITLE, showData.optString(KEY_NAME, ""))
             holder.showTitle.text = name
 
-            var dateString = if (showData.has("listed_at")){
+            var dateString = if (showData.has("listed_at")) {
                 showData.optString("listed_at", "")
             } else if (showData.has("rated_at")) {
                 showData.optString("rated_at", "")
@@ -113,9 +137,9 @@ class ShowTraktAdapter(
                 "season", "episode" -> {
                     holder.showTitle.text = showData.getString("show_title")
                     holder.seasonEpisodeText?.text = if (showData.getString("type") == "season") {
-                        "Season ${showData.getInt("season")}"
+                        context.getString(R.string.season_p, showData.getInt("season"))
                     } else {
-                        "Episode ${showData.getInt("number")}(S: ${showData.getInt("season")})"
+                        context.getString(R.string.episode_s, showData.getInt("number"), showData.getInt("season"))
                     }
                     holder.seasonEpisodeText?.visibility = View.VISIBLE
 
@@ -142,7 +166,8 @@ class ShowTraktAdapter(
 
                         holder.showGenre?.text = if (genreNames.isNotEmpty()) genreNames.substring(2) else ""
                     }
-                } else -> {
+                }
+                else -> {
                     if (!mGridView) {
                         holder.showDescription?.text = showData.optString(KEY_DESCRIPTION, "")
                         holder.showRating?.rating = if (showData.has("rating")) {
@@ -182,41 +207,26 @@ class ShowTraktAdapter(
     }
 
     override fun getItemId(position: Int): Long {
-
         return position.toLong()
     }
 
+    class ShowItemViewHolder(
+        val binding: ShowCardBinding?,
+        val gridBinding: ShowGridCardBinding?
+    ) : RecyclerView.ViewHolder(gridBinding?.root ?: binding!!.root) {
 
-    fun addItems(newItems: ArrayList<JSONObject>) {
-        val startPosition = mShowArrayList.size
-        mShowArrayList.addAll(newItems)
-        notifyItemRangeInserted(startPosition, newItems.size)
-    }
-
-    fun updateData(newShowList: ArrayList<JSONObject>) {
-        mShowArrayList = newShowList
-        notifyDataSetChanged()
-    }
-
-    /**
-     * The View of every item that is displayed in the grid/list.
-     */
-    class ShowItemViewHolder internal constructor(itemView: View, gridView: Boolean) :
-        RecyclerView.ViewHolder(itemView) {
-        val showView: CardView = itemView.findViewById(R.id.cardView)
-        val showTitle: TextView = itemView.findViewById(R.id.title)
-        val showImage: ImageView = itemView.findViewById(R.id.image)
-        val showDescription: TextView? = if (!gridView) itemView.findViewById(R.id.description) else null
-        val showGenre: TextView? = if (!gridView) itemView.findViewById(R.id.genre) else null
-        val showRating: RatingBar? = if (!gridView) itemView.findViewById(R.id.rating) else null
-        val showDate: TextView = itemView.findViewById(R.id.date)
-        val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
-        val seasonEpisodeText: TextView? = itemView.findViewById(R.id.seasonEpisodeText)
-
+        val showView = gridBinding?.cardView ?: binding!!.cardView
+        val showTitle = gridBinding?.title ?: binding!!.title
+        val showImage = gridBinding?.image ?: binding!!.image
+        val showDescription = binding?.description
+        val showGenre = binding?.genre
+        val showRating = binding?.rating
+        val showDate = gridBinding?.date ?: binding!!.date
+        val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
+        val seasonEpisodeText = gridBinding?.seasonEpisodeText ?: binding!!.seasonEpisodeText
     }
 
     companion object {
-        // API key names
         const val KEY_ID = "id"
         const val KEY_IMAGE = "backdrop_path"
         const val KEY_POSTER = "poster_path"

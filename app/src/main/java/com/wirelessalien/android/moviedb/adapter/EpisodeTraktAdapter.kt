@@ -64,7 +64,7 @@ class EpisodeTraktAdapter(
 
     override fun onBindViewHolder(holder: EpisodeViewHolder, position: Int) {
         val episodeNumber = episodes[position]
-        holder.episodeTextView.text = "Episode $episodeNumber"
+        holder.episodeTextView.text = context.getString(R.string.episode_p, episodeNumber)
 
         val isWatched = watchedEpisodes.contains(episodeNumber)
         val iconRes = if (isWatched) {
@@ -169,7 +169,7 @@ class EpisodeTraktAdapter(
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(context, "Failed to sync $endpoint", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -202,7 +202,7 @@ class EpisodeTraktAdapter(
                             }
 
                             db.close()
-                            "Success"
+                            context.getString(R.string.success)
                         }
                         else -> response.message
                     }

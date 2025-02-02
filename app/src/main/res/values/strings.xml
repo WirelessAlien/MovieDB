@@ -66,6 +66,22 @@
     <string name="search_series">Search shows...</string>
     <string name="search_saved">Search saved...</string>
     <string name="error_loading_data">Failed to load data</string>
+    <string name="season_p">Season %1$d</string>
+    <string name="media_details_not_found">Media details not found</string>
+    <string name="disable_month">Disable Month</string>
+    <string name="select_a_time">Select a time</string>
+    <string name="failed_to_sync">Failed to sync %1$s</string>
+    <string name="success">Success</string>
+    <string name="no">No</string>
+    <string name="remove_from_collection">Remove from collection</string>
+    <string name="remove_from_collection_confirmation">Are you sure you want to remove this item from your collection?</string>
+    <string name="yes">Yes</string>
+    <string name="please_select_a_date">Please select a date</string>
+    <string name="remove_from_history">Remove from history</string>
+    <string name="remove_from_history_confirmation">Are you sure you want to remove this item from your history?</string>
+    <string name="season_episode_p">S:%1$d E:%2$d %3$s</string>
+    <string name="episode_p">Episode %1$d</string>
+    <string name="episode_s">Episode %1$d(S: %2$d)</string>
 
     <string-array name="media_types">
         <item>digital</item>

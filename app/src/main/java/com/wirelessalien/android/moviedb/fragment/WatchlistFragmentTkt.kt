@@ -21,19 +21,16 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.chip.ChipGroup
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowTraktAdapter
+import com.wirelessalien.android.moviedb.databinding.FragmentWatchlistTktBinding
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -43,21 +40,19 @@ import org.json.JSONObject
 
 class WatchlistFragmentTkt : BaseFragment() {
 
-    private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ShowTraktAdapter
     private val watchlist = ArrayList<JSONObject>()
     private val fullWatchlist = ArrayList<JSONObject>()
     private lateinit var dbHelper: TraktDatabaseHelper
     private lateinit var tmdbHelper: TmdbDetailsDatabaseHelper
-    private lateinit var chipGroup: ChipGroup
-    private lateinit var progressBar: ProgressBar
     private lateinit var linearLayoutManager: LinearLayoutManager
+    private lateinit var binding: FragmentWatchlistTktBinding
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         dbHelper = TraktDatabaseHelper(requireContext())
         tmdbHelper = TmdbDetailsDatabaseHelper(requireContext())
     }
@@ -65,33 +60,31 @@ class WatchlistFragmentTkt : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_watchlist_tkt, container, false)
-        recyclerView = view.findViewById(R.id.showRecyclerView)
+    ): View {
+        binding = FragmentWatchlistTktBinding.inflate(inflater, container, false)
+        val view = binding.root
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
 
-            if (recyclerView.layoutManager !is GridLayoutManager) {
+            if (binding.showRecyclerView.layoutManager !is GridLayoutManager) {
                 adapter = ShowTraktAdapter(watchlist, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
             }
 
             val mShowGridView = GridLayoutManager(requireActivity(), preferences.getInt(GRID_SIZE_PREFERENCE, 3))
-            recyclerView.layoutManager = mShowGridView
+            binding.showRecyclerView.layoutManager = mShowGridView
             linearLayoutManager = mShowGridView
         } else {
 
-            if (recyclerView.layoutManager !is LinearLayoutManager) {
+            if (binding.showRecyclerView.layoutManager !is LinearLayoutManager) {
                 adapter = ShowTraktAdapter(watchlist, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
             }
             linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.VERTICAL, false)
-            recyclerView.layoutManager = linearLayoutManager
+            binding.showRecyclerView.layoutManager = linearLayoutManager
         }
 
-        recyclerView.adapter = adapter
-        progressBar = view.findViewById(R.id.progressBar)
+        binding.showRecyclerView.adapter = adapter
 
-        chipGroup = view.findViewById(R.id.chipGroup)
-        chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+        binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
                     R.id.chipMovie -> filterWatchlistData("movie")
@@ -109,7 +102,7 @@ class WatchlistFragmentTkt : BaseFragment() {
 
     private fun loadWatchlistData() {
         lifecycleScope.launch {
-            progressBar.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.VISIBLE
             withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
@@ -121,6 +114,7 @@ class WatchlistFragmentTkt : BaseFragment() {
                 if (cursor.moveToFirst()) {
                     do {
                         val jsonObject = JSONObject().apply {
+                            put("auto_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ID)))
                             put("rank", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_RANK)))
                             put("listed_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_LISTED_AT)))
                             put("notes", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NOTES)))
@@ -177,24 +171,18 @@ class WatchlistFragmentTkt : BaseFragment() {
                             jsonObject.put("genre_ids", tmdbCursor.getString(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_GENRE_IDS)))
                         }
                         tmdbCursor.close()
-
-                        Log.d("WatchlistFragmentTkt", "Loaded watchlist item: $jsonObject")
                         fullWatchlist.add(jsonObject)
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
             }
-            watchlist.clear()
-            watchlist.addAll(fullWatchlist)
-            adapter.notifyDataSetChanged()
-            progressBar.visibility = View.GONE
+            adapter.updateShowList(fullWatchlist)
+            binding.progressBar.visibility = View.GONE
         }
     }
 
     private fun filterWatchlistData(type: String) {
         val filteredList = ArrayList(fullWatchlist.filter { it.getString("type") == type })
-        watchlist.clear()
-        watchlist.addAll(filteredList)
-        adapter.notifyDataSetChanged()
+        adapter.updateShowList(filteredList)
     }
 }

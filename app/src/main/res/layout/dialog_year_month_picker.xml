@@ -24,15 +24,18 @@
     android:orientation="vertical"
     android:padding="16dp"
     android:baselineAligned="false">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_weight="1">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,6 +56,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_weight="1">
+
         <TextView
             android:id="@+id/monthTitle"
             android:layout_width="wrap_content"
@@ -60,6 +64,7 @@
             android:layout_gravity="center_horizontal"
             android:text="@string/month"
             android:textStyle="bold"/>
+
         <NumberPicker
             android:id="@+id/monthPicker"
             android:layout_width="wrap_content"
@@ -72,5 +77,5 @@
         android:id="@+id/disableMonthPicker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Disable Month" />
+        android:text="@string/disable_month" />
 </LinearLayout>

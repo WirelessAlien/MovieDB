@@ -81,12 +81,12 @@ class ListFragmentTkt : BaseFragment() {
     private fun loadListData() {
         lifecycleScope.launch {
             binding.progressBar.visibility = View.VISIBLE
-            withContext(Dispatchers.IO) {
+            val newList = withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
-
                 val cursor = db.query(
                     TraktDatabaseHelper.USER_LISTS, null, null, null, null, null, null)
 
+                val tempList = ArrayList<JSONObject>()
                 if (cursor.moveToFirst()) {
                     do {
                         val jsonObject = JSONObject().apply {
@@ -95,12 +95,13 @@ class ListFragmentTkt : BaseFragment() {
                             put("number_of_items", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ITEM_COUNT)))
                             put("description", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_DESCRIPTION)))
                         }
-                        listData.add(jsonObject)
+                        tempList.add(jsonObject)
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
+                tempList
             }
-            adapter.notifyDataSetChanged()
+            adapter.updateList(newList)
             binding.progressBar.visibility = View.GONE
         }
     }

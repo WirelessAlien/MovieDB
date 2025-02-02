@@ -24,33 +24,30 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.databinding.ActivityTvSeasonDetailsBinding
 import com.wirelessalien.android.moviedb.fragment.SeasonDetailsFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 
 class TVSeasonDetailsActivity : AppCompatActivity() {
-    private lateinit var toolbar: MaterialToolbar
+    private lateinit var binding: ActivityTvSeasonDetailsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_tv_season_details)
+        binding = ActivityTvSeasonDetailsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
 
-        toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val tvShowId = intent.getIntExtra("tvShowId", -1)
         val seasonNumber = intent.getIntExtra("seasonNumber", 1)
         val numSeasons = intent.getIntExtra("numSeasons", 1)
         val showName = intent.getStringExtra("tvShowName")
         val traktId = intent.getIntExtra("traktId", -1)
-        val viewPager = findViewById<ViewPager2>(R.id.view_pager)
-        val tabLayout = findViewById<TabLayout>(R.id.tab_layout)
-        viewPager.adapter = object : FragmentStateAdapter(this) {
+        binding.viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun createFragment(position: Int): Fragment {
                 return newInstance(tvShowId, position, showName, traktId)
             }
@@ -59,12 +56,16 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
                 return numSeasons + 1
             }
         }
-        viewPager.setCurrentItem(seasonNumber, false)
+        binding.viewPager.setCurrentItem(seasonNumber, false)
         TabLayoutMediator(
-            tabLayout, viewPager
+            binding.tabLayout, binding.viewPager
         ) { tab: TabLayout.Tab, position: Int ->
             tab.text = if (position == 0) getString(R.string.specials) else getString(R.string.season) + position
         }.attach()
+    }
+
+    fun getBinding(): ActivityTvSeasonDetailsBinding {
+        return binding
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

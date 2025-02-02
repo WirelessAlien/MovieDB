@@ -49,15 +49,17 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.activity.ExportActivity
 import com.wirelessalien.android.moviedb.activity.FilterActivity
 import com.wirelessalien.android.moviedb.activity.ImportActivity
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentShowBinding
+import com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import kotlinx.coroutines.CoroutineScope
@@ -87,14 +89,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     private var mScrollPosition: Int? = null
     private lateinit var filterActivityResultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var binding: FragmentShowBinding
+    private lateinit var activityBinding: ActivityMainBinding
+
     override fun onAdapterDataChangedListener() {
         updateShowViewAdapter()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         mDatabaseHelper = MovieDatabaseHelper(requireContext().applicationContext)
 
         filterActivityResultLauncher = registerForActivityResult(
@@ -116,13 +121,14 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val fragmentView = inflater.inflate(R.layout.fragment_show, container, false)
+    ): View {
+        binding = FragmentShowBinding.inflate(inflater, container, false)
+        val fragmentView = binding.root
+        activityBinding = (activity as MainActivity).getBinding()
         showShowList(fragmentView)
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.setImageResource(R.drawable.ic_filter_list)
-        fab.isEnabled = true
-        fab.setOnClickListener {
+        activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
+        activityBinding.fab.isEnabled = true
+        activityBinding.fab.setOnClickListener {
             val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
             intent.putExtra("categories", true)
             intent.putExtra("most_popular", false)
@@ -133,11 +139,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             intent.putExtra("account", false)
             filterActivityResultLauncher.launch(intent)
         }
-        val fab2 = requireActivity().findViewById<FloatingActionButton>(R.id.fab2)
-        fab2.setImageResource(R.drawable.ic_info)
-        fab2.visibility = View.VISIBLE
-        fab2.isEnabled = true
-        fab2.setOnClickListener {
+
+        activityBinding.fab2.setImageResource(R.drawable.ic_info)
+        activityBinding.fab2.visibility = View.VISIBLE
+        activityBinding.fab2.isEnabled = true
+        activityBinding.fab2.setOnClickListener {
             showWatchSummaryDialog()
         }
         return fragmentView
@@ -206,10 +212,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     override fun onResume() {
-        val progressBar = requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar)
-        if (progressBar != null) {
-            progressBar.visibility = View.GONE
-        }
+
         if (mDatabaseUpdate) {
             // The database is updated, load the changes into the array list.
             updateShowViewAdapter()
@@ -220,11 +223,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             filterAdapter()
         }
 
-        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-        fab.setImageResource(R.drawable.ic_filter_list)
-        fab.visibility = View.VISIBLE
-        fab.isEnabled = true
-        fab.setOnClickListener {
+        activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
+        activityBinding.fab.visibility = View.VISIBLE
+        activityBinding.fab.isEnabled = true
+        activityBinding.fab.setOnClickListener {
             val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
             intent.putExtra("categories", true)
             intent.putExtra("most_popular", false)
@@ -376,25 +378,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private fun showWatchSummaryDialog() {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.watch_summary, null)
-        val circularProgressIndicator = dialogView.findViewById<CircularProgressIndicator>(R.id.progressBar)
-        val tvWatching = dialogView.findViewById<Chip>(R.id.chipWatching)
-        val tvWatched = dialogView.findViewById<Chip>(R.id.chipWatched)
-        val tvPlanToWatch = dialogView.findViewById<Chip>(R.id.chipPlanToWatch)
-        val tvOnHold = dialogView.findViewById<Chip>(R.id.chipOnHold)
-        val tvDropped = dialogView.findViewById<Chip>(R.id.chipDropped)
-        val tvWatchedMovies = dialogView.findViewById<Chip>(R.id.chipWatchedMovies)
-        val tvWatchedTVShows = dialogView.findViewById<Chip>(R.id.chipWatchedTVShows)
-        val chipGroup = dialogView.findViewById<ChipGroup>(R.id.chipGroupGenres)
-
+        val binding = WatchSummaryBinding.inflate(LayoutInflater.from(requireContext()))
         val bottomSheetDialog = BottomSheetDialog(requireContext())
-        bottomSheetDialog.setContentView(dialogView)
+        bottomSheetDialog.setContentView(binding.root)
         bottomSheetDialog.edgeToEdgeEnabled
         bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         bottomSheetDialog.show()
 
         CoroutineScope(Dispatchers.Main).launch {
-            circularProgressIndicator.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.VISIBLE
 
             val watching = getTotalItem(MovieDatabaseHelper.CATEGORY_WATCHING)
             val watched = getTotalItem(MovieDatabaseHelper.CATEGORY_WATCHED)
@@ -404,18 +396,18 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             val watchedMovies = getTotalMoviesInWatchedCategory()
             val watchedTVShows = getTotalTVShowsInWatchedCategory()
 
-            tvWatching.text = getString(R.string.watching1, watching)
-            tvWatched.text = getString(R.string.watched1, watched)
-            tvPlanToWatch.text = getString(R.string.plan_to_watch1, planToWatch)
-            tvOnHold.text = getString(R.string.on_hold1, onHold)
-            tvDropped.text = getString(R.string.dropped1, dropped)
-            tvWatchedMovies.text = getString(R.string.watched1, watchedMovies)
-            tvWatchedTVShows.text = getString(R.string.watched1, watchedTVShows)
+            binding.chipWatching.text = getString(R.string.watching1, watching)
+            binding.chipWatched.text = getString(R.string.watched1, watched)
+            binding.chipPlanToWatch.text = getString(R.string.plan_to_watch1, planToWatch)
+            binding.chipOnHold.text = getString(R.string.on_hold1, onHold)
+            binding.chipDropped.text = getString(R.string.dropped1, dropped)
+            binding.chipWatchedMovies.text = getString(R.string.watched1, watchedMovies)
+            binding.chipWatchedTVShows.text = getString(R.string.watched1, watchedTVShows)
 
             // Setup genre chips
-            setupGenreChips(requireContext(), chipGroup)
+            setupGenreChips(requireContext(), binding.chipGroupGenres)
 
-            circularProgressIndicator.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
         }
     }
     /**
@@ -425,7 +417,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         mShowArrayList = getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
         mShowAdapter = ShowBaseAdapter(
             mShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
+            preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
         )
         if (!mSearchView) {
             if (usedFilter) {
@@ -793,12 +785,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         if (mSearchView) {
             mShowView.adapter = ShowBaseAdapter(
                 mSearchShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
             )
         } else {
             mShowView.adapter = ShowBaseAdapter(
                 mShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
             )
         }
     }
@@ -812,7 +804,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         mShowArrayList = getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
         mShowAdapter = ShowBaseAdapter(
             mShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
+            preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
         )
         mShowView.adapter = mShowAdapter
         fetchGenreList("tv")
@@ -1009,7 +1001,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
             mSearchShowAdapter = ShowBaseAdapter(
                 mSearchShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true), false
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
             )
             mShowView.adapter = mSearchShowAdapter
 

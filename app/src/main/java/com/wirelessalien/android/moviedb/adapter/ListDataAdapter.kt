@@ -21,14 +21,11 @@ package com.wirelessalien.android.moviedb.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.materialswitch.MaterialSwitch
-import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.ListDetailsData
+import com.wirelessalien.android.moviedb.databinding.ListItemBinding
 import com.wirelessalien.android.moviedb.tmdb.account.AddToList
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromList
 import kotlinx.coroutines.CoroutineScope
@@ -40,42 +37,15 @@ class ListDataAdapter(
     private val context: Context,
     private val onItemClickListener: OnItemClickListener
 ) : RecyclerView.Adapter<ListDataAdapter.ViewHolder>() {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item, parent, false)
-        return ViewHolder(view, onItemClickListener, listData)
+        val binding = ListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding, onItemClickListener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = listData[position]
-        holder.listName.text = data.listName
-        holder.listSwitch.setOnCheckedChangeListener(null)
-        holder.listSwitch.isChecked = data.isMovieInList
-        holder.listSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            val pos = holder.bindingAdapterPosition
-            if (pos != RecyclerView.NO_POSITION) {
-                val listData = listData[pos]
-                CoroutineScope(Dispatchers.Main).launch {
-                    if (isChecked) {
-                        AddToList(
-                            listData.movieId,
-                            listData.listId,
-                            listData.mediaType,
-                            context
-                        ).addToList()
-                    } else {
-                        DeleteFromList(
-                            listData.movieId,
-                            listData.listId,
-                            listData.mediaType,
-                            context,
-                            pos,
-                            null,
-                            null
-                        ).deleteFromList()
-                    }
-                }
-            }
-        }
+        holder.bind(data)
     }
 
     override fun getItemCount(): Int {
@@ -87,16 +57,40 @@ class ListDataAdapter(
     }
 
     class ViewHolder(
-        itemView: View,
-        private val onItemClickListener: OnItemClickListener,
-        private val listData: List<ListDetailsData>
-    ) : RecyclerView.ViewHolder(itemView) {
-        var listName: TextView
-        var listSwitch: MaterialSwitch
+        private val binding: ListItemBinding,
+        private val onItemClickListener: OnItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-        init {
-            listName = itemView.findViewById(R.id.list_name)
-            listSwitch = itemView.findViewById(R.id.list_switch)
+        fun bind(data: ListDetailsData) {
+            binding.listName.text = data.listName
+            binding.listSwitch.setOnCheckedChangeListener(null)
+            binding.listSwitch.isChecked = data.isMovieInList
+            binding.listSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+                val pos = bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        if (isChecked) {
+                            AddToList(
+                                data.movieId,
+                                data.listId,
+                                data.mediaType,
+                                binding.root.context
+                            ).addToList()
+                        } else {
+                            DeleteFromList(
+                                data.movieId,
+                                data.listId,
+                                data.mediaType,
+                                binding.root.context,
+                                pos,
+                                null,
+                                null
+                            ).deleteFromList()
+                        }
+                    }
+                }
+            }
+            itemView.setOnClickListener { onItemClickListener.onItemClick(data) }
         }
     }
 }

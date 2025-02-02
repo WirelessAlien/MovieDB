@@ -32,7 +32,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.CarouselSnapHelper
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
@@ -54,7 +53,6 @@ import java.io.IOException
 import java.net.URL
 import java.util.Date
 import java.util.Locale
-import java.util.Optional
 
 class HomeFragment : BaseFragment() {
     private var loading = true
@@ -75,8 +73,8 @@ class HomeFragment : BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         apiKey = ConfigHelper.getConfigValue(
             requireContext().applicationContext,
             "api_read_access_token"
@@ -186,46 +184,91 @@ class HomeFragment : BaseFragment() {
     }
 
     private suspend fun fetchUpcomingTVShows() {
+        withContext(Dispatchers.Main) {
+            binding.shimmerFrameLayout5.visibility = View.VISIBLE
+            binding.shimmerFrameLayout5.startShimmer()
+        }
         val calendar: Calendar = Calendar.getInstance()
         calendar.time = date
         calendar.add(Calendar.DAY_OF_YEAR, 7)
         val dateAfterWeek = calendar.time
         val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
         val response = fetchData(url)
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleUpcomingTVResponse(response)
+        withContext(Dispatchers.Main) {
+            if (isAdded && !response.isNullOrEmpty()) {
+                handleUpcomingTVResponse(response)
+            } else {
+                binding.shimmerFrameLayout5.visibility = View.GONE
+                binding.shimmerFrameLayout5.stopShimmer()
+            }
         }
     }
 
     private suspend fun fetchNowPlayingTVShows() {
+        withContext(Dispatchers.Main) {
+            binding.shimmerFrameLayout3.visibility = View.VISIBLE
+            binding.shimmerFrameLayout3.startShimmer()
+        }
         val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(date)+ "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
         val response = fetchData(url)
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleTVResponse(response)
+        withContext(Dispatchers.Main) {
+            if (isAdded && !response.isNullOrEmpty()) {
+                handleTVResponse(response)
+            } else {
+                binding.shimmerFrameLayout3.visibility = View.GONE
+                binding.shimmerFrameLayout3.stopShimmer()
+            }
         }
     }
 
     private suspend fun fetchUpcomingMovies() {
+        withContext(Dispatchers.Main) {
+            binding.shimmerFrameLayout4.visibility = View.VISIBLE
+            binding.shimmerFrameLayout4.startShimmer()
+        }
         val url = URL("https://api.themoviedb.org/3/movie/upcoming" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
         val response = fetchData(url)
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleUpcomingMovieResponse(response)
+        withContext(Dispatchers.Main) {
+            if (isAdded && !response.isNullOrEmpty()) {
+                handleUpcomingMovieResponse(response)
+            } else {
+                binding.shimmerFrameLayout4.visibility = View.GONE
+                binding.shimmerFrameLayout4.stopShimmer()
+            }
         }
     }
 
     private suspend fun fetchNowPlayingMovies() {
+        withContext(Dispatchers.Main) {
+            binding.shimmerFrameLayout2.visibility = View.VISIBLE
+            binding.shimmerFrameLayout2.startShimmer()
+        }
         val url = URL("https://api.themoviedb.org/3/movie/now_playing" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
         val response = fetchData(url)
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleMovieResponse(response)
+        withContext(Dispatchers.Main) {
+            if (isAdded && !response.isNullOrEmpty()) {
+                handleMovieResponse(response)
+            } else {
+                binding.shimmerFrameLayout2.visibility = View.GONE
+                binding.shimmerFrameLayout2.stopShimmer()
+            }
         }
     }
 
     private suspend fun fetchTrendingList() {
+        withContext(Dispatchers.Main) {
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
+        }
         val url = URL("https://api.themoviedb.org/3/trending/all/day" + BaseActivity.getLanguageParameter2(requireContext()))
         val response = fetchData(url)
-        if (isAdded && !response.isNullOrEmpty()) {
-            handleTrendingResponse(response)
+        withContext(Dispatchers.Main) {
+            if (isAdded && !response.isNullOrEmpty()) {
+                handleTrendingResponse(response)
+            } else {
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
+            }
         }
     }
 
@@ -261,11 +304,16 @@ class HomeFragment : BaseFragment() {
                 }
                 binding.nowPlayingRecyclerView.adapter = mHomeShowAdapter
                 mShowListLoaded = true
-                hideProgressBar()
+                binding.shimmerFrameLayout2.visibility = View.GONE
+                binding.shimmerFrameLayout2.stopShimmer()
             } catch (je: JSONException) {
                 je.printStackTrace()
-                hideProgressBar()
+                binding.shimmerFrameLayout2.visibility = View.GONE
+                binding.shimmerFrameLayout2.stopShimmer()
             }
+        } else {
+            binding.shimmerFrameLayout2.visibility = View.GONE
+            binding.shimmerFrameLayout2.stopShimmer()
         }
         loading = false
     }
@@ -282,11 +330,16 @@ class HomeFragment : BaseFragment() {
                 }
                 binding.nowPlayingTVRecyclerView.adapter = mTVShowAdapter
                 mShowListLoaded = true
-                hideProgressBar()
+                binding.shimmerFrameLayout3.visibility = View.GONE
+                binding.shimmerFrameLayout3.stopShimmer()
             } catch (je: JSONException) {
                 je.printStackTrace()
-                hideProgressBar()
+                binding.shimmerFrameLayout3.visibility = View.GONE
+                binding.shimmerFrameLayout3.stopShimmer()
             }
+        } else {
+            binding.shimmerFrameLayout3.visibility = View.GONE
+            binding.shimmerFrameLayout3.stopShimmer()
         }
         loading = false
     }
@@ -303,11 +356,16 @@ class HomeFragment : BaseFragment() {
                 }
                 binding.upcomingTVRecyclerView.adapter = mUpcomingTVAdapter
                 mShowListLoaded = true
-                hideProgressBar()
+                binding.shimmerFrameLayout5.visibility = View.GONE
+                binding.shimmerFrameLayout5.stopShimmer()
             } catch (je: JSONException) {
                 je.printStackTrace()
-                hideProgressBar()
+                binding.shimmerFrameLayout5.visibility = View.GONE
+                binding.shimmerFrameLayout5.stopShimmer()
             }
+        } else {
+            binding.shimmerFrameLayout5.visibility = View.GONE
+            binding.shimmerFrameLayout5.stopShimmer()
         }
         loading = false
     }
@@ -324,11 +382,16 @@ class HomeFragment : BaseFragment() {
                 }
                 binding.upcomingMovieRecyclerView.adapter = mUpcomingMovieAdapter
                 mShowListLoaded = true
-                hideProgressBar()
+                binding.shimmerFrameLayout4.visibility = View.GONE
+                binding.shimmerFrameLayout4.stopShimmer()
             } catch (je: JSONException) {
                 je.printStackTrace()
-                hideProgressBar()
+                binding.shimmerFrameLayout4.visibility = View.GONE
+                binding.shimmerFrameLayout4.stopShimmer()
             }
+        } else {
+            binding.shimmerFrameLayout4.visibility = View.GONE
+            binding.shimmerFrameLayout4.stopShimmer()
         }
         loading = false
     }
@@ -352,19 +415,17 @@ class HomeFragment : BaseFragment() {
                     adapter.updateData(trendingArrayList)
                     adapter.notifyDataSetChanged()
                 }
-                hideProgressBar()
+                mShowListLoaded = true
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
             } catch (je: JSONException) {
                 je.printStackTrace()
-                hideProgressBar()
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
             }
-        }
-    }
-
-    private fun hideProgressBar() {
-        if (isAdded) {
-            val progressBar =
-                Optional.ofNullable(requireActivity().findViewById<CircularProgressIndicator>(R.id.progressBar))
-            progressBar.ifPresent { bar: CircularProgressIndicator -> bar.visibility = View.GONE }
+        } else {
+            binding.shimmerFrameLayout1.visibility = View.GONE
+            binding.shimmerFrameLayout1.stopShimmer()
         }
     }
 

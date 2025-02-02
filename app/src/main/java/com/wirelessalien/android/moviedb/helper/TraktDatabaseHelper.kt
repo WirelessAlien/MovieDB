@@ -840,13 +840,18 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         return lastWatched
     }
 
-    fun addEpisodeToWatched(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int) {
+    fun addEpisodeToWatched(
+        title: String,
+        showTraktId: Int,
+        showTmdbId: Int,
+        seasonNumber: Int,
+        episodeNumber: Int
+    ) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_TITLE, title)
             put(COL_SHOW_TRAKT_ID, showTraktId)
             put(COL_SHOW_TMDB_ID, showTmdbId)
-            put(COL_TYPE, type)
             put(COL_SEASON_NUMBER, seasonNumber)
             put(COL_EPISODE_NUMBER, episodeNumber)
         }

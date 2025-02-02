@@ -28,20 +28,16 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.radiobutton.MaterialRadioButton
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ListDataAdapter
 import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.data.ListDetailsData
+import com.wirelessalien.android.moviedb.databinding.ListBottomSheetBinding
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.CreateList
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
@@ -58,30 +54,22 @@ class ListBottomSheetFragment(
     private val context: Context?,
     private val fetchList: Boolean
 ) : BottomSheetDialogFragment() {
-    private lateinit var newListName: EditText
-    private lateinit var listDescription: EditText
-    private lateinit var privateList: MaterialRadioButton
     private val listDataAdapter: ListDataAdapter? = null
+    private lateinit var binding: ListBottomSheetBinding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.list_bottom_sheet, container, false)
+    ): View {
+        binding = ListBottomSheetBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
-        newListName = view.findViewById(R.id.newListName)
-        listDescription = view.findViewById(R.id.listDescription)
-        val createListButton = view.findViewById<Button>(R.id.createListBtn)
-        privateList = view.findViewById(R.id.privateRadioBtn)
-        val previousLists = view.findViewById<TextView>(R.id.previousListText)
-        val infoButton = view.findViewById<Button>(R.id.infoBtn)
-        recyclerView.layoutManager = LinearLayoutManager(getContext())
-        recyclerView.adapter = listDataAdapter
-        infoButton.setOnClickListener {
+        binding.recyclerView.layoutManager = LinearLayoutManager(getContext())
+        binding.recyclerView.adapter = listDataAdapter
+        binding.infoBtn.setOnClickListener {
             val builder = MaterialAlertDialogBuilder(
                 requireContext()
             )
@@ -94,10 +82,10 @@ class ListBottomSheetFragment(
             builder.setNegativeButton(getString(R.string.cancel)) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
             builder.show()
         }
-        createListButton.setOnClickListener {
-            val listName = newListName.text.toString()
-            val description = listDescription.text.toString()
-            val isPublic = !privateList.isChecked // when checked private radio button, the value is false else true
+        binding.createListBtn.setOnClickListener {
+            val listName = binding.newListName.text.toString()
+            val description = binding.listDescription.text.toString()
+            val isPublic = !binding.privateRadioBtn.isChecked // when checked private radio button, the value is false else true
             lifecycleScope.launch {
                 withContext(Dispatchers.IO) {
                     CreateList(listName, description, isPublic, context).createList()
@@ -106,7 +94,7 @@ class ListBottomSheetFragment(
             }
         }
         if (!fetchList) {
-            previousLists.visibility = View.GONE
+            binding.previousListText.visibility = View.GONE
         }
         if (fetchList) {
             lifecycleScope.launch {
@@ -151,7 +139,7 @@ class ListBottomSheetFragment(
                                 // Handle item click
                             }
                         })
-                        recyclerView.adapter = adapter
+                        binding.recyclerView.adapter = adapter
                     }
                 }
             }

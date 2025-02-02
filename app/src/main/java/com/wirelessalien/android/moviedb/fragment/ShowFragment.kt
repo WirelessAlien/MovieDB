@@ -67,8 +67,8 @@ class ShowFragment : BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         apiKey = ConfigHelper.getConfigValue(requireContext().applicationContext, "api_key")
         mListType = arguments?.getString(ARG_LIST_TYPE) ?: SectionsPagerAdapter.MOVIE
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())

@@ -23,25 +23,25 @@ import android.app.Activity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.databinding.ListListItemBinding
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ListAdapter(
-    private val listData: MutableList<ListData>,
+    private var listData: MutableList<ListData>,
     private val onItemClickListener: OnItemClickListener,
     private val showDeleteButton: Boolean
 ) : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.list_list_item, parent, false)
-        return ViewHolder(view, onItemClickListener)
+        val binding = ListListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding, onItemClickListener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -54,8 +54,11 @@ class ListAdapter(
 
     fun updateData(newData: List<ListData>?) {
         if (newData != null) {
+            val diffCallback = ListDataDiffCallback(listData, newData)
+            val diffResult = DiffUtil.calculateDiff(diffCallback)
+            listData.clear()
             listData.addAll(newData)
-            notifyDataSetChanged()
+            diffResult.dispatchUpdatesTo(this)
         }
     }
 
@@ -63,39 +66,32 @@ class ListAdapter(
         fun onItemClick(listData: ListData?)
     }
 
-    inner class ViewHolder(itemView: View, private val onItemClickListener: OnItemClickListener) :
-        RecyclerView.ViewHolder(itemView) {
-        private val listNameTextView: TextView
-        private val descriptionTextView: TextView
-        private val itemCountTextView: TextView
-        private val deleteButton: Button
-
-        init {
-            listNameTextView = itemView.findViewById(R.id.listNameTextView)
-            descriptionTextView = itemView.findViewById(R.id.description)
-            itemCountTextView = itemView.findViewById(R.id.itemCount)
-            deleteButton = itemView.findViewById(R.id.deleteButton)
-        }
+    inner class ViewHolder(
+        private val binding: ListListItemBinding,
+        private val onItemClickListener: OnItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(listData: ListData) {
-            listNameTextView.text = listData.name
+            binding.listNameTextView.text = listData.name
 
-            // Check if description is null or empty
             if (listData.description.isEmpty()) {
-                descriptionTextView.setText(R.string.no_description)
+                binding.description.setText(R.string.no_description)
             } else {
-                descriptionTextView.text = listData.description
+                binding.description.text = listData.description
             }
-            itemCountTextView.text = itemView.context.getString(R.string.items_count, listData.itemCount)
+            binding.itemCount.text = itemView.context.getString(R.string.items_count, listData.itemCount)
             itemView.tag = listData
             itemView.setOnClickListener { onItemClickListener.onItemClick(itemView.tag as ListData) }
             if (showDeleteButton) {
-                deleteButton.visibility = View.VISIBLE
-                deleteButton.setOnClickListener {
+                binding.deleteButton.visibility = View.VISIBLE
+                binding.deleteButton.setOnClickListener {
                     val deleteListThread = DeleteList(listData.id, itemView.context as Activity, object : DeleteList.OnListDeletedListener {
                         override fun onListDeleted() {
+                            val oldList = ArrayList(this@ListAdapter.listData)
                             this@ListAdapter.listData.remove(listData)
-                            notifyDataSetChanged()
+                            val diffCallback = ListDataDiffCallback(oldList, this@ListAdapter.listData)
+                            val diffResult = DiffUtil.calculateDiff(diffCallback)
+                            diffResult.dispatchUpdatesTo(this@ListAdapter)
                         }
                     })
                     CoroutineScope(Dispatchers.Main).launch {
@@ -103,8 +99,30 @@ class ListAdapter(
                     }
                 }
             } else {
-                deleteButton.visibility = View.GONE
+                binding.deleteButton.visibility = View.GONE
             }
+        }
+    }
+
+    class ListDataDiffCallback(
+        private val oldList: List<ListData>,
+        private val newList: List<ListData>
+    ) : DiffUtil.Callback() {
+
+        override fun getOldListSize(): Int {
+            return oldList.size
+        }
+
+        override fun getNewListSize(): Int {
+            return newList.size
+        }
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].id == newList[newItemPosition].id
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition] == newList[newItemPosition]
         }
     }
 }

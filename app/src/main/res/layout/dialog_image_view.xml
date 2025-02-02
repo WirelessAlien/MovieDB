@@ -41,7 +41,7 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_alignParentEnd="true"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         android:layout_margin="5dp"
         android:layout_above="@id/zoom_out_btn"
         app:icon="@drawable/ic_refresh"/>
@@ -52,7 +52,7 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_above="@+id/rotate_btn"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         android:layout_margin="5dp"
         android:layout_alignParentEnd="true"
         app:icon="@drawable/ic_high_quality"/>
@@ -63,7 +63,7 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_above="@+id/dismiss_btn"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         android:layout_margin="5dp"
         android:layout_alignParentEnd="true"
         app:icon="@drawable/ic_zoom_in"/>
@@ -74,7 +74,7 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_above="@+id/zoom_in_btn"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         android:layout_margin="5dp"
         android:layout_alignParentEnd="true"
         app:icon="@drawable/ic_zoom_out"/>
@@ -86,7 +86,7 @@
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         android:layout_margin="5dp"
         app:icon="@drawable/ic_close"/>
 
@@ -101,8 +101,9 @@
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="5dp"
         android:layout_toStartOf="@id/prev_btn"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         app:icon="@drawable/ic_download" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/prev_btn"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
@@ -114,7 +115,7 @@
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="5dp"
         android:layout_toStartOf="@id/next_btn"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         app:icon="@drawable/ic_arrow_backward" />
 
     <com.google.android.material.button.MaterialButton
@@ -124,9 +125,10 @@
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_toStartOf="@id/dismiss_btn"
         android:layout_alignParentBottom="true"
-        app:cornerRadius="5dp"
+        app:cornerRadius="10dp"
         android:layout_margin="5dp"
         app:icon="@drawable/ic_arrow_next"/>
+
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"

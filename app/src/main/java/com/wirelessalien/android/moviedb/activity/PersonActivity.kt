@@ -44,7 +44,7 @@ import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.adapter.PersonBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.PersonPagingAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityPersonBinding
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
 import com.wirelessalien.android.moviedb.fragment.PersonFragment.Companion.newInstance
@@ -62,7 +62,7 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
     private val REQUEST_CODE_ASK_PERMISSIONS_EXPORT = 123
     private val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
     private var exportDirectoryUri: String? = null
-    private lateinit var mSearchPersonAdapter: PersonBaseAdapter
+    private lateinit var mSearchPersonAdapter: PersonPagingAdapter
     private lateinit var mShowGridLayoutManager: GridLayoutManager
     private var apiReadAccessToken: String? = null
 
@@ -84,7 +84,7 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
             transaction.commit()
         }
 
-        mSearchPersonAdapter = PersonBaseAdapter()
+        mSearchPersonAdapter = PersonPagingAdapter()
 
         val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3))
         binding.searchResultsRecyclerView.layoutManager = mShowGridView

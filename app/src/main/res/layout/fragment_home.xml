@@ -41,10 +41,30 @@
             android:layout_height="wrap_content"
             android:clipChildren="false"
             android:clipToPadding="false"
+            android:minHeight="100dp"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="15dp"
             android:layout_below="@id/searchbar"/>
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="100dp"
+            android:visibility="gone"
+            android:layout_below="@id/searchbar"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
         <TextView
             android:id="@+id/nowPlaying"
             android:layout_width="wrap_content"
@@ -67,6 +87,25 @@
             android:layout_marginBottom="10dp"
             android:minHeight="230dp"
             android:scrollbars="none" />
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="230dp"
+            android:visibility="gone"
+            android:layout_below="@id/nowPlaying"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
         <TextView
             android:id="@+id/airingToday"
             android:layout_width="wrap_content"
@@ -89,6 +128,25 @@
             android:clipToPadding="false"
             android:minHeight="230dp"
             android:scrollbars="none" />
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="230dp"
+            android:visibility="gone"
+            android:layout_below="@id/airingToday"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
         <TextView
             android:id="@+id/upcomingMovie"
             android:layout_width="wrap_content"
@@ -111,6 +169,24 @@
             android:clipToPadding="false"
             android:minHeight="230dp"
             android:scrollbars="none" />
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:minHeight="230dp"
+            android:layout_below="@id/upcomingMovie"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
 
         <TextView
             android:id="@+id/upcomingTv"
@@ -135,15 +211,22 @@
             android:layout_marginBottom="10dp"
             android:scrollbars="none" />
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            app:waveAmplitude="10dp"
-            app:wavelength="32dp"
-            app:waveSpeed="0dp"
-            android:layout_centerInParent="true"/>
-    </RelativeLayout>
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout5"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:minHeight="230dp"
+            android:layout_below="@id/upcomingTv"
+            app:shimmer_duration="700">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+    </RelativeLayout>
 </androidx.core.widget.NestedScrollView>

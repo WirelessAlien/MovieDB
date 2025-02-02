@@ -26,82 +26,53 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.cardview.widget.CardView
-import androidx.core.content.res.ResourcesCompat
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
-import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter.MovieItemViewHolder
+import com.wirelessalien.android.moviedb.databinding.MovieCardBinding
 import org.json.JSONException
 import org.json.JSONObject
 
-/*
-* This class is quite similar to the MovieBaseAdapter.
-* The main difference is the orientation, which needs the RecyclerView.
-* This class is primarily used for the "Similar Movies" list in DetailActivity.
-*/
-// TODO: Currently, this class is almost the same as ShowBaseAdapter, it would be nice if they could be merged.
-class SimilarMovieBaseAdapter // Create the adapter with the list of similar shows and the context.
-    (
+class SimilarMovieBaseAdapter(
     private val similarMovieList: ArrayList<JSONObject>,
     private val context: Context
-) : RecyclerView.Adapter<MovieItemViewHolder?>() {
+) : RecyclerView.Adapter<SimilarMovieBaseAdapter.MovieItemViewHolder>() {
+
     override fun getItemCount(): Int {
-        // Return the amount of items in the list.
         return similarMovieList.size
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieItemViewHolder {
-        // Create a new CardItem when needed.
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.movie_card, parent, false)
-        return MovieItemViewHolder(view)
+        val binding = MovieCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return MovieItemViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: MovieItemViewHolder, position: Int) {
-        // Fill the views with the needed data.
         val movieData = similarMovieList[position]
         try {
-            // Depending if it is a movie or a series, it needs to get the title or name.
             val title: String = if (movieData.has("title")) {
                 "title"
             } else {
                 "name"
             }
-            val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(
-                context
-            )
+            val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w500"
-            holder.movieTitle.text = movieData.getString(title)
+            holder.binding.movieTitle.text = movieData.getString(title)
 
-            // Either show the poster or an icon indicating that the poster is not available.
-            if (movieData.getString("backdrop_path") == null) {
-                holder.movieImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
-            } else {
-                Picasso.get().load(
-                    "https://image.tmdb.org/t/p/" + imageSize +
-                            movieData.getString("backdrop_path")
-                )
-                    .into(holder.movieImage)
-            }
+            Picasso.get().load(
+                "https://image.tmdb.org/t/p/" + imageSize + movieData.getString("backdrop_path")
+            ).into(holder.binding.movieImage)
 
-            // Quickly fade in the poster when loaded.
-            val animation = AnimationUtils.loadAnimation(
-                context,
-                R.anim.fade_in_fast
-            )
-            holder.movieImage.startAnimation(animation)
+            val animation = AnimationUtils.loadAnimation(context, R.anim.fade_in_fast)
+            holder.binding.movieImage.startAnimation(animation)
         } catch (je: JSONException) {
             je.printStackTrace()
         }
-        holder.cardView.setBackgroundColor(Color.TRANSPARENT)
+        holder.binding.cardView.setBackgroundColor(Color.TRANSPARENT)
 
-        // Send the movie data and the user to DetailActivity when clicking on a card.
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", movieData.toString())
@@ -113,24 +84,10 @@ class SimilarMovieBaseAdapter // Create the adapter with the list of similar sho
     }
 
     override fun getItemId(position: Int): Long {
-        // The id is the same as the position,
-        // therefore returning the position is enough.
         return position.toLong()
     }
 
-    // Views that each CardItem will contain.
-    class MovieItemViewHolder internal constructor(itemView: View) :
-        RecyclerView.ViewHolder(itemView) {
-        val cardView: CardView
-        val movieTitle: TextView
-        val movieImage: ImageView
-
-        init {
-            cardView = itemView.findViewById(R.id.cardView)
-            movieTitle = itemView.findViewById(R.id.movieTitle)
-            movieImage = itemView.findViewById(R.id.movieImage)
-        }
-    }
+    class MovieItemViewHolder(val binding: MovieCardBinding) : RecyclerView.ViewHolder(binding.root)
 
     companion object {
         private const val HD_IMAGE_SIZE = "key_hq_images"
