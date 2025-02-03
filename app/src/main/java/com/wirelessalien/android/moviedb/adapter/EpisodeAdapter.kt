@@ -88,7 +88,8 @@ class EpisodeAdapter(
     var seasonNumber: Int,
     private var showTitle: String,
     private var tvShowId: Int,
-    private var traktId: Int
+    private var traktId: Int,
+    private var tmdbObject: JSONObject
 ) : RecyclerView.Adapter<EpisodeViewHolder?>() {
 
     private var episodeRatings: Map<Int, Double> = HashMap()
@@ -582,7 +583,7 @@ class EpisodeAdapter(
                     null
                 }
                 mediaObject = episodeObject
-                val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(tvShowId, context, true, "episode", mediaObject?: JSONObject())
+                val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(tvShowId, context, true, "episode", mediaObject?: JSONObject(), tmdbObject)
                 listBottomSheetFragmentTkt.show((context as FragmentActivity).supportFragmentManager, listBottomSheetFragmentTkt.tag)
                 holder.binding.lProgressBar.visibility = View.GONE
             }

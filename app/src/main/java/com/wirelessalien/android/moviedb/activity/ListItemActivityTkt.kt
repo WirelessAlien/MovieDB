@@ -22,7 +22,6 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -108,7 +107,7 @@ class ListItemActivityTkt : AppCompatActivity() {
 
     private fun loadListItemData() {
         lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
+            binding.shimmerFrameLayout.visibility = View.VISIBLE
             withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
@@ -126,6 +125,7 @@ class ListItemActivityTkt : AppCompatActivity() {
                 if (cursor.moveToFirst()) {
                     do {
                         val jsonObject = JSONObject().apply {
+                            put("auto_id", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ID)))
                             put("listed_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_LISTED_AT)))
                             put("type", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE)))
                             put("title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE)))
@@ -182,23 +182,18 @@ class ListItemActivityTkt : AppCompatActivity() {
                         }
                         tmdbCursor.close()
 
-                        Log.d("ListItemActivityTkt", "Loaded list item: $jsonObject")
                         fullListItemList.add(jsonObject)
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
             }
-            listItemList.clear()
-            listItemList.addAll(fullListItemList)
-            adapter.notifyDataSetChanged()
-            binding.progressBar.visibility = View.GONE
+            adapter.updateShowList(fullListItemList)
+            binding.shimmerFrameLayout.visibility = View.GONE
         }
     }
 
     private fun filterListItemData(type: String) {
         val filteredList = ArrayList(fullListItemList.filter { it.getString("type") == type })
-        listItemList.clear()
-        listItemList.addAll(filteredList)
-        adapter.notifyDataSetChanged()
+        adapter.updateShowList(filteredList)
     }
 }

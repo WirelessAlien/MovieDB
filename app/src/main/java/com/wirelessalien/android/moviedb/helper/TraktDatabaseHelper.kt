@@ -24,7 +24,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.Log
 
 class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -70,7 +69,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_SEASON_EPISODE_WATCHED,
+                values,
+                "$COL_SHOW_TRAKT_ID = ? AND $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?",
+                arrayOf(showTraktId.toString(), showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString())
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_SEASON_EPISODE_WATCHED, null, values)
         }
         cursor.close()
@@ -91,7 +99,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_COLLECTION,
+                values,
+                "$COL_TRAKT_ID = ? AND $COL_TYPE = ?",
+                arrayOf(traktId.toString(), type)
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_COLLECTION, null, values)
         }
         cursor.close()
@@ -112,10 +129,18 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_WATCHED,
+                values,
+                "$COL_TRAKT_ID = ? AND $COL_TYPE = ?",
+                arrayOf(traktId.toString(), type)
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_WATCHED, null, values)
         }
-        Log.d("TraktDatabaseHelper", "Inserted watched data $values")
         cursor.close()
     }
 
@@ -134,10 +159,18 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_WATCHED,
+                values,
+                "$COL_TRAKT_ID = ? AND $COL_TYPE = ?",
+                arrayOf(traktId.toString(), type)
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_WATCHED, null, values)
         }
-        Log.d("TraktDatabaseHelper", "Inserted watched data $values")
         cursor.close()
     }
 
@@ -156,7 +189,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_HISTORY,
+                values,
+                "$COL_TRAKT_ID = ? AND $COL_TYPE = ?",
+                arrayOf(traktId.toString(), type)
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_HISTORY, null, values)
         }
         cursor.close()
@@ -208,7 +250,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_RATING,
+                values,
+                selection,
+                selectionArgs
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_RATING, null, values)
         }
         cursor.close()
@@ -260,7 +311,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_WATCHLIST,
+                values,
+                selection,
+                selectionArgs
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_WATCHLIST, null, values)
         }
         cursor.close()
@@ -281,7 +341,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_FAVORITE,
+                values,
+                "$COL_TRAKT_ID = ? AND $COL_TYPE = ?",
+                arrayOf(traktId.toString(), type)
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_FAVORITE, null, values)
         }
         cursor.close()
@@ -301,7 +370,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                USER_LISTS,
+                values,
+                "$COL_TRAKT_ID = ?",
+                arrayOf(traktId.toString())
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(USER_LISTS, null, values)
         }
         cursor.close()
@@ -322,7 +400,16 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             null
         )
 
-        if (cursor.count == 0) {
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_LIST_ITEM,
+                values,
+                "$COL_TRAKT_ID = ? AND $COL_TYPE = ?",
+                arrayOf(traktId.toString(), type)
+            )
+        } else {
+            // Data does not exist, insert it
             db.insert(TABLE_LIST_ITEM, null, values)
         }
         cursor.close()

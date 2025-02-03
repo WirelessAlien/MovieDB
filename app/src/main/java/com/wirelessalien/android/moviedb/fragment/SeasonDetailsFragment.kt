@@ -35,8 +35,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.chip.Chip
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.TVSeasonDetailsActivity
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter
@@ -49,6 +47,7 @@ import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetails
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.text.ParseException
 import java.util.Collections
 import java.util.Date
@@ -60,6 +59,7 @@ class SeasonDetailsFragment : Fragment() {
     private var traktId = 0
     private var seasonNumber = 0
     private var currentTabNumber = 1
+    private lateinit var tmdbObject: JSONObject
     private lateinit var pageChangeCallback: ViewPager2.OnPageChangeCallback
     private lateinit var dbHelper: EpisodeReminderDatabaseHelper
     private lateinit var binding: FragmentTvSeasonDetailsBinding
@@ -80,6 +80,9 @@ class SeasonDetailsFragment : Fragment() {
         seasonNumber = requireArguments().getInt(ARG_SEASON_NUMBER)
         traktId = requireArguments().getInt(ARG_TRAKT_ID)
         tvShowName = requireArguments().getString(ARG_TV_SHOW_NAME) ?: ""
+        val tmdbObjectString = requireArguments().getString(ARG_TMDB_OBJECT)
+        tmdbObject = JSONObject(tmdbObjectString?: "{}")
+
         activityBinding.toolbar.title = getString(R.string.seasons)
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -239,35 +242,36 @@ class SeasonDetailsFragment : Fragment() {
     }
 
     private fun loadSeasonDetails() {
-        val progressBar = view?.findViewById<CircularProgressIndicator>(R.id.progressBar)
-        val defaultMessage = view?.findViewById<Chip>(R.id.defaultMessage)
-        progressBar?.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.Main).launch {
-            progressBar?.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
             try {
                 val tvSeasonDetails = TVSeasonDetails(tvShowId, seasonNumber, requireContext())
                 tvSeasonDetails.fetchSeasonDetails(object : TVSeasonDetails.SeasonDetailsCallback {
                     override fun onSeasonDetailsFetched(episodes: List<Episode>) {
-                        val adapter = EpisodeAdapter(requireContext(), episodes, seasonNumber, tvShowName, tvShowId, traktId)
+                        val adapter = EpisodeAdapter(requireContext(), episodes, seasonNumber, tvShowName, tvShowId, traktId, tmdbObject)
                         binding.episodeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
                         binding.episodeRecyclerView.adapter = adapter
                         binding.episodeRecyclerView.visibility = View.VISIBLE
-                        defaultMessage?.visibility = View.GONE
-                        progressBar?.visibility = View.GONE
+                        binding.defaultMessage.visibility = View.GONE
+                        binding.shimmerFrameLayout1.visibility = View.GONE
+                        binding.shimmerFrameLayout1.stopShimmer()
                         requireActivity().invalidateOptionsMenu()
                     }
 
                     override fun onSeasonDetailsNotAvailable() {
                         if (seasonNumber == 0) {
-                            defaultMessage?.visibility = View.VISIBLE
+                            binding.defaultMessage.visibility = View.VISIBLE
                             binding.episodeRecyclerView.visibility = View.GONE
                         }
-                        progressBar?.visibility = View.GONE
+                        binding.shimmerFrameLayout1.visibility = View.GONE
+                        binding.shimmerFrameLayout1.stopShimmer()
                     }
                 })
             } catch (e: Exception) {
                 e.printStackTrace()
-                progressBar?.visibility = View.GONE
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
             }
         }
     }
@@ -295,12 +299,14 @@ class SeasonDetailsFragment : Fragment() {
         private const val ARG_SEASON_NUMBER = "seasonNumber"
         private const val ARG_TV_SHOW_NAME = "tvShowName"
         private const val ARG_TRAKT_ID = "traktId"
+        private const val ARG_TMDB_OBJECT = "tmdbObject"
 
         fun newInstance(
             tvShowId: Int,
             seasonNumber: Int,
             tvShowName: String?,
-            traktId: Int
+            traktId: Int,
+            tmdbObject: JSONObject
         ): SeasonDetailsFragment {
             val fragment = SeasonDetailsFragment()
             val args = Bundle()
@@ -308,6 +314,7 @@ class SeasonDetailsFragment : Fragment() {
             args.putInt(ARG_SEASON_NUMBER, seasonNumber)
             args.putString(ARG_TV_SHOW_NAME, tvShowName)
             args.putInt(ARG_TRAKT_ID, traktId)
+            args.putString(ARG_TMDB_OBJECT, tmdbObject.toString())
             fragment.arguments = args
             return fragment
         }

@@ -96,5 +96,13 @@ class ListFragmentTmdb : BaseFragment() {
                 listBottomSheetFragment.tag
             )
         }
+
+        val fetcher = FetchList(context, null)
+        requireActivity().lifecycleScope.launch {
+            val listData = fetcher.fetchLists()
+            requireActivity().runOnUiThread {
+                listAdapter!!.updateData(listData)
+            }
+        }
     }
 }

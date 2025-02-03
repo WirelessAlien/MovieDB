@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -69,7 +70,7 @@ class ListFragmentTkt : BaseFragment() {
         loadListData()
         fab.setOnClickListener {
             val listBottomSheetFragment =
-                ListBottomSheetFragmentTkt(0, context, false,  "", JSONObject())
+                ListBottomSheetFragmentTkt(0, context, false,  "", JSONObject(), JSONObject())
             listBottomSheetFragment.show(
                 childFragmentManager,
                 listBottomSheetFragment.tag
@@ -95,6 +96,7 @@ class ListFragmentTkt : BaseFragment() {
                             put("number_of_items", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ITEM_COUNT)))
                             put("description", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_DESCRIPTION)))
                         }
+                        Log.d("ListFragmentTkt", "loadListData: $jsonObject")
                         tempList.add(jsonObject)
                     } while (cursor.moveToNext())
                 }

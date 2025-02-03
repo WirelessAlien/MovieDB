@@ -32,8 +32,16 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ListItemBinding
+import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper.Companion.COL_ITEM_COUNT
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper.Companion.COL_TRAKT_ID
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper.Companion.USER_LISTS
 import com.wirelessalien.android.moviedb.trakt.TraktSync
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
@@ -45,7 +53,8 @@ class ListDataAdapterTkt(
     private val movieId: Int,
     private val type: String,
     private val tktaccessToken: String?,
-    private val mediaObject: JSONObject
+    private val mediaObject: JSONObject,
+    private val movieDataObject: JSONObject
 ) : RecyclerView.Adapter<ListDataAdapterTkt.ViewHolder>() {
 
     private val dbHelper = TraktDatabaseHelper(context)
@@ -97,24 +106,48 @@ class ListDataAdapterTkt(
             val endpoint = if (isChecked) "users/me/lists/$listId/items" else "users/me/lists/$listId/items/remove"
             traktSync(endpoint, mediaObject) { success ->
                 if (success) {
-                    if (isChecked) {
-                        addMovieToList(listId, mediaObject)
-                    } else {
-                        removeMovieFromList(listId)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        if (isChecked) {
+                            addMovieToList(listId, mediaObject)
+                            addItemtoTmdb()
+                            updateUserListItemCount(listId, 1)
+                        } else {
+                            removeMovieFromList(listId)
+                            updateUserListItemCount(listId, -1)
+                        }
+                        withContext(Dispatchers.Main) {
+                            val message = if (isChecked) {
+                                context.getString(R.string.media_added_to_list)
+                            } else {
+                                context.getString(R.string.media_removed_from_list)
+                            }
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    Toast.makeText(context, context.getString(R.string.media_added_to_list), Toast.LENGTH_SHORT).show()
                 } else {
                     holder.binding.listSwitch.setOnCheckedChangeListener(null)
                     holder.binding.listSwitch.isChecked = !isChecked
                     holder.binding.listSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
                         traktSync(endpoint, mediaObject) { success ->
                             if (success) {
-                                if (isChecked) {
-                                    addMovieToList(listId, mediaObject)
-                                } else {
-                                    removeMovieFromList(listId)
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    if (isChecked) {
+                                        addMovieToList(listId, mediaObject)
+                                        addItemtoTmdb()
+                                        updateUserListItemCount(listId, 1)
+                                    } else {
+                                        removeMovieFromList(listId)
+                                        updateUserListItemCount(listId, -1)
+                                    }
+                                    withContext(Dispatchers.Main) {
+                                        val message = if (isChecked) {
+                                            context.getString(R.string.media_added_to_list)
+                                        } else {
+                                            context.getString(R.string.media_removed_from_list)
+                                        }
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    }
                                 }
-                                Toast.makeText(context, context.getString(R.string.media_added_to_list), Toast.LENGTH_SHORT).show()
                             } else {
                                 holder.binding.listSwitch.isChecked = !isChecked
                                 Toast.makeText(context, context.getString(R.string.failed_to_add_media_to_list), Toast.LENGTH_SHORT).show()
@@ -129,6 +162,15 @@ class ListDataAdapterTkt(
 
     override fun getItemCount(): Int {
         return lists.size
+    }
+
+    private fun updateUserListItemCount(listId: Int, increment: Int) {
+        val db = dbHelper.writableDatabase
+        val query = "UPDATE $USER_LISTS SET $COL_ITEM_COUNT = $COL_ITEM_COUNT + ? WHERE $COL_TRAKT_ID = ?"
+        val statement = db.compileStatement(query)
+        statement.bindLong(1, increment.toLong())
+        statement.bindLong(2, listId.toLong())
+        statement.executeUpdateDelete()
     }
 
     private fun isMovieInList(listId: Int): Boolean {
@@ -165,6 +207,55 @@ class ListDataAdapterTkt(
                 }
             }
         })
+    }
+
+    private fun addItemtoTmdb() {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val tmdbId = movieDataObject.optInt("id")
+        val name = if (type == "movie") movieDataObject.optString("title") else movieDataObject.optString("name")
+        val backdropPath = movieDataObject.optString("backdrop_path")
+        val posterPath = movieDataObject.optString("poster_path")
+        val summary = movieDataObject.optString("overview")
+        val voteAverage = movieDataObject.optDouble("vote_average")
+        val type1 = if (type == "movie") "movie" else "show"
+        val releaseDate = if (type == "movie") movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+        val genreIds = movieDataObject.optJSONArray("genres")?.let { genresArray ->
+            val ids = (0 until genresArray.length()).joinToString(",") { i ->
+                genresArray.getJSONObject(i).getInt("id").toString()
+            }
+            "[$ids]"
+        }
+        val seasonEpisodeCount = movieDataObject.optJSONArray("seasons")
+        val seasonsEpisodes = StringBuilder()
+
+        for (i in 0 until (seasonEpisodeCount?.length() ?: 0)) {
+            val season = seasonEpisodeCount?.getJSONObject(i)
+            val seasonNumber = season?.getInt("season_number")
+
+            // Skip specials (season_number == 0)
+            if (seasonNumber == 0) continue
+
+            val episodeCount = season?.getInt("episode_count")?: 0
+            val episodesList = (1..episodeCount).toList()
+
+            seasonsEpisodes.append("$seasonNumber{${episodesList.joinToString(",")}}")
+            if (i < (seasonEpisodeCount?.length() ?: 0) - 1) {
+                seasonsEpisodes.append(",")
+            }
+        }
+
+        dbHelper.addItem(
+            tmdbId,
+            name,
+            backdropPath,
+            posterPath,
+            summary,
+            voteAverage,
+            releaseDate,
+            genreIds?: "",
+            seasonsEpisodes.toString(),
+            type1
+        )
     }
 
     fun Activity.runOnUiThreadIfNeeded(action: () -> Unit) {

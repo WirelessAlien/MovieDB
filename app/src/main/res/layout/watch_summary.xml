@@ -22,10 +22,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
+
         <TextView
             android:id="@+id/watchSummaryTitle"
             android:layout_width="wrap_content"
@@ -48,6 +50,7 @@
             android:layout_marginTop="20dp"
             android:layout_marginStart="5dp"
             android:layout_marginBottom="5dp"/>
+
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/catDivider"
             android:layout_width="match_parent"
@@ -55,12 +58,14 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             android:layout_below="@+id/categoryTitle"/>
+
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/chip1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/catDivider"
             app:flexWrap="wrap">
+
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipWatching"
                 android:layout_width="wrap_content"
@@ -165,6 +170,7 @@
             android:layout_marginBottom="5dp"
             android:layout_marginTop="20dp"
             android:textStyle="bold"/>
+
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/genreDivider"
             android:layout_width="match_parent"
@@ -172,6 +178,7 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             android:layout_below="@+id/genresTitle"/>
+
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupGenres"
             android:layout_width="match_parent"
@@ -179,14 +186,21 @@
             android:layout_margin="5dp"
             android:layout_below="@id/genreDivider"/>
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            app:waveAmplitude="10dp"
-            app:wavelength="32dp"
-            app:waveSpeed="0dp"
-            android:layout_centerInParent="true"/>
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
     </RelativeLayout>
 </androidx.core.widget.NestedScrollView>

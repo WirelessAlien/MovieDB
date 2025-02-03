@@ -100,7 +100,8 @@ class FavoriteFragmentTkt : BaseFragment() {
 
     private fun loadFavoriteData() {
         lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
             withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
@@ -166,7 +167,8 @@ class FavoriteFragmentTkt : BaseFragment() {
                 cursor.close()
             }
             adapter.updateShowList(fullFavoritelist)
-            binding.progressBar.visibility = View.GONE
+            binding.shimmerFrameLayout1.visibility = View.GONE
+            binding.shimmerFrameLayout1.stopShimmer()
         }
     }
 

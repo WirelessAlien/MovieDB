@@ -83,6 +83,7 @@ import com.wirelessalien.android.moviedb.fragment.HomeFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newSavedInstance
 import com.wirelessalien.android.moviedb.fragment.LoginFragment
+import com.wirelessalien.android.moviedb.fragment.LoginFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
@@ -279,8 +280,13 @@ class MainActivity : BaseActivity() {
                 }
 
                 if (id == R.id.action_login) {
-                    val loginFragment = LoginFragment()
-                    loginFragment.show(supportFragmentManager, "login")
+                    if (preferences.getString("sync_provider", "local") == "trakt") {
+                        val loginFragmentTkt = LoginFragmentTkt()
+                        loginFragmentTkt.show(supportFragmentManager, "login")
+                    } else {
+                        val loginFragment = LoginFragment()
+                        loginFragment.show(supportFragmentManager, "login")
+                    }
                     return true
                 }
                 return false

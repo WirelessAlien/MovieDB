@@ -102,7 +102,8 @@ class WatchlistFragmentTkt : BaseFragment() {
 
     private fun loadWatchlistData() {
         lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
             withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
@@ -177,7 +178,8 @@ class WatchlistFragmentTkt : BaseFragment() {
                 cursor.close()
             }
             adapter.updateShowList(fullWatchlist)
-            binding.progressBar.visibility = View.GONE
+            binding.shimmerFrameLayout1.visibility = View.GONE
+            binding.shimmerFrameLayout1.stopShimmer()
         }
     }
 

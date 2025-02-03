@@ -91,6 +91,7 @@ import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
 import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBinding
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
+import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
@@ -740,7 +741,7 @@ class DetailActivity : BaseActivity() {
 
         binding.ratingBtnTmdb.setOnClickListener {
             val dialog = BottomSheetDialog(mActivity)
-            val dialogViewBinding = RatingDialogTraktBinding.inflate(layoutInflater)
+            val dialogViewBinding = RatingDialogBinding.inflate(layoutInflater)
             dialog.setContentView(dialogViewBinding.root)
             dialog.show()
 
@@ -839,6 +840,7 @@ class DetailActivity : BaseActivity() {
                 iIntent.putExtra("numSeasons", numSeason)
                 iIntent.putExtra("tvShowName", showName)
                 iIntent.putExtra("traktId", traktId)
+                iIntent.putExtra("tmdbObject", movieDataObject.toString())
                 startActivity(iIntent)
             }
         }
@@ -1056,7 +1058,7 @@ class DetailActivity : BaseActivity() {
                     put("shows", JSONArray().apply { put(traktMediaObject) })
                 }
             }
-            val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(movieId, mActivity, true, typeCheck, jsonBody)
+            val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(movieId, mActivity, true, typeCheck, jsonBody, movieDataObject)
             listBottomSheetFragmentTkt.show(supportFragmentManager, listBottomSheetFragmentTkt.tag)
         }
     }
@@ -1118,8 +1120,8 @@ class DetailActivity : BaseActivity() {
 
         removeCollection.setOnClickListener {
             val dialogBuilder = MaterialAlertDialogBuilder(this)
-            dialogBuilder.setTitle("Remove from collection")
-            dialogBuilder.setMessage("Are you sure you want to remove this item from your collection?")
+            dialogBuilder.setTitle(getString(R.string.remove_from_collection))
+            dialogBuilder.setMessage(getString(R.string.remove_from_collection_confirmation))
             dialogBuilder.setPositiveButton("Yes") { _, _ ->
                 syncTraktData("sync/collection/remove", 0, "")
                 dialog.dismiss()
@@ -1213,8 +1215,8 @@ class DetailActivity : BaseActivity() {
 
         removeHistory.setOnClickListener {
             val dialogBuilder = MaterialAlertDialogBuilder(this)
-            dialogBuilder.setTitle("Remove from history")
-            dialogBuilder.setMessage("Are you sure you want to remove this item from your history?")
+            dialogBuilder.setTitle(getString(R.string.remove_from_history))
+            dialogBuilder.setMessage(getString(R.string.remove_from_history_confirmation))
             dialogBuilder.setPositiveButton("Yes") { _, _ ->
                 syncTraktData("sync/history/remove", 0, "")
                 dialog.dismiss()
@@ -1316,7 +1318,7 @@ class DetailActivity : BaseActivity() {
 
     private fun showDatePicker(onDateSelected: (String) -> Unit) {
         val builder = MaterialDatePicker.Builder.datePicker()
-        builder.setTitleText("Select a date")
+        builder.setTitleText(getString(R.string.select_a_date))
         val datePicker = builder.build()
         datePicker.show(supportFragmentManager, datePicker.toString())
         datePicker.addOnPositiveButtonClickListener { selection ->
@@ -1327,7 +1329,7 @@ class DetailActivity : BaseActivity() {
                 .setTimeFormat(TimeFormat.CLOCK_24H)
                 .setHour(calendar.get(Calendar.HOUR_OF_DAY))
                 .setMinute(calendar.get(Calendar.MINUTE))
-                .setTitleText("Select a time")
+                .setTitleText(getString(R.string.select_time))
                 .build()
             timePicker.show(supportFragmentManager, timePicker.toString())
 
@@ -1365,7 +1367,7 @@ class DetailActivity : BaseActivity() {
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@DetailActivity, "Failed to sync $endpoint", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -1379,7 +1381,7 @@ class DetailActivity : BaseActivity() {
                                 addItemtoTmdb()
                             }
                         }
-                        "Success"
+                        getString(R.string.success)
                     } else {
                         response.message
                     }
@@ -1392,7 +1394,7 @@ class DetailActivity : BaseActivity() {
     private fun addItemtoTmdb() {
         val dbHelper = TmdbDetailsDatabaseHelper(context)
         val tmdbId = movieDataObject.optInt("id")
-        val name = movieDataObject.optString("title")?: movieDataObject.optString("name")
+        val name = if (isMovie) movieDataObject.optString("title") else movieDataObject.optString("name")
         val backdropPath = movieDataObject.optString("backdrop_path")
         val posterPath = movieDataObject.optString("poster_path")
         val summary = movieDataObject.optString("overview")
@@ -1545,16 +1547,22 @@ class DetailActivity : BaseActivity() {
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@DetailActivity, "Failed to sync $endpoint", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 runOnUiThread {
-                    val message = when (response.code) {
-                        201 -> "Success"
-                        204 -> "Deleted"
-                        else -> response.message
+                    val message = if (response.isSuccessful) {
+                        updateTraktButtonsUI("sync/history")
+                        lifecycleScope.launch {
+                            withContext(Dispatchers.IO) {
+                                handleDatabaseUpdate("sync/history", 0, "")
+                            }
+                        }
+                        getString(R.string.success)
+                    } else {
+                        response.message
                     }
                     Toast.makeText(this@DetailActivity, message, Toast.LENGTH_SHORT).show()
                 }

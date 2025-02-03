@@ -26,10 +26,12 @@ import android.database.Cursor
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -40,6 +42,9 @@ import com.wirelessalien.android.moviedb.adapter.ListDataAdapterTkt
 import com.wirelessalien.android.moviedb.databinding.ListBottomSheetTktBinding
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.trakt.TraktSync
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
@@ -51,7 +56,8 @@ class ListBottomSheetFragmentTkt(
     private val context: Context?,
     private val fetchList: Boolean,
     private val type: String,
-    private val mediaObject: JSONObject
+    private val mediaObject: JSONObject,
+    private val movieDataObject: JSONObject
 ) : BottomSheetDialogFragment() {
     private var listObject: JSONObject? = null
     private var tktaccessToken: String? = null
@@ -76,7 +82,7 @@ class ListBottomSheetFragmentTkt(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
-        binding.recyclerView.adapter = ListDataAdapterTkt(requireContext(), movieId, type, tktaccessToken, mediaObject)
+        binding.recyclerView.adapter = ListDataAdapterTkt(requireContext(), movieId, type, tktaccessToken, mediaObject, movieDataObject)
 
         binding.createListBtn.setOnClickListener {
             val selectedPrivacy = getSelectedPrivacy(binding.listPrivacyChip)
@@ -109,7 +115,7 @@ class ListBottomSheetFragmentTkt(
         }
         cursor.close()
 
-        val adapter = ListDataAdapterTkt(requireContext(), movieId, type, tktaccessToken, mediaObject)
+        val adapter = ListDataAdapterTkt(requireContext(), movieId, type, tktaccessToken, mediaObject, movieDataObject)
         adapter.setLists(lists)
         recyclerView.adapter = adapter
     }
@@ -155,9 +161,14 @@ class ListBottomSheetFragmentTkt(
                         if (!responseBodyString.isNullOrEmpty()) {
                             try {
                                 val responseObject = JSONObject(responseBodyString)
-                                saveListToDatabase(responseObject)
-                                Toast.makeText(context, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    saveListToDatabase(responseObject)
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             } catch (e: Exception) {
+                                Log.e("ListBottomSheetFragment", "onResponse: ", e)
                                 e.printStackTrace()
                             }
                         }

@@ -37,17 +37,16 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.databinding.FragmentLoginBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentLoginTktBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
-import com.wirelessalien.android.moviedb.tmdb.account.AccountLogout
-import com.wirelessalien.android.moviedb.tmdb.account.GetAccountDetails
-import com.wirelessalien.android.moviedb.tmdb.account.TMDbAuthV4
+import com.wirelessalien.android.moviedb.trakt.AccountLogoutTkt
+import com.wirelessalien.android.moviedb.trakt.GetAccountDetailsTkt
 import kotlinx.coroutines.launch
 
-class LoginFragment : BottomSheetDialogFragment() {
+class LoginFragmentTkt : BottomSheetDialogFragment() {
     private lateinit var preferences: SharedPreferences
     private var clientId: String? = null
-    private lateinit var binding: FragmentLoginBinding
+    private lateinit var binding: FragmentLoginTktBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +58,7 @@ class LoginFragment : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentLoginBinding.inflate(inflater, container, false)
+        binding = FragmentLoginTktBinding.inflate(inflater, container, false)
         val view = binding.root
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         clientId = ConfigHelper.getConfigValue(requireContext().applicationContext, "client_id")
@@ -81,13 +80,13 @@ class LoginFragment : BottomSheetDialogFragment() {
             })
 
         binding.signup.setOnClickListener {
-            val url = "https://www.themoviedb.org/signup"
+            val url = "https://trakt.tv/auth/join"
             val i = Intent(Intent.ACTION_VIEW)
             i.setData(Uri.parse(url))
             startActivity(i)
         }
 
-        if (preferences.getString("account_id", null) != null && preferences.getString("access_token", null) != null) {
+        if (preferences.getString("trakt_access_token", null) != null) {
             binding.login.visibility = View.GONE
             binding.logout.visibility = View.VISIBLE
             binding.loginStatus.setText(R.string.logged_in)
@@ -95,7 +94,7 @@ class LoginFragment : BottomSheetDialogFragment() {
 
         binding.logout.setOnClickListener {
             lifecycleScope.launch {
-                val logoutManager = AccountLogout(requireContext(), Handler(Looper.getMainLooper()))
+                val logoutManager = AccountLogoutTkt(requireContext(), Handler(Looper.getMainLooper()))
                 logoutManager.logout()
                 binding.login.visibility = View.VISIBLE
                 binding.logout.visibility = View.GONE
@@ -105,30 +104,19 @@ class LoginFragment : BottomSheetDialogFragment() {
         }
 
         binding.login.setOnClickListener {
-            lifecycleScope.launch {
-                val authCoroutine = TMDbAuthV4(requireContext())
-                val accessToken = authCoroutine.authenticate()
-                if (accessToken != null) {
-                    preferences.edit().putString("access_token", accessToken).apply()
-                }
-            }
-        }
-
-        binding.loginTkt.setOnClickListener {
             redirectToTraktAuthorization()
         }
 
         binding.changeProvider.setOnClickListener {
             dismiss()
-            val bottomSheetFragment = LoginFragmentTkt()
+            val bottomSheetFragment = LoginFragment()
             bottomSheetFragment.show(parentFragmentManager, bottomSheetFragment.tag)
-
         }
 
-        if (preferences.getString("access_token", null) != null) {
+        if (preferences.getString("trakt_access_token", null) != null) {
             lifecycleScope.launch {
-                val getAccountDetailsCoroutine = GetAccountDetails(requireContext(), object : GetAccountDetails.AccountDataCallback {
-                    override fun onAccountDataReceived(accountId: Int, name: String?, username: String?, avatarPath: String?, gravatar: String?) {
+                val getAccountDetailsTkt = GetAccountDetailsTkt(requireContext(), clientId!!, object : GetAccountDetailsTkt.AccountDataCallback {
+                    override fun onAccountDataReceived(username: String?, name: String?, avatarUrl: String?, location: String?, joinedAt: String?) {
                         if (isAdded) {
                             requireActivity().runOnUiThread {
                                 binding.name.visibility = View.VISIBLE
@@ -138,16 +126,14 @@ class LoginFragment : BottomSheetDialogFragment() {
                                     binding.name.text = username
                                 }
 
-                                if (!avatarPath.isNullOrEmpty()) {
-                                    Picasso.get().load("https://image.tmdb.org/t/p/w200$avatarPath").into(binding.avatar)
-                                } else if (!gravatar.isNullOrEmpty()) {
-                                    Picasso.get().load("https://secure.gravatar.com/avatar/$gravatar.jpg?s=200").into(binding.avatar)
+                                if (!avatarUrl.isNullOrEmpty()) {
+                                    Picasso.get().load(avatarUrl).into(binding.avatar)
                                 }
                             }
                         }
                     }
                 })
-                getAccountDetailsCoroutine.fetchAccountDetails()
+                getAccountDetailsTkt.fetchAccountDetails()
             }
         }
         return view

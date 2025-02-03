@@ -386,7 +386,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         bottomSheetDialog.show()
 
         CoroutineScope(Dispatchers.Main).launch {
-            binding.progressBar.visibility = View.VISIBLE
+            binding.shimmerFrameLayout.visibility = View.VISIBLE
+            binding.shimmerFrameLayout.startShimmer()
 
             val watching = getTotalItem(MovieDatabaseHelper.CATEGORY_WATCHING)
             val watched = getTotalItem(MovieDatabaseHelper.CATEGORY_WATCHED)
@@ -407,7 +408,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             // Setup genre chips
             setupGenreChips(requireContext(), binding.chipGroupGenres)
 
-            binding.progressBar.visibility = View.GONE
+            binding.shimmerFrameLayout.visibility = View.GONE
+            binding.shimmerFrameLayout.stopShimmer()
         }
     }
     /**

@@ -133,15 +133,16 @@ class AccountDataFragmentTkt : BaseFragment() {
                 // Not used
             }
         })
-//        if (sessionId == null || accountId == null) {
-//            childFragmentManager.beginTransaction()
-//                .replace(R.id.fragment_container, LoginFragment())
-//                .commit()
-//        } else {
-        if (isAdded && activity != null) {
+        if (accessToken == null) {
             childFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, WatchlistFragmentTkt())
+                .replace(R.id.fragment_container, LoginFragmentTkt())
                 .commit()
+        } else {
+            if (isAdded && activity != null) {
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, WatchlistFragmentTkt())
+                    .commit()
+            }
         }
     }
 

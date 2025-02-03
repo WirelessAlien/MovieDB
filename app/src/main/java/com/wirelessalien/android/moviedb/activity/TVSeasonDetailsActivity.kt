@@ -30,6 +30,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityTvSeasonDetailsBinding
 import com.wirelessalien.android.moviedb.fragment.SeasonDetailsFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import org.json.JSONObject
 
 class TVSeasonDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTvSeasonDetailsBinding
@@ -47,9 +48,11 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         val numSeasons = intent.getIntExtra("numSeasons", 1)
         val showName = intent.getStringExtra("tvShowName")
         val traktId = intent.getIntExtra("traktId", -1)
+        val tmdbObjectString = intent.getStringExtra("tmdbObject")
+        val tmdbObject = JSONObject(tmdbObjectString?:"{}")
         binding.viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun createFragment(position: Int): Fragment {
-                return newInstance(tvShowId, position, showName, traktId)
+                return newInstance(tvShowId, position, showName, traktId, tmdbObject)
             }
 
             override fun getItemCount(): Int {

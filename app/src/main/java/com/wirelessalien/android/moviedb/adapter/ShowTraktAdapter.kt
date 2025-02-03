@@ -39,6 +39,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class ShowTraktAdapter(
@@ -123,25 +124,39 @@ class ShowTraktAdapter(
                 showData.optString("release_date", "")
             }
 
-            val originalFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-            try {
-                val date = originalFormat.parse(dateString)
+            val dateFormats = listOf(
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()),
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()),
+                SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+            )
+
+            var parsedDate: Date? = null
+            for (format in dateFormats) {
+                try {
+                    parsedDate = format.parse(dateString)
+                    if (parsedDate != null) break
+                } catch (e: ParseException) {
+                    // Continue to the next format
+                }
+            }
+
+            dateString = if (parsedDate != null) {
                 val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
-                dateString = localFormat.format(date)
-            } catch (e: ParseException) {
-                e.printStackTrace()
+                localFormat.format(parsedDate)
+            } else {
+                "Date"
             }
             holder.showDate.text = dateString
 
             when (showData.getString("type")) {
                 "season", "episode" -> {
                     holder.showTitle.text = showData.getString("show_title")
-                    holder.seasonEpisodeText?.text = if (showData.getString("type") == "season") {
+                    holder.seasonEpisodeText.text = if (showData.getString("type") == "season") {
                         context.getString(R.string.season_p, showData.getInt("season"))
                     } else {
                         context.getString(R.string.episode_s, showData.getInt("number"), showData.getInt("season"))
                     }
-                    holder.seasonEpisodeText?.visibility = View.VISIBLE
+                    holder.seasonEpisodeText.visibility = View.VISIBLE
 
                     if (!mGridView) {
                         holder.showDescription?.text = showData.optString(KEY_DESCRIPTION, "")
@@ -168,6 +183,7 @@ class ShowTraktAdapter(
                     }
                 }
                 else -> {
+                    holder.seasonEpisodeText.visibility = View.GONE
                     if (!mGridView) {
                         holder.showDescription?.text = showData.optString(KEY_DESCRIPTION, "")
                         holder.showRating?.rating = if (showData.has("rating")) {
