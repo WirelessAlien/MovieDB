@@ -50,16 +50,22 @@
             android:padding="2dp"
             android:scrollbars="none" />
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/search_progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
-            app:waveAmplitude="10dp"
-            app:wavelength="32dp"
-            app:waveSpeed="0dp"
-            android:indeterminate="true"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:shimmer_duration="700">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
     </com.google.android.material.search.SearchView>
 
     <androidx.fragment.app.FragmentContainerView

@@ -29,16 +29,21 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
@@ -108,6 +113,7 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
                 callback.isEnabled = true
             } else if (newState === com.google.android.material.search.SearchView.TransitionState.HIDING) {
                 callback.isEnabled = false
+                binding.searchResultsRecyclerView.adapter = null
             }
         }
     }
@@ -135,9 +141,13 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
             })
         } else {
             binding.searchView.editText.setOnEditorActionListener { v, actionId, event ->
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER) {
                     val query = v.text.toString()
                     personSearch(query)
+                    val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(v.windowToken, 0)
                     true
                 } else {
                     false
@@ -148,7 +158,6 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
 
     fun personSearch(query: String?) {
         if (query.isNullOrEmpty()) {
-//            cancelSearchPaging()
             return
         }
 
@@ -159,6 +168,33 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
                 SearchPersonPagingSource(apiReadAccessToken?: "", query, this@PersonActivity)
             }.flow.collectLatest { pagingData ->
                 mSearchPersonAdapter.submitData(pagingData)
+            }
+        }
+
+        mSearchPersonAdapter.addLoadStateListener { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.searchResultsRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.error_loading_data),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }

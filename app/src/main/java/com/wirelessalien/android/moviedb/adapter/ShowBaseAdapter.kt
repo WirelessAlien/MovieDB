@@ -46,7 +46,7 @@ class ShowBaseAdapter(
 ) : RecyclerView.Adapter<ShowBaseAdapter.ShowItemViewHolder?>() {
     private val mShowArrayList: ArrayList<JSONObject>
     private val mGenreHashMap: HashMap<String, String?>
-    private val mGridView: Boolean
+    private var mGridView: Boolean
     private var genreType: String? = null
 
     init {

@@ -24,56 +24,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context="com.wirelessalien.android.moviedb.activity.CastActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/appBarLayout"
         android:fitsSystemWindows="true">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsingToolbarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"/>
+            app:titleEnabled="false"
+            android:animateLayoutChanges="true"
+            app:scrimAnimationDuration="@integer/material_motion_duration_long_1"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <com.wirelessalien.android.moviedb.view.NotifyingScrollView
-        android:id="@+id/castScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/actorCardView"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dip"
-                app:cardCornerRadius="5dip">
-            <ImageView
-                android:id="@+id/actorImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/md_theme_surface"
-                android:contentDescription="@string/person_image_description"
-                android:scaleType="centerCrop" />
-            </com.google.android.material.card.MaterialCardView>
-
-
-            <RelativeLayout
-                android:id="@+id/actorDetails"
+            <com.wirelessalien.android.moviedb.view.WideRatioImageView
+                android:id="@+id/backgroundImage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/actorCardView"
-                android:layout_centerHorizontal="true"
-                android:layout_margin="16dp">
+                android:scaleType="centerCrop"
+                android:fitsSystemWindows="true"
+                app:layout_collapseMode="parallax"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_collapseMode="parallax">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/actorCardView"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="80dp"
+                    app:cardCornerRadius="10dp">
+
+                    <ImageView
+                        android:id="@+id/actorImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/md_theme_surface"
+                        android:contentDescription="@string/person_image_description"
+                        android:scaleType="centerCrop" />
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/actorName"
@@ -81,98 +78,145 @@
                     android:layout_height="wrap_content"
                     android:textAlignment="center"
                     android:layout_centerHorizontal="true"
+                    android:layout_below="@id/actorCardView"
+                    android:layout_margin="16dp"
                     android:textSize="25sp"
                     android:textStyle="bold" />
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:id="@+id/firstDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_below="@id/actorName"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"/>
 
                 <TextView
                     android:id="@+id/actorPlaceOfBirth"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:layout_below="@id/actorName" />
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_below="@id/firstDivider" />
 
                 <TextView
                     android:id="@+id/actorBirthday"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
                     android:layout_below="@id/actorPlaceOfBirth" />
 
+                <TextView
+                    android:id="@+id/actorBiography"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/actorBirthday"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:ellipsize="end"/>
+
+                <HorizontalScrollView
+                    android:id="@+id/horizontalSv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/actorBiography"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="5dp"
+                    android:scrollbars="none"
+                    android:scrollIndicators="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/images"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:chipIcon="@drawable/ic_image"
+                            android:layout_marginEnd="5dp"
+                            android:text="@string/image"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/homepage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="5dp"
+                            app:chipIcon="@drawable/ic_home_border"
+                            android:text="@string/homepage"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/imdb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:chipIcon="@drawable/ic_open_in_new"
+                            android:text="Imdb"/>
+                    </LinearLayout>
+                </HorizontalScrollView>
             </RelativeLayout>
 
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/firstDivider"
-                android:layout_width="match_parent"
-                android:layout_height="3dp"
-                android:layout_below="@id/actorDetails"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
-
-            <TextView
-                android:id="@+id/actorBiography"
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/firstDivider"
-                android:layout_margin="16dp"
-                android:ellipsize="end"/>
+                android:minHeight="?attr/actionBarSize"
+                app:layout_collapseMode="pin"/>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/castMovieTitle"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
+
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/actorBiography"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:textStyle="bold"
-                android:layout_marginBottom="3dp"
-                android:text="@string/cast_movie_title"
-                android:textSize="16sp" />
+                android:text="@string/cast_title" />
 
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/secondDivider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_below="@id/castMovieTitle"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/castMovieRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="6dp"
-                android:layout_below="@id/secondDivider"
-                android:scrollbars="none" />
-
-            <TextView
-                android:id="@+id/crewMovieTitle"
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/castMovieRecyclerView"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:textStyle="bold"
-                android:layout_marginBottom="3dp"
-                android:text="@string/crew_movie_title"
-                android:textSize="16sp" />
+                android:text="@string/crew_title" />
+        </com.google.android.material.tabs.TabLayout>
 
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/thirdDivider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_below="@id/crewMovieTitle"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:background="?android:attr/listDivider" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/castMovieRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="11dp"
+        android:layout_marginEnd="11dp"
+        android:scrollbars="none" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/crewMovieRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@id/thirdDivider"
-                android:scrollbars="none"
-                android:layout_margin="6dp"
-                android:layout_marginBottom="10dp"/>
-        </RelativeLayout>
-    </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/crewMovieRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="11dp"
+        android:layout_marginEnd="11dp"
+        android:scrollbars="none"
+        android:visibility="gone"/>
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/favoriteFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom|end"
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
+        android:src="@drawable/ic_star_border"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

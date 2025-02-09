@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
@@ -19,25 +19,21 @@
   -->
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.wirelessalien.android.moviedb.fragment.PersonFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/personRecyclerView"
+    <ImageView
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="11dp"
-        android:paddingEnd="11dp"
-        android:scrollbars="none" />
+        android:scaleType="centerCrop" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/shimmerFrameLayout"
+        android:id="@+id/shimmerFrameLayout2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
+        android:minHeight="230dp"
         android:visibility="gone"
         app:shimmer_duration="700">
 
@@ -49,4 +45,15 @@
             <include layout="@layout/show_skeleton" />
         </LinearLayout>
     </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/downloadBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="10dp"
+        app:cornerRadius="10dp"
+        app:icon="@drawable/ic_download"
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+
 </FrameLayout>

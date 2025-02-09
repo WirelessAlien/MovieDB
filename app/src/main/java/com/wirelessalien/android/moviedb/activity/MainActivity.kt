@@ -46,6 +46,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -559,6 +560,8 @@ class MainActivity : BaseActivity() {
                     } else if (currentFragment is AccountDataFragmentTkt) {
                         multiSearch(query)
                     }
+                    val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(v.windowToken, 0)
                     true
                 } else {
                     false

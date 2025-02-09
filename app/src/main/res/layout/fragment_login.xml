@@ -46,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            app:icon="@drawable/ic_refresh"
+            app:icon="@drawable/ic_swap"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             app:cornerRadius="10dp"/>
     </RelativeLayout>
