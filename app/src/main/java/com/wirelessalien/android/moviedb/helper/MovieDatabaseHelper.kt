@@ -692,18 +692,15 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
 
     fun getEpisodeDetails(movieId: Int, seasonNumber: Int, episodeNumber: Int): EpisodeDbDetails? {
         val db = this.readableDatabase
-        val columns =
-            arrayOf(COLUMN_EPISODE_RATING, COLUMN_EPISODE_WATCH_DATE, COLUMN_EPISODE_REVIEW)
-        val selection =
-            "$COLUMN_MOVIES_ID = ? AND $COLUMN_SEASON_NUMBER = ? AND $COLUMN_EPISODE_NUMBER = ?"
-        val selectionArgs =
-            arrayOf(movieId.toString(), seasonNumber.toString(), episodeNumber.toString())
+        val columns = arrayOf(COLUMN_EPISODE_RATING, COLUMN_EPISODE_WATCH_DATE, COLUMN_EPISODE_REVIEW)
+        val selection = "$COLUMN_MOVIES_ID = ? AND $COLUMN_SEASON_NUMBER = ? AND $COLUMN_EPISODE_NUMBER = ?"
+        val selectionArgs = arrayOf(movieId.toString(), seasonNumber.toString(), episodeNumber.toString())
         val cursor = db.query(TABLE_EPISODES, columns, selection, selectionArgs, null, null, null)
         var details: EpisodeDbDetails? = null
         if (cursor.moveToFirst()) {
             val rating = if (cursor.isNull(0)) null else cursor.getFloat(0)
             val watchDate = cursor.getString(1)
-            val review = cursor.getString(2)
+            val review = cursor.getString(2) ?: "Review: Not added"
             details = EpisodeDbDetails(rating, watchDate, review)
         }
         cursor.close()

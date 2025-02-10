@@ -181,6 +181,12 @@ class DetailActivity : BaseActivity() {
     private lateinit var palette: Palette
     private var darkMutedColor = 0
     private var lightMutedColor = 0
+    private var isInCollection = false
+    private var isInWatchlist = false
+    private var isInHistory = false
+    private var isInFavourite = false
+    private var isInWatched = false
+    private var isInRating = false
     private lateinit var binding: ActivityDetailBinding
     private val mOnScrollChangedListener: NotifyingScrollView.OnScrollChangedListener =
         object : NotifyingScrollView.OnScrollChangedListener {
@@ -956,23 +962,23 @@ class DetailActivity : BaseActivity() {
             }
         })
 
-        val isInCollection = TraktDatabaseHelper(context).use { db ->
+        isInCollection = TraktDatabaseHelper(context).use { db ->
             db.isMovieInCollection(movieId)
         }
 
-        val isInWatchlist = TraktDatabaseHelper(context).use { db ->
+        isInWatchlist = TraktDatabaseHelper(context).use { db ->
             db.isMovieInWatchlist(movieId)
         }
 
-        val isInFavorites = TraktDatabaseHelper(context).use { db ->
+        isInFavourite = TraktDatabaseHelper(context).use { db ->
             db.isMovieInFavorite(movieId)
         }
 
-        val isInWatched = TraktDatabaseHelper(context).use { db ->
+        isInWatched = TraktDatabaseHelper(context).use { db ->
             db.isMovieInWatched(movieId)
         }
 
-        val isInRating = TraktDatabaseHelper(context).use { db ->
+        isInRating = TraktDatabaseHelper(context).use { db ->
             db.isMovieInRating(movieId)
         }
 
@@ -986,7 +992,7 @@ class DetailActivity : BaseActivity() {
             ContextCompat.getDrawable(context, R.drawable.ic_bookmark_border)
         }
 
-        binding.btnAddToTraktFavorite.icon = if (isInFavorites) {
+        binding.btnAddToTraktFavorite.icon = if (isInFavourite) {
             ContextCompat.getDrawable(context, R.drawable.ic_favorite)
         } else {
             ContextCompat.getDrawable(context, R.drawable.ic_favorite_border)
@@ -1022,26 +1028,23 @@ class DetailActivity : BaseActivity() {
         }
 
         binding.btnAddToTraktCollection.setOnClickListener {
-            if (isInCollection) {
-                syncTraktData("sync/collection/remove", 0, "")
-            } else {
-                showCollectionDialog()
-            }
+            showCollectionDialog()
         }
 
         binding.btnAddToTraktWatchlist.setOnClickListener {
             if (isInWatchlist) {
-                syncTraktData("sync/watchlist/remove", 0, "")
+                syncTraktData("sync/watchlist/remove", 0, "", null, null, null, null, null, null, null)
+                syncTraktData("sync/watchlist/remove", 0, "", null, null, null, null, null, null, null)
             } else {
-                syncTraktData("sync/watchlist", 0, "")
+                syncTraktData("sync/watchlist", 0, "", null, null, null, null, null, null, null)
             }
         }
 
         binding.btnAddToTraktFavorite.setOnClickListener {
-            if (isInFavorites) {
-                syncTraktData("sync/favorites/remove", 0, "")
+            if (isInFavourite) {
+                syncTraktData("sync/favorites/remove", 0, "", null, null, null, null, null, null, null)
             } else {
-                syncTraktData("sync/favorites", 0, "")
+                syncTraktData("sync/favorites", 0, "", null, null, null, null, null, null, null)
             }
         }
 
@@ -1069,19 +1072,6 @@ class DetailActivity : BaseActivity() {
         dialog.setContentView(dialogViewBinding.root)
         dialog.show()
 
-        val movieTitle = dialogViewBinding.tvTitle
-        val selectDateButton = dialogViewBinding.btnSelectDate
-        val selectedDateEditText = dialogViewBinding.etSelectedDate
-        val mediaTypeView = dialogViewBinding.mediaType
-        val resolutionView = dialogViewBinding.resolution
-        val hdrView = dialogViewBinding.hdr
-        val audioView = dialogViewBinding.audio
-        val audioChannelsView = dialogViewBinding.audioChannels
-        val switch3D = dialogViewBinding.switch3D
-        val progressBar = dialogViewBinding.progressIndicator
-        val removeCollection = dialogViewBinding.removeCollection
-        val saveBtn = dialogViewBinding.btnSave
-
         val mediaTypes = resources.getStringArray(R.array.media_types)
         val resolutions = resources.getStringArray(R.array.resolutions)
         val hdrTypes = resources.getStringArray(R.array.hdr_types)
@@ -1094,56 +1084,64 @@ class DetailActivity : BaseActivity() {
         val audioAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, audioTypes)
         val audioChannelsAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, audioChannels)
 
-        mediaTypeView.setAdapter(mediaTypeAdapter)
-        resolutionView.setAdapter(resolutionAdapter)
-        hdrView.setAdapter(hdrAdapter)
-        audioView.setAdapter(audioAdapter)
-        audioChannelsView.setAdapter(audioChannelsAdapter)
+        dialogViewBinding.mediaType.setAdapter(mediaTypeAdapter)
+        dialogViewBinding.resolution.setAdapter(resolutionAdapter)
+        dialogViewBinding.hdr.setAdapter(hdrAdapter)
+        dialogViewBinding.audio.setAdapter(audioAdapter)
+        dialogViewBinding.audioChannels.setAdapter(audioChannelsAdapter)
 
-        movieTitle.text = showTitle
-        progressBar.visibility = View.VISIBLE
+        dialogViewBinding.tvTitle.text = showTitle
+        dialogViewBinding.progressIndicator.visibility = View.VISIBLE
         lifecycleScope.launch {
-            val isInCollection = TraktDatabaseHelper(context).use { db ->
-                db.isMovieInCollection(movieId)
+            val collectionDetails = TraktDatabaseHelper(context).use { db ->
+                db.getMovieCollectionDetails(movieId)
             }
-            progressBar.visibility = View.GONE
-            if (isInCollection) {
-                dialogViewBinding.isCollected.visibility = View.VISIBLE
-                dialogViewBinding.collectedCard.visibility = View.VISIBLE
 
-            } else {
-                dialogViewBinding.isCollected.visibility = View.GONE
-                dialogViewBinding.collectedCard.visibility = View.GONE
-
+            withContext(Dispatchers.Main) {
+                dialogViewBinding.progressIndicator.visibility = View.GONE
+                if (collectionDetails != null) {
+                    dialogViewBinding.isCollected.visibility = View.VISIBLE
+                    dialogViewBinding.collectedCard.visibility = View.VISIBLE
+                    dialogViewBinding.etSelectedDate.setText(collectionDetails.collectedAt)
+                    dialogViewBinding.mediaType.setText(collectionDetails.mediaType, false)
+                    dialogViewBinding.resolution.setText(collectionDetails.resolution, false)
+                    dialogViewBinding.hdr.setText(collectionDetails.hdr, false)
+                    dialogViewBinding.audio.setText(collectionDetails.audio, false)
+                    dialogViewBinding.audioChannels.setText(collectionDetails.audioChannels, false)
+                    dialogViewBinding.switch3D.isChecked = collectionDetails.thd == 1
+                } else {
+                    dialogViewBinding.isCollected.visibility = View.GONE
+                    dialogViewBinding.collectedCard.visibility = View.GONE
+                }
             }
         }
 
-        removeCollection.setOnClickListener {
+        dialogViewBinding.removeCollection.setOnClickListener {
             val dialogBuilder = MaterialAlertDialogBuilder(this)
             dialogBuilder.setTitle(getString(R.string.remove_from_collection))
             dialogBuilder.setMessage(getString(R.string.remove_from_collection_confirmation))
-            dialogBuilder.setPositiveButton("Yes") { _, _ ->
-                syncTraktData("sync/collection/remove", 0, "")
+            dialogBuilder.setPositiveButton(getString(R.string.yes)) { _, _ ->
+                syncTraktData("sync/collection/remove", 0, "", null, null, null, null, null, null, null)
                 dialog.dismiss()
             }
-            dialogBuilder.setNegativeButton("No") { _, _ -> }
+            dialogBuilder.setNegativeButton(getString(R.string.no)) { _, _ -> }
             dialogBuilder.show()
         }
 
-        selectDateButton.setOnClickListener {
+        dialogViewBinding.btnSelectDate.setOnClickListener {
             showDatePicker { selectedDate ->
-                selectedDateEditText.setText(selectedDate)
+                dialogViewBinding.etSelectedDate.setText(selectedDate)
             }
         }
 
-        saveBtn.setOnClickListener {
-            val selectedDate = selectedDateEditText.text.toString()
-            val mediaType = mediaTypeView.text.toString()
-            val resolution = resolutionView.text.toString()
-            val hdr = hdrView.text.toString()
-            val audio = audioView.text.toString()
-            val audioChannel = audioChannelsView.text.toString()
-            val is3D = switch3D.isChecked
+        dialogViewBinding.btnSave.setOnClickListener {
+            val selectedDate = dialogViewBinding.etSelectedDate.text.toString()
+            val mediaType = dialogViewBinding.mediaType.text.toString()
+            val resolution = dialogViewBinding.resolution.text.toString()
+            val hdr = dialogViewBinding.hdr.text.toString()
+            val audio =dialogViewBinding.audio.text.toString()
+            val audioChannel = dialogViewBinding.audioChannels.text.toString()
+            val is3D = dialogViewBinding.switch3D.isChecked
 
             updateMediaObjectWithMetadata(selectedDate, mediaType, resolution, hdr, audio, audioChannel, is3D)
             dialog.dismiss()
@@ -1158,7 +1156,7 @@ class DetailActivity : BaseActivity() {
         audio?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("audio", it) }
         audioChannels?.takeIf { it.isNotEmpty() }?.let { traktMediaObject?.put("audio_channels", it) }
         traktMediaObject?.put("3d", is3D)
-        syncTraktData("sync/collection", 0, "")
+        syncTraktData("sync/collection", 0, "", selectedDate, mediaType, resolution, hdr, audio, audioChannels, is3D)
     }
 
     private fun showWatchOptionsDialog() {
@@ -1217,11 +1215,11 @@ class DetailActivity : BaseActivity() {
             val dialogBuilder = MaterialAlertDialogBuilder(this)
             dialogBuilder.setTitle(getString(R.string.remove_from_history))
             dialogBuilder.setMessage(getString(R.string.remove_from_history_confirmation))
-            dialogBuilder.setPositiveButton("Yes") { _, _ ->
-                syncTraktData("sync/history/remove", 0, "")
+            dialogBuilder.setPositiveButton(getString(R.string.yes)) { _, _ ->
+                syncTraktData("sync/history/remove", 0, "", null, null, null, null, null, null, null)
                 dialog.dismiss()
             }
-            dialogBuilder.setNegativeButton("No") { _, _ -> }
+            dialogBuilder.setNegativeButton(getString(R.string.no)) { _, _ -> }
             dialogBuilder.show()
         }
 
@@ -1301,13 +1299,14 @@ class DetailActivity : BaseActivity() {
                 updateMediaObjectWithRating(rating, selectedDate)
                 dialog.dismiss()
             } else {
-                Toast.makeText(this, "Please select a date and time first", Toast.LENGTH_SHORT).show()
+                syncTraktData("sync/watchlist/remove", 0, "", null, null, null, null, null, null, null)
+                Toast.makeText(this, getString(R.string.please_select_a_date), Toast.LENGTH_SHORT).show()
             }
             dialog.dismiss()
         }
 
         deleteButton.setOnClickListener {
-            syncTraktData("sync/ratings/remove", 0, "")
+            syncTraktData("sync/ratings/remove", 0, "", null, null, null, null, null, null, null)
             dialog.dismiss()
         }
 
@@ -1347,15 +1346,15 @@ class DetailActivity : BaseActivity() {
 
     private fun updateMediaObjectWithWatchedAt(watchedAt: String) {
         traktMediaObject?.put("watched_at", watchedAt)
-        syncTraktData("sync/history", 0, watchedAt)
+        syncTraktData("sync/history", 0, watchedAt, null, null, null, null, null, null, null)
     }
 
     private fun updateMediaObjectWithRating(rating: Int, ratedAt: String) {
         traktMediaObject?.put("rated_at", ratedAt)
         traktMediaObject?.put("rating", rating)
-        syncTraktData("sync/ratings", rating, "")
+        syncTraktData("sync/ratings", rating, "", null, null, null, null, null, null, null)
     }
-    private fun syncTraktData(endpoint: String, rating: Int, watchedAt: String) {
+    private fun syncTraktData(endpoint: String, rating: Int, watchedAt: String, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
         val traktApiService = TraktSync(tktaccessToken!!)
         val jsonBody = JSONObject().apply {
             if (isMovie) {
@@ -1377,8 +1376,9 @@ class DetailActivity : BaseActivity() {
                         updateTraktButtonsUI(endpoint)
                         lifecycleScope.launch {
                             withContext(Dispatchers.IO) {
-                                handleDatabaseUpdate(endpoint, rating, watchedAt)
+                                handleDatabaseUpdate(endpoint, rating, watchedAt, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
                                 addItemtoTmdb()
+                                updateBoolean(endpoint)
                             }
                         }
                         getString(R.string.success)
@@ -1389,6 +1389,21 @@ class DetailActivity : BaseActivity() {
                 }
             }
         })
+    }
+
+    private fun updateBoolean(endpoint: String) {
+        when (endpoint) {
+            "sync/watchlist" -> isInWatchlist = true
+            "sync/watchlist/remove" -> isInWatchlist = false
+            "sync/favorites" -> isInFavourite = true
+            "sync/favorites/remove" -> isInFavourite = false
+            "sync/collection" -> isInCollection = true
+            "sync/collection/remove" -> isInCollection = false
+            "sync/ratings" -> isInRating = true
+            "sync/ratings/remove" -> isInRating = false
+            "sync/history" -> isInWatched = true
+            "sync/history/remove" -> isInWatched = false
+        }
     }
 
     private fun addItemtoTmdb() {
@@ -1507,7 +1522,7 @@ class DetailActivity : BaseActivity() {
         }
     }
 
-    private fun handleDatabaseUpdate(endpoint: String, rating: Int, watchedAt: String) {
+    private fun handleDatabaseUpdate(endpoint: String, rating: Int, watchedAt: String, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
         val dbHelper = TraktDatabaseHelper(context)
         val movieTitle = if (isMovie) movieDataObject.optString("title") else movieDataObject.optString("name")
         val tmdbId = movieDataObject.optInt("id")
@@ -1527,7 +1542,7 @@ class DetailActivity : BaseActivity() {
             "sync/watchlist/remove" -> dbHelper.removeMovieFromWatchlist(tmdbId)
             "sync/favorites" -> dbHelper.addMovieToFavorites(movieTitle, type, tmdbId)
             "sync/favorites/remove" -> dbHelper.removeMovieFromFavorites(tmdbId)
-            "sync/collection" -> dbHelper.addMovieToCollection(movieTitle, type, tmdbId)
+            "sync/collection" -> dbHelper.addMovieToCollection(movieTitle, type, tmdbId, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
             "sync/collection/remove" -> dbHelper.removeFromCollection(tmdbId)
             "sync/history" -> {
                 dbHelper.addMovieToHistory(movieTitle, type, tmdbId)
@@ -1557,7 +1572,7 @@ class DetailActivity : BaseActivity() {
                         updateTraktButtonsUI("sync/history")
                         lifecycleScope.launch {
                             withContext(Dispatchers.IO) {
-                                handleDatabaseUpdate("sync/history", 0, "")
+                                handleDatabaseUpdate("sync/history", 0, "", null, null, null, null, null, null, null)
                             }
                         }
                         getString(R.string.success)

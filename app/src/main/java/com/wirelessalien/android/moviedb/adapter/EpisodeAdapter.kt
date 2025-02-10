@@ -97,6 +97,9 @@ class EpisodeAdapter(
     private var mediaObject: JSONObject? = null
     private val tktaccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("trakt_access_token", null)
     private lateinit var clientId: String
+    private var isInCollection = false
+    private var isInWatchList = false
+    private var isInRating = false
 
     init {
         CoroutineScope(Dispatchers.Main).launch {
@@ -248,15 +251,15 @@ class EpisodeAdapter(
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            val isInCollection = TraktDatabaseHelper(context).use { db ->
+            isInCollection = TraktDatabaseHelper(context).use { db ->
                 db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber)
             }
 
-            val isInWatchList = TraktDatabaseHelper(context).use { db ->
+            isInWatchList = TraktDatabaseHelper(context).use { db ->
                 db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
             }
 
-            val isInRating = TraktDatabaseHelper(context).use { db ->
+            isInRating = TraktDatabaseHelper(context).use { db ->
                 db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
             }
 
@@ -544,7 +547,11 @@ class EpisodeAdapter(
                 }
                 mediaObject = episodeObject
                 withContext(Dispatchers.IO) {
-                    traktSync("sync/watchlist", episode, 0, holder)
+                    if (isInWatchList) {
+                        traktSync("sync/watchlist/remove", episode, 0, holder, null, null, null, null, null, null, null)
+                    } else {
+                        traktSync("sync/watchlist", episode, 0, holder, null, null, null, null, null, null, null)
+                    }
                 }
                 holder.binding.lProgressBar.visibility = View.GONE
             }
@@ -650,7 +657,7 @@ class EpisodeAdapter(
                 withContext(Dispatchers.Main) {
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/ratings", episode, binding.ratingSlider.value.toInt(), holder)
+                        traktSync("sync/ratings", episode, binding.ratingSlider.value.toInt(), holder, null, null, null, null, null, null, null)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -680,7 +687,7 @@ class EpisodeAdapter(
                 withContext(Dispatchers.Main) {
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/ratings/remove", episode, 0, holder)
+                        traktSync("sync/ratings/remove", episode, 0, holder, null, null, null, null, null, null, null)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -760,7 +767,7 @@ class EpisodeAdapter(
 
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/history/remove", episode, 0, holder)
+                        traktSync("sync/history/remove", episode, 0, holder, null, null, null, null, null, null, null)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -797,7 +804,7 @@ class EpisodeAdapter(
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("checkin", episode, 0, holder)
+                    traktSync("checkin", episode, 0, holder, null, null, null, null, null, null, null)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -832,7 +839,7 @@ class EpisodeAdapter(
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("sync/history", episode, 0, holder)
+                    traktSync("sync/history", episode, 0, holder, null, null, null, null, null, null, null)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -876,7 +883,7 @@ class EpisodeAdapter(
 
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/history", episode, 0, holder)
+                        traktSync("sync/history", episode, 0, holder, selectedDate, null, null, null, null, null, null)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -915,15 +922,22 @@ class EpisodeAdapter(
 
         binding.progressIndicator.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {
-            val isInCollection = TraktDatabaseHelper(context).use { db ->
-                db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber)
+            val collectionDetails = TraktDatabaseHelper(context).use { db ->
+                db.getEpisodeCollectionDetails(tvShowId, seasonNumber, episode.episodeNumber)
             }
 
             withContext(Dispatchers.Main) {
                 binding.progressIndicator.visibility = View.GONE
-                if (isInCollection) {
+                if (collectionDetails != null) {
                     binding.isCollected.visibility = View.VISIBLE
                     binding.collectedCard.visibility = View.VISIBLE
+                    binding.etSelectedDate.setText(collectionDetails.collectedAt ?: "")
+                    binding.mediaType.setText(collectionDetails.mediaType, false)
+                    binding.resolution.setText(collectionDetails.resolution, false)
+                    binding.hdr.setText(collectionDetails.hdr, false)
+                    binding.audio.setText(collectionDetails.audio, false)
+                    binding.audioChannels.setText(collectionDetails.audioChannels, false)
+                    binding.switch3D.isChecked = collectionDetails.thd == 1
                 } else {
                     binding.isCollected.visibility = View.GONE
                     binding.collectedCard.visibility = View.GONE
@@ -962,7 +976,7 @@ class EpisodeAdapter(
 
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/collection/remove", episode, 0, holder)
+                        traktSync("sync/collection/remove", episode, 0, holder, null, null, null, null, null, null, null)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -1020,7 +1034,7 @@ class EpisodeAdapter(
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("sync/collection", episode, 0, holder)
+                    traktSync("sync/collection", episode, 0, holder, selectedDate, mediaType, resolution, hdr, audio, audioChannel, is3D)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -1064,7 +1078,7 @@ class EpisodeAdapter(
         }
     }
 
-    private fun traktSync(endpoint: String, episode: Episode, rating: Int, holder: EpisodeViewHolder) {
+    private fun traktSync(endpoint: String, episode: Episode, rating: Int, holder: EpisodeViewHolder, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
         val traktApiService = TraktSync(tktaccessToken!!)
         val jsonBody = mediaObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
@@ -1081,7 +1095,8 @@ class EpisodeAdapter(
                         CoroutineScope(Dispatchers.Main).launch {
                             updateTraktButtonsUI(endpoint, holder)
                             withContext(Dispatchers.IO) {
-                                handleDatabaseUpdate(endpoint, episode, rating)
+                                handleDatabaseUpdate(endpoint, episode, rating, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
+                                updateBoolean(endpoint)
                             }
                         }
                         context.getString(R.string.success)
@@ -1092,6 +1107,13 @@ class EpisodeAdapter(
                 }
             }
         })
+    }
+
+    private fun updateBoolean(endpoint: String) {
+        when (endpoint) {
+            "sync/watchlist" -> isInWatchList = true
+            "sync/watchlist/remove" -> isInWatchList = false
+        }
     }
 
     private fun updateTraktButtonsUI(endpoint: String, holder: EpisodeViewHolder) {
@@ -1132,19 +1154,31 @@ class EpisodeAdapter(
                     R.drawable.ic_thumb_up_border
                 )
             }
+            "sync/history" -> {
+                holder.binding.btnAddToTraktHistory.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_done_2
+                )
+            }
+            "sync/history/remove" -> {
+                holder.binding.btnAddToTraktHistory.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_history
+                )
+            }
         }
     }
 
-    private fun handleDatabaseUpdate(endpoint: String, episode: Episode, rating: Int) {
+    private fun handleDatabaseUpdate(endpoint: String, episode: Episode, rating: Int, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
         val dbHelper = TraktDatabaseHelper(context)
 
         when (endpoint) {
             "sync/watchlist" -> dbHelper.addEpisodeToWatchlist(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber)
             "sync/watchlist/remove" -> dbHelper.removeEpisodeFromWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
-            "sync/collection" -> dbHelper.addEpisodeToCollection(showTitle, traktId, tvShowId, "show", seasonNumber, episode.episodeNumber)
+            "sync/collection" -> dbHelper.addEpisodeToCollection(showTitle, traktId, tvShowId, "show", seasonNumber, episode.episodeNumber, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
             "sync/collection/remove" -> dbHelper.removeEpisodeFromCollection(tvShowId, seasonNumber, episode.episodeNumber)
             "sync/history" -> {
-                dbHelper.addEpisodeToHistory(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber)
+                dbHelper.addEpisodeToHistory(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber, collectedAt)
                 dbHelper.addEpisodeToWatched(showTitle, traktId, tvShowId, seasonNumber, episode.episodeNumber)
             }
             "sync/history/remove" -> {

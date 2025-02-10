@@ -82,6 +82,7 @@
     <string name="season_episode_p">S:%1$d E:%2$d %3$s</string>
     <string name="episode_p">Episode %1$d</string>
     <string name="episode_s">Episode %1$d(S: %2$d)</string>
+    <string name="account_swap">Change sync provider</string>
 
     <string-array name="media_types">
         <item>digital</item>

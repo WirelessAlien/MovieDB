@@ -260,10 +260,16 @@ class MainActivity : BaseActivity() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_main, menu)
+                menuInflater.inflate(R.menu.account_swap_menu, menu)
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
                 val currentFragment = supportFragmentManager.findFragmentById(R.id.container)
                 val searchMenuItem = menu.findItem(R.id.action_search)
+                val accountSwapItem = menu.findItem(R.id.account_swap)
                 searchMenuItem.isVisible =
                     !(currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt)
+                accountSwapItem.isVisible = currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -271,6 +277,19 @@ class MainActivity : BaseActivity() {
 
                 if (id == R.id.action_search) {
                     binding.searchView.show()
+                    return true
+                }
+
+                if (id == R.id.account_swap) {
+                    val currentFragment = getCurrentFragment()
+                    if (currentFragment is AccountDataFragment) {
+                        val accountDataFragmentTkt = AccountDataFragmentTkt()
+                        supportFragmentManager.beginTransaction().replace(R.id.container, accountDataFragmentTkt).commit()
+
+                    } else if (currentFragment is AccountDataFragmentTkt) {
+                        val accountDataFragment = AccountDataFragment()
+                        supportFragmentManager.beginTransaction().replace(R.id.container, accountDataFragment).commit()
+                    }
                     return true
                 }
 

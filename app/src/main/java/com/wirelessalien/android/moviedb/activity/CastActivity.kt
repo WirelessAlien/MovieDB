@@ -34,7 +34,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import android.view.MenuItem
 import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.browser.customtabs.CustomTabsIntent
@@ -107,7 +106,11 @@ class CastActivity : BaseActivity() {
         binding.appBarLayout.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
             if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
                 // Collapsed
-                supportActionBar?.title = getString(R.string.title_people)
+                supportActionBar?.title = if (actorObject.has("name")) {
+                    actorObject.getString("name")
+                } else {
+                    getString(R.string.title_people)
+                }
             } else if (verticalOffset == 0) {
                 // Expanded
                 supportActionBar?.title = ""
@@ -121,6 +124,7 @@ class CastActivity : BaseActivity() {
         apiKey = ConfigHelper.getConfigValue(applicationContext, "api_key")
         apiReaT = ConfigHelper.getConfigValue(applicationContext, "api_read_access_token")
         context = this
+        val dbHelper = PeopleDatabaseHelper(context)
 
         mActivity = this
 //        binding.appBarLayout.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)
@@ -193,6 +197,12 @@ class CastActivity : BaseActivity() {
             binding.crewMovieRecyclerView.layoutManager = mShowLinearLayoutManager
         }
 
+        if (dbHelper.personExists(actorId)) {
+            binding.favoriteFab.setImageResource(R.drawable.ic_star)
+
+        } else {
+            binding.favoriteFab.setImageResource(R.drawable.ic_star_border)
+        }
 
         checkNetwork()
 
@@ -386,7 +396,6 @@ class CastActivity : BaseActivity() {
         }
 
         binding.favoriteFab.setOnClickListener {
-            val dbHelper = PeopleDatabaseHelper(context)
             val actorId = actorObject.optInt("id")
             if (dbHelper.personExists(actorId)) {
                 dbHelper.deleteById(actorId)
@@ -424,32 +433,6 @@ class CastActivity : BaseActivity() {
             fetchPersonImages()
         }
 
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-        if (id == R.id.action_save) {
-            val dbHelper = PeopleDatabaseHelper(context)
-            val actorId = actorObject.optInt("id")
-            if (dbHelper.personExists(actorId)) {
-                dbHelper.deleteById(actorId)
-                item.setIcon(R.drawable.ic_star_border)
-            } else {
-                // If the person does not exist in the database, insert the person
-                val name = actorObject.optString("name")
-                val birthday = actorObject.optString("birthday")
-                val deathday = actorObject.optString("deathday")
-                val biography = actorObject.optString("biography")
-                val placeOfBirth = actorObject.optString("place_of_birth")
-                val popularity = actorObject.optDouble("popularity")
-                val profilePath = actorObject.optString("profile_path")
-                val imdbId = actorObject.optString("imdb_id")
-                val homepage = actorObject.optString("homepage")
-                dbHelper.insert(actorId, name, birthday, deathday, biography, placeOfBirth, popularity, profilePath, imdbId, homepage)
-                item.setIcon(R.drawable.ic_star)
-            }
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     /**

@@ -24,6 +24,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.wirelessalien.android.moviedb.data.CollectionDetails
 
 class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -828,12 +829,19 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.delete(TABLE_FAVORITE, "$COL_TMDB = ?", arrayOf(tmdbId.toString()))
     }
 
-    fun addMovieToCollection(title: String, type: String, tmdbId: Int) {
+    fun addMovieToCollection(title: String, type: String, tmdbId: Int, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_TITLE, title)
             put(COL_TYPE, type)
             put(COL_TMDB, tmdbId)
+            put(COL_COLLECTED_AT, collectedAt)
+            put(COL_MEDIA_TYPE, mediaType)
+            put(COL_RESOLUTION, resolution)
+            put(COL_HDR, hdr)
+            put(COL_AUDIO, audio)
+            put(COL_AUDIO_CHANNELS, audioChannels)
+            put(COL_THD, if (is3D == true) 1 else 0)
         }
         db.insert(TABLE_COLLECTION, null, values)
     }
@@ -965,7 +973,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.delete(TABLE_COLLECTION, "$COL_TMDB = ?", arrayOf(tmdbId.toString()))
     }
 
-    fun addEpisodeToCollection(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int) {
+    fun addEpisodeToCollection(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_TITLE, title)
@@ -974,6 +982,13 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             put(COL_TYPE, type)
             put(COL_SEASON, seasonNumber)
             put(COL_NUMBER, episodeNumber)
+            put(COL_COLLECTED_AT, collectedAt)
+            put(COL_MEDIA_TYPE, mediaType)
+            put(COL_RESOLUTION, resolution)
+            put(COL_HDR, hdr)
+            put(COL_AUDIO, audio)
+            put(COL_AUDIO_CHANNELS, audioChannels)
+            put(COL_THD, if (is3D == true) 1 else 0)
         }
         db.insert(TABLE_COLLECTION, null, values)
     }
@@ -983,7 +998,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.delete(TABLE_COLLECTION, "$COL_TMDB = ? AND $COL_SEASON = ? AND $COL_NUMBER = ?", arrayOf(showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString()))
     }
 
-    fun addEpisodeToHistory(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int) {
+    fun addEpisodeToHistory(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int, watchedAt: String?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_SHOW_TITLE, title)
@@ -992,6 +1007,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             put(COL_TYPE, type)
             put(COL_SEASON, seasonNumber)
             put(COL_NUMBER, episodeNumber)
+            put(COL_WATCHED_AT, watchedAt)
         }
         db.insert(TABLE_HISTORY, null, values)
     }
@@ -1036,5 +1052,47 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
     fun removeEpisodeRating(showTmdbId: Int, seasonNumber: Int, episodeNumber: Int) {
         val db = writableDatabase
         db.delete(TABLE_RATING, "$COL_SHOW_TMDB = ? AND $COL_SEASON = ? AND $COL_NUMBER = ?", arrayOf(showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString()))
+    }
+
+    fun getEpisodeCollectionDetails(showTmdbId: Int, seasonNumber: Int, episodeNumber: Int): CollectionDetails? {
+        val db = readableDatabase
+        val query = "SELECT * FROM $TABLE_COLLECTION WHERE $COL_TMDB = ? AND $COL_SEASON = ? AND $COL_NUMBER = ?"
+        val cursor = db.rawQuery(query, arrayOf(showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString()))
+        val collectionDetails = if (cursor.moveToFirst()) {
+            CollectionDetails(
+                collectedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_COLLECTED_AT)),
+                mediaType = cursor.getString(cursor.getColumnIndexOrThrow(COL_MEDIA_TYPE)),
+                resolution = cursor.getString(cursor.getColumnIndexOrThrow(COL_RESOLUTION)),
+                hdr = cursor.getString(cursor.getColumnIndexOrThrow(COL_HDR)),
+                audio = cursor.getString(cursor.getColumnIndexOrThrow(COL_AUDIO)),
+                audioChannels = cursor.getString(cursor.getColumnIndexOrThrow(COL_AUDIO_CHANNELS)),
+                thd = cursor.getInt(cursor.getColumnIndexOrThrow(COL_THD))
+            )
+        } else {
+            null
+        }
+        cursor.close()
+        return collectionDetails
+    }
+
+    fun getMovieCollectionDetails(tmdbId: Int): CollectionDetails? {
+        val db = readableDatabase
+        val query = "SELECT * FROM $TABLE_COLLECTION WHERE $COL_TMDB = ?"
+        val cursor = db.rawQuery(query, arrayOf(tmdbId.toString()))
+        val collectionDetails = if (cursor.moveToFirst()) {
+            CollectionDetails(
+                collectedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_COLLECTED_AT)),
+                mediaType = cursor.getString(cursor.getColumnIndexOrThrow(COL_MEDIA_TYPE)),
+                resolution = cursor.getString(cursor.getColumnIndexOrThrow(COL_RESOLUTION)),
+                hdr = cursor.getString(cursor.getColumnIndexOrThrow(COL_HDR)),
+                audio = cursor.getString(cursor.getColumnIndexOrThrow(COL_AUDIO)),
+                audioChannels = cursor.getString(cursor.getColumnIndexOrThrow(COL_AUDIO_CHANNELS)),
+                thd = cursor.getInt(cursor.getColumnIndexOrThrow(COL_THD))
+            )
+        } else {
+            null
+        }
+        cursor.close()
+        return collectionDetails
     }
 }
