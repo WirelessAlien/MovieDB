@@ -32,7 +32,6 @@ import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
@@ -49,7 +48,6 @@ import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter.EpisodeViewHolder
 import com.wirelessalien.android.moviedb.data.Episode
-import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
 import com.wirelessalien.android.moviedb.databinding.DialogEditEpisodeBinding
 import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBinding
@@ -97,9 +95,9 @@ class EpisodeAdapter(
     private var mediaObject: JSONObject? = null
     private val tktaccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("trakt_access_token", null)
     private lateinit var clientId: String
-    private var isInCollection = false
-    private var isInWatchList = false
-    private var isInRating = false
+//    private var isInCollection: Boolean = false
+    private var isInWatchList: Boolean = false
+    private var isInRating: Boolean = false
 
     init {
         CoroutineScope(Dispatchers.Main).launch {
@@ -118,6 +116,16 @@ class EpisodeAdapter(
                 }
             })
             getShowProgressTkt.fetchShowProgress()
+
+            withContext(Dispatchers.IO) {
+                TraktDatabaseHelper(context).use { db ->
+                    episodes.forEach { episode ->
+//                        isInCollection = db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber)
+                        isInWatchList = db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
+                        isInRating = db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
+                    }
+                }
+            }
         }
     }
 
@@ -156,7 +164,7 @@ class EpisodeAdapter(
                 binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
                 binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                 binding.btnAddRatingToTmdb.visibility = View.GONE
-                binding.btnAddToTraktCollection.visibility = View.GONE
+//                binding.btnAddToTraktCollection.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -167,7 +175,7 @@ class EpisodeAdapter(
                 binding.btnAddDetailsToLocalDb.visibility = View.GONE
                 binding.btnWatchedToLocalDb.visibility = View.GONE
                 binding.btnAddRatingToTmdb.visibility = View.VISIBLE
-                binding.btnAddToTraktCollection.visibility = View.GONE
+//                binding.btnAddToTraktCollection.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -179,7 +187,7 @@ class EpisodeAdapter(
                 binding.btnAddDetailsToLocalDb.visibility = View.GONE
                 binding.btnWatchedToLocalDb.visibility = View.GONE
                 binding.btnAddRatingToTmdb.visibility = View.GONE
-                binding.btnAddToTraktCollection.visibility = View.VISIBLE
+//                binding.btnAddToTraktCollection.visibility = View.VISIBLE
                 binding.btnAddToTraktHistory.visibility = View.VISIBLE
                 binding.btnAddToTraktList.visibility = View.VISIBLE
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
@@ -237,50 +245,42 @@ class EpisodeAdapter(
         val traktAccessToken = defaultSharedPreferences.getString("trakt_access_token", null)
 
         if (traktAccessToken == null) {
-            holder.binding.btnAddToTraktCollection.isEnabled = false
+//            holder.binding.btnAddToTraktCollection.isEnabled = false
             holder.binding.btnAddToTraktHistory.isEnabled = false
             holder.binding.btnAddToTraktList.isEnabled = false
             holder.binding.btnAddToTraktWatchlist.isEnabled = false
             holder.binding.btnAddTraktRating.isEnabled = false
         } else {
-            holder.binding.btnAddToTraktCollection.isEnabled = true
+//            holder.binding.btnAddToTraktCollection.isEnabled = true
             holder.binding.btnAddToTraktHistory.isEnabled = true
             holder.binding.btnAddToTraktList.isEnabled = true
             holder.binding.btnAddToTraktWatchlist.isEnabled = true
             holder.binding.btnAddTraktRating.isEnabled = true
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            isInCollection = TraktDatabaseHelper(context).use { db ->
-                db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber)
+        updateIconStates(holder)
+
+        // Load current states from database
+        CoroutineScope(Dispatchers.Main).launch {
+            val newStates = withContext(Dispatchers.IO) {
+                TraktDatabaseHelper(context).use { db ->
+                    Triple(
+                        db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber),
+                        db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber),
+                        db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
+                    )
+                }
             }
 
-            isInWatchList = TraktDatabaseHelper(context).use { db ->
-                db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
-            }
+            // Update states and icons if they changed
+            if (isInWatchList != newStates.second ||
+//                isInCollection != newStates.first ||
+                isInRating != newStates.third) {
 
-            isInRating = TraktDatabaseHelper(context).use { db ->
-                db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
-            }
-
-            withContext(Dispatchers.Main) {
-                if (isInCollection) {
-                    holder.binding.btnAddToTraktCollection.icon = AppCompatResources.getDrawable(context, R.drawable.ic_collection)
-                } else {
-                    holder.binding.btnAddToTraktCollection.icon = AppCompatResources.getDrawable(context, R.drawable.ic_collection_border)
-                }
-
-                if (isInWatchList) {
-                    holder.binding.btnAddToTraktWatchlist.icon = AppCompatResources.getDrawable(context, R.drawable.ic_bookmark)
-                } else {
-                    holder.binding.btnAddToTraktWatchlist.icon = AppCompatResources.getDrawable(context, R.drawable.ic_bookmark_border)
-                }
-
-                if (isInRating) {
-                    holder.binding.btnAddTraktRating.icon = AppCompatResources.getDrawable(context, R.drawable.ic_thumb_up)
-                } else {
-                    holder.binding.btnAddTraktRating.icon = AppCompatResources.getDrawable(context, R.drawable.ic_thumb_up_border)
-                }
+//                isInCollection = newStates.first
+                isInWatchList = newStates.second
+                isInRating = newStates.third
+                updateIconStates(holder)
             }
         }
 
@@ -372,7 +372,7 @@ class EpisodeAdapter(
                         holder.binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
                         holder.binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                         holder.binding.btnAddRatingToTmdb.visibility = View.GONE
-                        holder.binding.btnAddToTraktCollection.visibility = View.GONE
+//                        holder.binding.btnAddToTraktCollection.visibility = View.GONE
                         holder.binding.btnAddToTraktHistory.visibility = View.GONE
                         holder.binding.btnAddToTraktList.visibility = View.GONE
                         holder.binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -381,7 +381,7 @@ class EpisodeAdapter(
                     R.id.btnTmdb -> {
                         holder.binding.btnAddDetailsToLocalDb.visibility = View.GONE
                         holder.binding.btnAddRatingToTmdb.visibility = View.VISIBLE
-                        holder.binding.btnAddToTraktCollection.visibility = View.GONE
+//                        holder.binding.btnAddToTraktCollection.visibility = View.GONE
                         holder.binding.btnAddToTraktHistory.visibility = View.GONE
                         holder.binding.btnAddToTraktList.visibility = View.GONE
                         holder.binding.btnWatchedToLocalDb.visibility = View.GONE
@@ -392,7 +392,7 @@ class EpisodeAdapter(
                     R.id.btnTrakt -> {
                         holder.binding.btnAddDetailsToLocalDb.visibility = View.GONE
                         holder.binding.btnAddRatingToTmdb.visibility = View.GONE
-                        holder.binding.btnAddToTraktCollection.visibility = View.VISIBLE
+//                        holder.binding.btnAddToTraktCollection.visibility = View.VISIBLE
                         holder.binding.btnAddToTraktHistory.visibility = View.VISIBLE
                         holder.binding.btnAddToTraktList.visibility = View.VISIBLE
                         holder.binding.btnWatchedToLocalDb.visibility = View.GONE
@@ -557,9 +557,9 @@ class EpisodeAdapter(
             }
         }
 
-        holder.binding.btnAddToTraktCollection.setOnClickListener {
-            showCollectionDialog(episode, holder)
-        }
+//        holder.binding.btnAddToTraktCollection.setOnClickListener {
+//            showCollectionDialog(episode, holder)
+//        }
 
         holder.binding.btnAddToTraktHistory.setOnClickListener {
             showWatchOptionsDialog(episode, holder)
@@ -594,6 +594,25 @@ class EpisodeAdapter(
                 listBottomSheetFragmentTkt.show((context as FragmentActivity).supportFragmentManager, listBottomSheetFragmentTkt.tag)
                 holder.binding.lProgressBar.visibility = View.GONE
             }
+        }
+    }
+
+    private fun updateIconStates(holder: EpisodeViewHolder) {
+        holder.binding.apply {
+//            btnAddToTraktCollection.icon = AppCompatResources.getDrawable(
+//                context,
+//                if (isInCollection) R.drawable.ic_collection else R.drawable.ic_collection_border
+//            )
+
+            btnAddToTraktWatchlist.icon = AppCompatResources.getDrawable(
+                context,
+                if (isInWatchList) R.drawable.ic_bookmark else R.drawable.ic_bookmark_border
+            )
+
+            btnAddTraktRating.icon = AppCompatResources.getDrawable(
+                context,
+                if (isInRating) R.drawable.ic_thumb_up else R.drawable.ic_thumb_up_border
+            )
         }
     }
 
@@ -894,153 +913,153 @@ class EpisodeAdapter(
         }
     }
 
-    private fun showCollectionDialog(episode: Episode, holder: EpisodeViewHolder) {
-        val dialog = BottomSheetDialog(context)
-        val binding = CollectionDialogTraktBinding.inflate(LayoutInflater.from(context))
-        dialog.setContentView(binding.root)
-        dialog.show()
-
-        binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
-
-        val mediaTypes = context.resources.getStringArray(R.array.media_types)
-        val resolutions = context.resources.getStringArray(R.array.resolutions)
-        val hdrTypes = context.resources.getStringArray(R.array.hdr_types)
-        val audioTypes = context.resources.getStringArray(R.array.audio_types)
-        val audioChannels = context.resources.getStringArray(R.array.audio_channels)
-
-        val mediaTypeAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, mediaTypes)
-        val resolutionAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, resolutions)
-        val hdrAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, hdrTypes)
-        val audioAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, audioTypes)
-        val audioChannelsAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, audioChannels)
-
-        binding.mediaType.setAdapter(mediaTypeAdapter)
-        binding.resolution.setAdapter(resolutionAdapter)
-        binding.hdr.setAdapter(hdrAdapter)
-        binding.audio.setAdapter(audioAdapter)
-        binding.audioChannels.setAdapter(audioChannelsAdapter)
-
-        binding.progressIndicator.visibility = View.VISIBLE
-        CoroutineScope(Dispatchers.IO).launch {
-            val collectionDetails = TraktDatabaseHelper(context).use { db ->
-                db.getEpisodeCollectionDetails(tvShowId, seasonNumber, episode.episodeNumber)
-            }
-
-            withContext(Dispatchers.Main) {
-                binding.progressIndicator.visibility = View.GONE
-                if (collectionDetails != null) {
-                    binding.isCollected.visibility = View.VISIBLE
-                    binding.collectedCard.visibility = View.VISIBLE
-                    binding.etSelectedDate.setText(collectionDetails.collectedAt ?: "")
-                    binding.mediaType.setText(collectionDetails.mediaType, false)
-                    binding.resolution.setText(collectionDetails.resolution, false)
-                    binding.hdr.setText(collectionDetails.hdr, false)
-                    binding.audio.setText(collectionDetails.audio, false)
-                    binding.audioChannels.setText(collectionDetails.audioChannels, false)
-                    binding.switch3D.isChecked = collectionDetails.thd == 1
-                } else {
-                    binding.isCollected.visibility = View.GONE
-                    binding.collectedCard.visibility = View.GONE
-                }
-            }
-        }
-
-        binding.removeCollection.setOnClickListener {
-            val dialogBuilder = MaterialAlertDialogBuilder(context)
-            dialogBuilder.setTitle(context.getString(R.string.remove_from_collection))
-            dialogBuilder.setMessage(context.getString(R.string.remove_from_collection_confirmation))
-            dialogBuilder.setPositiveButton(context.getString(R.string.yes)) { _, _ ->
-                binding.progressIndicator.visibility = View.VISIBLE
-                CoroutineScope(Dispatchers.Main).launch {
-                    val episodeObject = withContext(Dispatchers.IO) {
-                        val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
-                        if (episodeData != null) {
-                            val episodeIds = JSONObject().apply {
-                                put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                                put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                                put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                                put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
-                            }
-
-                            val episodeDetails = JSONObject().apply {
-                                put("ids", episodeIds)
-                            }
-
-                            JSONObject().apply {
-                                put("episodes", JSONArray().put(episodeDetails))
-                            }
-                        } else {
-                            null
-                        }
-                    }
-
-                    if (episodeObject != null) {
-                        mediaObject = episodeObject
-                        traktSync("sync/collection/remove", episode, 0, holder, null, null, null, null, null, null, null)
-                    }
-                    binding.progressIndicator.visibility = View.GONE
-                    dialog.dismiss()
-                }
-            }
-            dialogBuilder.setNegativeButton(context.getString(R.string.no)) { _, _ -> }
-            dialogBuilder.show()
-        }
-
-        binding.btnSelectDate.setOnClickListener {
-            showDatePicker { selectedDate ->
-                binding.etSelectedDate.setText(selectedDate)
-            }
-        }
-
-        binding.btnSave.setOnClickListener {
-            val selectedDate = binding.etSelectedDate.text.toString()
-            val mediaType = binding.mediaType.text.toString()
-            val resolution = binding.resolution.text.toString()
-            val hdr = binding.hdr.text.toString()
-            val audio = binding.audio.text.toString()
-            val audioChannel = binding.audioChannels.text.toString()
-            val is3D = binding.switch3D.isChecked
-
-            binding.progressIndicator.visibility = View.VISIBLE
-            CoroutineScope(Dispatchers.Main).launch {
-                val episodeObject = withContext(Dispatchers.IO) {
-                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
-                    if (episodeData != null) {
-                        val episodeIds = JSONObject().apply {
-                            put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                            put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
-                        }
-
-                        val episodeDetails = JSONObject().apply {
-                            put("collected_at", selectedDate)
-                            put("media_type", mediaType)
-                            put("resolution", resolution)
-                            put("hdr", hdr)
-                            put("audio", audio)
-                            put("audio_channels", audioChannel)
-                            put("3d", is3D)
-                            put("ids", episodeIds)
-                        }
-
-                        JSONObject().apply {
-                            put("episodes", JSONArray().put(episodeDetails))
-                        }
-                    } else {
-                        null
-                    }
-                }
-
-                if (episodeObject != null) {
-                    mediaObject = episodeObject
-                    traktSync("sync/collection", episode, 0, holder, selectedDate, mediaType, resolution, hdr, audio, audioChannel, is3D)
-                }
-                binding.progressIndicator.visibility = View.GONE
-                dialog.dismiss()
-            }
-        }
-    }
+//    private fun showCollectionDialog(episode: Episode, holder: EpisodeViewHolder) {
+//        val dialog = BottomSheetDialog(context)
+//        val binding = CollectionDialogTraktBinding.inflate(LayoutInflater.from(context))
+//        dialog.setContentView(binding.root)
+//        dialog.show()
+//
+//        binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
+//
+//        val mediaTypes = context.resources.getStringArray(R.array.media_types)
+//        val resolutions = context.resources.getStringArray(R.array.resolutions)
+//        val hdrTypes = context.resources.getStringArray(R.array.hdr_types)
+//        val audioTypes = context.resources.getStringArray(R.array.audio_types)
+//        val audioChannels = context.resources.getStringArray(R.array.audio_channels)
+//
+//        val mediaTypeAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, mediaTypes)
+//        val resolutionAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, resolutions)
+//        val hdrAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, hdrTypes)
+//        val audioAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, audioTypes)
+//        val audioChannelsAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, audioChannels)
+//
+//        binding.mediaType.setAdapter(mediaTypeAdapter)
+//        binding.resolution.setAdapter(resolutionAdapter)
+//        binding.hdr.setAdapter(hdrAdapter)
+//        binding.audio.setAdapter(audioAdapter)
+//        binding.audioChannels.setAdapter(audioChannelsAdapter)
+//
+//        binding.progressIndicator.visibility = View.VISIBLE
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val collectionDetails = TraktDatabaseHelper(context).use { db ->
+//                db.getEpisodeCollectionDetails(tvShowId, seasonNumber, episode.episodeNumber)
+//            }
+//
+//            withContext(Dispatchers.Main) {
+//                binding.progressIndicator.visibility = View.GONE
+//                if (collectionDetails != null) {
+//                    binding.isCollected.visibility = View.VISIBLE
+//                    binding.collectedCard.visibility = View.VISIBLE
+//                    binding.etSelectedDate.setText(collectionDetails.collectedAt ?: "")
+//                    binding.mediaType.setText(collectionDetails.mediaType, false)
+//                    binding.resolution.setText(collectionDetails.resolution, false)
+//                    binding.hdr.setText(collectionDetails.hdr, false)
+//                    binding.audio.setText(collectionDetails.audio, false)
+//                    binding.audioChannels.setText(collectionDetails.audioChannels, false)
+//                    binding.switch3D.isChecked = collectionDetails.thd == 1
+//                } else {
+//                    binding.isCollected.visibility = View.GONE
+//                    binding.collectedCard.visibility = View.GONE
+//                }
+//            }
+//        }
+//
+//        binding.removeCollection.setOnClickListener {
+//            val dialogBuilder = MaterialAlertDialogBuilder(context)
+//            dialogBuilder.setTitle(context.getString(R.string.remove_from_collection))
+//            dialogBuilder.setMessage(context.getString(R.string.remove_from_collection_confirmation))
+//            dialogBuilder.setPositiveButton(context.getString(R.string.yes)) { _, _ ->
+//                binding.progressIndicator.visibility = View.VISIBLE
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    val episodeObject = withContext(Dispatchers.IO) {
+//                        val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+//                        if (episodeData != null) {
+//                            val episodeIds = JSONObject().apply {
+//                                put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
+//                                put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
+//                                put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
+//                                put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+//                            }
+//
+//                            val episodeDetails = JSONObject().apply {
+//                                put("ids", episodeIds)
+//                            }
+//
+//                            JSONObject().apply {
+//                                put("episodes", JSONArray().put(episodeDetails))
+//                            }
+//                        } else {
+//                            null
+//                        }
+//                    }
+//
+//                    if (episodeObject != null) {
+//                        mediaObject = episodeObject
+//                        traktSync("sync/collection/remove", episode, 0, holder, null, null, null, null, null, null, null)
+//                    }
+//                    binding.progressIndicator.visibility = View.GONE
+//                    dialog.dismiss()
+//                }
+//            }
+//            dialogBuilder.setNegativeButton(context.getString(R.string.no)) { _, _ -> }
+//            dialogBuilder.show()
+//        }
+//
+//        binding.btnSelectDate.setOnClickListener {
+//            showDatePicker { selectedDate ->
+//                binding.etSelectedDate.setText(selectedDate)
+//            }
+//        }
+//
+//        binding.btnSave.setOnClickListener {
+//            val selectedDate = binding.etSelectedDate.text.toString()
+//            val mediaType = binding.mediaType.text.toString()
+//            val resolution = binding.resolution.text.toString()
+//            val hdr = binding.hdr.text.toString()
+//            val audio = binding.audio.text.toString()
+//            val audioChannel = binding.audioChannels.text.toString()
+//            val is3D = binding.switch3D.isChecked
+//
+//            binding.progressIndicator.visibility = View.VISIBLE
+//            CoroutineScope(Dispatchers.Main).launch {
+//                val episodeObject = withContext(Dispatchers.IO) {
+//                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+//                    if (episodeData != null) {
+//                        val episodeIds = JSONObject().apply {
+//                            put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
+//                            put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
+//                            put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
+//                            put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+//                        }
+//
+//                        val episodeDetails = JSONObject().apply {
+//                            put("collected_at", selectedDate)
+//                            put("media_type", mediaType)
+//                            put("resolution", resolution)
+//                            put("hdr", hdr)
+//                            put("audio", audio)
+//                            put("audio_channels", audioChannel)
+//                            put("3d", is3D)
+//                            put("ids", episodeIds)
+//                        }
+//
+//                        JSONObject().apply {
+//                            put("episodes", JSONArray().put(episodeDetails))
+//                        }
+//                    } else {
+//                        null
+//                    }
+//                }
+//
+//                if (episodeObject != null) {
+//                    mediaObject = episodeObject
+//                    traktSync("sync/collection", episode, 0, holder, selectedDate, mediaType, resolution, hdr, audio, audioChannel, is3D)
+//                }
+//                binding.progressIndicator.visibility = View.GONE
+//                dialog.dismiss()
+//            }
+//        }
+//    }
 
     private suspend fun fetchEpisodeData(traktId: Int, seasonNumber: Int, episodeNumber: Int, accessToken: String): JSONObject? {
         return withContext(Dispatchers.IO) {
@@ -1113,6 +1132,10 @@ class EpisodeAdapter(
         when (endpoint) {
             "sync/watchlist" -> isInWatchList = true
             "sync/watchlist/remove" -> isInWatchList = false
+//            "sync/collection" -> isInCollection = true
+//            "sync/collection/remove" -> isInCollection = false
+            "sync/ratings" -> isInRating = true
+            "sync/ratings/remove" -> isInRating = false
         }
     }
 
@@ -1130,18 +1153,18 @@ class EpisodeAdapter(
                     R.drawable.ic_bookmark_border
                 )
             }
-            "sync/collection" -> {
-                holder.binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
-                    context,
-                    R.drawable.ic_collection
-                )
-            }
-            "sync/collection/remove" -> {
-                holder.binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
-                    context,
-                    R.drawable.ic_collection_border
-                )
-            }
+//            "sync/collection" -> {
+//                holder.binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
+//                    context,
+//                    R.drawable.ic_collection
+//                )
+//            }
+//            "sync/collection/remove" -> {
+//                holder.binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
+//                    context,
+//                    R.drawable.ic_collection_border
+//                )
+//            }
             "sync/ratings" -> {
                 holder.binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
                     context,

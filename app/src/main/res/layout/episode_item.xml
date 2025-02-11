@@ -309,23 +309,23 @@
                     android:id="@+id/btnAddTraktRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/btnAddToTraktCollection"
+                    android:layout_alignParentEnd="true"
                     app:cornerRadius="10dp"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:visibility="gone"
                     app:icon="@drawable/ic_thumb_up"/>
 
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddToTraktCollection"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    app:icon="@drawable/ic_collection"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="5dp"
-                    app:cornerRadius="10dp"
-                    android:visibility="gone"/>
+<!--                <com.google.android.material.button.MaterialButton-->
+<!--                    android:id="@+id/btnAddToTraktCollection"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"-->
+<!--                    app:icon="@drawable/ic_collection"-->
+<!--                    android:layout_alignParentEnd="true"-->
+<!--                    android:layout_marginEnd="5dp"-->
+<!--                    app:cornerRadius="10dp"-->
+<!--                    android:visibility="gone"/>-->
             </RelativeLayout>
 
             <com.google.android.material.button.MaterialButton
