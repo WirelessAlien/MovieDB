@@ -69,13 +69,14 @@
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="wrap_content"
+                android:minHeight="?attr/actionBarSize"
                 android:background="@android:color/transparent"
                 app:layout_collapseMode="pin" />
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <com.wirelessalien.android.moviedb.view.NotifyingScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -896,6 +897,7 @@
                 android:layout_marginEnd="16dp"
                 android:paddingTop="16dp"
                 android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:textStyle="bold"
                 android:layout_marginBottom="3dp"
                 android:text="@string/recommendations_title"
@@ -1100,7 +1102,7 @@
                 app:flexWrap="wrap"
                 app:justifyContent="flex_start"/>
         </RelativeLayout>
-    </com.wirelessalien.android.moviedb.view.NotifyingScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmerFrameLayout1"
@@ -1127,7 +1129,8 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/share_link_button"
         android:src="@drawable/ic_share"
-        app:layout_behavior="com.google.android.material.floatingactionbutton.FloatingActionButton$Behavior"/>
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
+    </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabSave"
@@ -1137,5 +1140,6 @@
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
         android:contentDescription="@string/save_to_database"
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
         android:src="@drawable/ic_star_border" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

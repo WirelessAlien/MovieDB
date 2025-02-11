@@ -106,7 +106,6 @@ import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlist
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteRating
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountState
 import com.wirelessalien.android.moviedb.trakt.TraktSync
-import com.wirelessalien.android.moviedb.view.NotifyingScrollView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -188,30 +187,7 @@ class DetailActivity : BaseActivity() {
     private var isInWatched = false
     private var isInRating = false
     private lateinit var binding: ActivityDetailBinding
-    private val mOnScrollChangedListener: NotifyingScrollView.OnScrollChangedListener =
-        object : NotifyingScrollView.OnScrollChangedListener {
-            var lastScrollY = 0
-            val scrollThreshold = 50
-            override fun onScrollChanged(t: Int) {
-                if (t == 0) {
-                    binding.toolbar.title = ""
-                } else {
-                    if (showTitle != null && abs(t - lastScrollY) > scrollThreshold) {
-                        binding.toolbar.title = showTitle
-                    }
-                }
-                if (abs(t - lastScrollY) > scrollThreshold) {
-                    if (t > lastScrollY) {
-                        binding.fab.hide()
-                        binding.fabSave.hide()
-                    } else if (t < lastScrollY) {
-                        binding.fab.show()
-                        binding.fabSave.show()
-                    }
-                    lastScrollY = t
-                }
-            }
-        }
+
     private lateinit var preferences: SharedPreferences
 
     // Indicate whether network items have loaded.
@@ -231,13 +207,21 @@ class DetailActivity : BaseActivity() {
         tktApiKey = getConfigValue(applicationContext, "client_id")
         tktaccessToken = preferences.getString("trakt_access_token", null)
         setContentView(binding.root)
-        setNavigationDrawer()
-        supportActionBar!!.title = ""
+        setSupportActionBar(binding.toolbar)
+        binding.appBarLayout.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
+            if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
+                // Collapsed
+                supportActionBar?.title = showTitle
+            } else if (verticalOffset == 0) {
+                // Expanded
+                supportActionBar?.title = ""
+            } else {
+                // Somewhere in between
+                supportActionBar?.title = ""
+            }
+        }
         episodeViewPager = binding.episodeViewPager
         episodePagerAdapter = EpisodePagerAdapter(this)
-        // Make the transparency dependent on how far the user scrolled down.
-        binding.scrollView.setOnScrollChangedListener(mOnScrollChangedListener)
-        binding.scrollView.scrollTo(0, 0)
 
         // Create a variable with the application context that can be used
         // when data is retrieved.
