@@ -67,6 +67,10 @@ import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -96,6 +100,7 @@ import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
 import com.wirelessalien.android.moviedb.work.ReleaseReminderWorker
+import com.wirelessalien.android.moviedb.work.TktTokenRefreshWorker
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import okhttp3.Call
@@ -110,6 +115,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class MainActivity : BaseActivity() {
 
@@ -421,6 +427,15 @@ class MainActivity : BaseActivity() {
         }
 
         ReleaseReminderWorker.scheduleWork(this)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val tokenRefreshWorkRequest = PeriodicWorkRequestBuilder<TktTokenRefreshWorker>(24, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance(this).enqueue(tokenRefreshWorkRequest)
 
         val accessToken = preferences.getString("access_token", null)
         val hasRunOnce = preferences.getBoolean("hasRunOnce", false)
@@ -808,7 +823,6 @@ class MainActivity : BaseActivity() {
             } else if (uri.toString().startsWith("trakt.wirelessalien.showcase://callback")) {
                 val code = uri.getQueryParameter("code")
                 if (code != null) {
-                    Log.d("MainActivity", "Authorization code received: $code")
                     exchangeCodeForAccessToken(code)
                 } else {
                     Log.e("MainActivity", "Authorization code not found in the redirect URI")
@@ -838,7 +852,6 @@ class MainActivity : BaseActivity() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                Log.e("MainActivity", "Token exchange failed: ${e.message}")
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -850,7 +863,6 @@ class MainActivity : BaseActivity() {
                     // Save the tokens for future use
                     preferences.edit().putString("trakt_access_token", accessToken).apply()
                     preferences.edit().putString("trakt_refresh_token", refreshToken).apply()
-                    Log.d("MainActivity", "Access token and refresh token saved to preferences $response")
                 } else {
                     // Handle error
                     Log.e("MainActivity", "Error: ${response.message}")

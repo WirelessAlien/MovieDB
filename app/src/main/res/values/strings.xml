@@ -83,6 +83,9 @@
     <string name="episode_p">Episode %1$d</string>
     <string name="episode_s">Episode %1$d(S: %2$d)</string>
     <string name="account_swap">Change sync provider</string>
+    <string name="failed_to_get_trakt_access">Failed to get Trakt access</string>
+    <string name="please_log_in_again_for_trakt">Please log in again to continue using Trakt features</string>
+    <string name="general_notifications">General Notifications</string>
 
     <string-array name="media_types">
         <item>digital</item>
