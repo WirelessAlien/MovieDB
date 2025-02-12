@@ -68,9 +68,9 @@ class EpisodeTraktAdapter(
 
         val isWatched = watchedEpisodes.contains(episodeNumber)
         val iconRes = if (isWatched) {
-            R.drawable.ic_close
+            R.drawable.ic_done_2
         } else {
-            R.drawable.ic_done_all
+            R.drawable.ic_close
         }
         holder.episodeStatusButton.setImageResource(iconRes)
 
@@ -175,36 +175,35 @@ class EpisodeTraktAdapter(
 
             override fun onResponse(call: Call, response: Response) {
                 Handler(Looper.getMainLooper()).post {
-                    val message = when (response.code) {
-                        200, 201 -> {
-                            val dbHelper = TraktDatabaseHelper(context)
-                            val db = dbHelper.writableDatabase
-                            val traktId = showData.getInt("trakt_id")
+                    val message = if (response.isSuccessful) {
+                        val dbHelper = TraktDatabaseHelper(context)
+                        val db = dbHelper.writableDatabase
+                        val traktId = showData.getInt("trakt_id")
 
-                            if (endpoint == "sync/history") {
-                                val values = ContentValues().apply {
-                                    put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, traktId)
-                                    put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, showData.getInt("id"))
-                                    put(TraktDatabaseHelper.COL_SEASON_NUMBER, seasonNumber)
-                                    put(TraktDatabaseHelper.COL_EPISODE_NUMBER, episodeNumber)
-                                }
-                                dbHelper.insertSeasonEpisodeWatchedData(values)
-                                watchedEpisodes.add(episodeNumber)
-                                holder.episodeStatusButton.setImageResource(R.drawable.ic_close)
-                            } else if (endpoint == "sync/history/remove") {
-                                db.delete(
-                                    TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
-                                    "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_SEASON_NUMBER} = ? AND ${TraktDatabaseHelper.COL_EPISODE_NUMBER} = ?",
-                                    arrayOf(traktId.toString(), seasonNumber.toString(), episodeNumber.toString())
-                                )
-                                watchedEpisodes.remove(episodeNumber)
-                                holder.episodeStatusButton.setImageResource(R.drawable.ic_done_all)
+                        if (endpoint == "sync/history") {
+                            val values = ContentValues().apply {
+                                put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, traktId)
+                                put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, showData.getInt("id"))
+                                put(TraktDatabaseHelper.COL_SEASON_NUMBER, seasonNumber)
+                                put(TraktDatabaseHelper.COL_EPISODE_NUMBER, episodeNumber)
                             }
-
-                            db.close()
-                            context.getString(R.string.success)
+                            dbHelper.insertSeasonEpisodeWatchedData(values)
+                            watchedEpisodes.add(episodeNumber)
+                            holder.episodeStatusButton.setImageResource(R.drawable.ic_done_2)
+                        } else if (endpoint == "sync/history/remove") {
+                            db.delete(
+                                TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
+                                "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_SEASON_NUMBER} = ? AND ${TraktDatabaseHelper.COL_EPISODE_NUMBER} = ?",
+                                arrayOf(traktId.toString(), seasonNumber.toString(), episodeNumber.toString())
+                            )
+                            watchedEpisodes.remove(episodeNumber)
+                            holder.episodeStatusButton.setImageResource(R.drawable.ic_close)
                         }
-                        else -> response.message
+
+                        db.close()
+                        context.getString(R.string.success)
+                    } else {
+                        response.message
                     }
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }

@@ -23,7 +23,6 @@ package com.wirelessalien.android.moviedb.work
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
@@ -75,25 +74,17 @@ class TktTokenRefreshWorker(
 
                 preferences.edit().putString("trakt_access_token", newAccessToken).apply()
                 preferences.edit().putString("trakt_refresh_token", newRefreshToken).apply()
-                preferences.edit().putInt("failure_count", 0).apply()
 
                 return@withContext Result.success()
             } else {
-                handleFailure(preferences)
-                return@withContext Result.retry()
+                showNotification()
+                preferences.edit().remove("trakt_access_token").apply()
+                return@withContext Result.failure()
             }
         } else {
-            handleFailure(preferences)
-            return@withContext Result.failure()
-        }
-    }
-
-    private fun handleFailure(preferences: SharedPreferences) {
-        val failureCount = preferences.getInt("failure_count", 0) + 1
-        preferences.edit().putInt("failure_count", failureCount).apply()
-
-        if (failureCount >= 3) {
             showNotification()
+            preferences.edit().remove("trakt_access_token").apply()
+            return@withContext Result.failure()
         }
     }
 

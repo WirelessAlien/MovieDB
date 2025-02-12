@@ -26,4 +26,10 @@
         android:icon="@drawable/ic_refresh"
         android:title="@string/refresh"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_stats"
+        android:icon="@drawable/ic_chart"
+        android:title="@string/stats"
+        app:showAsAction="ifRoom" />
 </menu>

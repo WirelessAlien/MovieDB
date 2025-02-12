@@ -86,6 +86,10 @@
     <string name="failed_to_get_trakt_access">Failed to get Trakt access</string>
     <string name="please_log_in_again_for_trakt">Please log in again to continue using Trakt features</string>
     <string name="general_notifications">General Notifications</string>
+    <string name="ep_progress_text">%1$d/%2$d (%3$d left)</string>
+    <string name="stats">Stats</string>
+    <string name="movies_collected">Movie Collected</string>
+    <string name="time_spent">Time Spent</string>
 
     <string-array name="media_types">
         <item>digital</item>
@@ -153,4 +157,25 @@
         <item>9.1</item>
         <item>10.1</item>
     </string-array>
+
+    <plurals name="years">
+        <item quantity="one">%d year</item>
+        <item quantity="other">%d years</item>
+    </plurals>
+    <plurals name="months">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <plurals name="days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
 </resources>

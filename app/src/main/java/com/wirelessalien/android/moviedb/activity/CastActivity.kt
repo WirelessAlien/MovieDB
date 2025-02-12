@@ -74,6 +74,7 @@ class CastActivity : BaseActivity() {
     private lateinit var context: Context
     private lateinit var actorObject: JSONObject
     private lateinit var imagesObject: JSONObject
+    private var actorName: String? = null
     private lateinit var binding: ActivityCastBinding
     private var actorId = 0
     private lateinit var target: Target
@@ -106,8 +107,8 @@ class CastActivity : BaseActivity() {
         binding.appBarLayout.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
             if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
                 // Collapsed
-                supportActionBar?.title = if (actorObject.has("name")) {
-                    actorObject.getString("name")
+                supportActionBar?.title = if (actorName != null) {
+                    actorName!!
                 } else {
                     getString(R.string.title_people)
                 }
@@ -453,6 +454,7 @@ class CastActivity : BaseActivity() {
         actorObject.optString("name").let { name ->
             if (name != binding.actorName.text.toString()) {
                 binding.actorName.text = name
+                actorName = name
             }
         }
 

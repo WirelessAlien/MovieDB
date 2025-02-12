@@ -22,7 +22,6 @@ package com.wirelessalien.android.moviedb.trakt
 
 import android.content.ContentValues
 import android.content.Context
-import android.util.Log
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper.Companion.USER_LISTS
 import kotlinx.coroutines.CoroutineScope
@@ -86,6 +85,9 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/favorites"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_FAVORITE, null, null)
+
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
@@ -126,6 +128,9 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/watchlist"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_WATCHLIST, null, null)
+
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
@@ -198,6 +203,9 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/ratings"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_RATING, null, null)
+
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
@@ -269,8 +277,10 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/history?page=1&limit=50"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_HISTORY, null, null)
+
             val jsonArray = JSONArray(response)
-            Log.d("GetTraktSyncData2", jsonArray.toString())
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
                 val type = jsonObject.getString("type")
@@ -317,8 +327,10 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/watched/movies"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_WATCHED, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("movie"))
+
             val jsonArray = JSONArray(response)
-            Log.d("GetTraktSyncData", jsonArray.toString())
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
                 val values = ContentValues().apply {
@@ -348,8 +360,10 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/watched/shows"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_WATCHED, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("show"))
+
             val jsonArray = JSONArray(response)
-            Log.d("GetTraktSyncData", jsonArray.toString())
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
                 val values = ContentValues().apply {
@@ -406,6 +420,8 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/collection/movies?extended=metadata"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_COLLECTION, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("movie"))
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
@@ -447,6 +463,9 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/sync/collection/shows?extended=metadata"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_COLLECTION, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("show"))
+
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
@@ -536,6 +555,8 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/users/me/lists/$listId/items/"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_LIST_ITEM, null, null)
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)

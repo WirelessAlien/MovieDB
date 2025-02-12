@@ -58,6 +58,7 @@ import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRating
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRating
@@ -1115,6 +1116,7 @@ class EpisodeAdapter(
                             updateTraktButtonsUI(endpoint, holder)
                             withContext(Dispatchers.IO) {
                                 handleDatabaseUpdate(endpoint, episode, rating, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
+                                addItemtoTmdb()
                                 updateBoolean(endpoint)
                             }
                         }
@@ -1198,11 +1200,12 @@ class EpisodeAdapter(
         when (endpoint) {
             "sync/watchlist" -> dbHelper.addEpisodeToWatchlist(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber)
             "sync/watchlist/remove" -> dbHelper.removeEpisodeFromWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
-            "sync/collection" -> dbHelper.addEpisodeToCollection(showTitle, traktId, tvShowId, "show", seasonNumber, episode.episodeNumber, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
-            "sync/collection/remove" -> dbHelper.removeEpisodeFromCollection(tvShowId, seasonNumber, episode.episodeNumber)
+//            "sync/collection" -> dbHelper.addEpisodeToCollection(showTitle, traktId, tvShowId, "show", seasonNumber, episode.episodeNumber, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
+//            "sync/collection/remove" -> dbHelper.removeEpisodeFromCollection(tvShowId, seasonNumber, episode.episodeNumber)
             "sync/history" -> {
                 dbHelper.addEpisodeToHistory(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber, collectedAt)
                 dbHelper.addEpisodeToWatched(showTitle, traktId, tvShowId, seasonNumber, episode.episodeNumber)
+                dbHelper.addEpisodeToWatchedTable(tvShowId, traktId, "show", showTitle)
             }
             "sync/history/remove" -> {
                 dbHelper.removeEpisodeFromHistory(tvShowId, seasonNumber, episode.episodeNumber)
@@ -1211,6 +1214,55 @@ class EpisodeAdapter(
             "sync/ratings" -> dbHelper.addEpisodeRating(showTitle, traktId, tvShowId, "episode" , seasonNumber, episode.episodeNumber, rating)
             "sync/ratings/remove" -> dbHelper.removeEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber)
         }
+    }
+
+    private fun addItemtoTmdb() {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val tmdbId = tmdbObject.optInt("id")
+        val name = tmdbObject.optString("name")
+        val backdropPath = tmdbObject.optString("backdrop_path")
+        val posterPath = tmdbObject.optString("poster_path")
+        val summary = tmdbObject.optString("overview")
+        val voteAverage = tmdbObject.optDouble("vote_average")
+        val type = "show"
+        val releaseDate = tmdbObject.optString("first_air_date")
+        val genreIds = tmdbObject.optJSONArray("genres")?.let { genresArray ->
+            val ids = (0 until genresArray.length()).joinToString(",") { i ->
+                genresArray.getJSONObject(i).getInt("id").toString()
+            }
+            "[$ids]"
+        }
+        val seasonEpisodeCount = tmdbObject.optJSONArray("seasons")
+        val seasonsEpisodes = StringBuilder()
+
+        for (i in 0 until (seasonEpisodeCount?.length() ?: 0)) {
+            val season = seasonEpisodeCount?.getJSONObject(i)
+            val seasonNumber = season?.getInt("season_number")
+
+            // Skip specials (season_number == 0)
+            if (seasonNumber == 0) continue
+
+            val episodeCount = season?.getInt("episode_count")?: 0
+            val episodesList = (1..episodeCount).toList()
+
+            seasonsEpisodes.append("$seasonNumber{${episodesList.joinToString(",")}}")
+            if (i < (seasonEpisodeCount?.length() ?: 0) - 1) {
+                seasonsEpisodes.append(",")
+            }
+        }
+
+        dbHelper.addItem(
+            tmdbId,
+            name,
+            backdropPath,
+            posterPath,
+            summary,
+            voteAverage,
+            releaseDate,
+            genreIds?: "",
+            seasonsEpisodes.toString(),
+            type
+        )
     }
 
     private fun createTraktEpisodeObject(

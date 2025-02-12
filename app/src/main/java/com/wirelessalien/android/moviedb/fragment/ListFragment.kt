@@ -140,7 +140,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             filterActivityResultLauncher.launch(intent)
         }
 
-        activityBinding.fab2.setImageResource(R.drawable.ic_info)
+        activityBinding.fab2.setImageResource(R.drawable.ic_chart)
         activityBinding.fab2.visibility = View.VISIBLE
         activityBinding.fab2.isEnabled = true
         activityBinding.fab2.setOnClickListener {

@@ -100,7 +100,8 @@ class HistoryFragmentTkt : BaseFragment() {
 
     private fun loadHistoryData() {
         lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
             withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
@@ -171,7 +172,8 @@ class HistoryFragmentTkt : BaseFragment() {
                 cursor.close()
             }
             adapter.updateShowList(fullHistorylist)
-            binding.progressBar.visibility = View.GONE
+            binding.shimmerFrameLayout1.stopShimmer()
+            binding.shimmerFrameLayout1.visibility = View.GONE
         }
     }
 

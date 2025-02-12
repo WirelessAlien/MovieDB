@@ -88,6 +88,11 @@ class AccountDataFragmentTkt : BaseFragment() {
                         showRefreshDialog()
                         true
                     }
+                    R.id.action_stats -> {
+                        val traktStatsBottomSheet = TraktStatsBottomSheet()
+                        traktStatsBottomSheet.show(parentFragmentManager, traktStatsBottomSheet.tag)
+                        true
+                    }
                     else -> false
                 }
             }
@@ -100,7 +105,6 @@ class AccountDataFragmentTkt : BaseFragment() {
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.watchlist)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.progress)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.collection)))
-        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.watched)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.history)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.favourite)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.rated)))
@@ -111,11 +115,10 @@ class AccountDataFragmentTkt : BaseFragment() {
                     0 -> WatchlistFragmentTkt()
                     1 -> ProgressFragmentTkt()
                     2 -> CollectionFragmentTkt()
-                    3 -> WatchlistFragmentTkt()
-                    4 -> HistoryFragmentTkt()
-                    5 -> FavoriteFragmentTkt()
-                    6 -> RatingFragmentTkt()
-                    7 -> ListFragmentTkt()
+                    3 -> HistoryFragmentTkt()
+                    4 -> FavoriteFragmentTkt()
+                    5 -> RatingFragmentTkt()
+                    6 -> ListFragmentTkt()
                     else -> null
                 }
                 if (selectedFragment != null && isAdded && activity != null) {
@@ -176,11 +179,14 @@ class AccountDataFragmentTkt : BaseFragment() {
                 text = option
                 isCheckable = true
                 isChecked = true
+                setChipIconResource(R.drawable.ic_done_all)
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
                         selectedOptions.add(option)
+                        setChipIconResource(R.drawable.ic_done_all)
                     } else {
                         selectedOptions.remove(option)
+                        setChipIconResource(R.drawable.ic_close)
                     }
                 }
             }

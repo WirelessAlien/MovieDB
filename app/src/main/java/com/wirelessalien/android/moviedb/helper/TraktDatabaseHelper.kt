@@ -922,6 +922,30 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         return timesPlayed
     }
 
+    fun addEpisodeToWatchedTable(tvShowId: Int, traktId: Int, type: String, title: String) {
+        val db = writableDatabase
+        val cursor = db.query(
+            TABLE_WATCHED,
+            arrayOf(COL_ID),
+            "$COL_TRAKT_ID = ? AND $COL_TYPE = ?",
+            arrayOf(traktId.toString(), type),
+            null,
+            null,
+            null
+        )
+
+        if (cursor.count == 0) {
+            val values = ContentValues().apply {
+                put(COL_TMDB, tvShowId)
+                put(COL_TRAKT_ID, traktId)
+                put(COL_TYPE, type)
+                put(COL_TITLE, title)
+            }
+            db.insert(TABLE_WATCHED, null, values)
+        }
+        cursor.close()
+    }
+
     fun getEpisodeLastWatched(tvShowId: Int, seasonNumber: Int, episodeNumber: Int): String? {
         val db = readableDatabase
         val query = "SELECT $COL_LAST_WATCHED_AT FROM $TABLE_SEASON_EPISODE_WATCHED WHERE $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?"
@@ -944,7 +968,6 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
     ) {
         val db = writableDatabase
         val values = ContentValues().apply {
-            put(COL_TITLE, title)
             put(COL_SHOW_TRAKT_ID, showTraktId)
             put(COL_SHOW_TMDB_ID, showTmdbId)
             put(COL_SEASON_NUMBER, seasonNumber)

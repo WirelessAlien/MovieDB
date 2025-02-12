@@ -139,10 +139,22 @@ class ShowProgressTraktAdapter(
             if (showData.getString("type") == "show") {
                 val watchedEpisodes = getWatchedEpisodesShow(showData.optInt("trakt_id", -1))
                 val totalEpisodes = parseEpisodesTmdb(showData.optString("seasons_episode_show_tmdb", ""))
+                val episodesLeft = totalEpisodes - watchedEpisodes.size
                 val progress = if (totalEpisodes > 0) (watchedEpisodes.size.toFloat() / totalEpisodes.toFloat() * 100).toInt() else 0
                 holder.watchedProgressBar?.progress = progress
                 holder.watchedProgressBar?.visibility = View.VISIBLE
                 holder.showSeasonBtn?.visibility = View.VISIBLE
+                holder.seasonEpisodeText.visibility = View.VISIBLE
+                if (watchedEpisodes.size == totalEpisodes) {
+                    holder.seasonEpisodeText.text = context.getString(R.string.watched)
+                } else {
+                    holder.seasonEpisodeText.text = context.getString(
+                        R.string.ep_progress_text,
+                        watchedEpisodes.size,
+                        totalEpisodes,
+                        episodesLeft
+                    )
+                }
             }
 
             if (!mGridView) {
@@ -297,6 +309,7 @@ class ShowProgressTraktAdapter(
         val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
         val watchedProgressBar = gridBinding?.watchedProgress ?: binding?.watchedProgress
         val showSeasonBtn = gridBinding?.showSeasonsButton ?: binding?.showSeasonsButton
+        val seasonEpisodeText = gridBinding?.seasonEpisodeText ?: binding!!.seasonEpisodeText
     }
 
     companion object {

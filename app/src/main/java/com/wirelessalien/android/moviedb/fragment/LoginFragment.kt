@@ -114,10 +114,6 @@ class LoginFragment : BottomSheetDialogFragment() {
             }
         }
 
-        binding.loginTkt.setOnClickListener {
-            redirectToTraktAuthorization()
-        }
-
         binding.changeProvider.setOnClickListener {
             dismiss()
             val bottomSheetFragment = LoginFragmentTkt()

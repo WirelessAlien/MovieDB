@@ -74,6 +74,19 @@
                     android:visibility="gone"
                     android:padding="8dp"/>
 
+                <TextView
+                    android:id="@+id/seasonEpisodeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Your Text Here"
+                    android:textColor="@android:color/white"
+                    android:background="#99000000"
+                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_gravity="top|center_horizontal"
+                    android:padding="8dp"/>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/showSeasonsButton"
                     android:layout_width="wrap_content"
