@@ -537,7 +537,6 @@ class DetailActivity : BaseActivity() {
                             binding.secondDivider.dividerColor = mutedColor
                             binding.thirdDivider.dividerColor = mutedColor
                             binding.forthDivider.dividerColor = mutedColor
-                            binding.linkRlDivider1.dividerColor = mutedColor
                             binding.sixthDivider.dividerColor = mutedColor
                             binding.seventhDivider.dividerColor = mutedColor
 
