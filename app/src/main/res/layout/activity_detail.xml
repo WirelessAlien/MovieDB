@@ -765,47 +765,88 @@
                 android:layout_marginBottom="5dp"
                 android:layout_marginEnd="16dp"/>
 
-            <RelativeLayout
-                android:id="@+id/relativeLayout3"
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/ratingScrollView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
+                app:flexWrap="wrap"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="16dp"
                 android:layout_below="@id/movieDescription">
 
-                <com.google.android.material.button.MaterialButton
+                <com.google.android.material.chip.Chip
                     android:id="@+id/moreImageBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:cornerRadius="5dp"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:text="@string/image"/>
+                    app:chipIcon="@drawable/ic_image"
+                    android:text="@string/image"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/watchProvider"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:cornerRadius="5dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginEnd="5dp"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_toEndOf="@id/trailer"
-                    android:text="@string/where_to_watch"/>
-
-                <com.google.android.material.button.MaterialButton
+                <com.google.android.material.chip.Chip
                     android:id="@+id/trailer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:cornerRadius="5dp"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_toEndOf="@id/moreImageBtn"
-                    android:text="@string/trailer"/>
-            </RelativeLayout>
+                    app:chipIcon="@drawable/ic_play"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/trailer"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/searchBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipIcon="@drawable/ic_explore"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/search"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/imdbRatingChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    app:chipIcon="@drawable/ic_link"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/rottenTomatoesRatingChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    app:chipIcon="@drawable/ic_link"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/metacriticRatingChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    app:chipIcon="@drawable/ic_link"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/watchProvider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipIcon="@drawable/ic_link"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/where_to_watch"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+            </com.google.android.flexbox.FlexboxLayout>
 
             <RelativeLayout
                 android:id="@+id/episodeRL"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/relativeLayout3">
+                android:layout_below="@id/ratingScrollView">
 
                 <TextView
                     android:id="@+id/episodeText"
@@ -860,6 +901,10 @@
                 android:id="@+id/castRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="11dp"
+                android:layout_marginBottom="11dp"
                 android:layout_below="@id/secondDivider"
                 android:scrollbars="none" />
 
@@ -886,6 +931,10 @@
                 android:id="@+id/crewRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="11dp"
+                android:layout_marginBottom="11dp"
                 android:layout_below="@id/thirdDivider"
                 android:scrollbars="none" />
 
@@ -915,78 +964,12 @@
                 android:id="@+id/movieRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="6dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="11dp"
+                android:layout_marginBottom="11dp"
                 android:layout_below="@id/seventhDivider"
                 android:scrollbars="none" />
-
-            <TextView
-                android:id="@+id/linkLTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/movieRecyclerView"
-                android:layout_marginEnd="16dp"
-                android:paddingTop="16dp"
-                android:paddingStart="16dp"
-                android:layout_marginBottom="3dp"
-                android:textStyle="bold"
-                android:text="@string/links"
-                android:textSize="16sp" />
-
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/linkRlDivider1"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_below="@id/linkLTitle"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
-
-            <HorizontalScrollView
-                android:id="@+id/linkHS"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:layout_below="@id/linkRlDivider1"
-                android:scrollIndicators="none">
-
-                <RelativeLayout
-                    android:id="@+id/linkRL"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_marginTop="10dp">
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/searchBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_toEndOf="@+id/imdbBtn"
-                        android:text="@string/search"
-                        app:chipIcon="@drawable/ic_explore"
-                        android:layout_marginEnd="10dp"
-                        style="@style/Widget.Material3.Chip.Assist"/>
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/imdbBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_toEndOf="@id/homepage"
-                        android:text="Imdb"
-                        android:layout_marginEnd="10dp"
-                        app:chipIcon="@drawable/ic_open_in_new"
-                        style="@style/Widget.Material3.Chip.Assist"/>
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/homepage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/homepage"
-                        app:chipIcon="@drawable/ic_house"
-                        android:layout_marginEnd="10dp"
-                        style="@style/Widget.Material3.Chip.Assist"
-                        android:layout_alignParentStart="true"/>
-                </RelativeLayout>
-            </HorizontalScrollView>
 
             <TextView
                 android:id="@+id/otherText"
@@ -997,7 +980,7 @@
                 android:paddingEnd="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="3dp"
-                android:layout_below="@id/linkHS"
+                android:layout_below="@id/movieRecyclerView"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
 

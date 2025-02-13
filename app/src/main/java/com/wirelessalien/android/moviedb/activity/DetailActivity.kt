@@ -21,7 +21,6 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.app.Activity
 import android.app.UiModeManager
-import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.ContentValues
 import android.content.Context
@@ -90,8 +89,8 @@ import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBindin
 import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
 import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBinding
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
-import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
+import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
@@ -177,6 +176,8 @@ class DetailActivity : BaseActivity() {
     private var retryCount = 0
     private var added = false
     private var showTitle: SpannableString? = null
+    private var movieTitle: String? = null
+    private var movieYear: String? = null
     private lateinit var palette: Palette
     private var darkMutedColor = 0
     private var lightMutedColor = 0
@@ -577,9 +578,6 @@ class DetailActivity : BaseActivity() {
                             binding.addToListTmdb.backgroundTintList = colorStateList
                             binding.watchListButtonTmdb.backgroundTintList = colorStateList
 
-                            binding.homepage.chipBackgroundColor = colorStateList
-                            binding.imdbBtn.chipBackgroundColor = colorStateList
-                            binding.searchBtn.chipBackgroundColor = colorStateList
                         }
                         val animation = AnimationUtils.loadAnimation(
                             applicationContext, R.anim.slide_in_right
@@ -1047,6 +1045,32 @@ class DetailActivity : BaseActivity() {
             }
             val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(movieId, mActivity, true, typeCheck, jsonBody, movieDataObject)
             listBottomSheetFragmentTkt.show(supportFragmentManager, listBottomSheetFragmentTkt.tag)
+        }
+
+        val rottenTomatoesUrl = "https://www.rottentomatoes.com/search?search=$movieTitle $movieYear"
+        val metacriticUrl = "https://www.metacritic.com/search/all/$movieTitle $movieYear/results"
+
+        binding.rottenTomatoesRatingChip.setOnClickListener {
+            launchUrl(context, rottenTomatoesUrl)
+        }
+
+        binding.metacriticRatingChip.setOnClickListener {
+            launchUrl(context, metacriticUrl)
+        }
+    }
+
+    private fun launchUrl(context: Context, url: String) {
+        val builder = CustomTabsIntent.Builder()
+        val customTabsIntent = builder.build()
+        if (customTabsIntent.intent.resolveActivity(context.packageManager) != null) {
+            customTabsIntent.launchUrl(context, Uri.parse(url))
+        } else {
+            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            if (browserIntent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(browserIntent)
+            } else {
+                Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -1909,6 +1933,8 @@ class DetailActivity : BaseActivity() {
 
             // Check if it is a movie or a TV series.
             val title = if (movieObject.has("title")) "title" else "name"
+            movieTitle = if (isMovie) movieObject.getString("title") else movieObject.getString("name")
+            movieYear = if (movieObject.has("release_date")) movieObject.getString("release_date").substring(0, 4) else movieObject.getString("first_air_date").substring(0, 4)
             showName = movieObject.optString("name")
             if (movieObject.has(title) &&
                 movieObject.getString(title) != binding.movieTitle
@@ -2203,26 +2229,7 @@ class DetailActivity : BaseActivity() {
                     }
                 }
             }
-            if (movieObject.has("homepage")) {
-                val homepage = movieObject.getString("homepage")
-                if (homepage != binding.homepage.text.toString()) {
-                    binding.homepage.setOnClickListener {
-                        if (homepage.isNotEmpty()) {
-                            val builder = CustomTabsIntent.Builder()
-                            val customTabsIntent = builder.build()
-                            try {
-                                customTabsIntent.launchUrl(this, Uri.parse(homepage))
-                            } catch (e: ActivityNotFoundException) {
-                                // Fallback to open the URL in a regular browser
-                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(homepage))
-                                startActivity(browserIntent)
-                            }
-                        } else {
-                            Toast.makeText(this, R.string.invalid_url, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            }
+
             if (isMovie) {
                 if (movieObject.has("runtime") && movieObject.getString("runtime") != binding.runtime.text.toString()) {
                     val totalMinutes = movieObject.getString("runtime").toInt()
@@ -2991,9 +2998,9 @@ class DetailActivity : BaseActivity() {
             val externalIdsObject = movieData.getJSONObject("external_ids")
             imdbId = externalIdsObject.getString("imdb_id")
             if (imdbId == "null") {
-                binding.imdbBtn.isEnabled = false
+                binding.imdbRatingChip.isEnabled = false
             } else {
-                binding.imdbBtn.setOnClickListener {
+                binding.imdbRatingChip.setOnClickListener {
                     val url = "https://www.imdb.com/title/$imdbId"
                     val builder = CustomTabsIntent.Builder()
                     val customTabsIntent = builder.build()
@@ -3074,10 +3081,38 @@ class DetailActivity : BaseActivity() {
                     movieDataObject = movieData
                     traktMediaObject = createTraktMediaObject(movieData)
                     traktCheckingObject = createTraktCheckinObject(movieData)
+                    val imdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
+                    val omdbType = if (isMovie) "movie" else "series"
+                    val omdbResponse = fetchMovieRatings(imdbId, movieTitle, movieYear, omdbType, preferences.getString(OMDB_API_KEY, "")!!)
+                    omdbResponse?.let {
+                        val ratings = parseRatings(it)
+                        withContext(Dispatchers.Main) {
+                            displayRatings(ratings)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun fetchMovieRatings(imdbId: String?, title: String?, year: String?, type: String, apiKey: String): JSONObject? {
+        val client = OkHttpClient()
+        val url = if (imdbId != null) {
+            "http://www.omdbapi.com/?i=$imdbId&plot=short&apikey=$apiKey"
+        } else {
+            "http://www.omdbapi.com/?t=$title&y=$year&type=$type&plot=short&apikey=$apiKey"
+        }
+
+        val request = Request.Builder()
+            .url(url)
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val responseBody = response.body?.string()
+            return if (responseBody != null) JSONObject(responseBody) else null
         }
     }
 
@@ -3117,6 +3152,38 @@ class DetailActivity : BaseActivity() {
         if (certification.isNotEmpty()) {
             binding.certification.text = certification
         } else binding.certification.setText(R.string.not_rated)
+    }
+
+    private fun parseRatings(response: JSONObject): Map<String, String> {
+        val ratings = mutableMapOf<String, String>()
+        val ratingsArray = response.getJSONArray("Ratings")
+
+        for (i in 0 until ratingsArray.length()) {
+            val rating = ratingsArray.getJSONObject(i)
+            when (rating.getString("Source")) {
+                "Internet Movie Database" -> ratings["IMDb"] = rating.getString("Value")
+                "Rotten Tomatoes" -> ratings["Rotten Tomatoes"] = rating.getString("Value")
+                "Metacritic" -> ratings["Metacritic"] = rating.getString("Value")
+            }
+        }
+
+        return ratings
+    }
+
+    private fun displayRatings(ratings: Map<String, String>) {
+        val imdbRating = ratings["IMDb"] ?: "0.0/10"
+        val rottenTomatoesRating = ratings["Rotten Tomatoes"] ?: "00%"
+        val metacriticRating = ratings["Metacritic"] ?: "00/100"
+
+        if (preferences.getString(OMDB_API_KEY, "") == "") {
+            binding.imdbRatingChip.text = "IMDb"
+            binding.rottenTomatoesRatingChip.visibility = View.GONE
+            binding.metacriticRatingChip.visibility = View.GONE
+        } else {
+            binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
+            binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
+            binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+        }
     }
 
     private fun createTraktMediaObject(tmdbMovieData: JSONObject): JSONObject? {
@@ -3182,6 +3249,7 @@ class DetailActivity : BaseActivity() {
     companion object {
         private const val CAST_VIEW_PREFERENCE = "key_show_cast"
         private const val CREW_VIEW_PREFERENCE = "key_show_crew"
+        private const val OMDB_API_KEY = "omdb_api_key"
         private const val RECOMMENDATION_VIEW_PREFERENCE = "key_show_similar_movies"
         private const val SHOW_SAVE_DIALOG_PREFERENCE = "key_show_save_dialog"
         private const val DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity"

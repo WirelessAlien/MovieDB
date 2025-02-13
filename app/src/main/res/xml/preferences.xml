@@ -191,6 +191,12 @@
             android:title="@string/search_engine"
             android:summary="@string/search_engine_key_summary"
             app:iconSpaceReserved="false"/>
+
+        <EditTextPreference
+            android:key="omdb_api_key"
+            android:title="@string/omdb_api_key"
+            android:summary="@string/omdb_api_key_summary"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/experimental"

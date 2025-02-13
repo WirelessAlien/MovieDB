@@ -90,6 +90,11 @@
     <string name="stats">Stats</string>
     <string name="movies_collected">Movie Collected</string>
     <string name="time_spent">Time Spent</string>
+    <string name="imdb" translatable="false">IMDb: %1$s</string>
+    <string name="r_tomatoes" translatable="false">R. Tomatoes: %1$s</string>
+    <string name="metacritic" translatable="false">Metacritic: %1$s</string>
+    <string name="omdb_api_key">ONDB api key</string>
+    <string name="omdb_api_key_summary">Set the OMDB api key to display external ratings data</string>
 
     <string-array name="media_types">
         <item>digital</item>
