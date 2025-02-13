@@ -20,55 +20,63 @@
   -->
 
 
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/cardView"
-    android:layout_width="100dp"
-    android:layout_height="180dp"
-    android:layout_margin="16dp"
-    app:cardCornerRadius="10dp"
-    style="@style/Widget.Material3.CardView.Outlined"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingEnd="16dp"
+    android:paddingBottom="5dp"
+    android:paddingTop="5dp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardView"
+        android:layout_width="110dp"
+        android:layout_height="190dp"
+        app:cardCornerRadius="10dp"
+        style="@style/Widget.Material3.CardView.Outlined">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/castCard"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            app:cardCornerRadius="10dp">
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/castImage"
-                android:layout_width="100dp"
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/castCard"
+                android:layout_width="110dp"
                 android:layout_height="100dp"
+                app:cardCornerRadius="10dp">
+
+                <ImageView
+                    android:id="@+id/castImage"
+                    android:layout_width="110dp"
+                    android:layout_height="110dp"
+                    android:layout_centerHorizontal="true"
+                    android:scaleType="centerCrop" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/characterName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/castCard"
                 android:layout_centerHorizontal="true"
-                android:scaleType="centerCrop" />
-        </com.google.android.material.card.MaterialCardView>
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:layout_margin="5dp"
+                android:maxLines="2"
+                android:ellipsize="end" />
 
-        <TextView
-            android:id="@+id/characterName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/castCard"
-            android:layout_centerHorizontal="true"
-            android:textAlignment="center"
-            android:textStyle="bold"
-            android:padding="2dp"
-            android:maxLines="2"
-            android:ellipsize="end" />
-
-        <TextView
-            android:id="@+id/castName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/characterName"
-            android:layout_centerHorizontal="true"
-            android:textAlignment="center"
-            android:padding="2dp"
-            android:maxLines="2"
-            android:ellipsize="end" />
-    </RelativeLayout>
-</com.google.android.material.card.MaterialCardView>
+            <TextView
+                android:id="@+id/castName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/characterName"
+                android:layout_centerHorizontal="true"
+                android:textAlignment="center"
+                android:layout_margin="5dp"
+                android:maxLines="2"
+                android:ellipsize="end" />
+        </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>
 
