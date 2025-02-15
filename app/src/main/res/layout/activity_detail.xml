@@ -830,23 +830,20 @@
                     android:layout_marginEnd="8dp"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/watchProvider"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:chipIcon="@drawable/ic_link"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/where_to_watch"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
             </com.google.android.flexbox.FlexboxLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/watchProvidersRv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_below="@id/ratingScrollView"/>
 
             <RelativeLayout
                 android:id="@+id/episodeRL"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/ratingScrollView">
+                android:layout_below="@id/watchProvidersRv">
 
                 <TextView
                     android:id="@+id/episodeText"

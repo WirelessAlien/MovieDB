@@ -46,6 +46,7 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnFocusChangeListener
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -84,6 +85,7 @@ import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.WatchProviderAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding
 import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
@@ -117,10 +119,7 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
 import java.net.URL
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -837,19 +836,6 @@ class DetailActivity : BaseActivity() {
             imageintent.putExtra("isMovie", isMovie)
             startActivity(imageintent)
         }
-        binding.watchProvider.setOnClickListener {
-            val typeCheck = if (isMovie) "movie" else "tv"
-            val url =
-                "https://www.themoviedb.org/" + typeCheck + "/" + movieId + "/watch?locale=" + Locale.getDefault().country
-            val builder = CustomTabsIntent.Builder()
-            val customTabIntent = builder.build()
-            if (customTabIntent.intent.resolveActivity(packageManager) != null) {
-                customTabIntent.launchUrl(this, Uri.parse(url))
-            } else {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(browserIntent)
-            }
-        }
 
         binding.fabSave.setOnClickListener {
             if (added) {
@@ -914,11 +900,11 @@ class DetailActivity : BaseActivity() {
                 }
             }
         }
+
         val searchEngineUrl =
             preferences.getString(SEARCH_ENGINE_PREFERENCE, "https://www.google.com/search?q=")
         binding.searchBtn.setOnClickListener {
-            val title = if (jMovieObject.has("title")) "title" else "name"
-            val url = searchEngineUrl + jMovieObject.optString(title)
+            val url = searchEngineUrl + "$movieTitle $movieYear"
             val builder = CustomTabsIntent.Builder()
             val customTabIntent = builder.build()
             if (customTabIntent.intent.resolveActivity(packageManager) != null) {
@@ -928,6 +914,7 @@ class DetailActivity : BaseActivity() {
                 startActivity(browserIntent)
             }
         }
+
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val editShowDetails = binding.editShowDetails
@@ -937,6 +924,7 @@ class DetailActivity : BaseActivity() {
                     binding.categories.clearFocus()
                     binding.timesWatched.clearFocus()
                     binding.showRating.clearFocus()
+                    binding.movieReview.clearFocus()
                 }
                 setResult(RESULT_CANCELED)
                 finish()
@@ -1046,8 +1034,14 @@ class DetailActivity : BaseActivity() {
             listBottomSheetFragmentTkt.show(supportFragmentManager, listBottomSheetFragmentTkt.tag)
         }
 
+        if (preferences.getString(OMDB_API_KEY, "") == "") {
+            binding.imdbRatingChip.text = "IMDb"
+            binding.rottenTomatoesRatingChip.visibility = View.GONE
+            binding.metacriticRatingChip.visibility = View.GONE
+        }
+
         val rottenTomatoesUrl = "https://www.rottentomatoes.com/search?search=$movieTitle $movieYear"
-        val metacriticUrl = "https://www.metacritic.com/search/all/$movieTitle $movieYear/results"
+        val metacriticUrl = "https://www.metacritic.com/search/$movieTitle"
 
         binding.rottenTomatoesRatingChip.setOnClickListener {
             launchUrl(context, rottenTomatoesUrl)
@@ -1702,7 +1696,7 @@ class DetailActivity : BaseActivity() {
         }
         if (!mVideosLoaded) {
             lifecycleScope.launch {
-                fetchVideos()
+                fetchWatchProviders()
             }
         }
     }
@@ -1888,7 +1882,7 @@ class DetailActivity : BaseActivity() {
                         }
                         if (!mVideosLoaded) {
                             lifecycleScope.launch {
-                                fetchVideos()
+                                fetchWatchProviders()
                             }
                         }
                     }
@@ -2299,77 +2293,6 @@ class DetailActivity : BaseActivity() {
             String.format(Locale.US, "$%.1fK", value / 1000.0)
         } else {
             String.format(Locale.US, "$%d", value)
-        }
-    }
-
-    private suspend fun fetchVideos() {
-        withContext(Dispatchers.IO) {
-            try {
-                val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val url = URL("https://api.themoviedb.org/3/$type/$movieId/videos?api_key=$apiKey")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.connect()
-                val reader = BufferedReader(InputStreamReader(connection.inputStream))
-                val stringBuilder = StringBuilder()
-                var line: String?
-                while (reader.readLine().also { line = it } != null) {
-                    stringBuilder.append(line)
-                }
-                reader.close()
-                val response = stringBuilder.toString()
-                withContext(Dispatchers.Main) {
-                    onVideoPostExecute(response)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun onVideoPostExecute(response: String) {
-        try {
-            val jsonObject = JSONObject(response)
-            val results = jsonObject.getJSONArray("results")
-            for (i in 0 until results.length()) {
-                val video = results.getJSONObject(i)
-                val type = video.getString("type")
-                val site = video.getString("site")
-                if (type == "Trailer") {
-                    val key = video.getString("key")
-                    val url: String = if (site == "YouTube") {
-                        "https://www.youtube.com/watch?v=$key"
-                    } else {
-                        "https://www." + site.lowercase(Locale.getDefault()) + ".com/watch?v=" + key
-                    }
-                    binding.trailer.setOnClickListener {
-                        if (url.isEmpty()) {
-                            Toast.makeText(context,
-                                getString(R.string.no_trailer_available), Toast.LENGTH_SHORT).show()
-                        } else if (url.contains("youtube")) {
-                            // Extract the video key from the URL if it's a YouTube video
-                            val videoKey = url.substring(url.lastIndexOf("=") + 1)
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoKey"))
-                            if (intent.resolveActivity(context.packageManager) != null) {
-                                context.startActivity(intent)
-                            } else {
-                                // YouTube app is not installed, open the video in a custom Chrome tab
-                                val builder = CustomTabsIntent.Builder()
-                                val customTabsIntent = builder.build()
-                                customTabsIntent.launchUrl(context, Uri.parse(url))
-                            }
-                        } else {
-                            // If it's not a YouTube video, open it in a custom Chrome tab
-                            val builder = CustomTabsIntent.Builder()
-                            val customTabsIntent = builder.build()
-                            customTabsIntent.launchUrl(context, Uri.parse(url))
-                        }
-                    }
-                }
-            }
-            mVideosLoaded = true
-        } catch (e: JSONException) {
-            e.printStackTrace()
         }
     }
 
@@ -2858,6 +2781,117 @@ class DetailActivity : BaseActivity() {
         hideEmptyRecyclerView(binding.crewRecyclerView, binding.crewTitle)
     }
 
+    private fun fetchWatchProviders() {
+        val movie = if (isMovie) "movie" else "tv"
+        val url = "https://api.themoviedb.org/3/$movie/$movieId/watch/providers"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url(url)
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    val jsonResponse = response.body?.string()
+                    if (jsonResponse != null) {
+                        val jsonObject = JSONObject(jsonResponse)
+                        val results = jsonObject.optJSONObject("results")
+
+                        // Get current locale country code
+                        val countryCode = Locale.getDefault().country
+
+                        val countryData = results?.optJSONObject(countryCode)
+
+                        withContext(Dispatchers.Main) {
+                            if (countryData != null) {
+                                displayWatchProviders(countryData)
+                            } else {
+                                binding.watchProvidersRv.visibility = View.GONE
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    binding.watchProvidersRv.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun displayWatchProviders(countryData: JSONObject) {
+        binding.watchProvidersRv.apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            setHasFixedSize(true)
+        }
+
+        val adapter = WatchProviderAdapter(this) { _ ->
+            val typeCheck = if (isMovie) "movie" else "tv"
+            val url = "https://www.themoviedb.org/$typeCheck/$movieId/watch?locale=${Locale.getDefault().country}"
+            val builder = CustomTabsIntent.Builder()
+            val customTabIntent = builder.build()
+            if (customTabIntent.intent.resolveActivity(packageManager) != null) {
+                customTabIntent.launchUrl(this, Uri.parse(url))
+            } else {
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(browserIntent)
+            }
+        }
+        binding.watchProvidersRv.adapter = adapter
+
+        val providerMap = mutableMapOf<String, MutableSet<String>>()
+        val types = arrayOf("flatrate" to "Stream", "rent" to "Rent", "buy" to "Buy")
+
+        for ((type, label) in types) {
+            val providerArray = countryData.optJSONArray(type)
+            if (providerArray != null && providerArray.length() > 0) {
+                for (i in 0 until providerArray.length()) {
+                    val provider = providerArray.getJSONObject(i)
+                    val providerName = provider.optString("provider_name")
+                    val logoPath = provider.optString("logo_path")
+
+                    if (logoPath.isNotEmpty()) {
+                        providerMap.getOrPut(providerName) { mutableSetOf() }.add(label)
+                    }
+                }
+            }
+        }
+
+        val providers = providerMap.map { (providerName, types) ->
+            val provider = countryData.optJSONArray("flatrate")?.let { array ->
+                (0 until array.length())
+                    .map { array.getJSONObject(it) }
+                    .find { it.optString("provider_name") == providerName }
+            } ?: countryData.optJSONArray("rent")?.let { array ->
+                (0 until array.length())
+                    .map { array.getJSONObject(it) }
+                    .find { it.optString("provider_name") == providerName }
+            } ?: countryData.optJSONArray("buy")?.let { array ->
+                (0 until array.length())
+                    .map { array.getJSONObject(it) }
+                    .find { it.optString("provider_name") == providerName }
+            }
+
+            WatchProviderAdapter.ProviderItem(
+                logoPath = provider?.optString("logo_path") ?: "",
+                name = providerName,
+                type = types.joinToString(", ")
+            )
+        }
+
+        mVideosLoaded = true
+
+        if (providers.isNotEmpty()) {
+            adapter.updateProviders(providers)
+            binding.watchProvidersRv.visibility = View.VISIBLE
+        } else {
+            binding.watchProvidersRv.visibility = View.GONE
+        }
+    }
+
     private fun startSimilarMovieList() {
         lifecycleScope.launch {
             val response = fetchSimilarMovies()
@@ -2929,6 +2963,7 @@ class DetailActivity : BaseActivity() {
         if (movieData != null) {
             try {
                 setMovieData(movieData)
+                showTrailer(movieData)
                 showKeywords(movieData)
                 showExternalIds(movieData)
                 if (movieData.has("number_of_seasons")) {
@@ -3020,6 +3055,36 @@ class DetailActivity : BaseActivity() {
             e.printStackTrace()
         }
     }
+    private fun showTrailer(movieData: JSONObject) {
+        val videos = movieData.getJSONObject("videos").getJSONArray("results")
+        var trailerUrl: String? = null
+
+        for (i in 0 until videos.length()) {
+            val video = videos.getJSONObject(i)
+            val type = video.getString("type")
+            val site = video.getString("site")
+            if (type == "Trailer" && site == "YouTube") {
+                val key = video.getString("key")
+                trailerUrl = "https://www.youtube.com/watch?v=$key"
+                break
+            }
+        }
+
+        binding.trailer.setOnClickListener {
+            if (trailerUrl.isNullOrEmpty()) {
+                Toast.makeText(context, getString(R.string.no_trailer_available), Toast.LENGTH_SHORT).show()
+            } else {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(intent)
+                } else {
+                    val builder = CustomTabsIntent.Builder()
+                    val customTabIntent = builder.build()
+                    customTabIntent.launchUrl(context, Uri.parse(trailerUrl))
+                }
+            }
+        }
+    }
 
     private fun showKeywords(movieData: JSONObject) {
         try {
@@ -3058,7 +3123,7 @@ class DetailActivity : BaseActivity() {
             try {
                 OkHttpClient()
                 val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val additionalEndpoint = if (isMovie) "release_dates,external_ids,keywords" else "content_ratings,external_ids,keywords"
+                val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords" else "content_ratings,external_ids,videos,keywords"
                 val baseUrl = "https://api.themoviedb.org/3/$type/$movieId?append_to_response=$additionalEndpoint"
                 val urlWithLanguage = baseUrl + getLanguageParameter(applicationContext)
 
@@ -3170,19 +3235,13 @@ class DetailActivity : BaseActivity() {
     }
 
     private fun displayRatings(ratings: Map<String, String>) {
-        val imdbRating = ratings["IMDb"] ?: "0.0/10"
-        val rottenTomatoesRating = ratings["Rotten Tomatoes"] ?: "00%"
-        val metacriticRating = ratings["Metacritic"] ?: "00/100"
+        val imdbRating = ratings["IMDb"] ?: "0/10"
+        val rottenTomatoesRating = ratings["Rotten Tomatoes"] ?: "0%"
+        val metacriticRating = ratings["Metacritic"] ?: "0/100"
 
-        if (preferences.getString(OMDB_API_KEY, "") == "") {
-            binding.imdbRatingChip.text = "IMDb"
-            binding.rottenTomatoesRatingChip.visibility = View.GONE
-            binding.metacriticRatingChip.visibility = View.GONE
-        } else {
-            binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
-            binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
-            binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
-        }
+        binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
+        binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
+        binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
     }
 
     private fun createTraktMediaObject(tmdbMovieData: JSONObject): JSONObject? {
