@@ -102,21 +102,13 @@
                     android:layout_below="@id/firstDivider" />
 
                 <TextView
-                    android:id="@+id/actorBirthday"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_below="@id/actorPlaceOfBirth" />
-
-                <TextView
                     android:id="@+id/actorBiography"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/actorBirthday"
+                    android:layout_below="@id/actorPlaceOfBirth"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="16dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginTop="10dp"
                     android:layout_marginBottom="5dp"
                     android:ellipsize="end"/>
 
@@ -141,23 +133,26 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             app:chipIcon="@drawable/ic_image"
-                            android:layout_marginEnd="5dp"
+                            android:layout_marginEnd="16dp"
+                            style="@style/Widget.Material3.Chip.Assist.Elevated"
                             android:text="@string/image"/>
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/homepage"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="5dp"
-                            app:chipIcon="@drawable/ic_home_border"
+                            android:layout_marginEnd="16dp"
+                            style="@style/Widget.Material3.Chip.Assist.Elevated"
+                            app:chipIcon="@drawable/ic_link"
                             android:text="@string/homepage"/>
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/imdb"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:chipIcon="@drawable/ic_open_in_new"
-                            android:text="Imdb"/>
+                            style="@style/Widget.Material3.Chip.Assist.Elevated"
+                            app:chipIcon="@drawable/ic_link"
+                            android:text="IMDb"/>
                     </LinearLayout>
                 </HorizontalScrollView>
             </RelativeLayout>

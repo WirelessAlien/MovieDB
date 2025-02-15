@@ -33,7 +33,7 @@
         android:layout_width="110dp"
         android:layout_height="190dp"
         app:cardCornerRadius="10dp"
-        style="@style/Widget.Material3.CardView.Outlined">
+        android:elevation="5dp">
 
         <RelativeLayout
             android:layout_width="wrap_content"

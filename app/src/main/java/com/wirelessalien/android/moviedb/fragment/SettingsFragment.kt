@@ -89,10 +89,19 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         val hideAccountTktTab = findPreference<CheckBoxPreference>("key_hide_account_tkt_tab")
 
         val preferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
-            if (preference.key == "key_hide_account_tab") {
-                hideAccountTktTab?.isChecked = !(newValue as Boolean)
-            } else if (preference.key == "key_hide_account_tkt_tab") {
-                hideAccountTab?.isChecked = !(newValue as Boolean)
+            val newState = newValue as Boolean
+
+            when (preference.key) {
+                "key_hide_account_tab" -> {
+                    if (!newState && !hideAccountTktTab?.isChecked!!) {
+                        return@OnPreferenceChangeListener false
+                    }
+                }
+                "key_hide_account_tkt_tab" -> {
+                    if (!newState && !hideAccountTab?.isChecked!!) {
+                        return@OnPreferenceChangeListener false
+                    }
+                }
             }
             true
         }

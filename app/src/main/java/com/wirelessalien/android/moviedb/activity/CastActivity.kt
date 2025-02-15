@@ -458,20 +458,28 @@ class CastActivity : BaseActivity() {
             }
         }
 
-        // If the place of birth is different in the new dataset, change it.
-        actorObject.optString("place_of_birth").let { placeOfBirth ->
-            if (placeOfBirth != binding.actorPlaceOfBirth.text.toString()) {
-                binding.actorPlaceOfBirth.text = getString(R.string.place_of_birth, placeOfBirth)
-            }
-        }
+        actorObject.let { actor ->
+            val placeOfBirth = actor.optString("place_of_birth")
+            val birthday = actor.optString("birthday")
 
-        // If the birthday is different in the new dataset, change it.
-        actorObject.optString("birthday").let { birthday ->
-            if (birthday != binding.actorBirthday.text.toString()) {
+            if (birthday.isNotEmpty() || placeOfBirth.isNotEmpty()) {
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                val date = dateFormat.parse(birthday)
-                val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(date)
-                binding.actorBirthday.text = getString(R.string.birthday, formattedDate)
+                val formattedDate = if (birthday.isNotEmpty()) {
+                    val date = dateFormat.parse(birthday)
+                    DateFormat.getDateInstance(DateFormat.FULL).format(date)
+                } else ""
+
+                val combinedText = when {
+                    birthday.isNotEmpty() && placeOfBirth.isNotEmpty() ->
+                        getString(R.string.born_date_place, formattedDate, placeOfBirth)
+                    birthday.isNotEmpty() ->
+                        getString(R.string.born_date, formattedDate)
+                    placeOfBirth.isNotEmpty() ->
+                        getString(R.string.born_place, placeOfBirth)
+                    else -> ""
+                }
+
+                binding.actorPlaceOfBirth.text = combinedText
             }
         }
 
