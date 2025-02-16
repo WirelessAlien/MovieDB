@@ -84,14 +84,6 @@
                     android:textSize="25sp"
                     android:textStyle="bold" />
 
-                <com.google.android.material.divider.MaterialDivider
-                    android:id="@+id/firstDivider"
-                    android:layout_width="match_parent"
-                    android:layout_height="3dp"
-                    android:layout_below="@id/actorName"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"/>
-
                 <TextView
                     android:id="@+id/actorPlaceOfBirth"
                     android:layout_width="match_parent"
@@ -99,7 +91,7 @@
                     android:layout_marginTop="10dp"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="16dp"
-                    android:layout_below="@id/firstDivider" />
+                    android:layout_below="@id/actorName"/>
 
                 <TextView
                     android:id="@+id/actorBiography"

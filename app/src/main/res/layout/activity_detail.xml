@@ -579,8 +579,8 @@
                 android:id="@+id/toggleButtonGroup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
                 android:layout_below="@id/movieDetailsRl"
                 app:innerCornerSize="4dp"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
@@ -740,28 +740,19 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/linearLayout2"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginEnd="16dp"
                 android:text="@string/overview"
-                android:layout_marginBottom="3dp"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
-
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/forthDivider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_below="@id/overviewTitle"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
 
             <TextView
                 android:id="@+id/movieDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/forthDivider"
+                android:layout_below="@id/overviewTitle"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginBottom="5dp"
                 android:layout_marginEnd="16dp"/>
 
@@ -864,6 +855,7 @@
                     android:layout_alignParentEnd="true"
                     android:layout_marginEnd="16dp"
                     app:cornerRadius="10dp"
+                    android:contentDescription="@string/seasons"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_read_more"/>
             </RelativeLayout>
@@ -881,18 +873,10 @@
                 android:layout_below="@id/episodeViewPager"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
+                android:layout_marginTop="5dp"
                 android:text="@string/cast_title"
-                android:layout_marginBottom="3dp"
                 android:textStyle="bold"
-                android:textSize="16sp" />
-
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/secondDivider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_below="@id/castTitle"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
+                android:textSize="18sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/castRecyclerView"
@@ -900,9 +884,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginTop="11dp"
-                android:layout_marginBottom="11dp"
-                android:layout_below="@id/secondDivider"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_below="@id/castTitle"
                 android:scrollbars="none" />
 
             <TextView
@@ -913,16 +897,8 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/crew_title"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
-
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/thirdDivider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_below="@id/crewTitle"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/crewRecyclerView"
@@ -930,9 +906,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginTop="11dp"
-                android:layout_marginBottom="11dp"
-                android:layout_below="@id/thirdDivider"
+                android:layout_marginTop="10dp"
+                android:layout_below="@id/crewTitle"
                 android:scrollbars="none" />
 
             <TextView
@@ -940,22 +915,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/crewRecyclerView"
+                android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:paddingTop="16dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:layout_marginTop="10dp"
                 android:textStyle="bold"
-                android:layout_marginBottom="3dp"
                 android:text="@string/recommendations_title"
-                android:textSize="16sp" />
-
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/seventhDivider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_below="@id/similarMovieTitle"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
+                android:textSize="18sp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/movieRecyclerView"
@@ -963,9 +928,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginTop="11dp"
-                android:layout_marginBottom="11dp"
-                android:layout_below="@id/seventhDivider"
+                android:layout_marginTop="10dp"
+                android:layout_below="@id/similarMovieTitle"
                 android:scrollbars="none" />
 
             <TextView
@@ -973,103 +937,81 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/other_details"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="3dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="10dp"
                 android:layout_below="@id/movieRecyclerView"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"/>
 
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/sixthDivider"
+            <GridLayout
+                android:id="@+id/otherDetailsLayout"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
                 android:layout_below="@id/otherText"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"/>
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp">
 
-            <TextView
-                android:id="@+id/counrtyText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/country"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="10dp"
-                android:layout_below="@id/sixthDivider"
-                android:textSize="14sp"
-                android:textStyle="bold"/>
+                <TextView
+                    android:id="@+id/counrtyText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/country"
+                    android:layout_marginBottom="10dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/countryDataText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="USA"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_below="@id/counrtyText"
-                android:textSize="14sp"/>
+                <TextView
+                    android:id="@+id/countryDataText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="USA"
+                    android:layout_marginBottom="10dp"
+                    android:textSize="14sp"/>
 
-            <TextView
-                android:id="@+id/revenueText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/revenue"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="10dp"
-                android:layout_below="@id/countryDataText"
-                android:textSize="14sp"
-                android:textStyle="bold"/>
+                <TextView
+                    android:id="@+id/revenueText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/revenue"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="10dp"
+                    android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/revenueDataText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/revenue"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_below="@id/revenueText"
-                android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/revenueDataText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/revenue"
+                    android:layout_marginBottom="10dp"
+                    android:textSize="14sp" />
 
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/status"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="10dp"
-                android:layout_below="@id/revenueDataText"
-                android:textSize="14sp"
-                android:textStyle="bold"/>
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/status"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="10dp"
+                    android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/statusDataText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/status"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_below="@id/statusText"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/keywordText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/keywords"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="10dp"
-                android:layout_below="@id/statusDataText"
-                android:textSize="14sp"
-                android:textStyle="bold"/>
+                <TextView
+                    android:id="@+id/statusDataText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/status"
+                    android:layout_marginBottom="10dp"
+                    android:textSize="14sp" />
+            </GridLayout>
 
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/keywordsLayout"
@@ -1078,7 +1020,7 @@
                 android:paddingStart="11dp"
                 android:paddingEnd="11dp"
                 android:layout_marginBottom="20dp"
-                android:layout_below="@id/keywordText"
+                android:layout_below="@id/otherDetailsLayout"
                 app:flexWrap="wrap"
                 app:justifyContent="flex_start"/>
         </RelativeLayout>

@@ -62,6 +62,8 @@ class TraktStatsBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun fetchStats() {
+        binding.shimmerFrameLayout1.visibility = View.VISIBLE
+        binding.shimmerFrameLayout1.startShimmer()
         CoroutineScope(Dispatchers.IO).launch {
             val request = Request.Builder()
                 .url("https://api.trakt.tv/users/me/stats")
@@ -78,6 +80,13 @@ class TraktStatsBottomSheet : BottomSheetDialogFragment() {
                 val jsonObject = JSONObject(responseBody)
                 withContext(Dispatchers.Main) {
                     displayStats(jsonObject)
+                    binding.shimmerFrameLayout1.visibility = View.GONE
+                    binding.shimmerFrameLayout1.stopShimmer()
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    binding.shimmerFrameLayout1.visibility = View.GONE
+                    binding.shimmerFrameLayout1.stopShimmer()
                 }
             }
         }

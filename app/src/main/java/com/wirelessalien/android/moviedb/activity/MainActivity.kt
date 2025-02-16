@@ -41,6 +41,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -71,6 +72,8 @@ import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -96,13 +99,18 @@ import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
 import com.wirelessalien.android.moviedb.pagingSource.SearchPagingSource
+import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
+import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import com.wirelessalien.android.moviedb.work.ReleaseReminderWorker
 import com.wirelessalien.android.moviedb.work.TktTokenRefreshWorker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -121,6 +129,7 @@ class MainActivity : BaseActivity() {
 
     private lateinit var preferences: SharedPreferences
     private lateinit var apiReadAccessToken: String
+    private lateinit var tmdbApiKey: String
     private var clientId: String? = null
     private var clientSecret: String? = null
     private lateinit var context: Context
@@ -190,7 +199,8 @@ class MainActivity : BaseActivity() {
 
         binding.appBar.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)
 
-        apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")!!
+        apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")?: ""
+        tmdbApiKey = ConfigHelper.getConfigValue(this, "api_key")?: ""
         clientId = ConfigHelper.getConfigValue(this, "client_id")
         clientSecret = ConfigHelper.getConfigValue(this, "client_secret")
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -863,12 +873,161 @@ class MainActivity : BaseActivity() {
                     // Save the tokens for future use
                     preferences.edit().putString("trakt_access_token", accessToken).apply()
                     preferences.edit().putString("trakt_refresh_token", refreshToken).apply()
+                    Toast.makeText(this@MainActivity, getString(R.string.login_successful), Toast.LENGTH_SHORT).show()
+                    showRefreshDialog(accessToken)
                 } else {
                     // Handle error
                     Log.e("MainActivity", "Error: ${response.message}")
                 }
             }
         })
+    }
+
+    private fun showRefreshDialog(accessToken: String) {
+        val options = listOf(
+            getString(R.string.movie_collection),
+            getString(R.string.show_collection),
+            getString(R.string.movie_watched),
+            getString(R.string.show_watched),
+            getString(R.string.history),
+            getString(R.string.rating1),
+            getString(R.string.watchlist),
+            getString(R.string.favourite),
+            getString(R.string.lists),
+            getString(R.string.list_items)
+        )
+
+        val selectedOptions = preferences.getStringSet("selected_options", options.toMutableSet())?.toMutableSet() ?: options.toMutableSet()
+
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_refresh_options, null)
+        val chipGroup = dialogView.findViewById<ChipGroup>(R.id.chipGroup)
+
+        options.forEach { option ->
+            val chip = Chip(context).apply {
+                text = option
+                isCheckable = true
+                isChecked = selectedOptions.contains(option)
+                setChipIconResource(if (isChecked) R.drawable.ic_done_all else R.drawable.ic_close)
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        selectedOptions.add(option)
+                        setChipIconResource(R.drawable.ic_done_all)
+                    } else {
+                        selectedOptions.remove(option)
+                        setChipIconResource(R.drawable.ic_close)
+                    }
+                }
+            }
+            chipGroup.addView(chip)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.select_options))
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.ok)) { _, _ ->
+                preferences.edit().putStringSet("selected_options", selectedOptions).apply()
+                refreshData(selectedOptions, accessToken)
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun refreshData(selectedOptions: Set<String>, accessToken: String) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
+        var job: Job? = null
+
+        val progressDialog = MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.fetching_data))
+            .setView(dialogView)
+            .setCancelable(false)
+            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                job?.cancel()
+                dialog.dismiss()
+            }
+            .show()
+
+        val progressTextView = dialogView.findViewById<TextView>(R.id.progressText)
+
+        fun updateProgressMessage(message: String) {
+            lifecycleScope.launch(Dispatchers.Main) {
+                progressTextView.text = message
+            }
+        }
+
+        job = lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val getTraktSyncData = GetTraktSyncData(this@MainActivity, accessToken, clientId)
+                selectedOptions.forEach { option ->
+                    when (option) {
+                        getString(R.string.movie_collection) -> {
+                            updateProgressMessage(getString(R.string.fetching_movie_collection))
+                            getTraktSyncData.fetchCollectionData()
+                        }
+                        getString(R.string.show_collection) -> {
+                            updateProgressMessage(getString(R.string.fetching_show_collection))
+                            getTraktSyncData.fetchCollectionShowData()
+                        }
+                        getString(R.string.movie_watched) -> {
+                            updateProgressMessage(getString(R.string.fetching_movie_watched))
+                            getTraktSyncData.fetchWatchedDataMovie()
+                        }
+                        getString(R.string.show_watched) -> {
+                            updateProgressMessage(getString(R.string.fetching_show_watched))
+                            getTraktSyncData.fetchWatchedDataShow()
+                        }
+                        getString(R.string.history) -> {
+                            updateProgressMessage(getString(R.string.fetching_history))
+                            getTraktSyncData.fetchHistoryData()
+                        }
+                        getString(R.string.rating1) -> {
+                            updateProgressMessage(getString(R.string.fetching_rating))
+                            getTraktSyncData.fetchRatingData()
+                        }
+                        getString(R.string.watchlist) -> {
+                            updateProgressMessage(getString(R.string.fetching_watchlist))
+                            getTraktSyncData.fetchWatchlistData()
+                        }
+                        getString(R.string.favourite) -> {
+                            updateProgressMessage(getString(R.string.fetching_favorite))
+                            getTraktSyncData.fetchFavoriteData()
+                        }
+                        getString(R.string.lists) -> {
+                            updateProgressMessage(getString(R.string.fetching_lists))
+                            getTraktSyncData.fetchUserLists()
+                        }
+                        getString(R.string.list_items) -> {
+                            updateProgressMessage(getString(R.string.fetching_list_items))
+                            getTraktSyncData.fetchAllListItems()
+                        }
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    showTmdbDetailsDialog()
+                }
+            }
+        }
+    }
+
+    private fun showTmdbDetailsDialog() {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
+        var job: Job? = null
+
+        val tmdbDialog = MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.fetching_tmdb_data))
+            .setView(dialogView)
+            .setCancelable(false)
+            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                job?.cancel()
+                dialog.dismiss()
+            }
+            .show()
+
+        job = lifecycleScope.launch {
+            val getTmdbDetails = GetTmdbDetails(this@MainActivity, tmdbApiKey)
+            getTmdbDetails.fetchAndSaveTmdbDetails()
+            tmdbDialog.dismiss()
+        }
     }
 
     override fun doNetworkWork() {

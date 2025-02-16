@@ -82,8 +82,6 @@ class TktTokenRefreshWorker(
                 return@withContext Result.failure()
             }
         } else {
-            showNotification()
-            preferences.edit().remove("trakt_access_token").apply()
             return@withContext Result.failure()
         }
     }

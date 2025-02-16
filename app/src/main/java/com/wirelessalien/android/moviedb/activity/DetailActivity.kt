@@ -262,13 +262,13 @@ class DetailActivity : BaseActivity() {
         if (!preferences.getBoolean(CAST_VIEW_PREFERENCE, false)) {
             binding.castRecyclerView.visibility = View.GONE
             binding.castTitle.visibility = View.GONE
-            binding.secondDivider.visibility = View.GONE
         }
+
         if (!preferences.getBoolean(CREW_VIEW_PREFERENCE, false)) {
             binding.crewRecyclerView.visibility = View.GONE
             binding.crewTitle.visibility = View.GONE
-            binding.thirdDivider.visibility = View.GONE
         }
+
         if (!preferences.getBoolean(RECOMMENDATION_VIEW_PREFERENCE, false)) {
             binding.movieRecyclerView.visibility = View.GONE
             val similarMovieTitle = binding.similarMovieTitle
@@ -532,12 +532,6 @@ class DetailActivity : BaseActivity() {
                         val colorStateList = ColorStateList.valueOf(mutedColor)
                         if (mutedColor != Color.TRANSPARENT) {
                             binding.fab.backgroundTintList = colorStateList
-
-                            binding.secondDivider.dividerColor = mutedColor
-                            binding.thirdDivider.dividerColor = mutedColor
-                            binding.forthDivider.dividerColor = mutedColor
-                            binding.sixthDivider.dividerColor = mutedColor
-                            binding.seventhDivider.dividerColor = mutedColor
 
                             binding.allEpisodeBtn.backgroundTintList = colorStateList
                             binding.editIcon.backgroundTintList = colorStateList
@@ -2739,7 +2733,6 @@ class DetailActivity : BaseActivity() {
                 // Add the cast to the castView
                 if (reader.getJSONArray("cast").length() <= 0) {
                     binding.castTitle.visibility = View.GONE
-                    binding.secondDivider.visibility = View.GONE
                     binding.castRecyclerView.visibility = View.GONE
                 } else {
                     val castArray = reader.getJSONArray("cast")
@@ -2755,7 +2748,6 @@ class DetailActivity : BaseActivity() {
                 // Add the crew to the crewView
                 if (reader.getJSONArray("crew").length() <= 0) {
                     binding.crewTitle.visibility = View.GONE
-                    binding.thirdDivider.visibility = View.GONE
                     binding.crewRecyclerView.visibility = View.GONE
                 } else {
                     val crewArray = reader.getJSONArray("crew")
@@ -3031,25 +3023,30 @@ class DetailActivity : BaseActivity() {
         try {
             val externalIdsObject = movieData.getJSONObject("external_ids")
             imdbId = externalIdsObject.getString("imdb_id")
-            if (imdbId == "null") {
-                binding.imdbRatingChip.isEnabled = false
-            } else {
-                binding.imdbRatingChip.setOnClickListener {
-                    val url = "https://www.imdb.com/title/$imdbId"
-                    val builder = CustomTabsIntent.Builder()
-                    val customTabsIntent = builder.build()
-                    if (customTabsIntent.intent.resolveActivity(packageManager) != null) {
-                        customTabsIntent.launchUrl(context, Uri.parse(url))
+
+            binding.imdbRatingChip.setOnClickListener {
+
+                val url: String = if (imdbId == "null" || imdbId.isNullOrEmpty()) {
+                    "https://www.imdb.com/find/?q=$movieTitle $movieYear"
+                } else {
+                    "https://www.imdb.com/title/$imdbId"
+                }
+
+                val builder = CustomTabsIntent.Builder()
+                val customTabsIntent = builder.build()
+                if (customTabsIntent.intent.resolveActivity(packageManager) != null) {
+                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                } else {
+                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    if (browserIntent.resolveActivity(packageManager) != null) {
+                        startActivity(browserIntent)
                     } else {
-                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        if (browserIntent.resolveActivity(packageManager) != null) {
-                            startActivity(browserIntent)
-                        } else {
-                            Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show()
-                        }
+                        Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG)
+                            .show()
                     }
                 }
             }
+
             mMovieDetailsLoaded = true
         } catch (e: JSONException) {
             e.printStackTrace()
@@ -3071,7 +3068,7 @@ class DetailActivity : BaseActivity() {
         }
 
         binding.trailer.setOnClickListener {
-            if (trailerUrl.isNullOrEmpty()) {
+            if (trailerUrl == "null" || trailerUrl.isNullOrEmpty()) {
                 Toast.makeText(context, getString(R.string.no_trailer_available), Toast.LENGTH_SHORT).show()
             } else {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))

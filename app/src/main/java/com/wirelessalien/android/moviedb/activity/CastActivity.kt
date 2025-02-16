@@ -236,25 +236,21 @@ class CastActivity : BaseActivity() {
 
                         lightMutedColor =
                             palette.getLightMutedColor(palette.getMutedColor(Color.TRANSPARENT))
-                        val gradientDrawable: GradientDrawable
-                        val mutedColor: Int
 
-                        if (isDarkTheme) {
-                            gradientDrawable = GradientDrawable(
+                        val gradientDrawable: GradientDrawable = if (isDarkTheme) {
+                            GradientDrawable(
                                 GradientDrawable.Orientation.TL_BR,
                                 intArrayOf(darkMutedColor, color)
                             )
-                            mutedColor = darkMutedColor
                         } else {
-                            gradientDrawable = GradientDrawable(
+                            GradientDrawable(
                                 GradientDrawable.Orientation.TL_BR,
                                 intArrayOf(lightMutedColor, color)
                             )
-                            mutedColor = lightMutedColor
                         }
+
                         binding.root.background = gradientDrawable
                         binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT)
-                        binding.firstDivider.dividerColor = mutedColor
 
                         val animation = AnimationUtils.loadAnimation(
                             applicationContext, R.anim.fade_in

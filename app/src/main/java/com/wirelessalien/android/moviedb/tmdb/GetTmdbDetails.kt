@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
 class GetTmdbDetails(private val context: Context, private val tmdbApiKey: String) {
 
     private val client = OkHttpClient()
-    private val rateLimiter = RateLimiter(5, 1, TimeUnit.SECONDS)
+    private val rateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)
 
     suspend fun fetchAndSaveTmdbDetails() {
         withContext(Dispatchers.IO) {

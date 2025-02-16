@@ -32,10 +32,9 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
-class GetAccountDetailsTkt(private val context: Context?, clienId: String, private val callback: AccountDataCallback?) {
+class GetAccountDetailsTkt(private val context: Context?, private val clientId: String, private val callback: AccountDataCallback?) {
     private val accessToken: String?
     private val client: OkHttpClient
-    private val clientId = clienId
 
     interface AccountDataCallback {
         fun onAccountDataReceived(

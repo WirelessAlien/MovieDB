@@ -169,7 +169,8 @@ class AccountDataFragmentTkt : BaseFragment() {
             getString(R.string.list_items)
         )
 
-        val selectedOptions = options.toMutableSet()
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val selectedOptions = sharedPreferences.getStringSet("selected_options", options.toMutableSet())?.toMutableSet() ?: options.toMutableSet()
 
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_refresh_options, null)
         val chipGroup = dialogView.findViewById<ChipGroup>(R.id.chipGroup)
@@ -178,8 +179,8 @@ class AccountDataFragmentTkt : BaseFragment() {
             val chip = Chip(context).apply {
                 text = option
                 isCheckable = true
-                isChecked = true
-                setChipIconResource(R.drawable.ic_done_all)
+                isChecked = selectedOptions.contains(option)
+                setChipIconResource(if (isChecked) R.drawable.ic_done_all else R.drawable.ic_close)
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
                         selectedOptions.add(option)
@@ -197,6 +198,7 @@ class AccountDataFragmentTkt : BaseFragment() {
             .setTitle(getString(R.string.select_options))
             .setView(dialogView)
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
+                sharedPreferences.edit().putStringSet("selected_options", selectedOptions).apply()
                 refreshData(selectedOptions)
             }
             .setNegativeButton(getString(R.string.cancel), null)
@@ -301,7 +303,6 @@ class AccountDataFragmentTkt : BaseFragment() {
             reloadFragment()
         }
     }
-
 
     private fun reloadFragment() {
         parentFragmentManager.beginTransaction()

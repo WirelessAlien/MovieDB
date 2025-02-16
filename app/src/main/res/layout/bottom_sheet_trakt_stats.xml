@@ -21,6 +21,7 @@
 
 <LinearLayout android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -30,7 +31,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:src="@drawable/ic_trakt"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:importantForAccessibility="no" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -38,11 +40,6 @@
         android:text="@string/stats"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="5dp"/>
-
-    <com.google.android.material.divider.MaterialDivider
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
         android:layout_marginBottom="16dp"/>
 
     <TextView
@@ -100,6 +97,22 @@
             android:cursorVisible="false"
             android:inputType="none" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerFrameLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:shimmer_duration="700">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <include layout="@layout/show_skeleton" />
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
 
     <TextView
         android:layout_width="wrap_content"

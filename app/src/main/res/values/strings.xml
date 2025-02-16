@@ -98,6 +98,7 @@
     <string name="born_date_place">Born on %1$s in %2$s</string>
     <string name="born_date">Born on %1$s</string>
     <string name="born_place">Born in %1$s</string>
+    <string name="choose_date_type">Choose Date Type</string>
 
     <string-array name="media_types">
         <item>digital</item>

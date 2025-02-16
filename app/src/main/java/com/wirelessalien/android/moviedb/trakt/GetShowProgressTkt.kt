@@ -21,8 +21,8 @@
 package com.wirelessalien.android.moviedb.trakt
 
 import android.content.Context
-import android.util.Log
 import androidx.preference.PreferenceManager
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -40,11 +40,13 @@ class GetShowProgressTkt(
     }
 
     private val accessToken: String?
+    private val clientId: String?
     private val watchedEpisodes: MutableMap<Int, Boolean> = HashMap()
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
         accessToken = preferences.getString("trakt_access_token", "")
+        clientId = ConfigHelper.getConfigValue(context, "client_id")
     }
 
     suspend fun fetchShowProgress() {
@@ -57,7 +59,7 @@ class GetShowProgressTkt(
                     .addHeader("accept", "application/json")
                     .addHeader("Authorization", "Bearer $accessToken")
                     .addHeader("trakt-api-version", "2")
-                    .addHeader("trakt-api-key", "c72f55984ace5c7cfe876523fb867c0157b874148914c2685a2c9d0fd1ae7d3e")
+                    .addHeader("trakt-api-key", clientId ?:"")
                     .build()
                 val response = client.newCall(request).execute()
                 val responseBody = response.body!!.string()
@@ -72,7 +74,6 @@ class GetShowProgressTkt(
                             val episodeNumber = episode.getInt("number")
                             val completed = episode.getBoolean("completed")
                             watchedEpisodes[episodeNumber] = completed
-                            Log.d("GetShowProgressTkt", "Episode $episodeNumber: $completed")
                         }
                         break
                     }

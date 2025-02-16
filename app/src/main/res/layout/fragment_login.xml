@@ -20,20 +20,37 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/changeProvider"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        app:icon="@drawable/ic_swap"
-        style="@style/Widget.Material3.Button.IconButton"
-        app:cornerRadius="10dp"/>
+   <RelativeLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"
+       android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_tmdb_long"
+            android:layout_centerInParent="true"
+            android:importantForAccessibility="no" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/changeProvider"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            app:icon="@drawable/ic_swap"
+            android:contentDescription="@string/account_swap"
+            style="@style/Widget.Material3.Button.IconButton"
+            app:cornerRadius="10dp"
+            tools:ignore="RelativeOverlap" />
+   </RelativeLayout>
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/avatar"
@@ -53,6 +70,7 @@
         android:text="@string/user_name"
         android:layout_marginTop="10dp"
         android:textSize="20sp"
+        android:layout_marginBottom="16dp"
         android:visibility="gone"
         android:textStyle="bold" />
 
@@ -62,6 +80,7 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_gravity="center"
+        android:layout_marginBottom="16dp"
         app:cornerRadius="10dp"
         android:text="@string/login" />
 
@@ -72,6 +91,7 @@
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_gravity="center"
         app:cornerRadius="10dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/sign_up" />
 
     <com.google.android.material.button.MaterialButton
@@ -81,6 +101,7 @@
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_gravity="center"
         app:cornerRadius="10dp"
+        android:layout_marginBottom="16dp"
         android:visibility="gone"
         android:text="@string/logout" />
 
