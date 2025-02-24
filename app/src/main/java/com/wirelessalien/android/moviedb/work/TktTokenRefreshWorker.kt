@@ -20,15 +20,16 @@
 
 package com.wirelessalien.android.moviedb.work
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
-import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -36,6 +37,7 @@ import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class TktTokenRefreshWorker(
     context: Context,
@@ -69,40 +71,50 @@ class TktTokenRefreshWorker(
             if (response.isSuccessful) {
                 val responseBody = response.body?.string()
                 val jsonObject = responseBody?.let { JSONObject(it) }
-                val newAccessToken = jsonObject?.getString("access_token")
-                val newRefreshToken = jsonObject?.getString("refresh_token")
 
-                preferences.edit().putString("trakt_access_token", newAccessToken).apply()
-                preferences.edit().putString("trakt_refresh_token", newRefreshToken).apply()
+                val tokenResponse = TktTokenResponse(
+                    accessToken = jsonObject?.getString("access_token") ?: "",
+                    refreshToken = jsonObject?.getString("refresh_token") ?: "",
+                    expiresIn = jsonObject?.getLong("expires_in") ?: 0L,
+                    createdAt = jsonObject?.getLong("created_at") ?: 0L
+                )
+
+                // Save new token data
+                preferences.edit().apply {
+                    putString("trakt_access_token", tokenResponse.accessToken)
+                    putString("trakt_refresh_token", tokenResponse.refreshToken)
+                    putLong("token_expires_in", tokenResponse.expiresIn)
+                    putLong("token_created_at", tokenResponse.createdAt)
+                    apply()
+                }
+
+                // Schedule next refresh
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+
+                val refreshDelay = tokenResponse.expiresIn - 3600 // Refresh 1 hour before expiration
+
+                val nextRefreshWork = OneTimeWorkRequestBuilder<TktTokenRefreshWorker>()
+                    .setInitialDelay(refreshDelay, TimeUnit.SECONDS)
+                    .setConstraints(constraints)
+                    .build()
+
+                WorkManager.getInstance(applicationContext).apply {
+                    cancelAllWorkByTag("token_refresh")
+                    enqueueUniqueWork(
+                        "token_refresh",
+                        ExistingWorkPolicy.REPLACE,
+                        nextRefreshWork
+                    )
+                }
 
                 return@withContext Result.success()
             } else {
-                showNotification()
-                preferences.edit().remove("trakt_access_token").apply()
                 return@withContext Result.failure()
             }
         } else {
             return@withContext Result.failure()
         }
-    }
-
-    private fun showNotification() {
-        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "general_notification_channel"
-        val channelName = applicationContext.getString(R.string.general_notifications)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(applicationContext.getString(R.string.failed_to_get_trakt_access))
-            .setContentText(applicationContext.getString(R.string.please_log_in_again_for_trakt))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .build()
-
-        notificationManager.notify(1, notification)
     }
 }

@@ -69,8 +69,9 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -82,6 +83,7 @@ import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
@@ -438,14 +440,7 @@ class MainActivity : BaseActivity() {
 
         ReleaseReminderWorker.scheduleWork(this)
 
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val tokenRefreshWorkRequest = PeriodicWorkRequestBuilder<TktTokenRefreshWorker>(24, TimeUnit.HOURS)
-            .setConstraints(constraints)
-            .build()
-        WorkManager.getInstance(this).enqueue(tokenRefreshWorkRequest)
+        checkTokenExpiration()
 
         val accessToken = preferences.getString("access_token", null)
         val hasRunOnce = preferences.getBoolean("hasRunOnce", false)
@@ -868,19 +863,120 @@ class MainActivity : BaseActivity() {
                 if (response.isSuccessful) {
                     val responseBody = response.peekBody(Long.MAX_VALUE).string()
                     val jsonObject = JSONObject(responseBody)
-                    val accessToken = jsonObject.getString("access_token")
-                    val refreshToken = jsonObject.getString("refresh_token")
-                    // Save the tokens for future use
-                    preferences.edit().putString("trakt_access_token", accessToken).apply()
-                    preferences.edit().putString("trakt_refresh_token", refreshToken).apply()
-                    Toast.makeText(this@MainActivity, getString(R.string.login_successful), Toast.LENGTH_SHORT).show()
-                    showRefreshDialog(accessToken)
+                    val tokenResponse = TktTokenResponse(
+                        accessToken = jsonObject.getString("access_token"),
+                        refreshToken = jsonObject.getString("refresh_token"),
+                        expiresIn = jsonObject.getLong("expires_in"),
+                        createdAt = jsonObject.getLong("created_at")
+                    )
+
+                    // Save token data
+                    preferences.edit().apply {
+                        putString("trakt_access_token", tokenResponse.accessToken)
+                        putString("trakt_refresh_token", tokenResponse.refreshToken)
+                        putLong("token_expires_in", tokenResponse.expiresIn)
+                        putLong("token_created_at", tokenResponse.createdAt)
+                        apply()
+                    }
+
+                    scheduleTokenRefresh(tokenResponse.expiresIn)
+
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, getString(R.string.login_successful), Toast.LENGTH_SHORT).show()
+                        showRefreshDialog(tokenResponse.accessToken)
+                    }
                 } else {
-                    // Handle error
                     Log.e("MainActivity", "Error: ${response.message}")
                 }
             }
         })
+    }
+
+    private fun scheduleTokenRefresh(expiresIn: Long) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        // Schedule refresh 1 hour before token expires
+        val refreshDelay = expiresIn - 3600 // Refresh 1 hour before expiration
+
+        val tokenRefreshWorkRequest = OneTimeWorkRequestBuilder<TktTokenRefreshWorker>()
+            .setInitialDelay(refreshDelay, TimeUnit.SECONDS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).apply {
+            // Cancel any existing refresh work
+            cancelAllWorkByTag("token_refresh")
+            // Enqueue new refresh work
+            enqueueUniqueWork(
+                "token_refresh",
+                ExistingWorkPolicy.REPLACE,
+                tokenRefreshWorkRequest
+            )
+        }
+    }
+
+    private fun checkTokenExpiration() {
+        val createdAt = preferences.getLong("token_created_at", 0)
+        val expiresIn = preferences.getLong("token_expires_in", 0)
+        val refreshToken = preferences.getString("trakt_refresh_token", null)
+
+        if (createdAt > 0 && expiresIn > 0 && refreshToken != null) {
+            val currentTime = System.currentTimeMillis() / 1000
+            val expirationTime = createdAt + expiresIn
+            val timeUntilExpiration = expirationTime - currentTime
+
+            // If token expires within 1 hour (3600 seconds) or has expired
+            if (timeUntilExpiration <= 3600) {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val requestBody = FormBody.Builder()
+                        .add("refresh_token", refreshToken)
+                        .add("client_id", clientId ?: "")
+                        .add("client_secret", clientSecret ?: "")
+                        .add("redirect_uri", "trakt.wirelessalien.showcase://callback")
+                        .add("grant_type", "refresh_token")
+                        .build()
+
+                    val request = Request.Builder()
+                        .url("https://api.trakt.tv/oauth/token")
+                        .post(requestBody)
+                        .build()
+
+                    try {
+                        val client = OkHttpClient()
+                        val response = client.newCall(request).execute()
+
+                        if (response.isSuccessful) {
+                            val responseBody = response.body?.string()
+                            val jsonObject = responseBody?.let { JSONObject(it) }
+
+                            val tokenResponse = TktTokenResponse(
+                                accessToken = jsonObject?.getString("access_token") ?: "",
+                                refreshToken = jsonObject?.getString("refresh_token") ?: "",
+                                expiresIn = jsonObject?.getLong("expires_in") ?: 0L,
+                                createdAt = jsonObject?.getLong("created_at") ?: 0L
+                            )
+
+                            // Save new token data
+                            preferences.edit().apply {
+                                putString("trakt_access_token", tokenResponse.accessToken)
+                                putString("trakt_refresh_token", tokenResponse.refreshToken)
+                                putLong("token_expires_in", tokenResponse.expiresIn)
+                                putLong("token_created_at", tokenResponse.createdAt)
+                                apply()
+                            }
+
+                            // Schedule next refresh
+                            scheduleTokenRefresh(tokenResponse.expiresIn)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        preferences.edit().remove("trakt_access_token").apply()
+                    }
+                }
+            }
+        }
     }
 
     private fun showRefreshDialog(accessToken: String) {
