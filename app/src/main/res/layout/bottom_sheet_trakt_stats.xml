@@ -40,13 +40,13 @@
         android:text="@string/stats"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="20dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/movie"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp"/>
 
@@ -54,6 +54,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/watched"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
         android:layout_marginBottom="8dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
@@ -71,6 +75,10 @@
         android:layout_height="wrap_content"
         android:hint="@string/collected"
         android:layout_marginBottom="8dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -87,6 +95,10 @@
         android:layout_height="wrap_content"
         android:hint="@string/time_spent"
         android:layout_marginBottom="8dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -118,7 +130,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/show"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"/>
@@ -128,6 +140,10 @@
         android:layout_height="wrap_content"
         android:hint="@string/watched"
         android:layout_marginBottom="8dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -144,6 +160,10 @@
         android:layout_height="wrap_content"
         android:hint="@string/collected"
         android:layout_marginBottom="8dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -159,6 +179,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/time_spent"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText

@@ -106,11 +106,29 @@
             android:hint="@string/description"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.radiobutton.MaterialRadioButton
-        android:id="@+id/privateRadioBtn"
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/listPrivacyChip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/private_list"/>
+        app:selectionRequired="true"
+        app:singleSelection="true"
+        android:layout_marginTop="10dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/publicChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/public_list"
+            android:checked="true"
+            android:checkable="true"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/privateChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/private_list"
+            android:checkable="true"/>
+    </com.google.android.material.chip.ChipGroup>
 
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"

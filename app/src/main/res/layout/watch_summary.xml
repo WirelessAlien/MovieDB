@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/watch_summary"
-            android:textSize="24sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginTop="20dp"
             android:layout_marginStart="5dp"
@@ -45,25 +45,17 @@
             android:layout_height="wrap_content"
             android:text="@string/categories"
             android:layout_below="@id/watchSummaryTitle"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginTop="20dp"
             android:layout_marginStart="5dp"
             android:layout_marginBottom="5dp"/>
 
-        <com.google.android.material.divider.MaterialDivider
-            android:id="@+id/catDivider"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_below="@+id/categoryTitle"/>
-
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/chip1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/catDivider"
+            android:layout_below="@+id/categoryTitle"
             app:flexWrap="wrap">
 
             <com.google.android.material.chip.Chip
@@ -117,24 +109,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/type"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:layout_below="@id/chip1"
             android:textStyle="bold"
             android:layout_marginBottom="5dp"
             android:layout_marginTop="20dp"
             android:layout_marginStart="5dp"/>
-        <com.google.android.material.divider.MaterialDivider
-            android:id="@+id/typeDivider"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_below="@+id/typeTitle"/>
+
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/chip2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/typeDivider"
+            android:layout_below="@+id/typeTitle"
             app:flexWrap="wrap">
 
             <com.google.android.material.chip.Chip
@@ -156,7 +142,6 @@
                 style="@style/Widget.Material3.Chip.Assist"
                 android:clickable="false"
                 android:checkable="false" />
-
         </com.google.android.flexbox.FlexboxLayout>
 
         <TextView
@@ -165,26 +150,18 @@
             android:layout_height="wrap_content"
             android:text="@string/genres"
             android:layout_below="@id/chip2"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:layout_marginStart="5dp"
             android:layout_marginBottom="5dp"
             android:layout_marginTop="20dp"
             android:textStyle="bold"/>
-
-        <com.google.android.material.divider.MaterialDivider
-            android:id="@+id/genreDivider"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_below="@+id/genresTitle"/>
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupGenres"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:layout_below="@id/genreDivider"/>
+            android:layout_below="@+id/genresTitle"/>
 
         <com.facebook.shimmer.ShimmerFrameLayout
             android:id="@+id/shimmerFrameLayout"

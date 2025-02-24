@@ -85,7 +85,7 @@ class ListBottomSheetFragment(
         binding.createListBtn.setOnClickListener {
             val listName = binding.newListName.text.toString()
             val description = binding.listDescription.text.toString()
-            val isPublic = !binding.privateRadioBtn.isChecked // when checked private radio button, the value is false else true
+            val isPublic = binding.publicChip.isChecked // true if public chip is checked, false if private chip is checked
             lifecycleScope.launch {
                 withContext(Dispatchers.IO) {
                     CreateList(listName, description, isPublic, context).createList()

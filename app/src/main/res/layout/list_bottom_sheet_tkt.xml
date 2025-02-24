@@ -31,7 +31,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:src="@drawable/ic_trakt"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:importantForAccessibility="no" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -60,10 +61,10 @@
         android:layout_height="wrap_content"
         android:text="@string/create_new_list"
         android:textSize="18sp"
-        android:layout_marginStart="5dip"
+        android:layout_marginStart="5dp"
         android:textStyle="bold"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dip"/>
+        android:layout_marginBottom="16dp"/>
 
 
     <com.google.android.material.textfield.TextInputLayout
@@ -103,6 +104,8 @@
         android:id="@+id/listPrivacyChip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:selectionRequired="true"
+        app:singleSelection="true"
         android:layout_marginTop="10dp">
 
         <com.google.android.material.chip.Chip
