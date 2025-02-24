@@ -575,40 +575,12 @@
                 </HorizontalScrollView>
             </RelativeLayout>
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleButtonGroup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:layout_below="@id/movieDetailsRl"
-                app:innerCornerSize="4dp"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
-                android:layout_centerHorizontal="true"
-                app:selectionRequired="true"
-                app:singleSelection="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTmdb"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:text="TMDB" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTrakt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:text="TRAKT" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
             <RelativeLayout
                 android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_below="@id/toggleButtonGroup"
+                android:layout_below="@id/movieDetailsRl"
                 android:gravity="center_horizontal"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp">
@@ -734,13 +706,27 @@
                     android:contentDescription="@string/add_rating" />
             </RelativeLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/fabSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:layout_marginTop="10dp"
+                android:layout_below="@id/linearLayout2"
+                app:cornerRadius="10dp"
+                android:visibility="gone"
+                app:icon="@drawable/ic_star_border"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                android:text="@string/save"/>
+
             <TextView
                 android:id="@+id/overviewTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/linearLayout2"
+                android:layout_below="@id/fabSave"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:text="@string/overview"
                 android:textSize="18sp"
@@ -1054,14 +1040,46 @@
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabSave"
+<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+<!--        android:id="@+id/fabSave"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:visibility="gone"-->
+<!--        app:layout_anchor="@id/movieImage"-->
+<!--        app:layout_anchorGravity="bottom|end"-->
+<!--        android:contentDescription="@string/save_to_database"-->
+<!--        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"-->
+<!--        android:src="@drawable/ic_star_border" />-->
+
+    <com.google.android.material.button.MaterialSplitButton
+        android:id="@+id/splitBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerMedium"
         app:layout_anchor="@id/movieImage"
+        app:innerCornerSize="10dp"
         app:layout_anchorGravity="bottom|end"
         android:contentDescription="@string/save_to_database"
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
-        android:src="@drawable/ic_star_border" />
+        android:src="@drawable/ic_star_border">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/syncProviderBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sync"
+            android:checkable="false"
+            android:clickable="false"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/syncProviderChange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            style="?attr/materialSplitButtonIconFilledTonalStyle"
+            app:icon="@drawable/ic_change_circle"/>
+    </com.google.android.material.button.MaterialSplitButton>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

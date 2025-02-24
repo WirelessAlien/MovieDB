@@ -99,6 +99,8 @@
     <string name="born_date">Born on %1$s</string>
     <string name="born_place">Born in %1$s</string>
     <string name="choose_date_type">Choose Date Type</string>
+    <string name="sync_provider">Sync Provider</string>
+
 
     <string-array name="media_types">
         <item>digital</item>
@@ -165,6 +167,18 @@
         <item>7.1.4</item>
         <item>9.1</item>
         <item>10.1</item>
+    </string-array>
+
+    <string-array name="sync_providers">
+        <item>local</item>
+        <item>tmdb</item>
+        <item>trakt</item>
+    </string-array>
+
+    <string-array name="sync_providers_display">
+        <item>LOCAL</item>
+        <item>TMDB</item>
+        <item>TRAKT</item>
     </string-array>
 
     <plurals name="years">

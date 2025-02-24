@@ -46,7 +46,6 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnFocusChangeListener
-import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -277,7 +276,8 @@ class DetailActivity : BaseActivity() {
 
         when (preferences.getString("sync_provider", "local")) {
             "tmdb" -> {
-                binding.toggleButtonGroup.check(R.id.btnTmdb)
+                binding.syncProviderBtn.isChecked = true
+                binding.syncProviderBtn.text = "TMDB"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -288,10 +288,11 @@ class DetailActivity : BaseActivity() {
                 binding.favouriteButtonTmdb.visibility = View.VISIBLE
                 binding.addToListTmdb.visibility = View.VISIBLE
                 binding.watchListButtonTmdb.visibility = View.VISIBLE
-
+                binding.fabSave.visibility = View.GONE
             }
             "trakt" -> {
-                binding.toggleButtonGroup.check(R.id.btnTrakt)
+                binding.syncProviderBtn.isChecked = true
+                binding.syncProviderBtn.text = "TRAKT"
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                 binding.btnAddToTraktFavorite.visibility = View.VISIBLE
                 binding.btnAddToTraktCollection.visibility = View.VISIBLE
@@ -302,39 +303,51 @@ class DetailActivity : BaseActivity() {
                 binding.favouriteButtonTmdb.visibility = View.GONE
                 binding.addToListTmdb.visibility = View.GONE
                 binding.watchListButtonTmdb.visibility = View.GONE
-
+                binding.fabSave.visibility = View.GONE
+            }
+            else -> {
+                binding.syncProviderBtn.isChecked = true
+                binding.syncProviderBtn.text = "LOCAL"
+                binding.btnAddToTraktWatchlist.visibility = View.GONE
+                binding.btnAddToTraktFavorite.visibility = View.GONE
+                binding.btnAddToTraktCollection.visibility = View.GONE
+                binding.btnAddToTraktHistory.visibility = View.GONE
+                binding.btnAddToTraktList.visibility = View.GONE
+                binding.btnAddTraktRating.visibility = View.GONE
+                binding.ratingBtnTmdb.visibility = View.GONE
+                binding.favouriteButtonTmdb.visibility = View.GONE
+                binding.addToListTmdb.visibility = View.GONE
+                binding.watchListButtonTmdb.visibility = View.GONE
+                binding.fabSave.visibility = View.VISIBLE
             }
         }
 
-        binding.toggleButtonGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isChecked) {
-                when (checkedId) {
-                    R.id.btnTmdb -> {
-                        binding.btnAddToTraktWatchlist.visibility = View.GONE
-                        binding.btnAddToTraktFavorite.visibility = View.GONE
-                        binding.btnAddToTraktCollection.visibility = View.GONE
-                        binding.btnAddToTraktHistory.visibility = View.GONE
-                        binding.btnAddToTraktList.visibility = View.GONE
-                        binding.btnAddTraktRating.visibility = View.GONE
-                        binding.ratingBtnTmdb.visibility = View.VISIBLE
-                        binding.favouriteButtonTmdb.visibility = View.VISIBLE
-                        binding.addToListTmdb.visibility = View.VISIBLE
-                        binding.watchListButtonTmdb.visibility = View.VISIBLE
+        binding.splitBtn.findViewById<MaterialButton>(R.id.syncProviderChange).setOnClickListener {
+            val dialog = MaterialAlertDialogBuilder(this)
+            dialog.setTitle(R.string.sync_provider)
+            dialog.setSingleChoiceItems(R.array.sync_providers_display, -1) { dialogInterface: DialogInterface, i: Int ->
+                val syncProvider = resources.getStringArray(R.array.sync_providers)[i]
+                val editor = preferences.edit()
+                editor.putString("sync_provider", syncProvider)
+                editor.apply()
+
+                when (syncProvider) {
+                    "tmdb" -> {
+                        tmdbBtnsVisible()
+                        binding.syncProviderBtn.text = "TMDB"
                     }
-                    R.id.btnTrakt -> {
-                        binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
-                        binding.btnAddToTraktFavorite.visibility = View.VISIBLE
-                        binding.btnAddToTraktCollection.visibility = View.VISIBLE
-                        binding.btnAddToTraktHistory.visibility = View.VISIBLE
-                        binding.btnAddToTraktList.visibility = View.VISIBLE
-                        binding.btnAddTraktRating.visibility = View.VISIBLE
-                        binding.ratingBtnTmdb.visibility = View.GONE
-                        binding.favouriteButtonTmdb.visibility = View.GONE
-                        binding.addToListTmdb.visibility = View.GONE
-                        binding.watchListButtonTmdb.visibility = View.GONE
+                    "trakt" -> {
+                        tktBtnsVisible()
+                        binding.syncProviderBtn.text = "TRAKT"
+                    }
+                    else -> {
+                        localBtnsVisible()
+                        binding.syncProviderBtn.text = "LOCAL"
                     }
                 }
+                dialogInterface.dismiss()
             }
+            dialog.show()
         }
 
         sessionId = preferences.getString("access_token", null)
@@ -402,7 +415,10 @@ class DetailActivity : BaseActivity() {
         cursor.use { cursor1 ->
             if (cursor1.count > 0) {
                 // A record has been found
-                binding.fabSave.setImageResource(R.drawable.ic_star)
+                binding.fabSave.icon = ContextCompat.getDrawable(
+                    applicationContext,
+                    R.drawable.ic_star
+                )
                 added = true
             }
         }
@@ -541,23 +557,6 @@ class DetailActivity : BaseActivity() {
                             binding.showRating.backgroundTintList = colorStateList
 
                             binding.ratingCard.setCardBackgroundColor(Color.TRANSPARENT)
-
-                            preferences.getString("sync_provider", "local")?.let {
-                                if (it == "tmdb") {
-                                    binding.btnTmdb.backgroundTintList = colorStateList
-                                } else {
-                                    binding.btnTrakt.backgroundTintList = colorStateList
-                                }
-                            }
-                            binding.toggleButtonGroup.addOnButtonCheckedListener { group, checkedId, isChecked ->
-                                if (isChecked) {
-                                    val checkedButton = group.findViewById<MaterialButton>(checkedId)
-                                    checkedButton.backgroundTintList = colorStateList
-                                } else {
-                                    val uncheckedButton = group.findViewById<MaterialButton>(checkedId)
-                                    uncheckedButton.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                                }
-                            }
 
                             binding.btnAddToTraktWatchlist.backgroundTintList = colorStateList
                             binding.btnAddToTraktFavorite.backgroundTintList = colorStateList
@@ -847,7 +846,10 @@ class DetailActivity : BaseActivity() {
                 )
 
                 added = false
-                binding.fabSave.setImageResource(R.drawable.ic_star_border)
+                binding.fabSave.icon = ContextCompat.getDrawable(
+                    this,
+                    R.drawable.ic_star_border
+                )
                 databaseUpdate()
                 binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 finish()
@@ -898,7 +900,7 @@ class DetailActivity : BaseActivity() {
         val searchEngineUrl =
             preferences.getString(SEARCH_ENGINE_PREFERENCE, "https://www.google.com/search?q=")
         binding.searchBtn.setOnClickListener {
-            val url = searchEngineUrl + "$movieTitle $movieYear"
+            val url = "$searchEngineUrl$movieTitle $movieYear"
             val builder = CustomTabsIntent.Builder()
             val customTabIntent = builder.build()
             if (customTabIntent.intent.resolveActivity(packageManager) != null) {
@@ -1044,6 +1046,48 @@ class DetailActivity : BaseActivity() {
         binding.metacriticRatingChip.setOnClickListener {
             launchUrl(context, metacriticUrl)
         }
+    }
+
+    private fun tmdbBtnsVisible() {
+        binding.btnAddToTraktWatchlist.visibility = View.GONE
+        binding.btnAddToTraktFavorite.visibility = View.GONE
+        binding.btnAddToTraktCollection.visibility = View.GONE
+        binding.btnAddToTraktHistory.visibility = View.GONE
+        binding.btnAddToTraktList.visibility = View.GONE
+        binding.btnAddTraktRating.visibility = View.GONE
+        binding.ratingBtnTmdb.visibility = View.VISIBLE
+        binding.favouriteButtonTmdb.visibility = View.VISIBLE
+        binding.addToListTmdb.visibility = View.VISIBLE
+        binding.watchListButtonTmdb.visibility = View.VISIBLE
+        binding.fabSave.visibility = View.GONE
+    }
+
+    private fun tktBtnsVisible() {
+        binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
+        binding.btnAddToTraktFavorite.visibility = View.VISIBLE
+        binding.btnAddToTraktCollection.visibility = View.VISIBLE
+        binding.btnAddToTraktHistory.visibility = View.VISIBLE
+        binding.btnAddToTraktList.visibility = View.VISIBLE
+        binding.btnAddTraktRating.visibility = View.VISIBLE
+        binding.ratingBtnTmdb.visibility = View.GONE
+        binding.favouriteButtonTmdb.visibility = View.GONE
+        binding.addToListTmdb.visibility = View.GONE
+        binding.watchListButtonTmdb.visibility = View.GONE
+        binding.fabSave.visibility = View.GONE
+    }
+
+    private fun localBtnsVisible() {
+        binding.btnAddToTraktWatchlist.visibility = View.GONE
+        binding.btnAddToTraktFavorite.visibility = View.GONE
+        binding.btnAddToTraktCollection.visibility = View.GONE
+        binding.btnAddToTraktHistory.visibility = View.GONE
+        binding.btnAddToTraktList.visibility = View.GONE
+        binding.btnAddTraktRating.visibility = View.GONE
+        binding.ratingBtnTmdb.visibility = View.GONE
+        binding.favouriteButtonTmdb.visibility = View.GONE
+        binding.addToListTmdb.visibility = View.GONE
+        binding.watchListButtonTmdb.visibility = View.GONE
+        binding.fabSave.visibility = View.VISIBLE
     }
 
     private fun launchUrl(context: Context, url: String) {
@@ -1817,7 +1861,8 @@ class DetailActivity : BaseActivity() {
             // Inform the user of the addition to the database
             // and change the boolean in order to change the MenuItem's behaviour.
             added = true
-            binding.fabSave.setImageResource(R.drawable.ic_star)
+            binding.fabSave.icon = ContextCompat.getDrawable(this, R.drawable.ic_star)
+            binding.fabSave.text = getString(R.string.saved_tab_title)
             if (isMovie) {
                 Toast.makeText(applicationContext, resources.getString(R.string.movie_added), Toast.LENGTH_SHORT).show()
             } else {
