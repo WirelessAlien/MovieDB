@@ -55,6 +55,35 @@
                     android:adjustViewBounds="true"
                     android:contentDescription="@string/image_description"
                     android:scaleType="fitXY" />
+
+                <com.google.android.material.button.MaterialSplitButton
+                    android:id="@+id/splitBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:layout_gravity="bottom|end"
+                    app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerMedium"
+                    app:innerCornerSize="10dp"
+                    app:layout_anchorGravity="bottom|end"
+                    android:contentDescription="@string/save_to_database">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/syncProviderBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sync"
+                        android:checkable="false"
+                        android:clickable="false"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/syncProviderChange"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        style="?attr/materialSplitButtonIconFilledTonalStyle"
+                        app:icon="@drawable/ic_change_circle"/>
+                </com.google.android.material.button.MaterialSplitButton>
             </com.google.android.material.card.MaterialCardView>
 
             <View
