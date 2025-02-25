@@ -236,7 +236,7 @@
     <string name="movie">Movie</string>
     <string name="tv_show">TV Show</string>
     <string name="type">Type</string>
-    <string name="just_watch_attribution">This app uses JustWatch data to show \'Where to watch?\' info.</string>
+    <string name="just_watch_attribution">This app uses JustWatch data to show streaming service info.</string>
     <string name="share">Share ShowCase</string>
     <string name="donate">Donate</string>
     <string name="attribution">Attribution</string>

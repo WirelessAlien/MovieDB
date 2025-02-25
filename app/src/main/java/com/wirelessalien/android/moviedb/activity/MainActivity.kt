@@ -674,17 +674,38 @@ class MainActivity : BaseActivity() {
             .setCancelable(false)
             .create()
 
+        // Retrieve stored values from SharedPreferences
+        val syncProvider = preferences.getString("sync_provider", "local")
+        val forceLocalSync = preferences.getBoolean("force_local_sync", false)
+
+        // Set initial state of radio buttons based on stored value
+        when (syncProvider) {
+            "local" -> dialogBinding.radioLocal.isChecked = true
+            "trakt" -> dialogBinding.radioTrakt.isChecked = true
+            "tmdb" -> dialogBinding.radioTmdb.isChecked = true
+        }
+
+        // Set initial state of forceLocalSync checkbox
+        dialogBinding.forceLocalSync.isChecked = forceLocalSync
+        dialogBinding.forceLocalSync.isEnabled = syncProvider != "local"
+
+        dialogBinding.radioLocal.setOnCheckedChangeListener { _, isChecked ->
+            dialogBinding.forceLocalSync.isEnabled = !isChecked
+        }
+
+        dialogBinding.forceLocalSync.setOnCheckedChangeListener { _, isChecked ->
+            preferences.edit().putBoolean("force_local_sync", isChecked).apply()
+        }
+
         dialogBinding.buttonOk.setOnClickListener {
             val selectedProvider = when {
+                dialogBinding.radioLocal.isChecked -> "local"
                 dialogBinding.radioTrakt.isChecked -> "trakt"
                 dialogBinding.radioTmdb.isChecked -> "tmdb"
                 else -> "local"
             }
 
-            if (selectedProvider != "local") {
-                preferences.edit().putString("sync_provider", selectedProvider).apply()
-            }
-
+            preferences.edit().putString("sync_provider", selectedProvider).apply()
             preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
             dialog.dismiss()
         }

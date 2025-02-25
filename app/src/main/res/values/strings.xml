@@ -100,6 +100,15 @@
     <string name="born_place">Born in %1$s</string>
     <string name="choose_date_type">Choose Date Type</string>
     <string name="sync_provider">Sync Provider</string>
+    <string name="text_tkt_credits">This app uses the TRAKT API but is not endorsed or certified by TRAKT</string>
+    <string name="select_default_sync_provider">Select the default sync provider</string>
+    <string name="sync_provider2">Sync provider</string>
+    <string name="sync_provider_summary_1">Choose your preferred sync provider. You can update this selection later in the settings. The local database is always enabled, while the other two providers are optional.</string>
+    <string name="sync_local_summary">Local - No sync provider, data is stored only in the local database.</string>
+    <string name="sync_trakt_summary">Trakt syncs Watchlist, Lists, Favorites, Collection, and Ratings.</string>
+    <string name="sync_tmdb_summary">TMDB syncs Watchlist, Lists, Favorites, and Ratings.</string>
+    <string name="sync_provider_summary_2">TMDB serves as the primary data source, and its data is used for synchronization with both TMDB and Trakt. If you choose to use Trakt or TMDB as a sync provider, you must connect your respective account. No account is required for local storage.</string>
+    <string name="force_local_sync">Enable local sync even if another provider is selected</string>
 
 
     <string-array name="media_types">
@@ -176,9 +185,9 @@
     </string-array>
 
     <string-array name="sync_providers_display">
-        <item>LOCAL</item>
+        <item>Local</item>
         <item>TMDB</item>
-        <item>TRAKT</item>
+        <item>Trakt</item>
     </string-array>
 
     <plurals name="years">

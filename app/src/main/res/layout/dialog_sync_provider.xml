@@ -19,79 +19,97 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:scrollbars="none"
+    android:scrollIndicators="none"
     android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Sync Provider"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:layout_gravity="center"
-        android:paddingBottom="16dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:alpha="0.8"
-        android:text="Choose your preferred sync provider. You can update this selection later in the settings. The local database is always enabled, while the other two providers are optional."/>
-
-    <com.google.android.material.radiobutton.MaterialRadioButton
-        android:id="@+id/radio_local"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Local"
-        android:checked="true"/>
-
-    <TextView
-        android:id="@+id/local_explanation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Local - No sync provider, data is stored only in the local database."/>
-
-    <RadioGroup
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_trakt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Trakt"/>
+        android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/trakt_explanation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Trakt syncs Watchlist, Lists, Favorites, Collection, and Ratings."/>
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_tmdb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TMDb"/>
+            android:text="@string/select_default_sync_provider"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_gravity="center"
+            android:paddingBottom="16dp"/>
 
         <TextView
-            android:id="@+id/tmdb_explanation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TMDb syncs Watchlist, Lists, Favorites, and Ratings."/>
-    </RadioGroup>
+            android:text="@string/sync_provider_summary_1"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TMDb serves as the primary data source, and its data is used for synchronization with both TMDb and Trakt. If you choose to use Trakt or TMDb as a sync provider, you must connect your respective account. No account is required for local storage."/>
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_ok"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="OK"
-        android:layout_marginTop="16dp"/>
-</LinearLayout>
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_local"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Local"
+                android:checked="true"/>
+
+            <TextView
+                android:id="@+id/local_explanation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sync_local_summary"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_trakt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trakt"/>
+
+            <TextView
+                android:id="@+id/trakt_explanation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sync_trakt_summary"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_tmdb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TMDB"/>
+
+            <TextView
+                android:id="@+id/tmdb_explanation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sync_tmdb_summary"/>
+        </RadioGroup>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/force_local_sync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/force_local_sync"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/sync_provider_summary_2"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_ok"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ok"
+            app:cornerRadius="10dp"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_marginTop="16dp"/>
+        </LinearLayout>
+</ScrollView>

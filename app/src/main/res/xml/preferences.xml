@@ -66,8 +66,8 @@
 
         <Preference
             android:key="sync_provider"
-            app:title="Sync provider"
-            android:summary="Select the sync provider for the app"
+            app:title="@string/sync_provider2"
+            android:summary="@string/select_default_sync_provider"
             app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
@@ -229,6 +229,11 @@
             <Preference
                 android:summary="@string/text_tmdb_credits"
                 android:icon="@drawable/ic_movie_db"
+                app:iconSpaceReserved="false"/>
+
+            <Preference
+                android:summary="@string/text_tkt_credits"
+                android:icon="@drawable/ic_trakt"
                 app:iconSpaceReserved="false"/>
 
             <Preference

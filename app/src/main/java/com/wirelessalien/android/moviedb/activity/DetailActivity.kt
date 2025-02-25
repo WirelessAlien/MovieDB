@@ -288,11 +288,11 @@ class DetailActivity : BaseActivity() {
                 binding.favouriteButtonTmdb.visibility = View.VISIBLE
                 binding.addToListTmdb.visibility = View.VISIBLE
                 binding.watchListButtonTmdb.visibility = View.VISIBLE
-                binding.fabSave.visibility = View.GONE
+                if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             "trakt" -> {
                 binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "TRAKT"
+                binding.syncProviderBtn.text = "Trakt"
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                 binding.btnAddToTraktFavorite.visibility = View.VISIBLE
                 binding.btnAddToTraktCollection.visibility = View.VISIBLE
@@ -303,11 +303,11 @@ class DetailActivity : BaseActivity() {
                 binding.favouriteButtonTmdb.visibility = View.GONE
                 binding.addToListTmdb.visibility = View.GONE
                 binding.watchListButtonTmdb.visibility = View.GONE
-                binding.fabSave.visibility = View.GONE
+                if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             else -> {
                 binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "LOCAL"
+                binding.syncProviderBtn.text = "Local"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -338,11 +338,11 @@ class DetailActivity : BaseActivity() {
                     }
                     "trakt" -> {
                         tktBtnsVisible()
-                        binding.syncProviderBtn.text = "TRAKT"
+                        binding.syncProviderBtn.text = "Trakt"
                     }
                     else -> {
                         localBtnsVisible()
-                        binding.syncProviderBtn.text = "LOCAL"
+                        binding.syncProviderBtn.text = "Local"
                     }
                 }
                 dialogInterface.dismiss()
@@ -419,6 +419,7 @@ class DetailActivity : BaseActivity() {
                     applicationContext,
                     R.drawable.ic_star
                 )
+                binding.fabSave.text = getString(R.string.saved_tab_title)
                 added = true
             }
         }
@@ -1059,7 +1060,7 @@ class DetailActivity : BaseActivity() {
         binding.favouriteButtonTmdb.visibility = View.VISIBLE
         binding.addToListTmdb.visibility = View.VISIBLE
         binding.watchListButtonTmdb.visibility = View.VISIBLE
-        binding.fabSave.visibility = View.GONE
+        if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
     }
 
     private fun tktBtnsVisible() {
@@ -1073,7 +1074,7 @@ class DetailActivity : BaseActivity() {
         binding.favouriteButtonTmdb.visibility = View.GONE
         binding.addToListTmdb.visibility = View.GONE
         binding.watchListButtonTmdb.visibility = View.GONE
-        binding.fabSave.visibility = View.GONE
+        if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
     }
 
     private fun localBtnsVisible() {
@@ -1859,7 +1860,6 @@ class DetailActivity : BaseActivity() {
             database.insert(MovieDatabaseHelper.TABLE_MOVIES, null, showValues)
 
             // Inform the user of the addition to the database
-            // and change the boolean in order to change the MenuItem's behaviour.
             added = true
             binding.fabSave.icon = ContextCompat.getDrawable(this, R.drawable.ic_star)
             binding.fabSave.text = getString(R.string.saved_tab_title)

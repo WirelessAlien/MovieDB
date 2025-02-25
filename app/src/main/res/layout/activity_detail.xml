@@ -575,12 +575,25 @@
                 </HorizontalScrollView>
             </RelativeLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/fabSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:layout_below="@id/movieDetailsRl"
+                app:cornerRadius="10dp"
+                android:visibility="gone"
+                app:icon="@drawable/ic_star_border"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                android:text="@string/save"/>
+
             <RelativeLayout
                 android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_below="@id/movieDetailsRl"
+                android:layout_below="@id/fabSave"
                 android:gravity="center_horizontal"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp">
@@ -706,25 +719,11 @@
                     android:contentDescription="@string/add_rating" />
             </RelativeLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/fabSave"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:layout_marginTop="10dp"
-                android:layout_below="@id/linearLayout2"
-                app:cornerRadius="10dp"
-                android:visibility="gone"
-                app:icon="@drawable/ic_star_border"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                android:text="@string/save"/>
-
             <TextView
                 android:id="@+id/overviewTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/fabSave"
+                android:layout_below="@id/linearLayout2"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
@@ -787,6 +786,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
+                    android:text="IMDb: 0/10"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
@@ -796,6 +796,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
+                    android:text="R. Tomatoes: 0%"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
@@ -805,6 +806,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
+                    android:text="Metacritic: 0/100"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
             </com.google.android.flexbox.FlexboxLayout>
@@ -1061,9 +1063,8 @@
         app:layout_anchor="@id/movieImage"
         app:innerCornerSize="10dp"
         app:layout_anchorGravity="bottom|end"
-        android:contentDescription="@string/save_to_database"
-        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
-        android:src="@drawable/ic_star_border">
+        android:contentDescription="@string/sync_provider"
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/syncProviderBtn"
