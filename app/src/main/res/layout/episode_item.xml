@@ -60,12 +60,12 @@
                     android:id="@+id/splitBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
                     android:layout_gravity="bottom|end"
+                    android:layout_marginEnd="10dp"
                     app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerMedium"
                     app:innerCornerSize="10dp"
                     app:layout_anchorGravity="bottom|end"
-                    android:contentDescription="@string/save_to_database">
+                    android:contentDescription="@string/sync_provider">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/syncProviderBtn"
@@ -232,40 +232,6 @@
                 </com.google.android.material.card.MaterialCardView>
             </RelativeLayout>
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleButtonGroup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                app:checkedButton="@id/btnLocal"
-                app:innerCornerSize="4dp"
-                app:selectionRequired="true"
-                app:singleSelection="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnLocal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:text="LOCAL" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTmdb"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:text="TMDB" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTrakt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    android:text="TRAKT" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/lProgressBar"
                 android:layout_width="match_parent"
@@ -274,38 +240,46 @@
                 android:visibility="gone"
                 android:layout_margin="5dp"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnWatchedToLocalDb"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/mark_as_watched"
-                android:layout_margin="5dp"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                app:icon="@drawable/ic_visibility"
-                app:cornerRadius="10dp"
-                android:visibility="gone"/>
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnWatchedToLocalDb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_alignParentStart="true"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    app:icon="@drawable/ic_visibility"
+                    app:cornerRadius="10dp"
+                    android:visibility="gone"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddDetailsToLocalDb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/edit"
+                    app:icon="@drawable/ic_edit"
+                    android:layout_toEndOf="@id/btnWatchedToLocalDb"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:layout_margin="5dp"
+                    app:cornerRadius="10dp"
+                    android:visibility="gone"/>
+            </RelativeLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddDetailsToLocalDb"
+                android:id="@+id/btnAddRatingToTmdb"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/edit"
-                app:icon="@drawable/ic_edit"
+                android:text="@string/rate"
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                 android:layout_margin="5dp"
+                app:icon="@drawable/ic_thumb_up"
                 app:cornerRadius="10dp"
                 android:visibility="gone"/>
-
-          <com.google.android.material.button.MaterialButton
-              android:id="@+id/btnAddRatingToTmdb"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:text="@string/rate"
-              style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-              android:layout_margin="5dp"
-              app:icon="@drawable/ic_thumb_up"
-              app:cornerRadius="10dp"
-              android:visibility="gone"/>
 
             <RelativeLayout
                 android:layout_width="match_parent"
