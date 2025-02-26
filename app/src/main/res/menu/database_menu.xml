@@ -33,4 +33,10 @@
         android:orderInCategory="2"
         android:title="@string/action_import"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_auto_sync"
+        android:orderInCategory="3"
+        android:title="@string/auto_sync"
+        app:showAsAction="never" />
 </menu>

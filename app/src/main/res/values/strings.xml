@@ -109,6 +109,10 @@
     <string name="sync_tmdb_summary">TMDB syncs Watchlist, Lists, Favorites, and Ratings.</string>
     <string name="sync_provider_summary_2">TMDB serves as the primary data source, and its data is used for synchronization with both TMDB and Trakt. If you choose to use Trakt or TMDB as a sync provider, you must connect your respective account. No account is required for local storage.</string>
     <string name="force_local_sync">Enable local sync even if another provider is selected</string>
+    <string name="minimal_tkt_sync_desc">This is a streamlined and hassle-free system for syncing data with Trakt. Only entries marked as \"Watched\" in the \"Saved\" section (Movies and Shows) will be synced. If an \"End Watched\" date is provided, it will be used as the watched date.  \n\nThis is a one-way sync, meaning data will be sent to Trakt but not retrieved from it. To access your Trakt account data, visit the \"Account\" tab.  \n\nFor a minimal sync experience, you can set the default sync provider to \"Local\" and enable this auto-sync method. Once enabled, your data will automatically sync with Trakt daily.</string>
+    <string name="sync_with_trakt">Sync with Trakt</string>
+    <string name="auto_tkt_des1"> \u24d8 Recommended for users seeking a simplified sync option without full Trakt integration.</string>
+    <string name="auto_sync">Auto sync</string>
 
 
     <string-array name="media_types">

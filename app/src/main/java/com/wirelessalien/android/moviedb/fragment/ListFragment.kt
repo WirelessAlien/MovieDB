@@ -58,10 +58,13 @@ import com.wirelessalien.android.moviedb.activity.ImportActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.DialogTraktSyncMinimalBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentShowBinding
 import com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
+import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
+import com.wirelessalien.android.moviedb.work.TktAutoSyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -203,6 +206,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                             val intent = Intent(requireContext().applicationContext, ImportActivity::class.java)
                             startActivity(intent)
                         }
+                        true
+                    }
+                    R.id.action_auto_sync -> {
+                        showTraktSyncDialog()
                         true
                     }
                     else -> false
@@ -375,6 +382,38 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val genreIds = getGenreIdsFromDatabase()
         val genreNames = getGenreNamesFromSharedPreferences(context)
         displayGenresInChipGroup(context, chipGroup, genreIds, genreNames)
+    }
+
+    private fun showTraktSyncDialog() {
+        val binding = DialogTraktSyncMinimalBinding.inflate(LayoutInflater.from(requireContext()))
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(binding.root)
+            .create()
+
+        binding.btnOk.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.visibility = View.VISIBLE
+                binding.btnOk.isEnabled = false
+
+                val syncManager = TraktAutoSyncManager(requireContext())
+                syncManager.syncMediaToTrakt()
+
+                binding.progressBar.visibility = View.GONE
+                binding.btnOk.isEnabled = true
+                setupTraktAutoSync()
+                dialog.dismiss()
+            }
+        }
+
+        binding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun setupTraktAutoSync() {
+        TktAutoSyncWorker.setupPeriodicSync(requireContext())
     }
 
     private fun showWatchSummaryDialog() {

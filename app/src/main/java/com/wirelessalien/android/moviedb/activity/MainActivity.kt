@@ -970,6 +970,7 @@ class MainActivity : BaseActivity() {
 
                         if (response.isSuccessful) {
                             val responseBody = response.body?.string()
+                            Log.d("MainActivity", "Token refresh response: $responseBody")
                             val jsonObject = responseBody?.let { JSONObject(it) }
 
                             val tokenResponse = TktTokenResponse(
@@ -990,6 +991,8 @@ class MainActivity : BaseActivity() {
 
                             // Schedule next refresh
                             scheduleTokenRefresh(tokenResponse.expiresIn)
+                        } else {
+                            preferences.edit().remove("trakt_access_token").apply()
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
