@@ -101,6 +101,7 @@ class LoginFragment : BottomSheetDialogFragment() {
                 binding.logout.visibility = View.GONE
                 binding.loginStatus.setText(R.string.not_logged_in)
                 binding.name.visibility = View.GONE
+                binding.avatar.setImageResource(R.drawable.ic_account)
             }
         }
 
@@ -147,13 +148,5 @@ class LoginFragment : BottomSheetDialogFragment() {
             }
         }
         return view
-    }
-
-    private fun redirectToTraktAuthorization() {
-        val redirectUri = "trakt.wirelessalien.showcase://callback"
-        val authUrl = "https://trakt.tv/oauth/authorize?response_type=code&client_id=$clientId&redirect_uri=$redirectUri"
-
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
-        startActivity(intent)
     }
 }
