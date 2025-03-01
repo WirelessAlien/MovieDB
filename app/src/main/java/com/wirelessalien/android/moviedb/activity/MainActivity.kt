@@ -946,59 +946,61 @@ class MainActivity : BaseActivity() {
         if (createdAt > 0 && expiresIn > 0 && refreshToken != null) {
             val currentTime = System.currentTimeMillis() / 1000
             val expirationTime = createdAt + expiresIn
-            val timeUntilExpiration = expirationTime - currentTime
 
-            // If token expires within 1 hour (3600 seconds) or has expired
-            if (timeUntilExpiration <= 3600) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val requestBody = FormBody.Builder()
-                        .add("refresh_token", refreshToken)
-                        .add("client_id", clientId ?: "")
-                        .add("client_secret", clientSecret ?: "")
-                        .add("redirect_uri", "trakt.wirelessalien.showcase://callback")
-                        .add("grant_type", "refresh_token")
-                        .build()
+            // Refresh token if it's expired or will expire in next hour
+            if (currentTime >= expirationTime - 3600) {
+                refreshAccessToken(refreshToken)
+            }
+        }
+    }
 
-                    val request = Request.Builder()
-                        .url("https://api.trakt.tv/oauth/token")
-                        .post(requestBody)
-                        .build()
+    private fun refreshAccessToken(refreshToken: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val requestBody = FormBody.Builder()
+                    .add("refresh_token", refreshToken)
+                    .add("client_id", clientId ?: "")
+                    .add("client_secret", clientSecret ?: "")
+                    .add("redirect_uri", "trakt.wirelessalien.showcase://callback")
+                    .add("grant_type", "refresh_token")
+                    .build()
 
-                    try {
-                        val client = OkHttpClient()
-                        val response = client.newCall(request).execute()
+                val request = Request.Builder()
+                    .url("https://api.trakt.tv/oauth/token")
+                    .post(requestBody)
+                    .build()
 
-                        if (response.isSuccessful) {
-                            val responseBody = response.body?.string()
-                            Log.d("MainActivity", "Token refresh response: $responseBody")
-                            val jsonObject = responseBody?.let { JSONObject(it) }
+                val client = OkHttpClient()
+                val response = client.newCall(request).execute()
+                val responseBody = response.body?.string()
 
-                            val tokenResponse = TktTokenResponse(
-                                accessToken = jsonObject?.getString("access_token") ?: "",
-                                refreshToken = jsonObject?.getString("refresh_token") ?: "",
-                                expiresIn = jsonObject?.getLong("expires_in") ?: 0L,
-                                createdAt = jsonObject?.getLong("created_at") ?: 0L
-                            )
+                if (response.isSuccessful && responseBody != null) {
+                    val jsonObject = JSONObject(responseBody)
 
-                            // Save new token data
-                            preferences.edit().apply {
-                                putString("trakt_access_token", tokenResponse.accessToken)
-                                putString("trakt_refresh_token", tokenResponse.refreshToken)
-                                putLong("token_expires_in", tokenResponse.expiresIn)
-                                putLong("token_created_at", tokenResponse.createdAt)
-                                apply()
-                            }
+                    val tokenResponse = TktTokenResponse(
+                        accessToken = jsonObject.getString("access_token"),
+                        refreshToken = jsonObject.getString("refresh_token"),
+                        expiresIn = jsonObject.getLong("expires_in"),
+                        createdAt = System.currentTimeMillis() / 1000
+                    )
 
-                            // Schedule next refresh
-                            scheduleTokenRefresh(tokenResponse.expiresIn)
-                        } else {
-                            preferences.edit().remove("trakt_access_token").apply()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        preferences.edit().remove("trakt_access_token").apply()
+                    // Save new token data
+                    preferences.edit().apply {
+                        putString("trakt_access_token", tokenResponse.accessToken)
+                        putString("trakt_refresh_token", tokenResponse.refreshToken)
+                        putLong("token_expires_in", tokenResponse.expiresIn)
+                        putLong("token_created_at", tokenResponse.createdAt)
+                        apply()
                     }
+
+                    scheduleTokenRefresh(tokenResponse.expiresIn)
+                } else {
+                    Log.e("TokenRefresh", "Failed to refresh token: ${response.code}")
+                    preferences.edit().remove("trakt_access_token").apply()
                 }
+            } catch (e: Exception) {
+                Log.e("TokenRefresh", "Error refreshing token", e)
+                preferences.edit().remove("trakt_access_token").apply()
             }
         }
     }
