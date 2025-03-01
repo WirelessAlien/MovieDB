@@ -23,23 +23,14 @@ import android.graphics.Color
 import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.FragmentLastEpisodeBinding
-import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRating
-import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRating
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
@@ -64,10 +55,10 @@ class LastEpisodeFragment : Fragment() {
             binding.lastEpisodeCard.strokeWidth = 5
             binding.lastEpisodeCard.setCardBackgroundColor(Color.TRANSPARENT)
         }
-        val sessionId = preferences.getString("access_token", null)
-        val accountId = preferences.getString("account_id", null)
+//        val sessionId = preferences.getString("access_token", null)
+//        val accountId = preferences.getString("account_id", null)
         databaseHelper = MovieDatabaseHelper(context)
-        binding.episodeRateBtn.isEnabled = sessionId != null && accountId != null
+//        binding.episodeRateBtn.isEnabled = sessionId != null && accountId != null
         if (arguments != null) {
             try {
                 val episodeDetails = JSONObject(requireArguments().getString(ARG_EPISODE_DETAILS))
@@ -98,63 +89,63 @@ class LastEpisodeFragment : Fragment() {
                 val dateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                 val formattedDate = dateFormat.format(date)
                 binding.episodeAirDate.text = formattedDate
-                if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(episodeNumber))) {
-                    binding.episodeWathchBtn.icon =
-                        ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility)
-                } else {
-                    binding.episodeWathchBtn.icon =
-                        ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility_off)
-                }
-                binding.episodeRateBtn.setOnClickListener {
-                    val dialog = BottomSheetDialog(requireContext())
-                    val dialogView = RatingDialogBinding.inflate(LayoutInflater.from(context))
-                    dialog.setContentView(dialogView.root)
-                    dialog.show()
-                    val ratingBar = dialogView.ratingSlider
-                    val submitButton = dialogView.btnSubmit
-                    val cancelButton = dialogView.btnCancel
-                    val deleteButton = dialogView.btnDelete
-                    val episodeTitle = dialogView.tvTitle
-                    episodeTitle.text = getString(R.string.episode_title, seasonNumber, episodeNumber, episodeName)
-                    submitButton.setOnClickListener {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            val rating = ratingBar.value.toDouble()
-                            AddEpisodeRating(
-                                movieId,
-                                seasonNumber,
-                                episodeNumber,
-                                rating,
-                                context
-                            ).addRating()
-                            dialog.dismiss()
-                        }
-                    }
-
-                    deleteButton.setOnClickListener {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            DeleteEpisodeRating(
-                                movieId,
-                                seasonNumber,
-                                episodeNumber,
-                                context
-                            ).deleteEpisodeRating()
-                            dialog.dismiss()
-                        }
-                    }
-                    cancelButton.setOnClickListener { dialog.dismiss() }
-                }
-
-                binding.episodeWathchBtn.setOnClickListener {
-                    if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(episodeNumber))) {
-                        Log.d("Episode", "Removed from database $movieId $seasonNumber $episodeNumber")
-                        databaseHelper.removeEpisodeNumber(movieId, seasonNumber, listOf(episodeNumber))
-                        binding.episodeWathchBtn.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility_off)
-                    } else {
-                        databaseHelper.addEpisodeNumber(movieId, seasonNumber, listOf(episodeNumber))
-                        Log.d("Episode", "Added to database $movieId $seasonNumber $episodeNumber")
-                        binding.episodeWathchBtn.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility)
-                    }
-                }
+//                if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(episodeNumber))) {
+//                    binding.episodeWathchBtn.icon =
+//                        ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility)
+//                } else {
+//                    binding.episodeWathchBtn.icon =
+//                        ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility_off)
+//                }
+//                binding.episodeRateBtn.setOnClickListener {
+//                    val dialog = BottomSheetDialog(requireContext())
+//                    val dialogView = RatingDialogBinding.inflate(LayoutInflater.from(context))
+//                    dialog.setContentView(dialogView.root)
+//                    dialog.show()
+//                    val ratingBar = dialogView.ratingSlider
+//                    val submitButton = dialogView.btnSubmit
+//                    val cancelButton = dialogView.btnCancel
+//                    val deleteButton = dialogView.btnDelete
+//                    val episodeTitle = dialogView.tvTitle
+//                    episodeTitle.text = getString(R.string.episode_title, seasonNumber, episodeNumber, episodeName)
+//                    submitButton.setOnClickListener {
+//                        CoroutineScope(Dispatchers.Main).launch {
+//                            val rating = ratingBar.value.toDouble()
+//                            AddEpisodeRating(
+//                                movieId,
+//                                seasonNumber,
+//                                episodeNumber,
+//                                rating,
+//                                context
+//                            ).addRating()
+//                            dialog.dismiss()
+//                        }
+//                    }
+//
+//                    deleteButton.setOnClickListener {
+//                        CoroutineScope(Dispatchers.Main).launch {
+//                            DeleteEpisodeRating(
+//                                movieId,
+//                                seasonNumber,
+//                                episodeNumber,
+//                                context
+//                            ).deleteEpisodeRating()
+//                            dialog.dismiss()
+//                        }
+//                    }
+//                    cancelButton.setOnClickListener { dialog.dismiss() }
+//                }
+//
+//                binding.episodeWathchBtn.setOnClickListener {
+//                    if (databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(episodeNumber))) {
+//                        Log.d("Episode", "Removed from database $movieId $seasonNumber $episodeNumber")
+//                        databaseHelper.removeEpisodeNumber(movieId, seasonNumber, listOf(episodeNumber))
+//                        binding.episodeWathchBtn.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility_off)
+//                    } else {
+//                        databaseHelper.addEpisodeNumber(movieId, seasonNumber, listOf(episodeNumber))
+//                        Log.d("Episode", "Added to database $movieId $seasonNumber $episodeNumber")
+//                        binding.episodeWathchBtn.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_visibility)
+//                    }
+//                }
             } catch (e: JSONException) {
                 e.printStackTrace()
             } catch (e: ParseException) {
