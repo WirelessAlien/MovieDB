@@ -134,6 +134,7 @@ class ShowProgressTraktAdapter(
             if (showData.getString("type") == "movie") {
                 holder.watchedProgressBar?.visibility = View.GONE
                 holder.showSeasonBtn?.visibility = View.GONE
+                holder.seasonEpisodeText.visibility = View.GONE
             }
 
             if (showData.getString("type") == "show") {
