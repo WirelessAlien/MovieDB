@@ -819,11 +819,23 @@
                 android:layout_margin="16dp"
                 android:layout_below="@id/ratingScrollView"/>
 
+            <ImageView
+                android:id="@+id/justwatchIv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="5dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/ic_justwatch"
+                android:visibility="gone"
+                android:layout_below="@id/watchProvidersRv"/>
+
             <RelativeLayout
                 android:id="@+id/episodeRL"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/watchProvidersRv">
+                android:layout_below="@id/justwatchIv">
 
                 <TextView
                     android:id="@+id/episodeText"

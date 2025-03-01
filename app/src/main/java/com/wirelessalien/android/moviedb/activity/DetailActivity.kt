@@ -569,6 +569,8 @@ class DetailActivity : BaseActivity() {
                             binding.favouriteButtonTmdb.backgroundTintList = colorStateList
                             binding.addToListTmdb.backgroundTintList = colorStateList
                             binding.watchListButtonTmdb.backgroundTintList = colorStateList
+                            binding.syncProviderChange.backgroundTintList = colorStateList
+                            binding.syncProviderBtn.backgroundTintList = colorStateList
 
                         }
                         val animation = AnimationUtils.loadAnimation(
@@ -1046,6 +1048,19 @@ class DetailActivity : BaseActivity() {
 
         binding.metacriticRatingChip.setOnClickListener {
             launchUrl(context, metacriticUrl)
+        }
+
+        binding.justwatchIv.setOnClickListener {
+            val typeCheck = if (isMovie) "movie" else "tv"
+            val url = "https://www.themoviedb.org/$typeCheck/$movieId/watch?locale=${Locale.getDefault().country}"
+            val builder = CustomTabsIntent.Builder()
+            val customTabIntent = builder.build()
+            if (customTabIntent.intent.resolveActivity(packageManager) != null) {
+                customTabIntent.launchUrl(this, Uri.parse(url))
+            } else {
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(browserIntent)
+            }
         }
     }
 
@@ -2847,6 +2862,7 @@ class DetailActivity : BaseActivity() {
                                 displayWatchProviders(countryData)
                             } else {
                                 binding.watchProvidersRv.visibility = View.GONE
+                                binding.justwatchIv.visibility = View.GONE
                             }
                         }
                     }
@@ -2854,6 +2870,7 @@ class DetailActivity : BaseActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     binding.watchProvidersRv.visibility = View.GONE
+                    binding.justwatchIv.visibility = View.GONE
                 }
             }
         }
@@ -2924,8 +2941,10 @@ class DetailActivity : BaseActivity() {
         if (providers.isNotEmpty()) {
             adapter.updateProviders(providers)
             binding.watchProvidersRv.visibility = View.VISIBLE
+            binding.justwatchIv.visibility = View.VISIBLE
         } else {
             binding.watchProvidersRv.visibility = View.GONE
+            binding.justwatchIv.visibility = View.GONE
         }
     }
 

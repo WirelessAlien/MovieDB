@@ -235,10 +235,6 @@
                 android:summary="@string/text_tkt_credits"
                 android:icon="@drawable/ic_trakt"
                 app:iconSpaceReserved="false"/>
-
-            <Preference
-                android:summary="@string/just_watch_attribution"
-                app:iconSpaceReserved="false"/>
         </PreferenceCategory>
     </PreferenceCategory>
 </PreferenceScreen>

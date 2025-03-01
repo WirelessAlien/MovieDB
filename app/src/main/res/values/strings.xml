@@ -113,6 +113,7 @@
     <string name="sync_with_trakt">Sync with Trakt</string>
     <string name="auto_tkt_des1"> \u24d8 Recommended for users seeking a simplified sync option without full Trakt integration.</string>
     <string name="auto_sync">Auto sync</string>
+    <string name="latest">Latest</string>
 
 
     <string-array name="media_types">
