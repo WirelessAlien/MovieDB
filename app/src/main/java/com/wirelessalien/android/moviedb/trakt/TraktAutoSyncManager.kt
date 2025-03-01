@@ -77,8 +77,8 @@ class TraktAutoSyncManager(context: Context) {
                     MovieDatabaseHelper.COLUMN_MOVIE,
                     MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE
                 ),
-                null,
-                null,
+                "${MovieDatabaseHelper.COLUMN_CATEGORIES} = ?",
+                arrayOf(MovieDatabaseHelper.CATEGORY_WATCHED.toString()),
                 null,
                 null,
                 null
