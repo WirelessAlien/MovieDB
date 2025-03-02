@@ -634,6 +634,14 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         }
     }
 
+    fun fetchCurrentlyWatching(onResponse: (String) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val url = "https://api.trakt.tv/users/me/watching"
+            val request = createRequest(url)
+            executeRequest(request, onResponse)
+        }
+    }
+
     private fun createRequest(url: String): Request {
         return Request.Builder()
             .url(url)

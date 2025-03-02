@@ -28,6 +28,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -44,10 +45,15 @@ import com.wirelessalien.android.moviedb.databinding.FragmentAccountDataTktBindi
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import java.io.IOException
 
 class AccountDataFragmentTkt : BaseFragment() {
 
@@ -57,6 +63,7 @@ class AccountDataFragmentTkt : BaseFragment() {
     private var clientId: String? = null
     private lateinit var binding: FragmentAccountDataTktBinding
     private lateinit var activityBinding: ActivityMainBinding
+    private val client = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,9 +109,82 @@ class AccountDataFragmentTkt : BaseFragment() {
             refreshCurrentFragmentData()
         }
 
+        if (accessToken != null) {
+            val getTraktSyncData = GetTraktSyncData(requireContext(), accessToken, clientId)
+            getTraktSyncData.fetchCurrentlyWatching { response ->
+                if (response.isNotEmpty()) {
+                    updateCurrentlyWatchingUI(response)
+                    binding.currentlyWatchingContainer.visibility = View.VISIBLE
+                } else {
+                    binding.currentlyWatchingContainer.visibility = View.GONE
+                }
+            }
+        }
+
+        binding.removeCheckinButton.setOnClickListener {
+            removeCheckin()
+        }
+
         return view
     }
 
+    private fun removeCheckin() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val url = "https://api.trakt.tv/checkin"
+            val request = Request.Builder()
+                .url(url)
+                .delete()
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer $accessToken")
+                .addHeader("trakt-api-version", "2")
+                .addHeader("trakt-api-key", clientId ?: "")
+                .build()
+
+            try {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    withContext(Dispatchers.Main) {
+                        binding.currentlyWatchingContainer.visibility = View.GONE
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), getString(R.string.gen_error_msg), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), getString(R.string.gen_error_msg), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun updateCurrentlyWatchingUI(response: String) {
+        val jsonObject = JSONObject(response)
+        val type = jsonObject.getString("type")
+        var title = ""
+        var details = ""
+
+        when (type) {
+            "episode" -> {
+                val episode = jsonObject.getJSONObject("episode")
+                val show = jsonObject.getJSONObject("show")
+                title = show.getString("title")
+                details = "S${episode.getInt("season")}E${episode.getInt("number")}: ${episode.getString("title")}"
+            }
+            "movie" -> {
+                val movie = jsonObject.getJSONObject("movie")
+                title = movie.getString("title") + " (${movie.getInt("year")})"
+            }
+            else -> {
+                binding.currentlyWatchingContainer.visibility = View.GONE
+            }
+        }
+
+        binding.currentlyWatchingTitle.text = title
+        binding.currentlyWatchingDetails.text = details
+    }
 
     private fun refreshCurrentFragmentData() {
         val selectedOptions = when (binding.tabs.selectedTabPosition) {
