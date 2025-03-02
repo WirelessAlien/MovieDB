@@ -2942,6 +2942,7 @@ class DetailActivity : BaseActivity() {
             adapter.updateProviders(providers)
             binding.watchProvidersRv.visibility = View.VISIBLE
             binding.justwatchIv.visibility = View.VISIBLE
+            binding.justwatchCard.visibility = View.VISIBLE
         } else {
             binding.watchProvidersRv.visibility = View.GONE
             binding.justwatchIv.visibility = View.GONE
