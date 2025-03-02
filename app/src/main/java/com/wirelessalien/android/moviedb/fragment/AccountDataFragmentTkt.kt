@@ -28,18 +28,18 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
+import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentAccountDataTktBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
@@ -98,7 +98,26 @@ class AccountDataFragmentTkt : BaseFragment() {
             }
         }, viewLifecycleOwner)
 
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            refreshCurrentFragmentData()
+        }
+
         return view
+    }
+
+
+    private fun refreshCurrentFragmentData() {
+        val selectedOptions = when (binding.tabs.selectedTabPosition) {
+            0 -> setOf(getString(R.string.watchlist))
+            1 -> setOf(getString(R.string.movie_watched), getString(R.string.show_watched))
+            2 -> setOf(getString(R.string.movie_collection), getString(R.string.show_collection))
+            3 -> setOf(getString(R.string.history))
+            4 -> setOf(getString(R.string.favourite))
+            5 -> setOf(getString(R.string.rating1))
+            6 -> setOf(getString(R.string.lists), getString(R.string.list_items))
+            else -> emptySet()
+        }
+        refreshData(selectedOptions)
     }
 
     private fun setupTabs() {
@@ -172,8 +191,8 @@ class AccountDataFragmentTkt : BaseFragment() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val selectedOptions = sharedPreferences.getStringSet("selected_options", options.toMutableSet())?.toMutableSet() ?: options.toMutableSet()
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_refresh_options, null)
-        val chipGroup = dialogView.findViewById<ChipGroup>(R.id.chipGroup)
+        val dialogBinding = DialogRefreshOptionsBinding.inflate(LayoutInflater.from(context))
+        val chipGroup = dialogBinding.chipGroup
 
         options.forEach { option ->
             val chip = Chip(context).apply {
@@ -195,8 +214,8 @@ class AccountDataFragmentTkt : BaseFragment() {
         }
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.select_options))
-            .setView(dialogView)
+            .setTitle(getString(R.string.refresh))
+            .setView(dialogBinding.root)
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 sharedPreferences.edit().putStringSet("selected_options", selectedOptions).apply()
                 refreshData(selectedOptions)
@@ -206,7 +225,8 @@ class AccountDataFragmentTkt : BaseFragment() {
     }
 
     private fun refreshData(selectedOptions: Set<String>) {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
+        val dialogBinding = DialogProgressIndicatorBinding.inflate(LayoutInflater.from(context))
+        val dialogView = dialogBinding.root
         var job: Job? = null
 
         val progressDialog = MaterialAlertDialogBuilder(requireContext())
@@ -219,11 +239,10 @@ class AccountDataFragmentTkt : BaseFragment() {
             }
             .show()
 
-        val progressTextView = dialogView.findViewById<TextView>(R.id.progressText)
 
         fun updateProgressMessage(message: String) {
             lifecycleScope.launch(Dispatchers.Main) {
-                progressTextView.text = message
+                dialogBinding.progressText.text = message
             }
         }
 
@@ -276,11 +295,13 @@ class AccountDataFragmentTkt : BaseFragment() {
                 }
                 withContext(Dispatchers.Main) {
                     progressDialog.dismiss()
+                    binding.swipeRefreshLayout.isRefreshing = false
                     showTmdbDetailsDialog()
                 }
             }
         }
     }
+
 
     private fun showTmdbDetailsDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
@@ -305,8 +326,20 @@ class AccountDataFragmentTkt : BaseFragment() {
     }
 
     private fun reloadFragment() {
-        parentFragmentManager.beginTransaction()
-            .replace(this.id, AccountDataFragmentTkt())
-            .commit()
+        val selectedFragment: Fragment? = when (binding.tabs.selectedTabPosition) {
+            0 -> WatchlistFragmentTkt()
+            1 -> ProgressFragmentTkt()
+            2 -> CollectionFragmentTkt()
+            3 -> HistoryFragmentTkt()
+            4 -> FavoriteFragmentTkt()
+            5 -> RatingFragmentTkt()
+            6 -> ListFragmentTkt()
+            else -> null
+        }
+        if (selectedFragment != null && isAdded && activity != null) {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, selectedFragment)
+                .commit()
+        }
     }
 }
