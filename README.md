@@ -94,6 +94,12 @@ Distributed under the GPL-3 License. See [GPL-3 License](https://www.gnu.org/lic
 
 <a href="https://www.buymeacoffee.com/wirelessalien" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
+#### Paypal
+* [Single Donation](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-42024772MB847863LM7CZV7I)
+* [Monthly Donation](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-3H0022989S4788323M7CZXHY)
+* [Yearly Donation](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-9L472332EB637292NM7CZXVA)
+
+
 ## Acknowledgments
 
 - The base source code is from [nvb / MovieDB](https://notabug.org/nvb/MovieDB) (GPL-v3)
