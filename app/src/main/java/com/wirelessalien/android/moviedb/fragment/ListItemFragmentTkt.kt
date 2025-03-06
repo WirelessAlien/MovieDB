@@ -21,7 +21,6 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -102,7 +101,7 @@ class ListItemFragmentTkt : BaseFragment() {
         lifecycleScope.launch {
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
-            withContext(Dispatchers.IO) {
+            val newList = withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val tmdbDb = tmdbHelper.readableDatabase
 
@@ -116,6 +115,7 @@ class ListItemFragmentTkt : BaseFragment() {
                     null
                 )
 
+                val tempList = ArrayList<JSONObject>()
                 if (cursor.moveToFirst()) {
                     do {
                         val jsonObject = JSONObject().apply {
@@ -176,35 +176,36 @@ class ListItemFragmentTkt : BaseFragment() {
                         }
                         tmdbCursor.close()
 
-                        Log.d("ListItemFragmentTkt", "Loaded list item: $jsonObject")
-                        fullListItemList.add(jsonObject)
+                        tempList.add(jsonObject)
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
+                tempList
             }
-            applySorting()
+            val sortedList = applySorting(newList)
+            adapter.updateShowList(sortedList)
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
     }
 
-    private fun applySorting() {
-        val criteria = preferences.getString("tkt_sort_criteria", "name")
+    private fun applySorting(list: ArrayList<JSONObject>): ArrayList<JSONObject> {
+        val criteria = preferences.getString("tkt_sort_criteria", "title")
         val order = preferences.getString("tkt_sort_order", "asc")
 
         val comparator = when (criteria) {
-            "name" -> compareBy<JSONObject> { it.optString("title", "") }
-            "date" -> compareBy { it.optString("listed_at", "") }
+            "title" -> compareBy<JSONObject> { it.optString("title", "") }
+            "listed_at" -> compareBy { it.optString("listed_at", "") }
             else -> compareBy { it.optString("title", "") }
         }
 
         if (order == "desc") {
-            fullListItemList.sortWith(comparator.reversed())
+            list.sortWith(comparator.reversed())
         } else {
-            fullListItemList.sortWith(comparator)
+            list.sortWith(comparator)
         }
 
-        adapter.updateShowList(fullListItemList)
+        return list
     }
 
     private fun filterListItemData(type: String) {

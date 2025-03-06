@@ -562,7 +562,10 @@ class EpisodeAdapter(
 
         holder.binding.btnAddToTraktWatchlist.setOnClickListener {
             holder.binding.lProgressBar.visibility = View.VISIBLE
-
+            val currentDateTime = android.icu.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.getDefault()
+            ).format(Date())
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeData = withContext(Dispatchers.IO) {
                     fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -585,7 +588,7 @@ class EpisodeAdapter(
                     if (isInWatchList) {
                         traktSync("sync/watchlist/remove", episode, 0, holder, null, null, null, null, null, null, null)
                     } else {
-                        traktSync("sync/watchlist", episode, 0, holder, null, null, null, null, null, null, null)
+                        traktSync("sync/watchlist", episode, 0, holder, currentDateTime, null, null, null, null, null, null)
                     }
                 }
                 holder.binding.lProgressBar.visibility = View.GONE
@@ -711,7 +714,8 @@ class EpisodeAdapter(
                 withContext(Dispatchers.Main) {
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/ratings", episode, binding.ratingSlider.value.toInt(), holder, null, null, null, null, null, null, null)
+                        val ratedAtE = binding.ratedDate.text.toString()
+                        traktSync("sync/ratings", episode, binding.ratingSlider.value.toInt(), holder, ratedAtE, null, null, null, null, null, null)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -1243,7 +1247,7 @@ class EpisodeAdapter(
         val dbHelper = TraktDatabaseHelper(context)
 
         when (endpoint) {
-            "sync/watchlist" -> dbHelper.addEpisodeToWatchlist(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber)
+            "sync/watchlist" -> dbHelper.addEpisodeToWatchlist(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber, collectedAt)
             "sync/watchlist/remove" -> dbHelper.removeEpisodeFromWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
 //            "sync/collection" -> dbHelper.addEpisodeToCollection(showTitle, traktId, tvShowId, "show", seasonNumber, episode.episodeNumber, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
 //            "sync/collection/remove" -> dbHelper.removeEpisodeFromCollection(tvShowId, seasonNumber, episode.episodeNumber)
@@ -1256,7 +1260,7 @@ class EpisodeAdapter(
                 dbHelper.removeEpisodeFromHistory(tvShowId, seasonNumber, episode.episodeNumber)
                 dbHelper.removeEpisodeFromWatched(tvShowId, seasonNumber, episode.episodeNumber)
             }
-            "sync/ratings" -> dbHelper.addEpisodeRating(showTitle, traktId, tvShowId, "episode" , seasonNumber, episode.episodeNumber, rating)
+            "sync/ratings" -> dbHelper.addEpisodeRating(showTitle, traktId, tvShowId, "episode" , seasonNumber, episode.episodeNumber, rating, collectedAt)
             "sync/ratings/remove" -> dbHelper.removeEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber)
         }
     }

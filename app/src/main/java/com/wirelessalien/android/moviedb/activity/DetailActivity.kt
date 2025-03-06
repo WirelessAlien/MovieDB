@@ -1000,19 +1000,29 @@ class DetailActivity : BaseActivity() {
         }
 
         binding.btnAddToTraktWatchlist.setOnClickListener {
+            val currentDateTime = android.icu.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.getDefault()
+            ).format(Date())
+
             if (isInWatchlist) {
                 syncTraktData("sync/watchlist/remove", 0, "", null, null, null, null, null, null, null)
                 syncTraktData("sync/watchlist/remove", 0, "", null, null, null, null, null, null, null)
             } else {
-                syncTraktData("sync/watchlist", 0, "", null, null, null, null, null, null, null)
+                syncTraktData("sync/watchlist", 0, "", null, currentDateTime, null, null, null, null, null)
             }
         }
 
         binding.btnAddToTraktFavorite.setOnClickListener {
+            val currentDateTime = android.icu.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.getDefault()
+            ).format(Date())
+
             if (isInFavourite) {
                 syncTraktData("sync/favorites/remove", 0, "", null, null, null, null, null, null, null)
             } else {
-                syncTraktData("sync/favorites", 0, "", null, null, null, null, null, null, null)
+                syncTraktData("sync/favorites", 0, "", currentDateTime, null, null, null, null, null, null)
             }
         }
 
@@ -1421,7 +1431,7 @@ class DetailActivity : BaseActivity() {
     private fun updateMediaObjectWithRating(rating: Int, ratedAt: String) {
         traktMediaObject?.put("rated_at", ratedAt)
         traktMediaObject?.put("rating", rating)
-        syncTraktData("sync/ratings", rating, "", null, null, null, null, null, null, null)
+        syncTraktData("sync/ratings", rating, "", ratedAt, null, null, null, null, null, null)
     }
     private fun syncTraktData(endpoint: String, rating: Int, watchedAt: String, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
         val traktApiService = TraktSync(tktaccessToken!!)
@@ -1607,9 +1617,9 @@ class DetailActivity : BaseActivity() {
         }
 
         when (endpoint) {
-            "sync/watchlist" -> dbHelper.addMovieToWatchlist(movieTitle, type, tmdbId)
+            "sync/watchlist" -> dbHelper.addMovieToWatchlist(movieTitle, type, tmdbId, collectedAt)
             "sync/watchlist/remove" -> dbHelper.removeMovieFromWatchlist(tmdbId)
-            "sync/favorites" -> dbHelper.addMovieToFavorites(movieTitle, type, tmdbId)
+            "sync/favorites" -> dbHelper.addMovieToFavorites(movieTitle, type, tmdbId, collectedAt)
             "sync/favorites/remove" -> dbHelper.removeMovieFromFavorites(tmdbId)
             "sync/collection" -> dbHelper.addMovieToCollection(movieTitle, type, tmdbId, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
             "sync/collection/remove" -> dbHelper.removeFromCollection(tmdbId)
@@ -1621,7 +1631,7 @@ class DetailActivity : BaseActivity() {
                 dbHelper.removeMovieFromHistory(tmdbId)
                 dbHelper.removeMovieFromWatched(tmdbId)
             }
-            "sync/ratings" -> dbHelper.addMovieRating(movieTitle, type, tmdbId, rating)
+            "sync/ratings" -> dbHelper.addMovieRating(movieTitle, type, tmdbId, rating, collectedAt)
             "sync/ratings/remove" -> dbHelper.removeMovieRating(tmdbId)
         }
     }

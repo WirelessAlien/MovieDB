@@ -799,12 +799,13 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         return rating
     }
 
-    fun addMovieToWatchlist(title: String, type: String, tmdbId: Int) {
+    fun addMovieToWatchlist(title: String, type: String, tmdbId: Int, collectedAt: String?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_TITLE, title)
             put(COL_TYPE, type)
             put(COL_TMDB, tmdbId)
+            put(COL_LISTED_AT, collectedAt)
         }
         db.insert(TABLE_WATCHLIST, null, values)
     }
@@ -814,12 +815,13 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.delete(TABLE_WATCHLIST, "$COL_TMDB = ?", arrayOf(tmdbId.toString()))
     }
 
-    fun addMovieToFavorites(title: String, type: String, tmdbId: Int) {
+    fun addMovieToFavorites(title: String, type: String, tmdbId: Int, collectedAt: String?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_TITLE, title)
             put(COL_TYPE, type)
             put(COL_TMDB, tmdbId)
+            put(COL_LISTED_AT, collectedAt)
         }
         db.insert(TABLE_FAVORITE, null, values)
     }
@@ -868,13 +870,14 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.insert(TABLE_WATCHED, null, values)
     }
 
-    fun addMovieRating(title: String, type: String, tmdbId: Int, rating: Int) {
+    fun addMovieRating(title: String, type: String, tmdbId: Int, rating: Int, collectedAt: String?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_TITLE, title)
             put(COL_TYPE, type)
             put(COL_TMDB, tmdbId)
             put(COL_RATING, rating)
+            put(COL_RATED_AT, collectedAt)
         }
         db.insert(TABLE_RATING, null, values)
     }
@@ -1044,7 +1047,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.delete(TABLE_HISTORY, "$COL_SHOW_TMDB = ? AND $COL_SEASON = ? AND $COL_NUMBER = ?", arrayOf(showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString()))
     }
 
-    fun addEpisodeToWatchlist(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int) {
+    fun addEpisodeToWatchlist(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int, collectedAt: String?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_SHOW_TITLE, title)
@@ -1053,6 +1056,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             put(COL_TYPE, type)
             put(COL_SEASON, seasonNumber)
             put(COL_NUMBER, episodeNumber)
+            put(COL_LISTED_AT, collectedAt)
         }
         db.insert(TABLE_WATCHLIST, null, values)
     }
@@ -1062,7 +1066,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.delete(TABLE_WATCHLIST, "$COL_SHOW_TMDB = ? AND $COL_SEASON = ? AND $COL_NUMBER = ?", arrayOf(showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString()))
     }
 
-    fun addEpisodeRating(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int, rating: Int) {
+    fun addEpisodeRating(title: String, showTraktId: Int, showTmdbId: Int, type: String, seasonNumber: Int, episodeNumber: Int, rating: Int, collectedAt: String?) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_SHOW_TITLE, title)
@@ -1072,6 +1076,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             put(COL_SEASON, seasonNumber)
             put(COL_NUMBER, episodeNumber)
             put(COL_RATING, rating)
+            put(COL_RATED_AT, collectedAt)
         }
         db.insert(TABLE_RATING, null, values)
     }
