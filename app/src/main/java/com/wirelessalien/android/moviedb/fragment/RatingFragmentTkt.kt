@@ -21,7 +21,6 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -180,16 +179,34 @@ class RatingFragmentTkt : BaseFragment() {
                         }
                         tmdbCursor.close()
 
-                        Log.d("WatchlistFragmentTkt", "Loaded watchlist item: $jsonObject")
                         fullRatinglist.add(jsonObject)
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
             }
-            adapter.updateShowList(fullRatinglist)
+            applySorting()
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
+    }
+
+    private fun applySorting() {
+        val criteria = preferences.getString("tkt_sort_criteria", "name")
+        val order = preferences.getString("tkt_sort_order", "asc")
+
+        val comparator = when (criteria) {
+            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "date" -> compareBy { it.optString("rated_at", "") }
+            else -> compareBy { it.optString("title", "") }
+        }
+
+        if (order == "desc") {
+            fullRatinglist.sortWith(comparator.reversed())
+        } else {
+            fullRatinglist.sortWith(comparator)
+        }
+
+        adapter.updateShowList(fullRatinglist)
     }
 
     private fun filterRatingData(type: String) {

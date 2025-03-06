@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
@@ -19,18 +18,23 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/action_export"
-        android:orderInCategory="1"
-        android:title="@string/action_export"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_import"
-        android:orderInCategory="2"
-        android:title="@string/action_import"
-        app:showAsAction="never" />
+        android:id="@+id/sort"
+        android:title="@string/sort_by">
+        <menu>
+            <item
+                android:id="@+id/sort_name_asc"
+                android:title="Name (Ascending)" />
+            <item
+                android:id="@+id/sort_name_desc"
+                android:title="Name (Descending)" />
+            <item
+                android:id="@+id/sort_date_asc"
+                android:title="Date Added (Ascending)" />
+            <item
+                android:id="@+id/sort_date_desc"
+                android:title="Date Added (Descending)" />
+        </menu>
+    </item>
 </menu>

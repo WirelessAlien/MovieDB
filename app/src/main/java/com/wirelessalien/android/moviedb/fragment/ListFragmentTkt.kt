@@ -21,7 +21,6 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -95,16 +94,36 @@ class ListFragmentTkt : BaseFragment() {
                             put("trakt_list_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)))
                             put("number_of_items", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ITEM_COUNT)))
                             put("description", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_DESCRIPTION)))
+                            put("created_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_CREATED_AT)))
                         }
-                        Log.d("ListFragmentTkt", "loadListData: $jsonObject")
                         tempList.add(jsonObject)
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
                 tempList
             }
-            adapter.updateList(newList)
+            val sortedList = applySorting(newList)
+            adapter.updateList(sortedList)
             binding.progressBar.visibility = View.GONE
         }
+    }
+
+    private fun applySorting(list: ArrayList<JSONObject>): ArrayList<JSONObject> {
+        val criteria = preferences.getString("tkt_sort_criteria", "name")
+        val order = preferences.getString("tkt_sort_order", "asc")
+
+        val comparator = when (criteria) {
+            "name" -> compareBy<JSONObject> { it.optString("name", "") }
+            "date" -> compareBy { it.optString("created_at", "") }
+            else -> compareBy { it.optString("name", "") }
+        }
+
+        if (order == "desc") {
+            list.sortWith(comparator.reversed())
+        } else {
+            list.sortWith(comparator)
+        }
+
+        return list
     }
 }

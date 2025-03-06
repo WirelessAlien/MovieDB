@@ -21,7 +21,6 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -165,16 +164,34 @@ class WatchedFragmentTkt : BaseFragment() {
                         }
                         tmdbCursor.close()
 
-                        Log.d("WatchlistFragmentTkt", "Loaded watchlist item: $jsonObject")
                         fullWatchedList.add(jsonObject)
                     } while (cursor.moveToNext())
                 }
                 cursor.close()
             }
-            adapter.updateShowList(fullWatchedList)
+            applySorting()
             binding.shimmerFrameLayout1.stopShimmer()
             binding.shimmerFrameLayout1.visibility = View.GONE
         }
+    }
+
+    private fun applySorting() {
+        val criteria = preferences.getString("tkt_sort_criteria", "name")
+        val order = preferences.getString("tkt_sort_order", "asc")
+
+        val comparator = when (criteria) {
+            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "date" -> compareBy { it.optString("last_watched_at", "") }
+            else -> compareBy { it.optString("title", "") }
+        }
+
+        if (order == "desc") {
+            fullWatchedList.sortWith(comparator.reversed())
+        } else {
+            fullWatchedList.sortWith(comparator)
+        }
+
+        adapter.updateShowList(fullWatchedList)
     }
 
     private fun filterWatchedData(type: String) {

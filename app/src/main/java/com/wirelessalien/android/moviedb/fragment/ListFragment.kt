@@ -158,6 +158,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.database_menu, menu)
+                menuInflater.inflate(R.menu.tkt_auto_sync_menu, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

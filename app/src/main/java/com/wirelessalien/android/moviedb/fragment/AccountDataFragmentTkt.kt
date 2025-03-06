@@ -87,6 +87,7 @@ class AccountDataFragmentTkt : BaseFragment() {
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.trakt_refresh_menu, menu)
+                menuInflater.inflate(R.menu.tkt_sort_menu, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -99,6 +100,22 @@ class AccountDataFragmentTkt : BaseFragment() {
                         val traktStatsBottomSheet = TraktStatsBottomSheet()
                         traktStatsBottomSheet.show(parentFragmentManager, traktStatsBottomSheet.tag)
                         true
+                    }
+                    R.id.sort_name_asc -> {
+                        saveSortPreference("name", "asc")
+                        true
+                    }
+                    R.id.sort_name_desc -> {
+                        saveSortPreference("name", "desc")
+                        true
+                    }
+                    R.id.sort_date_asc -> {
+                        saveSortPreference("date", "asc")
+                        true
+                    }
+                    R.id.sort_date_desc -> {
+                    saveSortPreference("date", "desc")
+                    true
                     }
                     else -> false
                 }
@@ -126,6 +143,15 @@ class AccountDataFragmentTkt : BaseFragment() {
         }
 
         return view
+    }
+
+    private fun saveSortPreference(criteria: String, order: String) {
+        with(sharedPreferences.edit()) {
+            putString("tkt_sort_criteria", criteria)
+            putString("tkt_sort_order", order)
+            apply()
+        }
+        reloadFragment()
     }
 
     private fun removeCheckin() {

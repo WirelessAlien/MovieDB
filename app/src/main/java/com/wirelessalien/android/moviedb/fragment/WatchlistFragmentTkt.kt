@@ -177,10 +177,29 @@ class WatchlistFragmentTkt : BaseFragment() {
                 }
                 cursor.close()
             }
-            adapter.updateShowList(fullWatchlist)
+            applySorting()
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
+    }
+
+    private fun applySorting() {
+        val criteria = preferences.getString("tkt_sort_criteria", "name")
+        val order = preferences.getString("tkt_sort_order", "asc")
+
+        val comparator = when (criteria) {
+            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "date" -> compareBy { it.optString("listed_at", "") }
+            else -> compareBy { it.optString("title", "") }
+        }
+
+        if (order == "desc") {
+            fullWatchlist.sortWith(comparator.reversed())
+        } else {
+            fullWatchlist.sortWith(comparator)
+        }
+
+        adapter.updateShowList(fullWatchlist)
     }
 
     private fun filterWatchlistData(type: String) {

@@ -166,10 +166,29 @@ class FavoriteFragmentTkt : BaseFragment() {
                 }
                 cursor.close()
             }
-            adapter.updateShowList(fullFavoritelist)
+            applySorting()
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
+    }
+
+    private fun applySorting() {
+        val criteria = preferences.getString("tkt_sort_criteria", "name")
+        val order = preferences.getString("tkt_sort_order", "asc")
+
+        val comparator = when (criteria) {
+            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "date" -> compareBy { it.optString("listed_at", "") }
+            else -> compareBy { it.optString("title", "") }
+        }
+
+        if (order == "desc") {
+            fullFavoritelist.sortWith(comparator.reversed())
+        } else {
+            fullFavoritelist.sortWith(comparator)
+        }
+
+        adapter.updateShowList(fullFavoritelist)
     }
 
     private fun filterFavoriteData(type: String) {

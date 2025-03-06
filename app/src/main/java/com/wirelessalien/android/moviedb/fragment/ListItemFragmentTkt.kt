@@ -182,10 +182,29 @@ class ListItemFragmentTkt : BaseFragment() {
                 }
                 cursor.close()
             }
-            adapter.updateShowList(fullListItemList)
+            applySorting()
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
+    }
+
+    private fun applySorting() {
+        val criteria = preferences.getString("tkt_sort_criteria", "name")
+        val order = preferences.getString("tkt_sort_order", "asc")
+
+        val comparator = when (criteria) {
+            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "date" -> compareBy { it.optString("listed_at", "") }
+            else -> compareBy { it.optString("title", "") }
+        }
+
+        if (order == "desc") {
+            fullListItemList.sortWith(comparator.reversed())
+        } else {
+            fullListItemList.sortWith(comparator)
+        }
+
+        adapter.updateShowList(fullListItemList)
     }
 
     private fun filterListItemData(type: String) {

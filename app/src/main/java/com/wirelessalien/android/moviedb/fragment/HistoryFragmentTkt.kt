@@ -57,7 +57,7 @@ class HistoryFragmentTkt : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentHistoryTktBinding.inflate(inflater, container, false)
         val view = binding.root
 
@@ -171,10 +171,29 @@ class HistoryFragmentTkt : BaseFragment() {
                 }
                 cursor.close()
             }
-            adapter.updateShowList(fullHistorylist)
+            applySorting()
             binding.shimmerFrameLayout1.stopShimmer()
             binding.shimmerFrameLayout1.visibility = View.GONE
         }
+    }
+
+    private fun applySorting() {
+        val criteria = preferences.getString("tkt_sort_criteria", "name")
+        val order = preferences.getString("tkt_sort_order", "asc")
+
+        val comparator = when (criteria) {
+            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "date" -> compareBy { it.optString("watched_at", "") }
+            else -> compareBy { it.optString("title", "") }
+        }
+
+        if (order == "desc") {
+            fullHistorylist.sortWith(comparator.reversed())
+        } else {
+            fullHistorylist.sortWith(comparator)
+        }
+
+        adapter.updateShowList(fullHistorylist)
     }
 
     private fun filterHistoryData(type: String) {
