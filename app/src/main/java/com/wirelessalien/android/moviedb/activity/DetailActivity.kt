@@ -1245,9 +1245,19 @@ class DetailActivity : BaseActivity() {
                 val timesPlayedD = dbHelper.getTimesPlayed(movieId)
                 val lastWatchedD = dbHelper.getLastWatched(movieId)
                 if (lastWatchedD != null) {
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-                    val date = dateFormat.parse(lastWatchedD)
-                    val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(date)
+                    val dateFormats = listOf(
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                        "yyyy-MM-dd",
+                        "dd-MM-yyyy"
+                    )
+                    val date = dateFormats.firstNotNullOfOrNull { format ->
+                        try {
+                            SimpleDateFormat(format, Locale.getDefault()).parse(lastWatchedD)
+                        } catch (e: ParseException) {
+                            null
+                        }
+                    }
+                    val formattedDate = date?.let { DateFormat.getDateInstance(DateFormat.DEFAULT).format(it) } ?: lastWatchedD
                     Pair(timesPlayedD, formattedDate)
                 } else {
                     null
@@ -1279,7 +1289,11 @@ class DetailActivity : BaseActivity() {
         }
 
         watchingNowButton.setOnClickListener {
-            traktCheckin("/checkin")
+            val currentDateTime = android.icu.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.getDefault()
+            ).format(Date())
+            traktCheckin("/checkin", currentDateTime)
             dialog.dismiss()
         }
 
@@ -1600,7 +1614,7 @@ class DetailActivity : BaseActivity() {
             "sync/collection" -> dbHelper.addMovieToCollection(movieTitle, type, tmdbId, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
             "sync/collection/remove" -> dbHelper.removeFromCollection(tmdbId)
             "sync/history" -> {
-                dbHelper.addMovieToHistory(movieTitle, type, tmdbId)
+                dbHelper.addMovieToHistory(movieTitle, type, tmdbId, watchedAtN)
                 dbHelper.addMovieToWatched(movieTitle, type, tmdbId, watchedAtN)
             }
             "sync/history/remove" -> {
@@ -1611,7 +1625,7 @@ class DetailActivity : BaseActivity() {
             "sync/ratings/remove" -> dbHelper.removeMovieRating(tmdbId)
         }
     }
-    private fun traktCheckin(endpoint: String) {
+    private fun traktCheckin(endpoint: String, currentTime: String) {
         val traktApiService = TraktSync(tktaccessToken!!)
         val jsonBody = traktCheckingObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
@@ -1627,7 +1641,7 @@ class DetailActivity : BaseActivity() {
                         updateTraktButtonsUI("sync/history")
                         lifecycleScope.launch {
                             withContext(Dispatchers.IO) {
-                                handleDatabaseUpdate("sync/history", 0, "", null, null, null, null, null, null, null)
+                                handleDatabaseUpdate("sync/history", 0, currentTime, null, null, null, null, null, null, null)
                             }
                         }
                         getString(R.string.success)
@@ -2862,7 +2876,7 @@ class DetailActivity : BaseActivity() {
                                 displayWatchProviders(countryData)
                             } else {
                                 binding.watchProvidersRv.visibility = View.GONE
-                                binding.justwatchIv.visibility = View.GONE
+                                binding.justwatchCard.visibility = View.GONE
                             }
                         }
                     }
@@ -2870,7 +2884,7 @@ class DetailActivity : BaseActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     binding.watchProvidersRv.visibility = View.GONE
-                    binding.justwatchIv.visibility = View.GONE
+                    binding.justwatchCard.visibility = View.GONE
                 }
             }
         }

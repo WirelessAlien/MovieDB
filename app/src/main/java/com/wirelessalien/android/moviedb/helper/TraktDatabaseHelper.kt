@@ -846,12 +846,13 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.insert(TABLE_COLLECTION, null, values)
     }
 
-    fun addMovieToHistory(title: String, type: String, tmdbId: Int) {
+    fun addMovieToHistory(title: String, type: String, tmdbId: Int, watchedAt: String) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_TITLE, title)
             put(COL_TYPE, type)
             put(COL_TMDB, tmdbId)
+            put(COL_WATCHED_AT, watchedAt)
         }
         db.insert(TABLE_HISTORY, null, values)
     }
@@ -922,7 +923,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         return timesPlayed
     }
 
-    fun addEpisodeToWatchedTable(tvShowId: Int, traktId: Int, type: String, title: String) {
+    fun addEpisodeToWatchedTable(tvShowId: Int, traktId: Int, type: String, title: String, collectedAt: String?) {
         val db = writableDatabase
         val cursor = db.query(
             TABLE_WATCHED,
@@ -940,6 +941,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
                 put(COL_TRAKT_ID, traktId)
                 put(COL_TYPE, type)
                 put(COL_TITLE, title)
+                put(COL_LAST_WATCHED_AT, collectedAt)
             }
             db.insert(TABLE_WATCHED, null, values)
         }
@@ -960,11 +962,11 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
     }
 
     fun addEpisodeToWatched(
-        title: String,
         showTraktId: Int,
         showTmdbId: Int,
         seasonNumber: Int,
-        episodeNumber: Int
+        episodeNumber: Int,
+        collectedAt: String?
     ) {
         val db = writableDatabase
         val values = ContentValues().apply {
@@ -972,6 +974,8 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             put(COL_SHOW_TMDB_ID, showTmdbId)
             put(COL_SEASON_NUMBER, seasonNumber)
             put(COL_EPISODE_NUMBER, episodeNumber)
+            put(COL_PLAYS, 1)
+            put(COL_LAST_WATCHED_AT, collectedAt)
         }
         db.insert(TABLE_SEASON_EPISODE_WATCHED, null, values)
     }

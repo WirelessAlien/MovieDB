@@ -262,6 +262,9 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
             override fun onPrepareMenu(menu: Menu) {
                 mSearchAction = menu.findItem(R.id.action_search)
                 mSearchAction?.isVisible = false
+                //hide account menu item
+                val accountMenuItem = menu.findItem(R.id.action_login)
+                accountMenuItem.isVisible = false
             }
         }, this, Lifecycle.State.RESUMED)
     }

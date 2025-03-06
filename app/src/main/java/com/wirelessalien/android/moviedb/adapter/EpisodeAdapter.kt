@@ -306,10 +306,12 @@ class EpisodeAdapter(
         val rating = episodeRatings[episode.episodeNumber] ?: 0.0
         if (rating == 0.0) {
             holder.binding.rating.setText(R.string.episode_rating_tmdb_not_set)
+            holder.binding.btnAddRatingToTmdb.icon = ContextCompat.getDrawable(context, R.drawable.ic_thumb_up_border)
         } else {
             holder.binding.rating.text = context.getString(R.string.rating_tmdb) + String.format(
                 Locale.getDefault(), "%.1f/" + String.format(Locale.getDefault(), "%d", 10), rating
             )
+            holder.binding.btnAddRatingToTmdb.icon = ContextCompat.getDrawable(context, R.drawable.ic_thumb_up)
         }
 
         val sessionId = defaultSharedPreferences.getString("access_token", null)
@@ -764,12 +766,20 @@ class EpisodeAdapter(
                 val timesPlayedD = dbHelper.getEpisodeTimesPlayed(tvShowId, seasonNumber, episode.episodeNumber)
                 val lastWatchedD = dbHelper.getEpisodeLastWatched(tvShowId, seasonNumber, episode.episodeNumber)
                 if (lastWatchedD != null) {
-                    val dateFormat = java.text.SimpleDateFormat(
+                    val dateFormats = listOf(
                         "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                        Locale.getDefault()
+                        "yyyy-MM-dd",
+                        "dd-MM-yyyy"
                     )
-                    val date = dateFormat.parse(lastWatchedD)
-                    val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(date)
+                    val date = dateFormats.firstNotNullOfOrNull { format ->
+                        try {
+                            java.text.SimpleDateFormat(format, Locale.getDefault())
+                                .parse(lastWatchedD)
+                        } catch (e: ParseException) {
+                            null
+                        }
+                    }
+                    val formattedDate = date?.let { DateFormat.getDateInstance(DateFormat.DEFAULT).format(it) } ?: lastWatchedD
                     Pair(timesPlayedD, formattedDate)
                 } else {
                     null
@@ -842,21 +852,24 @@ class EpisodeAdapter(
                             put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
                         }
 
-                        val episodeDetails = JSONObject().apply {
+                        val episodeObject = JSONObject().apply {
+                            put("title", episodeData.getString("title"))
                             put("ids", episodeIds)
                         }
 
                         JSONObject().apply {
-                            put("episodes", JSONArray().put(episodeDetails))
+                            put("episode", episodeObject)
                         }
                     } else {
                         null
                     }
                 }
 
+                val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(Date())
+
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("checkin", episode, 0, holder, null, null, null, null, null, null, null)
+                    traktSync("checkin", episode, 0, holder, currentDateTime, null, null, null, null, null, null)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -891,7 +904,7 @@ class EpisodeAdapter(
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("sync/history", episode, 0, holder, null, null, null, null, null, null, null)
+                    traktSync("sync/history", episode, 0, holder, "Release", null, null, null, null, null, null)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -1236,8 +1249,8 @@ class EpisodeAdapter(
 //            "sync/collection/remove" -> dbHelper.removeEpisodeFromCollection(tvShowId, seasonNumber, episode.episodeNumber)
             "sync/history" -> {
                 dbHelper.addEpisodeToHistory(showTitle, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber, collectedAt)
-                dbHelper.addEpisodeToWatched(showTitle, traktId, tvShowId, seasonNumber, episode.episodeNumber)
-                dbHelper.addEpisodeToWatchedTable(tvShowId, traktId, "show", showTitle)
+                dbHelper.addEpisodeToWatched(traktId, tvShowId, seasonNumber, episode.episodeNumber, collectedAt)
+                dbHelper.addEpisodeToWatchedTable(tvShowId, traktId, "show", showTitle, collectedAt)
             }
             "sync/history/remove" -> {
                 dbHelper.removeEpisodeFromHistory(tvShowId, seasonNumber, episode.episodeNumber)

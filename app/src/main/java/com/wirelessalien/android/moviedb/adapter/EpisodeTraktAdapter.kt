@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.adapter
 
 import android.content.ContentValues
 import android.content.Context
+import android.icu.text.SimpleDateFormat
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
@@ -46,6 +47,8 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+import java.util.Date
+import java.util.Locale
 
 class EpisodeTraktAdapter(
     private val episodes: List<Int>,
@@ -75,6 +78,9 @@ class EpisodeTraktAdapter(
         holder.episodeStatusButton.setImageResource(iconRes)
 
         holder.episodeStatusButton.setOnClickListener {
+            val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(
+                Date()
+            )
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeData = fetchEpisodeData(showData.getInt("trakt_id"), seasonNumber, episodeNumber, traktAccessToken)
                 val episodeObject = if (episodeData != null) {
@@ -92,7 +98,7 @@ class EpisodeTraktAdapter(
                 }
                 mediaObject = episodeObject
                 val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
-                traktSync(endpoint, holder, episodeNumber)
+                traktSync(endpoint, holder, episodeNumber, currentDateTime)
             }
         }
     }
@@ -163,7 +169,7 @@ class EpisodeTraktAdapter(
         }
     }
 
-    private fun traktSync(endpoint: String, holder: EpisodeViewHolder, episodeNumber: Int) {
+    private fun traktSync(endpoint: String, holder: EpisodeViewHolder, episodeNumber: Int, currentTime: String) {
         val traktApiService = TraktSync(traktAccessToken)
         val jsonBody = mediaObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
@@ -186,8 +192,10 @@ class EpisodeTraktAdapter(
                                 put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, showData.getInt("id"))
                                 put(TraktDatabaseHelper.COL_SEASON_NUMBER, seasonNumber)
                                 put(TraktDatabaseHelper.COL_EPISODE_NUMBER, episodeNumber)
+                                put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, currentTime)
                             }
                             dbHelper.insertSeasonEpisodeWatchedData(values)
+                            dbHelper.addEpisodeToHistory(showData.getString("title"), traktId, showData.getInt("id"), "episode", seasonNumber, episodeNumber, currentTime)
                             watchedEpisodes.add(episodeNumber)
                             holder.episodeStatusButton.setImageResource(R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
