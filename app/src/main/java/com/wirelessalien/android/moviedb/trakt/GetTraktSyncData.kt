@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.trakt
 
 import android.content.ContentValues
 import android.content.Context
+import android.icu.text.SimpleDateFormat
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper.Companion.USER_LISTS
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +32,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import java.io.IOException
+import java.util.Date
+import java.util.Locale
 
 class GetTraktSyncData(context: Context, private val accessToken: String?, private val clientId: String?) {
 
@@ -49,6 +52,7 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
             fetchFavoriteData()
             fetchUserLists()
             fetchAllListItems()
+            fetchCalendarData()
         }
     }
 
@@ -630,6 +634,76 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
                     }
                 }
                 dbHelper.insertListItemData(values)
+            }
+        }
+    }
+
+    fun fetchCalendarData() {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val today = sdf.format(Date())
+
+        // Fetch shows calendar
+        val showsUrl = "https://api.trakt.tv/calendars/my/shows/$today/7"
+        val showsRequest = createRequest(showsUrl)
+        executeRequest(showsRequest) { showResponse ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_CALENDER, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("episode"))
+
+            val showsArray = JSONArray(showResponse)
+            for (i in 0 until showsArray.length()) {
+                val item = showsArray.getJSONObject(i)
+                val firstAired = item.getString("first_aired")
+                val episode = item.getJSONObject("episode")
+                val show = item.getJSONObject("show")
+
+                val values = ContentValues().apply {
+                    put(TraktDatabaseHelper.COL_TYPE, "episode")
+                    put(TraktDatabaseHelper.COL_AIR_DATE, firstAired)
+                    // Episode details
+                    put(TraktDatabaseHelper.COL_SEASON, episode.getInt("season"))
+                    put(TraktDatabaseHelper.COL_NUMBER, episode.getInt("number"))
+                    put(TraktDatabaseHelper.COL_EPISODE_TITLE, episode.getString("title"))
+                    put(TraktDatabaseHelper.COL_EPISODE_TRAKT_ID, episode.getJSONObject("ids").getInt("trakt"))
+                    put(TraktDatabaseHelper.COL_EPISODE_TVDB, episode.getJSONObject("ids").optInt("tvdb"))
+                    put(TraktDatabaseHelper.COL_EPISODE_IMDB, episode.getJSONObject("ids").optString("imdb"))
+                    put(TraktDatabaseHelper.COL_EPISODE_TMDB, episode.getJSONObject("ids").optInt("tmdb"))
+                    // Show details
+                    put(TraktDatabaseHelper.COL_SHOW_TITLE, show.getString("title"))
+                    put(TraktDatabaseHelper.COL_SHOW_YEAR, show.getInt("year"))
+                    put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, show.getJSONObject("ids").getInt("trakt"))
+                    put(TraktDatabaseHelper.COL_SHOW_SLUG, show.getJSONObject("ids").getString("slug"))
+                    put(TraktDatabaseHelper.COL_SHOW_TVDB, show.getJSONObject("ids").optInt("tvdb"))
+                    put(TraktDatabaseHelper.COL_SHOW_IMDB, show.getJSONObject("ids").optString("imdb"))
+                    put(TraktDatabaseHelper.COL_SHOW_TMDB, show.getJSONObject("ids").optInt("tmdb"))
+                }
+                dbHelper.insertCalendarData(values)
+            }
+        }
+
+        // Fetch movies calendar
+        val moviesUrl = "https://api.trakt.tv/calendars/my/movies/$today/7"
+        val moviesRequest = createRequest(moviesUrl)
+        executeRequest(moviesRequest) { movieResponse ->
+            val db = dbHelper.writableDatabase
+            db.delete(TraktDatabaseHelper.TABLE_CALENDER, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("movie"))
+
+            val moviesArray = JSONArray(movieResponse)
+            for (i in 0 until moviesArray.length()) {
+                val item = moviesArray.getJSONObject(i)
+                val releaseDate = item.getString("released")
+                val movie = item.getJSONObject("movie")
+
+                val values = ContentValues().apply {
+                    put(TraktDatabaseHelper.COL_TYPE, "movie")
+                    put(TraktDatabaseHelper.COL_AIR_DATE, releaseDate)
+                    put(TraktDatabaseHelper.COL_TITLE, movie.getString("title"))
+                    put(TraktDatabaseHelper.COL_YEAR, movie.getInt("year"))
+                    put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
+                    put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
+                    put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").optString("imdb"))
+                    put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").optInt("tmdb"))
+                }
+                dbHelper.insertCalendarData(values)
             }
         }
     }

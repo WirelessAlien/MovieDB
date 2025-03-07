@@ -19,173 +19,166 @@
  */
 package com.wirelessalien.android.moviedb.work
 
-import android.Manifest
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.SharedPreferences
+import android.database.Cursor
 import android.icu.text.SimpleDateFormat
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
+import android.icu.util.TimeZone
 import androidx.preference.PreferenceManager
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequest
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.activity.MainActivity
+import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import java.util.Date
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    private val localDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+
     override fun doWork(): Result {
-        val databaseHelper = MovieDatabaseHelper(applicationContext)
-        val db = databaseHelper.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES, null)
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val currentDate = sdf.format(Date())
-        while (cursor.moveToNext()) {
-            val title =
-                cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
-            val releaseDate =
-                cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE))
-            if (releaseDate != null && releaseDate == currentDate) {
-                createNotification(title)
+        return try {
+            checkAndScheduleNotifications()
+            Result.success()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure()
+        }
+    }
+
+    private fun checkAndScheduleNotifications() {
+        val episodeDb = EpisodeReminderDatabaseHelper(applicationContext)
+        val movieDb = MovieDatabaseHelper(applicationContext)
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+
+        // Query episode reminders
+        val episodeQuery = """
+            SELECT * FROM ${EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS}
+            WHERE ${EpisodeReminderDatabaseHelper.COLUMN_DATE} IS NOT NULL
+        """.trimIndent()
+
+        episodeDb.readableDatabase.rawQuery(episodeQuery, null).use { cursor ->
+            while (cursor.moveToNext()) {
+                val showTraktId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SHOW_TRAKT_ID))
+                val movieId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
+                val dateStr = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))
+
+                val shouldSchedule = when {
+                    showTraktId != null -> checkTraktCalendarExists(showTraktId)
+                    movieId != null -> checkMovieExists(movieDb, movieId)
+                    else -> false
+                }
+
+                if (shouldSchedule && dateStr != null) {
+                    val notificationKey = "notification_${showTraktId ?: movieId}_$dateStr"
+                    if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
+                        scheduleNotification(cursor, dateStr, notificationKey)
+                    }
+                }
             }
         }
-        cursor.close()
-        val episodeDatabaseHelper = EpisodeReminderDatabaseHelper(applicationContext)
-        val dbEpisode = episodeDatabaseHelper.readableDatabase
-        val cursorEpisode = dbEpisode.rawQuery(
-            "SELECT * FROM " + EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
-            null
-        )
-        while (cursorEpisode.moveToNext()) {
-            val tvShowName = cursorEpisode.getString(
-                cursorEpisode.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME)
-            )
-            val episodeName = cursorEpisode.getString(
-                cursorEpisode.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME)
-            )
-            val episodeNumber = cursorEpisode.getString(
-                cursorEpisode.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER)
-            )
-            val airDate = cursorEpisode.getString(
-                cursorEpisode.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE)
-            )
-            if (airDate != null && airDate == currentDate) {
-                createEpisodeNotification(tvShowName, episodeName, episodeNumber)
+    }
+
+    private fun checkTraktCalendarExists(traktId: Int): Boolean {
+        val db = EpisodeReminderDatabaseHelper(applicationContext).readableDatabase
+        return db.rawQuery(
+            "SELECT 1 FROM ${TraktDatabaseHelper.TABLE_CALENDER} WHERE ${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ?",
+            arrayOf(traktId.toString())
+        ).use { it.count > 0 }
+    }
+
+    private fun checkMovieExists(movieDb: MovieDatabaseHelper, movieId: Int): Boolean {
+        return movieDb.readableDatabase.rawQuery(
+            "SELECT 1 FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+            arrayOf(movieId.toString())
+        ).use { it.count > 0 }
+    }
+
+    private fun scheduleNotification(cursor: Cursor, dateStr: String, notificationKey: String) {
+        try {
+            val utcDate = dateFormat.parse(dateStr) ?: return
+            val localDateTime = localDateFormat.format(utcDate)
+
+            val title = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME))
+            val episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
+            val episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
+
+            // Schedule alarm using AlarmManager
+            val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent(applicationContext, NotificationReceiver::class.java).apply {
+                putExtra("title", title)
+                putExtra("episodeName", episodeName)
+                putExtra("episodeNumber", episodeNumber)
+                putExtra("notificationKey", notificationKey)
             }
-        }
-        cursorEpisode.close()
-        return Result.success()
-    }
 
-    private fun hasNotificationBeenShownToday(key: String): Boolean {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val lastNotificationDate = sharedPreferences.getString(key, null)
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val currentDate = sdf.format(Date())
-        return lastNotificationDate == currentDate
-    }
-
-    private fun setNotificationShownToday(key: String) {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val editor = sharedPreferences.edit()
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val currentDate = sdf.format(Date())
-        editor.putString(key, currentDate)
-        editor.apply()
-    }
-
-    private fun createNotification(title: String) {
-        val notificationKey = "notification_movie_$title"
-        if (hasNotificationBeenShownToday(notificationKey)) return
-
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val shouldNotify = sharedPreferences.getBoolean(NOTIFICATION_PREFERENCES, true)
-        if (shouldNotify) {
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            val pendingIntent = PendingIntent.getActivity(
+            val pendingIntent = PendingIntent.getBroadcast(
                 applicationContext,
-                0,
+                notificationKey.hashCode(),
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            val builder = NotificationCompat.Builder(applicationContext, "released_movies")
-                .setSmallIcon(R.drawable.icon)
-                .setContentTitle(title)
-                .setContentText(applicationContext.getString(R.string.movie_released_today, title))
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            val notificationManager = NotificationManagerCompat.from(applicationContext)
-            if (ActivityCompat.checkSelfPermission(
-                    applicationContext,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-            notificationManager.notify(notificationIdMovie, builder.build())
-            setNotificationShownToday(notificationKey)
+
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                utcDate.time,
+                pendingIntent
+            )
+
+            // Mark notification as scheduled
+            PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .edit()
+                .putBoolean(notificationKey, true)
+                .apply()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    private fun createEpisodeNotification(tvShowName: String, episodeName: String, episodeNumber: String) {
-        val notificationKey = "notification_episode_${tvShowName}_$episodeNumber"
-        if (hasNotificationBeenShownToday(notificationKey)) return
+    private fun hasNotificationBeenScheduled(preferences: SharedPreferences, key: String): Boolean {
+        return preferences.getBoolean(key, false)
+    }
 
-        val intent = Intent(applicationContext, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            applicationContext,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        val builder = NotificationCompat.Builder(applicationContext, "episode_reminders")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(tvShowName)
-            .setContentText(
-                applicationContext.getString(
-                    R.string.episode_airing_today,
-                    episodeNumber,
-                    episodeName
-                )
-            )
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        val notificationManager = NotificationManagerCompat.from(applicationContext)
-        if (ActivityCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-        notificationManager.notify(notificationIdEpisode, builder.build())
-        setNotificationShownToday(notificationKey)
+    private fun Cursor.getIntOrNull(columnIndex: Int): Int? {
+        return if (isNull(columnIndex)) null else getInt(columnIndex)
     }
 
     companion object {
-        private const val notificationIdMovie = 1
-        private const val notificationIdEpisode = 2
-        private const val NOTIFICATION_PREFERENCES = "key_get_notified_for_saved"
-
         fun scheduleWork(context: Context) {
-            val periodicWorkRequest = PeriodicWorkRequest.Builder(ReleaseReminderWorker::class.java, 1, TimeUnit.DAYS)
-                .build()
+            // Create periodic work request for CalenderAllWorkerTkt
+            val calendarWorkRequest = PeriodicWorkRequest.Builder(
+                CalenderAllWorkerTkt::class.java,
+                7, TimeUnit.DAYS
+            ).build()
+
+            // Create a one-time work request for ReleaseReminderWorker
+            val reminderWorkRequest = OneTimeWorkRequest.Builder(
+                ReleaseReminderWorker::class.java
+            ).build()
+
+            // Enqueue periodic work
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                "ReleaseReminderWorker",
-                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                periodicWorkRequest
+                "CalendarWork",
+                ExistingPeriodicWorkPolicy.KEEP,
+                calendarWorkRequest
             )
+
+            // Create and enqueue one-time work
+            WorkManager.getInstance(context)
+                .beginWith(reminderWorkRequest)
+                .enqueue()
         }
     }
 }

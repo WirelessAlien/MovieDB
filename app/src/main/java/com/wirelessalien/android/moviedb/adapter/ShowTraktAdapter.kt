@@ -120,6 +120,8 @@ class ShowTraktAdapter(
                 showData.optString("collected_at", "")
             } else if (showData.has("last_watched_at")) {
                 showData.optString("last_watched_at", "")
+            } else if (showData.has("air_date")) {
+                showData.optString("air_date", "")
             } else {
                 showData.optString("release_date", "")
             }

@@ -394,7 +394,40 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val permissions = arrayOf(
+                Manifest.permission.POST_NOTIFICATIONS,
+                Manifest.permission.SCHEDULE_EXACT_ALARM
+            )
+
+            val notGrantedPermissions = permissions.filter {
+                ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }
+
+            if (notGrantedPermissions.isNotEmpty()) {
+                if (notGrantedPermissions.any { ActivityCompat.shouldShowRequestPermissionRationale(this, it) }) {
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.permission_required)
+                        .setMessage(R.string.permission_required_description)
+                        .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
+                            ActivityCompat.requestPermissions(
+                                this@MainActivity,
+                                notGrantedPermissions.toTypedArray(),
+                                REQUEST_CODE
+                            )
+                        }
+                        .setNegativeButton(R.string.cancel) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+                        .create().show()
+                } else {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        notGrantedPermissions.toTypedArray(),
+                        REQUEST_CODE
+                    )
+                }
+                return
+            }
+        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
                 MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.permission_required)
@@ -1120,6 +1153,9 @@ class MainActivity : BaseActivity() {
                         getString(R.string.list_items) -> {
                             updateProgressMessage(getString(R.string.fetching_list_items))
                             getTraktSyncData.fetchAllListItems()
+                        }getString(R.string.upcoming) -> {
+                            updateProgressMessage(getString(R.string.fetching_upcoming))
+                            getTraktSyncData.fetchCalendarData()
                         }
                     }
                 }

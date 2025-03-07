@@ -116,6 +116,7 @@
     <string name="latest">Latest</string>
     <string name="watching_now">WATCHING NOW</string>
     <string name="gen_error_msg">Something went wrong</string>
+    <string name="fetching_upcoming"><![CDATA[Fething upcoming movie & shows…]]></string>
 
 
     <string-array name="media_types">
