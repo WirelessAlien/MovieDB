@@ -88,6 +88,25 @@ class AccountDataFragmentTkt : BaseFragment() {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.trakt_refresh_menu, menu)
                 menuInflater.inflate(R.menu.tkt_sort_menu, menu)
+
+                val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
+                if (currentFragment is CalanderFragmentTkt) {
+                    menu.findItem(R.id.sort_name_asc)?.isVisible = false
+                    menu.findItem(R.id.sort_name_desc)?.isVisible = false
+                    menu.findItem(R.id.sort_date_asc)?.isVisible = false
+                    menu.findItem(R.id.sort_date_desc)?.isVisible = false
+                }
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
+                super.onPrepareMenu(menu)
+                val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
+                if (currentFragment is CalanderFragmentTkt) {
+                    menu.findItem(R.id.sort_name_asc)?.isVisible = false
+                    menu.findItem(R.id.sort_name_desc)?.isVisible = false
+                    menu.findItem(R.id.sort_date_asc)?.isVisible = false
+                    menu.findItem(R.id.sort_date_desc)?.isVisible = false
+                }
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -114,8 +133,8 @@ class AccountDataFragmentTkt : BaseFragment() {
                         true
                     }
                     R.id.sort_date_desc -> {
-                    saveSortPreference("date", "desc")
-                    true
+                        saveSortPreference("date", "desc")
+                        true
                     }
                     else -> false
                 }
@@ -214,21 +233,23 @@ class AccountDataFragmentTkt : BaseFragment() {
 
     private fun refreshCurrentFragmentData() {
         val selectedOptions = when (binding.tabs.selectedTabPosition) {
-            0 -> setOf(getString(R.string.watchlist))
+            0 -> setOf(getString(R.string.upcoming))
             1 -> setOf(getString(R.string.movie_watched), getString(R.string.show_watched))
-            2 -> setOf(getString(R.string.movie_collection), getString(R.string.show_collection))
-            3 -> setOf(getString(R.string.history))
-            4 -> setOf(getString(R.string.favourite))
-            5 -> setOf(getString(R.string.rating1))
-            6 -> setOf(getString(R.string.lists), getString(R.string.list_items))
+            2 -> setOf(getString(R.string.watchlist))
+            3 -> setOf(getString(R.string.movie_collection), getString(R.string.show_collection))
+            4 -> setOf(getString(R.string.history))
+            5 -> setOf(getString(R.string.favourite))
+            6 -> setOf(getString(R.string.rating1))
+            7 -> setOf(getString(R.string.lists), getString(R.string.list_items))
             else -> emptySet()
         }
         refreshData(selectedOptions)
     }
 
     private fun setupTabs() {
-        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.watchlist)))
+        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.upcoming)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.progress)))
+        binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.watchlist)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.collection)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.history)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.favourite)))
@@ -237,13 +258,14 @@ class AccountDataFragmentTkt : BaseFragment() {
         binding.tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 val selectedFragment: Fragment? = when (tab.position) {
-                    0 -> WatchlistFragmentTkt()
+                    0 -> CalanderFragmentTkt()
                     1 -> ProgressFragmentTkt()
-                    2 -> CollectionFragmentTkt()
-                    3 -> HistoryFragmentTkt()
-                    4 -> FavoriteFragmentTkt()
-                    5 -> RatingFragmentTkt()
-                    6 -> ListFragmentTkt()
+                    2 -> WatchlistFragmentTkt()
+                    3 -> CollectionFragmentTkt()
+                    4 -> HistoryFragmentTkt()
+                    5 -> FavoriteFragmentTkt()
+                    6 -> RatingFragmentTkt()
+                    7 -> ListFragmentTkt()
                     else -> null
                 }
                 if (selectedFragment != null && isAdded && activity != null) {
@@ -268,7 +290,7 @@ class AccountDataFragmentTkt : BaseFragment() {
         } else {
             if (isAdded && activity != null) {
                 childFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, WatchlistFragmentTkt())
+                    .replace(R.id.fragment_container, CalanderFragmentTkt())
                     .commit()
             }
         }
@@ -276,6 +298,7 @@ class AccountDataFragmentTkt : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
+        reloadFragment()
         activityBinding.fab.visibility = View.GONE
         activityBinding.fab2.visibility = View.GONE
     }
@@ -291,7 +314,8 @@ class AccountDataFragmentTkt : BaseFragment() {
             getString(R.string.watchlist),
             getString(R.string.favourite),
             getString(R.string.lists),
-            getString(R.string.list_items)
+            getString(R.string.list_items),
+            getString(R.string.upcoming)
         )
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -397,6 +421,10 @@ class AccountDataFragmentTkt : BaseFragment() {
                             updateProgressMessage(getString(R.string.fetching_list_items))
                             getTraktSyncData.fetchAllListItems()
                         }
+                        getString(R.string.upcoming) -> {
+                            updateProgressMessage(getString(R.string.fetching_upcoming))
+                            getTraktSyncData.fetchCalendarData()
+                        }
                     }
                 }
                 withContext(Dispatchers.Main) {
@@ -433,13 +461,14 @@ class AccountDataFragmentTkt : BaseFragment() {
 
     private fun reloadFragment() {
         val selectedFragment: Fragment? = when (binding.tabs.selectedTabPosition) {
-            0 -> WatchlistFragmentTkt()
+            0 -> CalanderFragmentTkt()
             1 -> ProgressFragmentTkt()
-            2 -> CollectionFragmentTkt()
-            3 -> HistoryFragmentTkt()
-            4 -> FavoriteFragmentTkt()
-            5 -> RatingFragmentTkt()
-            6 -> ListFragmentTkt()
+            2 -> WatchlistFragmentTkt()
+            3 -> CollectionFragmentTkt()
+            4 -> HistoryFragmentTkt()
+            5 -> FavoriteFragmentTkt()
+            6 -> RatingFragmentTkt()
+            7 -> ListFragmentTkt()
             else -> null
         }
         if (selectedFragment != null && isAdded && activity != null) {

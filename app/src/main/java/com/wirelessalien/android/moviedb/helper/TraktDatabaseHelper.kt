@@ -38,6 +38,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.execSQL(CREATE_USER_LISTS_TABLE)
         db.execSQL(CREATE_SEASON_EPISODE_TABLE)
         db.execSQL(CREATE_LIST_ITEM_TABLE)
+        db.execSQL(CREATE_CALENDER_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -50,6 +51,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.execSQL("DROP TABLE IF EXISTS $USER_LISTS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_SEASON_EPISODE_WATCHED")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_LIST_ITEM")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_CALENDER")
         onCreate(db)
     }
 
@@ -327,6 +329,38 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         cursor.close()
     }
 
+    fun insertCalendarData(values: ContentValues) {
+        val db = writableDatabase
+        val type = values.getAsString(COL_TYPE)
+        val traktId = values.getAsInteger(COL_SHOW_TRAKT_ID)
+        val season = values.getAsInteger(COL_SEASON)
+        val episode = values.getAsInteger(COL_NUMBER)
+
+        val cursor = db.query(
+            TABLE_CALENDER,
+            arrayOf(COL_ID),
+            "$COL_TYPE = ? AND $COL_SHOW_TRAKT_ID = ? AND $COL_SEASON = ? AND $COL_NUMBER = ?",
+            arrayOf(type, traktId.toString(), season.toString(), episode.toString()),
+            null,
+            null,
+            null
+        )
+
+        if (cursor.count > 0) {
+            // Data exists, update it
+            db.update(
+                TABLE_CALENDER,
+                values,
+                "$COL_TYPE = ? AND $COL_SHOW_TRAKT_ID = ? AND $COL_SEASON = ? AND $COL_NUMBER = ?",
+                arrayOf(type, traktId.toString(), season.toString(), episode.toString())
+            )
+        } else {
+            // Data does not exist, insert it
+            db.insert(TABLE_CALENDER, null, values)
+        }
+        cursor.close()
+    }
+
     fun insertFavoriteData(values: ContentValues) {
         val db = writableDatabase
         val traktId = values.getAsInteger(COL_TRAKT_ID)
@@ -488,6 +522,13 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         const val COL_AUDIO = "audio"
         const val COL_AUDIO_CHANNELS = "audio_channels"
         const val COL_THD = "thd"
+        const val TABLE_CALENDER = "calendar"
+        const val COL_AIR_DATE = "air_date"
+        const val COL_EPISODE_TITLE = "episode_title"
+        const val COL_EPISODE_TRAKT_ID = "episode_trakt_id"
+        const val COL_EPISODE_TVDB = "episode_tvdb"
+        const val COL_EPISODE_IMDB = "episode_imdb"
+        const val COL_EPISODE_TMDB = "episode_tmdb"
 
         private val CREATE_COLLECTION_TABLE = """
         CREATE TABLE $TABLE_COLLECTION (
@@ -512,6 +553,34 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             $COL_AUDIO_CHANNELS TEXT,
             $COL_THD INTEGER 
        
+        )
+    """.trimIndent()
+
+        private val CREATE_CALENDER_TABLE = """
+        CREATE TABLE $TABLE_CALENDER (
+            $COL_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            $COL_AIR_DATE TEXT,
+            $COL_TITLE TEXT,
+            $COL_TYPE TEXT,
+            $COL_YEAR INTEGER,
+            $COL_TRAKT_ID INTEGER,
+            $COL_SLUG TEXT,
+            $COL_IMDB TEXT,
+            $COL_TMDB INTEGER,
+            $COL_EPISODE_TITLE TEXT,
+            $COL_SEASON INTEGER,
+            $COL_NUMBER INTEGER,
+            $COL_EPISODE_TRAKT_ID INTEGER,
+            $COL_EPISODE_TVDB INTEGER,
+            $COL_EPISODE_IMDB TEXT,
+            $COL_EPISODE_TMDB INTEGER,
+            $COL_SHOW_TITLE TEXT,
+            $COL_SHOW_YEAR INTEGER,
+            $COL_SHOW_TRAKT_ID INTEGER, 
+            $COL_SHOW_SLUG TEXT, 
+            $COL_SHOW_TVDB INTEGER, 
+            $COL_SHOW_IMDB TEXT, 
+            $COL_SHOW_TMDB INTEGER
         )
     """.trimIndent()
 
