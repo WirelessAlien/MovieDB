@@ -72,6 +72,7 @@ import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -106,6 +107,7 @@ import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
+import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.ReleaseReminderWorker
 import com.wirelessalien.android.moviedb.work.TktTokenRefreshWorker
 import kotlinx.coroutines.Dispatchers
@@ -475,7 +477,7 @@ class MainActivity : BaseActivity() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorker::class.java, 1, TimeUnit.DAYS)
+        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorkerTkt::class.java, 1, TimeUnit.DAYS)
             .setConstraints(constraints)
             .build()
 
