@@ -26,11 +26,11 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
 import android.icu.util.TimeZone
 import androidx.preference.PreferenceManager
-import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
-import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -38,14 +38,44 @@ import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
+
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
     private val localDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    private val dateOnlyFormat1 = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    private val dateOnlyFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    private fun parseDate(dateStr: String): Date? {
+        val calendar = Calendar.getInstance()
+        return try {
+            dateFormat.parse(dateStr)
+        } catch (e: Exception) {
+            try {
+                dateOnlyFormat1.parse(dateStr)?.let {
+                    calendar.time = it
+                    calendar.set(Calendar.HOUR_OF_DAY, 8)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.time
+                }
+            } catch (e1: Exception) {
+                try {
+                    dateOnlyFormat2.parse(dateStr)?.let {
+                        calendar.time = it
+                        calendar.set(Calendar.HOUR_OF_DAY, 8)
+                        calendar.set(Calendar.MINUTE, 0)
+                        calendar.time
+                    }
+                } catch (e2: Exception) {
+                    null
+                }
+            }
+        }
+    }
 
     override fun doWork(): Result {
         return try {
@@ -60,6 +90,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
     private fun checkAndScheduleNotifications() {
         val episodeDb = EpisodeReminderDatabaseHelper(applicationContext)
         val movieDb = MovieDatabaseHelper(applicationContext)
+        val tktDb = TraktDatabaseHelper(applicationContext)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
         // Query episode reminders
@@ -72,16 +103,18 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
             while (cursor.moveToNext()) {
                 val showTraktId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SHOW_TRAKT_ID))
                 val movieId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
+                val seasonNumber = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SEASON))
+                val episodeNumber = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
                 val dateStr = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))
 
                 val shouldSchedule = when {
-                    showTraktId != null -> checkTraktCalendarExists(showTraktId)
-                    movieId != null -> checkMovieExists(movieDb, movieId)
+                    showTraktId != null && checkTraktCalendarExists(tktDb, showTraktId) -> true
+                    movieId != null && checkMovieExists(movieDb, movieId) -> true
                     else -> false
                 }
 
                 if (shouldSchedule && dateStr != null) {
-                    val notificationKey = "notification_${showTraktId ?: movieId}_$dateStr"
+                    val notificationKey = "notification_${showTraktId ?: movieId}_${seasonNumber ?: 0}_${episodeNumber ?: 0}_$dateStr"
                     if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
                         scheduleNotification(cursor, dateStr, notificationKey)
                     }
@@ -90,9 +123,8 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
         }
     }
 
-    private fun checkTraktCalendarExists(traktId: Int): Boolean {
-        val db = EpisodeReminderDatabaseHelper(applicationContext).readableDatabase
-        return db.rawQuery(
+    private fun checkTraktCalendarExists(tktDb: TraktDatabaseHelper, traktId: Int): Boolean {
+        return tktDb.readableDatabase.rawQuery(
             "SELECT 1 FROM ${TraktDatabaseHelper.TABLE_CALENDER} WHERE ${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ?",
             arrayOf(traktId.toString())
         ).use { it.count > 0 }
@@ -107,12 +139,13 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
     private fun scheduleNotification(cursor: Cursor, dateStr: String, notificationKey: String) {
         try {
-            val utcDate = dateFormat.parse(dateStr) ?: return
-            val localDateTime = localDateFormat.format(utcDate)
+            val utcDate = parseDate(dateStr) ?: return
+            val localDateTime = localDateFormat.parse(localDateFormat.format(utcDate)) ?: return
 
             val title = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME))
             val episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
             val episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
+            val type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
 
             // Schedule alarm using AlarmManager
             val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -121,6 +154,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 putExtra("episodeName", episodeName)
                 putExtra("episodeNumber", episodeNumber)
                 putExtra("notificationKey", notificationKey)
+                putExtra("type", type)
             }
 
             val pendingIntent = PendingIntent.getBroadcast(
@@ -132,7 +166,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
-                utcDate.time,
+                localDateTime.time,
                 pendingIntent
             )
 
@@ -158,9 +192,8 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
     companion object {
         fun scheduleWork(context: Context) {
             // Create periodic work request for CalenderAllWorkerTkt
-            val calendarWorkRequest = PeriodicWorkRequest.Builder(
-                CalenderAllWorkerTkt::class.java,
-                7, TimeUnit.DAYS
+            val calendarWorkRequest = OneTimeWorkRequest.Builder(
+                CalenderAllWorkerTkt::class.java
             ).build()
 
             // Create a one-time work request for ReleaseReminderWorker
@@ -168,16 +201,14 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 ReleaseReminderWorker::class.java
             ).build()
 
-            // Enqueue periodic work
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                "CalendarWork",
-                ExistingPeriodicWorkPolicy.KEEP,
-                calendarWorkRequest
-            )
-
-            // Create and enqueue one-time work
+            // Enqueue periodic work and chain it with one-time work
             WorkManager.getInstance(context)
-                .beginWith(reminderWorkRequest)
+                .beginUniqueWork(
+                    "CalendarAndReminderWork",
+                    ExistingWorkPolicy.REPLACE,
+                    calendarWorkRequest
+                )
+                .then(reminderWorkRequest)
                 .enqueue()
         }
     }

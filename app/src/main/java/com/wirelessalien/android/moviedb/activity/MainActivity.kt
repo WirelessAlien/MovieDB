@@ -471,7 +471,15 @@ class MainActivity : BaseActivity() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        ReleaseReminderWorker.scheduleWork(this)
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorker::class.java, 1, TimeUnit.DAYS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(context).enqueue(dailyWorkRequest)
 
         checkTokenExpiration()
 
@@ -1049,7 +1057,8 @@ class MainActivity : BaseActivity() {
             getString(R.string.watchlist),
             getString(R.string.favourite),
             getString(R.string.lists),
-            getString(R.string.list_items)
+            getString(R.string.list_items),
+            getString(R.string.upcoming)
         )
 
         val selectedOptions = preferences.getStringSet("selected_options", options.toMutableSet())?.toMutableSet() ?: options.toMutableSet()
@@ -1153,7 +1162,8 @@ class MainActivity : BaseActivity() {
                         getString(R.string.list_items) -> {
                             updateProgressMessage(getString(R.string.fetching_list_items))
                             getTraktSyncData.fetchAllListItems()
-                        }getString(R.string.upcoming) -> {
+                        }
+                        getString(R.string.upcoming) -> {
                             updateProgressMessage(getString(R.string.fetching_upcoming))
                             getTraktSyncData.fetchCalendarData()
                         }

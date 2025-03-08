@@ -16,6 +16,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val episodeName = intent.getStringExtra("episodeName") ?: return
         val episodeNumber = intent.getStringExtra("episodeNumber") ?: return
         val notificationKey = intent.getStringExtra("notificationKey") ?: return
+        val type = intent.getStringExtra("type") ?: return
 
         val notificationIntent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -23,13 +24,19 @@ class NotificationReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val contentText = if (type == "episode") {
+            context.getString(R.string.episode_airing_today, episodeNumber, episodeName)
+        } else {
+            context.getString(R.string.movie_released_today, title)
+        }
+
         val notification = NotificationCompat.Builder(context, "episode_reminders")
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
-            .setContentText(context.getString(R.string.episode_airing_today, episodeNumber, episodeName))
+            .setContentText(contentText)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
         val notificationManager = NotificationManagerCompat.from(context)

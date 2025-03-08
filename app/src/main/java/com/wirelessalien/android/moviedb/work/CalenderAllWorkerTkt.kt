@@ -26,6 +26,7 @@ import android.icu.text.SimpleDateFormat
 import androidx.preference.PreferenceManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -46,8 +47,8 @@ class CalenderAllWorkerTkt(
     private val epDbHelper = EpisodeReminderDatabaseHelper(context)
     private val dbHelper = TraktDatabaseHelper(context)
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-    private val accessToken = preferences.getString("access_token", "")
-    private val clientId = preferences.getString("client_id", "")
+    private val accessToken = preferences.getString("trakt_access_token", "")
+    private val clientId = ConfigHelper.getConfigValue(context, "client_id")
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
@@ -62,6 +63,8 @@ class CalenderAllWorkerTkt(
     private fun fetchCalendarData() {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         val today = sdf.format(Date())
+
+        epDbHelper.writableDatabase.delete(EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, null)
 
         // Fetch shows calendar
         val showsUrl = "https://api.trakt.tv/calendars/all/shows/$today/7"
@@ -130,7 +133,7 @@ class CalenderAllWorkerTkt(
                     put(EpisodeReminderDatabaseHelper.COLUMN_DATE, releaseDate)
                     put(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
                         movie.getJSONObject("ids").optInt("tmdb", 0))
-                    put(EpisodeReminderDatabaseHelper.COLUMN_NAME,
+                    put(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME,
                         movie.optString("title", "NULL"))
                     put(EpisodeReminderDatabaseHelper.COL_YEAR,
                         movie.optInt("year"))
@@ -140,6 +143,8 @@ class CalenderAllWorkerTkt(
                         movie.getJSONObject("ids").optString("slug"))
                     put(EpisodeReminderDatabaseHelper.COL_IMDB,
                         movie.getJSONObject("ids").optString("imdb"))
+                    put(EpisodeReminderDatabaseHelper.COLUMN_NAME, "")
+                    put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, "")
                 }
                 epDbHelper.writableDatabase.insert(EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, values)
             }
@@ -155,7 +160,7 @@ class CalenderAllWorkerTkt(
         val showsRequest = createRequest(showsUrl)
         executeRequest(showsRequest) { showResponse ->
             val db = dbHelper.writableDatabase
-            db.delete(TraktDatabaseHelper.TABLE_CALENDER, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("show"))
+            db.delete(TraktDatabaseHelper.TABLE_CALENDER, "${TraktDatabaseHelper.COL_TYPE} = ?", arrayOf("episode"))
 
             val showsArray = JSONArray(showResponse)
             for (i in 0 until showsArray.length()) {

@@ -30,7 +30,7 @@ class EpisodeReminderDatabaseHelper(context: Context?) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion < 2) {
+        if (oldVersion < 3) {
             // Add new columns to existing table
             val alterTableQueries = arrayOf(
                 "ALTER TABLE $TABLE_EPISODE_REMINDERS ADD COLUMN $COL_TYPE TEXT;",
