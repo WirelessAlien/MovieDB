@@ -394,6 +394,8 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
 
                     dbHelper.insertWatchedShowData(showValues)
 
+                    db.delete(TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED, "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ?", arrayOf(showTraktId.toString()))
+
                     val seasons = jsonObject.getJSONArray("seasons")
                     for (j in 0 until seasons.length()) {
                         val season = seasons.getJSONObject(j)

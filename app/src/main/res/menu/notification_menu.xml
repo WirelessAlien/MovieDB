@@ -22,13 +22,18 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/action_notification"
-        android:icon="@drawable/ic_notification_add"
-        android:title="@string/get_notified"
-        app:showAsAction="always" />
-    <item
-        android:id="@+id/action_watched"
-        android:icon="@drawable/ic_visibility_off"
-        android:title="@string/watched"
-        app:showAsAction="always" />
+        android:id="@+id/mark_as"
+        android:title="@string/mark_as">
+        <menu>
+            <item
+                android:id="@+id/action_watched"
+                android:title="@string/mark_as_watched_l"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_watched_tkt"
+                android:title="@string/mark_as_watched_t"
+                app:showAsAction="never" />
+        </menu>
+    </item>
 </menu>

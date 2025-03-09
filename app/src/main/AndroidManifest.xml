@@ -131,6 +131,11 @@
         <receiver
             android:name="NotificationReceiver"
             android:exported="false" />
+
+        <service
+            android:name="TraktSyncService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
     <queries>

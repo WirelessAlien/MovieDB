@@ -1052,6 +1052,18 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         db.insert(TABLE_SEASON_EPISODE_WATCHED, null, values)
     }
 
+    fun isSasonInWatched(
+        showTmdbId: Int?,
+        seasonNumber: Int
+    ): Boolean {
+        val db = readableDatabase
+        val query = "SELECT 1 FROM $TABLE_SEASON_EPISODE_WATCHED WHERE $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ?"
+        val cursor = db.rawQuery(query, arrayOf(showTmdbId.toString(), seasonNumber.toString()))
+        val exists = cursor.moveToFirst()
+        cursor.close()
+        return exists
+    }
+
     fun removeEpisodeFromWatched(showTmdbId: Int, seasonNumber: Int, episodeNumber: Int) {
         val db = writableDatabase
         db.delete(TABLE_SEASON_EPISODE_WATCHED, "$COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?", arrayOf(showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString()))

@@ -19,8 +19,9 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
-import android.content.ContentValues
+import android.content.SharedPreferences
 import android.icu.text.SimpleDateFormat
+import android.icu.util.TimeZone
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -33,8 +34,10 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.TVSeasonDetailsActivity
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter
@@ -43,13 +46,18 @@ import com.wirelessalien.android.moviedb.databinding.ActivityTvSeasonDetailsBind
 import com.wirelessalien.android.moviedb.databinding.FragmentTvSeasonDetailsBinding
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetails
+import com.wirelessalien.android.moviedb.trakt.TraktSync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import org.json.JSONArray
 import org.json.JSONObject
-import java.text.ParseException
-import java.util.Collections
+import java.io.IOException
 import java.util.Date
 import java.util.Locale
 
@@ -60,10 +68,27 @@ class SeasonDetailsFragment : Fragment() {
     private var seasonNumber = 0
     private var currentTabNumber = 1
     private lateinit var tmdbObject: JSONObject
+    private var tktaccessToken: String? = null
+    private var isInWatched: Boolean = false
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var pageChangeCallback: ViewPager2.OnPageChangeCallback
     private lateinit var dbHelper: EpisodeReminderDatabaseHelper
     private lateinit var binding: FragmentTvSeasonDetailsBinding
     private lateinit var activityBinding: ActivityTvSeasonDetailsBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
+        seasonNumber = requireArguments().getInt(ARG_SEASON_NUMBER)
+        traktId = requireArguments().getInt(ARG_TRAKT_ID)
+        tvShowName = requireArguments().getString(ARG_TV_SHOW_NAME) ?: ""
+        val tmdbObjectString = requireArguments().getString(ARG_TMDB_OBJECT)
+        tmdbObject = JSONObject(tmdbObjectString ?: "{}")
+
+        val dbHelper = TraktDatabaseHelper(requireContext())
+
+        isInWatched = dbHelper.isSasonInWatched(tvShowId, seasonNumber)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -71,17 +96,13 @@ class SeasonDetailsFragment : Fragment() {
     ): View {
         binding = FragmentTvSeasonDetailsBinding.inflate(inflater, container, false)
         activityBinding = (activity as TVSeasonDetailsActivity).getBinding()
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        tktaccessToken = sharedPreferences.getString("trakt_access_token", null)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
-        seasonNumber = requireArguments().getInt(ARG_SEASON_NUMBER)
-        traktId = requireArguments().getInt(ARG_TRAKT_ID)
-        tvShowName = requireArguments().getString(ARG_TV_SHOW_NAME) ?: ""
-        val tmdbObjectString = requireArguments().getString(ARG_TMDB_OBJECT)
-        tmdbObject = JSONObject(tmdbObjectString?: "{}")
 
         activityBinding.toolbar.title = getString(R.string.seasons)
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
@@ -94,6 +115,17 @@ class SeasonDetailsFragment : Fragment() {
             }
         }
         activityBinding.viewPager.registerOnPageChangeCallback(pageChangeCallback)
+
+        activityBinding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                requireActivity().invalidateOptionsMenu()
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+
         loadSeasonDetails()
 
         val menuHost: MenuHost = requireActivity()
@@ -101,40 +133,41 @@ class SeasonDetailsFragment : Fragment() {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.notification_menu, menu)
                 dbHelper = EpisodeReminderDatabaseHelper(requireContext())
-                val notificationItem = menu.findItem(R.id.action_notification)
-                val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
-                if (isShowInDatabase(tvShowId)) {
-                    notificationItem.setIcon(R.drawable.ic_notifications_active)
-                } else {
-                    notificationItem.setIcon(R.drawable.ic_notification_add)
-                }
-                val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
-                if (adapter != null) {
-                    val episodes = adapter.episodes
-                    if (episodes.isNotEmpty()) {
-                        val latestEpisode = Collections.max(
-                            episodes,
-                            Comparator.comparingInt { obj: Episode -> obj.episodeNumber })
-
-                        // Parse the air date of the latest episode
-                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                        try {
-                            val latestEpisodeDate = sdf.parse(latestEpisode.airDate)
-                            val currentDate = Date()
-
-                            // If the air date of the latest episode is older than the current date, disable the notification action
-                            if (latestEpisodeDate != null && latestEpisodeDate.before(currentDate)) {
-                                notificationItem.isEnabled = false
-                            }
-                        } catch (e: ParseException) {
-                            e.printStackTrace()
-                        }
-                    }
-                }
+//                val notificationItem = menu.findItem(R.id.action_notification)
+//                val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
+//                if (isShowInDatabase(tvShowId)) {
+//                    notificationItem.setIcon(R.drawable.ic_notifications_active)
+//                } else {
+//                    notificationItem.setIcon(R.drawable.ic_notification_add)
+//                }
+//                val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
+//                if (adapter != null) {
+//                    val episodes = adapter.episodes
+//                    if (episodes.isNotEmpty()) {
+//                        val latestEpisode = Collections.max(
+//                            episodes,
+//                            Comparator.comparingInt { obj: Episode -> obj.episodeNumber })
+//
+//                        // Parse the air date of the latest episode
+//                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+//                        try {
+//                            val latestEpisodeDate = sdf.parse(latestEpisode.airDate)
+//                            val currentDate = Date()
+//
+//                            // If the air date of the latest episode is older than the current date, disable the notification action
+//                            if (latestEpisodeDate != null && latestEpisodeDate.before(currentDate)) {
+//                                notificationItem.isEnabled = false
+//                            }
+//                        } catch (e: ParseException) {
+//                            e.printStackTrace()
+//                        }
+//                    }
+//                }
             }
 
             override fun onPrepareMenu(menu: Menu) {
                 val watchedItem = menu.findItem(R.id.action_watched)
+                val watchedItemTkt = menu.findItem(R.id.action_watched_tkt)
                 val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
                 if (adapter != null) {
                     val episodes = adapter.episodes
@@ -149,59 +182,139 @@ class SeasonDetailsFragment : Fragment() {
                         }
                     }
                     if (allEpisodesInDatabase) {
-                        watchedItem.setIcon(R.drawable.ic_visibility)
+                        watchedItem.title = getString(R.string.mark_as_un_watched_l)
                     } else {
-                        watchedItem.setIcon(R.drawable.ic_visibility_off)
+                        watchedItem.title = getString(R.string.mark_as_watched_l)
                     }
+                }
+
+                if (isInWatched) {
+                    watchedItemTkt.title = getString(R.string.mark_as_un_watched_t)
+                } else {
+                    watchedItemTkt.title = getString(R.string.mark_as_watched_t)
                 }
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
-                    R.id.action_notification -> {
-                        dbHelper = EpisodeReminderDatabaseHelper(requireContext())
-                        if (isShowInDatabase(requireArguments().getInt(ARG_TV_SHOW_ID))) {
-                            val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
-                            val showName = dbHelper.getShowNameById(tvShowId)
-                            dbHelper.deleteData(tvShowId)
-                            val message = getString(R.string.removed_from_reminder, showName)
-                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                            menuItem.setIcon(R.drawable.ic_notification_add)
-                            true
-                        } else {
-                            val db = dbHelper.writableDatabase
-                            val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
-                            if (adapter != null) {
-                                for (episode in adapter.episodes) {
-                                    val values = ContentValues()
-                                    val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
-                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID, tvShowId)
-                                    val tvShowName = requireArguments().getString(ARG_TV_SHOW_NAME)
-                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME, tvShowName)
-                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_NAME, episode.name)
-                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_DATE, episode.airDate)
-                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, episode.episodeNumber)
-                                    val newRowId = db.insert(
-                                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, values)
-                                    if (newRowId == -1L) {
-                                        val message = getString(R.string.error_reminder_episode, tvShowName)
-                                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                                        return true
+                    R.id.action_watched_tkt -> {
+                        val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
+                        if (adapter != null) {
+                            val episodes = adapter.episodes
+                            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                            sdf.timeZone = TimeZone.getTimeZone("UTC")
+                            val currentDateTime = sdf.format(Date())
+
+                            val seasonsArray = JSONArray().apply {
+                                put(JSONObject().apply {
+                                    put("number", seasonNumber)
+                                    put("watched_at", currentDateTime)
+                                })
+                            }
+
+                            // Create show IDs object
+                            val idsObject = JSONObject().apply {
+                                put("trakt", traktId)
+                                put("tmdb", tvShowId)
+                            }
+
+                            // Create the complete shows object structure
+                            val showsObject = JSONObject().apply {
+                                put("shows", JSONArray().put(JSONObject().apply {
+                                    put("ids", idsObject)
+                                    put("seasons", seasonsArray)
+                                }))
+                            }
+
+                            // Initialize TraktSync and make the API call
+                            val traktApiService = TraktSync(tktaccessToken!!)
+
+                            val endPoint = if (isInWatched) "sync/history/remove" else "sync/history"
+                            traktApiService.post(endPoint, showsObject, object : Callback {
+                                override fun onFailure(call: Call, e: IOException) {
+                                    activity?.runOnUiThread {
+                                        Toast.makeText(context, getString(R.string.failed_to_sync, "history"), Toast.LENGTH_SHORT).show()
                                     }
                                 }
-                                val message = getString(
-                                    R.string.get_notified_for_episode, requireArguments().getString(
-                                        ARG_TV_SHOW_NAME
-                                    )
-                                )
-                                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                                menuItem.setIcon(R.drawable.ic_notifications_active)
-                                true
-                            } else {
-                                false
-                            }
+
+                                override fun onResponse(call: Call, response: Response) {
+                                    activity?.runOnUiThread {
+                                        if (response.isSuccessful) {
+                                            val dbHelper = TraktDatabaseHelper(requireContext())
+
+                                            when(isInWatched) {
+                                                true -> {
+                                                    episodes.forEach { episode ->
+                                                        dbHelper.removeEpisodeFromHistory(tvShowId, seasonNumber, episode.episodeNumber)
+                                                        dbHelper.removeEpisodeFromWatched(tvShowId, seasonNumber, episode.episodeNumber)
+                                                        Toast.makeText(context, R.string.episodes_added, Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
+                                                false -> {
+                                                    episodes.forEach { episode ->
+                                                        dbHelper.addEpisodeToHistory(tvShowName, traktId, tvShowId, "episode", seasonNumber, episode.episodeNumber, currentDateTime)
+                                                        dbHelper.addEpisodeToWatched(traktId, tvShowId, seasonNumber, episode.episodeNumber, currentDateTime)
+                                                    }
+                                                    dbHelper.addEpisodeToWatchedTable(tvShowId, traktId, "show", tvShowName, currentDateTime)
+                                                    Toast.makeText(context, R.string.episodes_removed, Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+
+                                        } else {
+                                            Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            })
+                            true
+                        } else {
+                            false
                         }
                     }
+//                    R.id.action_notification -> {
+//                        dbHelper = EpisodeReminderDatabaseHelper(requireContext())
+//                        if (isShowInDatabase(requireArguments().getInt(ARG_TV_SHOW_ID))) {
+//                            val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
+//                            val showName = dbHelper.getShowNameById(tvShowId)
+//                            dbHelper.deleteData(tvShowId)
+//                            val message = getString(R.string.removed_from_reminder, showName)
+//                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+//                            menuItem.setIcon(R.drawable.ic_notification_add)
+//                            true
+//                        } else {
+//                            val db = dbHelper.writableDatabase
+//                            val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
+//                            if (adapter != null) {
+//                                for (episode in adapter.episodes) {
+//                                    val values = ContentValues()
+//                                    val tvShowId = requireArguments().getInt(ARG_TV_SHOW_ID)
+//                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID, tvShowId)
+//                                    val tvShowName = requireArguments().getString(ARG_TV_SHOW_NAME)
+//                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME, tvShowName)
+//                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_NAME, episode.name)
+//                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_DATE, episode.airDate)
+//                                    values.put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, episode.episodeNumber)
+//                                    val newRowId = db.insert(
+//                                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS, null, values)
+//                                    if (newRowId == -1L) {
+//                                        val message = getString(R.string.error_reminder_episode, tvShowName)
+//                                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+//                                        return true
+//                                    }
+//                                }
+//                                val message = getString(
+//                                    R.string.get_notified_for_episode, requireArguments().getString(
+//                                        ARG_TV_SHOW_NAME
+//                                    )
+//                                )
+//                                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+//                                menuItem.setIcon(R.drawable.ic_notifications_active)
+//                                true
+//                            } else {
+//                                false
+//                            }
+//                        }
+//                    }
                     R.id.action_watched -> {
                         val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
                         if (adapter != null) {
@@ -220,13 +333,11 @@ class SeasonDetailsFragment : Fragment() {
                                         db.addEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
                                     }
                                 }
-                                menuItem.setIcon(R.drawable.ic_visibility)
                                 Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT).show()
                             } else {
                                 for (episode in episodes) {
                                     db.removeEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
                                 }
-                                menuItem.setIcon(R.drawable.ic_visibility_off)
                                 Toast.makeText(requireContext(), R.string.episodes_added, Toast.LENGTH_SHORT).show()
                             }
                             adapter.updateEpisodes(episodes)
@@ -281,18 +392,18 @@ class SeasonDetailsFragment : Fragment() {
         activityBinding.viewPager.unregisterOnPageChangeCallback(pageChangeCallback)
     }
 
-    private fun isShowInDatabase(tvShowId: Int): Boolean {
-        val db = dbHelper.readableDatabase
-        val selection = EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID + " = ?"
-        val selectionArgs = arrayOf(tvShowId.toString())
-        val cursor = db.query(
-            EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
-            null, selection, selectionArgs, null, null, null
-        )
-        val exists = cursor.count > 0
-        cursor.close()
-        return exists
-    }
+//    private fun isShowInDatabase(tvShowId: Int): Boolean {
+//        val db = dbHelper.readableDatabase
+//        val selection = EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID + " = ?"
+//        val selectionArgs = arrayOf(tvShowId.toString())
+//        val cursor = db.query(
+//            EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+//            null, selection, selectionArgs, null, null, null
+//        )
+//        val exists = cursor.count > 0
+//        cursor.close()
+//        return exists
+//    }
 
     companion object {
         private const val ARG_TV_SHOW_ID = "tvShowId"

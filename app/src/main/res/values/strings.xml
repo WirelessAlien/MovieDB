@@ -117,6 +117,11 @@
     <string name="watching_now">WATCHING NOW</string>
     <string name="gen_error_msg">Something went wrong</string>
     <string name="fetching_upcoming"><![CDATA[Fething upcoming movie & shows…]]></string>
+    <string name="mark_as_watched_l">Watched (Local)</string>
+    <string name="mark_as_watched_t">Watched (Trakt)</string>
+    <string name="mark_as_un_watched_l">Unwatched (Local)</string>
+    <string name="mark_as_un_watched_t">Unwatched (Trakt)</string>
+    <string name="mark_as">Mark as</string>
 
 
     <string-array name="media_types">
