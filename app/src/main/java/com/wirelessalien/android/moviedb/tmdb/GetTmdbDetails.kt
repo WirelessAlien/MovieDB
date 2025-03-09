@@ -52,7 +52,8 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
                 TraktDatabaseHelper.TABLE_FAVORITE,
                 TraktDatabaseHelper.TABLE_RATING,
                 TraktDatabaseHelper.TABLE_WATCHED,
-                TraktDatabaseHelper.TABLE_LIST_ITEM
+                TraktDatabaseHelper.TABLE_LIST_ITEM,
+                TraktDatabaseHelper.TABLE_CALENDER
             )
             val tmdbDbHelper = TmdbDetailsDatabaseHelper(context)
             val tmdbDb = tmdbDbHelper.readableDatabase
@@ -74,7 +75,7 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
                     val tmdbCursor = tmdbDb.query(
                         TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
                         arrayOf(TmdbDetailsDatabaseHelper.COL_ID),
-                        "tmdb_id = ?",
+                        "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
                         arrayOf(idToCheck.toString()),
                         null, null, null
                     )

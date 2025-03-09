@@ -110,6 +110,8 @@ class ShowFragment : BaseFragment() {
             filterRequestLauncher.launch(Intent())
         }
 
+        fetchGenreList(mListType?: SectionsPagerAdapter.MOVIE)
+
         return fragmentView
     }
 

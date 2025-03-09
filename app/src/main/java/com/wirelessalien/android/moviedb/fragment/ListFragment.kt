@@ -849,7 +849,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
         )
         mShowView.adapter = mShowAdapter
-        fetchGenreList("tv")
     }
 
     /**
