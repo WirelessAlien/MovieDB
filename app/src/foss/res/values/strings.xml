@@ -166,7 +166,7 @@
     <string name="share_link_button">Share link button</string>
     <string name="database_import_successful">Database imported. Please reopen the app.</string>
     <string name="notification">Notification</string>
-    <string name="summary_notification_one">This preference only applies to movies and shows. For episodes of shows, turn them on individually.</string>
+    <string name="summary_notification_one">This preference applies to movies and shows (including individual episodes) of \"Saved\" and Upcoming entries from \"Trakt\" account</string>
     <string name="get_notified_for_saved_movies">Get notified for saved movies</string>
     <string name="summary_notification_two">You will get notified for saved movies when released.</string>
     <string name="not_logged_in">You are not logged in</string>

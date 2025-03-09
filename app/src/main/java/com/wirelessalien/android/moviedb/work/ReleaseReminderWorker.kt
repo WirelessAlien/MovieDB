@@ -47,17 +47,26 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
         timeZone = TimeZone.getTimeZone("UTC")
     }
     private val localDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-    private val dateOnlyFormat1 = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-    private val dateOnlyFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val dateOnlyFormat1 = SimpleDateFormat("dd-MM-yyyy", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    private val dateOnlyFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
 
     private fun parseDate(dateStr: String): Date? {
         val calendar = Calendar.getInstance()
         return try {
-            dateFormat.parse(dateStr)
+            dateFormat.parse(dateStr)?.let {
+                calendar.time = it
+                calendar.timeZone = TimeZone.getDefault()
+                calendar.time
+            }
         } catch (e: Exception) {
             try {
                 dateOnlyFormat1.parse(dateStr)?.let {
                     calendar.time = it
+                    calendar.timeZone = TimeZone.getDefault()
                     calendar.set(Calendar.HOUR_OF_DAY, 8)
                     calendar.set(Calendar.MINUTE, 0)
                     calendar.time
@@ -66,6 +75,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 try {
                     dateOnlyFormat2.parse(dateStr)?.let {
                         calendar.time = it
+                        calendar.timeZone = TimeZone.getDefault()
                         calendar.set(Calendar.HOUR_OF_DAY, 8)
                         calendar.set(Calendar.MINUTE, 0)
                         calendar.time
@@ -93,7 +103,6 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
         val tktDb = TraktDatabaseHelper(applicationContext)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
-        // Query episode reminders
         val episodeQuery = """
             SELECT * FROM ${EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS}
             WHERE ${EpisodeReminderDatabaseHelper.COLUMN_DATE} IS NOT NULL
@@ -147,7 +156,6 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
             val episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
             val type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
 
-            // Schedule alarm using AlarmManager
             val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(applicationContext, NotificationReceiver::class.java).apply {
                 putExtra("title", title)
@@ -170,7 +178,6 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 pendingIntent
             )
 
-            // Mark notification as scheduled
             PreferenceManager.getDefaultSharedPreferences(applicationContext)
                 .edit()
                 .putBoolean(notificationKey, true)
@@ -191,17 +198,14 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
     companion object {
         fun scheduleWork(context: Context) {
-            // Create periodic work request for CalenderAllWorkerTkt
             val calendarWorkRequest = OneTimeWorkRequest.Builder(
                 CalenderAllWorkerTkt::class.java
             ).build()
 
-            // Create a one-time work request for ReleaseReminderWorker
             val reminderWorkRequest = OneTimeWorkRequest.Builder(
                 ReleaseReminderWorker::class.java
             ).build()
 
-            // Enqueue periodic work and chain it with one-time work
             WorkManager.getInstance(context)
                 .beginUniqueWork(
                     "CalendarAndReminderWork",
@@ -209,6 +213,20 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                     calendarWorkRequest
                 )
                 .then(reminderWorkRequest)
+                .enqueue()
+        }
+
+        fun scheduleWorkwithoutReleaseReminder(context: Context) {
+            val calendarWorkRequest = OneTimeWorkRequest.Builder(
+                CalenderAllWorkerTkt::class.java
+            ).build()
+
+            WorkManager.getInstance(context)
+                .beginUniqueWork(
+                    "CalendarAndReminderWork",
+                    ExistingWorkPolicy.REPLACE,
+                    calendarWorkRequest
+                )
                 .enqueue()
         }
     }

@@ -21,13 +21,21 @@
 package com.wirelessalien.android.moviedb.work
 
 import android.content.Context
+import androidx.preference.PreferenceManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 
 class DailyWorkerTkt(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
     override fun doWork(): Result {
-        // Call the function to schedule work
-        ReleaseReminderWorker.scheduleWork(applicationContext)
+        val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val shouldNotify = preferences.getBoolean("key_get_notified_for_saved", false)
+
+        if (shouldNotify) {
+            ReleaseReminderWorker.scheduleWork(applicationContext)
+        } else {
+            ReleaseReminderWorker.scheduleWorkwithoutReleaseReminder(applicationContext)
+        }
+
         return Result.success()
     }
 }

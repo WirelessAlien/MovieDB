@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.activity.MainActivity
 
 class NotificationReceiver : BroadcastReceiver() {
@@ -43,5 +44,10 @@ class NotificationReceiver : BroadcastReceiver() {
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
             notificationManager.notify(notificationKey.hashCode(), notification)
         }
+
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putBoolean(notificationKey, false)
+            .apply()
     }
 }

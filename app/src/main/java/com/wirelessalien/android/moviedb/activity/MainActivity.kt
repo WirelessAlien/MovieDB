@@ -481,7 +481,11 @@ class MainActivity : BaseActivity() {
             .setConstraints(constraints)
             .build()
 
-        WorkManager.getInstance(context).enqueue(dailyWorkRequest)
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "daily_work_tkt",
+            ExistingPeriodicWorkPolicy.KEEP,
+            dailyWorkRequest
+        )
 
         checkTokenExpiration()
 

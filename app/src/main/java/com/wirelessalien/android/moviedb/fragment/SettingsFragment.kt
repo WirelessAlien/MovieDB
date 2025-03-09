@@ -19,6 +19,9 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
@@ -30,7 +33,9 @@ import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
+import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
@@ -115,6 +120,44 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             showSyncProviderDialog()
             true
         }
+
+        findPreference<SwitchPreferenceCompat>("key_get_notified_for_saved")?.let { preference ->
+            preference.setOnPreferenceChangeListener { _, newValue ->
+                if (!(newValue as Boolean)) {
+                    cancelAllNotifications()
+                }
+                true
+            }
+        }
+    }
+
+    private fun cancelAllNotifications() {
+        // Cancel all pending alarms
+        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(requireContext(), NotificationReceiver::class.java)
+
+        // Clear all notification entries from SharedPreferences
+        val preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val editor = preferences.edit()
+
+        // Find and remove all notification keys
+        preferences.all.keys
+            .filter { it.startsWith("notification_") }
+            .forEach { key ->
+                // Cancel the specific alarm
+                val pendingIntent = PendingIntent.getBroadcast(
+                    requireContext(),
+                    key.hashCode(),
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                alarmManager.cancel(pendingIntent)
+
+                // Remove from preferences
+                editor.remove(key)
+            }
+
+        editor.apply()
     }
 
     private fun showSyncProviderDialog() {
