@@ -25,8 +25,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
@@ -34,12 +37,19 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
+import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
+import java.util.concurrent.TimeUnit
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
 
@@ -123,7 +133,35 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         findPreference<SwitchPreferenceCompat>("key_get_notified_for_saved")?.let { preference ->
             preference.setOnPreferenceChangeListener { _, newValue ->
-                if (!(newValue as Boolean)) {
+                if (newValue as Boolean) {
+                    // Check network connectivity
+                    val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val network = connectivityManager.activeNetwork
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+                    if (networkCapabilities != null && networkCapabilities.hasCapability(
+                            NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                        // Network is connected, enqueue the work request
+                        val constraints = Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+
+                        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorkerTkt::class.java, 1, TimeUnit.DAYS)
+                            .setConstraints(constraints)
+                            .build()
+
+                        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+                            "daily_work_tkt",
+                            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                            dailyWorkRequest
+                        )
+                    } else {
+                        // Network is not connected, show error and uncheck the switch
+                        Toast.makeText(requireContext(), getString(R.string.no_internet_connection), Toast.LENGTH_SHORT).show()
+                        preference.isChecked = false
+                        return@setOnPreferenceChangeListener false
+                    }
+                } else {
+                    // Cancel all notifications
                     cancelAllNotifications()
                 }
                 true

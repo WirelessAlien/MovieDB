@@ -109,7 +109,6 @@ import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
-import com.wirelessalien.android.moviedb.work.ReleaseReminderWorker
 import com.wirelessalien.android.moviedb.work.TktTokenRefreshWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -484,7 +483,7 @@ class MainActivity : BaseActivity() {
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             "daily_work_tkt",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE,
             dailyWorkRequest
         )
 
