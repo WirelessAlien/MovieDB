@@ -144,7 +144,7 @@ class ListBottomSheetFragmentTkt(
     }
 
     private fun traktSync(endpoint: String) {
-        val traktApiService = TraktSync(tktaccessToken!!)
+        val traktApiService = TraktSync(tktaccessToken!!, requireContext())
         val jsonBody = listObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {

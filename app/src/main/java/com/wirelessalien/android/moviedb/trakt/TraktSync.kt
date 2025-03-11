@@ -20,7 +20,9 @@
 
 package com.wirelessalien.android.moviedb.trakt
 
+import android.content.Context
 import android.util.Log
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -29,9 +31,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 
-class TraktSync(private val accessToken: String) {
+class TraktSync(private val accessToken: String, applicationContext: Context) {
     private val client = OkHttpClient()
     private val baseUrl = "https://api.trakt.tv"
+    private val clientId = ConfigHelper.getConfigValue(applicationContext, "client_id")
 
     fun post(endpoint: String, jsonBody: JSONObject, callback: Callback) {
         val mediaType = "application/json".toMediaTypeOrNull()
@@ -43,7 +46,7 @@ class TraktSync(private val accessToken: String) {
             .addHeader("Content-Type", "application/json")
             .addHeader("Authorization", "Bearer $accessToken")
             .addHeader("trakt-api-version", "2")
-            .addHeader("trakt-api-key", "c72f55984ace5c7cfe876523fb867c0157b874148914c2685a2c9d0fd1ae7d3e")
+            .addHeader("trakt-api-key", clientId?: "")
             .post(body)
             .build()
         client.newCall(request).enqueue(object : Callback {

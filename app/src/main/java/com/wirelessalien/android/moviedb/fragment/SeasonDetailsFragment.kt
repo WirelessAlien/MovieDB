@@ -227,7 +227,7 @@ class SeasonDetailsFragment : Fragment() {
                             }
 
                             // Initialize TraktSync and make the API call
-                            val traktApiService = TraktSync(tktaccessToken!!)
+                            val traktApiService = TraktSync(tktaccessToken!!, requireContext())
 
                             val endPoint = if (isInWatched) "sync/history/remove" else "sync/history"
                             traktApiService.post(endPoint, showsObject, object : Callback {

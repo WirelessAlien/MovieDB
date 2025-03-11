@@ -1148,7 +1148,7 @@ class EpisodeAdapter(
     }
 
     private fun traktSync(endpoint: String, episode: Episode, rating: Int, holder: EpisodeViewHolder, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
-        val traktApiService = TraktSync(tktaccessToken!!)
+        val traktApiService = TraktSync(tktaccessToken!!, context)
         val jsonBody = mediaObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {

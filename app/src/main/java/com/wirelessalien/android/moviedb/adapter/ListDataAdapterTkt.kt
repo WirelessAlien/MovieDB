@@ -192,7 +192,7 @@ class ListDataAdapterTkt(
     }
 
     private fun traktSync(endpoint: String, mediaObject: JSONObject, callback: (Boolean) -> Unit) {
-        val traktApiService = TraktSync(tktaccessToken!!)
+        val traktApiService = TraktSync(tktaccessToken!!, context)
         traktApiService.post(endpoint, mediaObject, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 (context as Activity).runOnUiThreadIfNeeded {

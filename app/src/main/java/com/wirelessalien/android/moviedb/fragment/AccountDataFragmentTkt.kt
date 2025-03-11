@@ -20,13 +20,7 @@
 
 package com.wirelessalien.android.moviedb.fragment
 
-import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -43,7 +37,6 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.TraktSyncService
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
@@ -169,44 +162,6 @@ class AccountDataFragmentTkt : BaseFragment() {
         }
 
         return view
-    }
-
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private fun startTraktSyncService() {
-        val intent = Intent(requireContext(), TraktSyncService::class.java).apply {
-            action = TraktSyncService.ACTION_START_SERVICE
-            putExtra(TraktSyncService.EXTRA_ACCESS_TOKEN, accessToken)
-            putExtra(TraktSyncService.EXTRA_CLIENT_ID, clientId)
-        }
-
-        // Register broadcast receiver
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val response = intent?.getStringExtra("response") ?: ""
-                if (response.isNotEmpty()) {
-                    updateCurrentlyWatchingUI(response)
-                    binding.currentlyWatchingContainer.visibility = View.VISIBLE
-                } else {
-                    binding.currentlyWatchingContainer.visibility = View.GONE
-                }
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            requireContext().registerReceiver(
-                receiver,
-                IntentFilter("TRAKT_WATCHING_UPDATE"), Context.RECEIVER_NOT_EXPORTED
-            )
-        } else {
-            requireContext().registerReceiver(receiver, IntentFilter("TRAKT_WATCHING_UPDATE"))
-        }
-
-        // Start service
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            requireContext().startForegroundService(intent)
-        } else {
-            requireContext().startService(intent)
-        }
     }
 
     private fun saveSortPreference(criteria: String, order: String) {

@@ -37,7 +37,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 
-class TraktAutoSyncManager(context: Context) {
+class TraktAutoSyncManager(val context: Context) {
     private val movieDbHelper = MovieDatabaseHelper(context)
     private val traktSyncDbHelper = TraktAutoSyncDatabaseHelper(context)
     private val tktaccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("trakt_access_token", null)
@@ -162,7 +162,7 @@ class TraktAutoSyncManager(context: Context) {
 
     private suspend fun sendToTrakt(jsonObject: JSONObject): Boolean = withContext(Dispatchers.IO) {
         try {
-            val traktSync = TraktSync(tktaccessToken!!)
+            val traktSync = TraktSync(tktaccessToken!!, context)
             val endpoint = "sync/history"
             var success = false
 

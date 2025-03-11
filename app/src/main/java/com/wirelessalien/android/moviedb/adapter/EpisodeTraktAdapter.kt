@@ -170,7 +170,7 @@ class EpisodeTraktAdapter(
     }
 
     private fun traktSync(endpoint: String, holder: EpisodeViewHolder, episodeNumber: Int, currentTime: String) {
-        val traktApiService = TraktSync(traktAccessToken)
+        val traktApiService = TraktSync(traktAccessToken, context)
         val jsonBody = mediaObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
