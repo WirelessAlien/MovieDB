@@ -29,6 +29,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,7 @@ class TraktSyncService : Service() {
         const val ACTION_STOP_SERVICE = "STOP_SERVICE"
         const val EXTRA_ACCESS_TOKEN = "access_token"
         const val EXTRA_CLIENT_ID = "client_id"
+        const val EXTRA_TMDB_API_KEY = "tmdb_api_key"
     }
 
     override fun onCreate() {
@@ -67,7 +69,7 @@ class TraktSyncService : Service() {
 
     private fun startForegroundService(accessToken: String?, clientId: String?) {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.sync_with_trakt))
+            .setContentTitle(getString(R.string.refresh))
             .setContentText(getString(R.string.fetching_data))
             .setSmallIcon(R.drawable.ic_refresh)
             .setOngoing(true)
@@ -78,12 +80,10 @@ class TraktSyncService : Service() {
         getTraktSyncData = GetTraktSyncData(this, accessToken, clientId)
 
         serviceScope.launch {
-            getTraktSyncData?.fetchCurrentlyWatching { response ->
-                val intent = Intent("TRAKT_WATCHING_UPDATE")
-                intent.putExtra("response", response)
-                sendBroadcast(intent)
-                stopSelf()
-            }
+            getTraktSyncData?.fetchData()
+            val tmdbDetails = GetTmdbDetails(this@TraktSyncService, EXTRA_TMDB_API_KEY)
+            tmdbDetails.fetchAndSaveTmdbDetails()
+            stopSelf()
         }
     }
 

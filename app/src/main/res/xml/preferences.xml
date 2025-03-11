@@ -69,6 +69,13 @@
             app:title="@string/sync_provider2"
             android:summary="@string/select_default_sync_provider"
             app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="key_auto_sync_tkt_data"
+            android:title="@string/get_tkt_data"
+            android:summary="@string/get_tkt_data_summary"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/notification"
@@ -80,7 +87,7 @@
             app:iconSpaceReserved="false"/>
 
         <androidx.preference.SwitchPreferenceCompat
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="key_get_notified_for_saved"
             android:title="@string/get_notified_for_saved_movies"
             android:summary="@string/summary_notification_two"

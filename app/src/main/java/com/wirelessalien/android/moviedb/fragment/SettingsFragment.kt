@@ -49,6 +49,7 @@ import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
+import com.wirelessalien.android.moviedb.work.WeeklyWorkerTkt
 import java.util.concurrent.TimeUnit
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
@@ -163,6 +164,42 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 } else {
                     // Cancel all notifications
                     cancelAllNotifications()
+                }
+                true
+            }
+        }
+
+        findPreference<SwitchPreferenceCompat>("key_auto_sync_tkt_data")?.let { preference ->
+            preference.setOnPreferenceChangeListener { _, newValue ->
+                if (newValue as Boolean) {
+                    // Check network connectivity
+                    val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val network = connectivityManager.activeNetwork
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+                    if (networkCapabilities != null && networkCapabilities.hasCapability(
+                            NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                        // Network is connected, enqueue the work request
+                        val constraints = Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+
+                        val dailyWorkRequest = PeriodicWorkRequest.Builder(WeeklyWorkerTkt::class.java, 7, TimeUnit.DAYS)
+                            .setConstraints(constraints)
+                            .build()
+
+                        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+                            "weekly_work_tkt",
+                            ExistingPeriodicWorkPolicy.UPDATE,
+                            dailyWorkRequest
+                        )
+                    } else {
+                        // Network is not connected, show error and uncheck the switch
+                        Toast.makeText(requireContext(), getString(R.string.no_internet_connection), Toast.LENGTH_SHORT).show()
+                        preference.isChecked = false
+                        return@setOnPreferenceChangeListener false
+                    }
+                } else {
+                    WorkManager.getInstance(requireContext()).cancelUniqueWork("weekly_work_tkt")
                 }
                 true
             }
