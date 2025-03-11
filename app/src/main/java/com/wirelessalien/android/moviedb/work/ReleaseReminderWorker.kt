@@ -46,44 +46,41 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
-    private val localDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-    private val dateOnlyFormat1 = SimpleDateFormat("dd-MM-yyyy", Locale.US).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
+
     private val dateOnlyFormat2 = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
 
     private fun parseDate(dateStr: String): Date? {
-        val calendar = Calendar.getInstance()
         return try {
-            dateFormat.parse(dateStr)?.let {
-                calendar.time = it
-                calendar.timeZone = TimeZone.getDefault()
+            // Try parsing full date-time format
+            dateFormat.parse(dateStr)?.let { parsedDate ->
+                // Convert to local time
+                val calendar = Calendar.getInstance(TimeZone.getDefault()).apply {
+                    time = parsedDate
+                }
                 calendar.time
             }
         } catch (e: Exception) {
             try {
-                dateOnlyFormat1.parse(dateStr)?.let {
-                    calendar.time = it
-                    calendar.timeZone = TimeZone.getDefault()
-                    calendar.set(Calendar.HOUR_OF_DAY, 8)
-                    calendar.set(Calendar.MINUTE, 0)
-                    calendar.time
-                }
+                // Handle date-only formats
+                val fullDateStr = convertToFullDateFormat(dateStr)
+                fullDateStr?.let { dateFormat.parse(it) }
             } catch (e1: Exception) {
-                try {
-                    dateOnlyFormat2.parse(dateStr)?.let {
-                        calendar.time = it
-                        calendar.timeZone = TimeZone.getDefault()
-                        calendar.set(Calendar.HOUR_OF_DAY, 8)
-                        calendar.set(Calendar.MINUTE, 0)
-                        calendar.time
-                    }
-                } catch (e2: Exception) {
-                    null
-                }
+                null
             }
+        }
+    }
+
+    private fun convertToFullDateFormat(dateStr: String): String? {
+        return try {
+            val date = dateOnlyFormat2.parse(dateStr)
+            date?.let {
+                dateFormat.format(it)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
@@ -148,8 +145,12 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
     private fun scheduleNotification(cursor: Cursor, dateStr: String, notificationKey: String) {
         try {
-            val utcDate = parseDate(dateStr) ?: return
-            val localDateTime = localDateFormat.parse(localDateFormat.format(utcDate)) ?: return
+            val alarmTime = parseDate(dateStr) ?: return
+
+            // Skip scheduling if the alarm time is in the past
+            if (alarmTime.time <= System.currentTimeMillis()) {
+                return
+            }
 
             val title = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME))
             val episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
@@ -174,7 +175,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
-                localDateTime.time,
+                alarmTime.time,
                 pendingIntent
             )
 
