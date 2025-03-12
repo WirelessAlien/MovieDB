@@ -18,7 +18,7 @@
  *     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.wirelessalien.android.moviedb
+package com.wirelessalien.android.moviedb.service
 
 
 import android.app.NotificationChannel
@@ -29,6 +29,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import kotlinx.coroutines.CoroutineScope

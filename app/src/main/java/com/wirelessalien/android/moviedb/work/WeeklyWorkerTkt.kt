@@ -26,7 +26,7 @@ import android.os.Build
 import androidx.preference.PreferenceManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.wirelessalien.android.moviedb.TraktSyncService
+import com.wirelessalien.android.moviedb.service.TraktSyncService
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 
 class WeeklyWorkerTkt(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {

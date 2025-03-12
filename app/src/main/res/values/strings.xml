@@ -122,8 +122,9 @@
     <string name="mark_as_un_watched_l">Unwatched (Local)</string>
     <string name="mark_as_un_watched_t">Unwatched (Trakt)</string>
     <string name="mark_as">Mark as</string>
-    <string name="get_tkt_data">Auto fetch account data from \"Trakt\"</string>
+    <string name="get_tkt_data">Auto fetch \"Trakt\" data</string>
     <string name="get_tkt_data_summary">Get complete account data from \"Trakt\" automatically once a week</string>
+    <string name="cancel_sync">Cancel Sync</string>
 
 
     <string-array name="media_types">

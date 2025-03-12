@@ -134,7 +134,7 @@
             android:exported="false" />
 
         <service
-            android:name="TraktSyncService"
+            android:name=".service.TraktSyncService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />

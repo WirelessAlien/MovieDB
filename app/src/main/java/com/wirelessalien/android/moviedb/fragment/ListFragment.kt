@@ -44,6 +44,8 @@ import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
@@ -391,16 +393,33 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             .setView(binding.root)
             .create()
 
+        // Check if worker is running
+        val workManager = WorkManager.getInstance(requireContext())
+        workManager.getWorkInfosForUniqueWorkLiveData(TktAutoSyncWorker.WORK_NAME)
+            .observe(viewLifecycleOwner) { workInfoList ->
+                val workInfo = workInfoList?.firstOrNull()
+                val isWorkRunning = workInfo?.state == WorkInfo.State.RUNNING
+
+                binding.btnCancelWorker.visibility = if (isWorkRunning) View.VISIBLE else View.GONE
+            }
+
+        binding.btnCancelWorker.setOnClickListener {
+            workManager.cancelUniqueWork(TktAutoSyncWorker.WORK_NAME)
+            binding.btnCancelWorker.visibility = View.GONE
+        }
+
         binding.btnOk.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.btnOk.isEnabled = false
+                binding.btnCancelWorker.isEnabled = false
 
                 val syncManager = TraktAutoSyncManager(requireContext())
                 syncManager.syncMediaToTrakt()
 
                 binding.progressBar.visibility = View.GONE
                 binding.btnOk.isEnabled = true
+                binding.btnCancelWorker.isEnabled = true
                 setupTraktAutoSync()
                 dialog.dismiss()
             }

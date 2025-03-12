@@ -47,7 +47,7 @@ class TktAutoSyncWorker(
     }
 
     companion object {
-        private const val WORK_NAME = "trakt_auto_sync_worker"
+        const val WORK_NAME = "trakt_auto_sync_worker"
 
         fun setupPeriodicSync(context: Context) {
             val constraints = Constraints.Builder()

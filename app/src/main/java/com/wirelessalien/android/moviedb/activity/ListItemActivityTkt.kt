@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -195,5 +196,15 @@ class ListItemActivityTkt : AppCompatActivity() {
     private fun filterListItemData(type: String) {
         val filteredList = ArrayList(fullListItemList.filter { it.getString("type") == type })
         adapter.updateShowList(filteredList)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

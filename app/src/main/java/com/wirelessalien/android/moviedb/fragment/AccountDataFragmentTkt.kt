@@ -91,10 +91,7 @@ class AccountDataFragmentTkt : BaseFragment() {
 
                 val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
                 if (currentFragment is CalanderFragmentTkt) {
-                    menu.findItem(R.id.sort_name_asc)?.isVisible = false
-                    menu.findItem(R.id.sort_name_desc)?.isVisible = false
-                    menu.findItem(R.id.sort_date_asc)?.isVisible = false
-                    menu.findItem(R.id.sort_date_desc)?.isVisible = false
+                    menu.findItem(R.id.sort)?.isVisible = false
                 }
             }
 
@@ -102,10 +99,7 @@ class AccountDataFragmentTkt : BaseFragment() {
                 super.onPrepareMenu(menu)
                 val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
                 if (currentFragment is CalanderFragmentTkt) {
-                    menu.findItem(R.id.sort_name_asc)?.isVisible = false
-                    menu.findItem(R.id.sort_name_desc)?.isVisible = false
-                    menu.findItem(R.id.sort_date_asc)?.isVisible = false
-                    menu.findItem(R.id.sort_date_desc)?.isVisible = false
+                    menu.findItem(R.id.sort)?.isVisible = false
                 }
             }
 

@@ -137,7 +137,7 @@ class ListBottomSheetFragmentTkt(
             put("description", description)
             put("privacy", privacy)
             put("display_numbers", true)
-            put("allow_comments", true)
+            put("allow_comments", false)
             put("sort_by", "rank")
             put("sort_how", "asc")
         }

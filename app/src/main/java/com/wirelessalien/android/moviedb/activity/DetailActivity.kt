@@ -494,7 +494,6 @@ class DetailActivity : BaseActivity() {
             binding.shimmerFrameLayout1.stopShimmer()
         }
 
-
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
         val isDarkTheme = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
         val color: Int = if (isDarkTheme) {
@@ -770,6 +769,7 @@ class DetailActivity : BaseActivity() {
                 cancelButton.setOnClickListener { dialog.dismiss() }
             }
         }
+
         val customTabsIntent = CustomTabsIntent.Builder().build()
         customTabsIntent.intent.setPackage("com.android.chrome")
         CustomTabsClient.bindCustomTabsService(
@@ -785,6 +785,7 @@ class DetailActivity : BaseActivity() {
 
                 override fun onServiceDisconnected(name: ComponentName) {}
             })
+
         binding.fab.setOnClickListener(object : View.OnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
             override fun onClick(view: View) {
@@ -795,6 +796,7 @@ class DetailActivity : BaseActivity() {
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.share_link_using)))
             }
         })
+
         if (!isMovie) {
             binding.revenueText.visibility = View.GONE
             binding.revenueDataText.visibility = View.GONE
@@ -805,27 +807,33 @@ class DetailActivity : BaseActivity() {
             binding.allEpisodeBtn.visibility = View.GONE
             binding.episodeText.visibility = View.GONE
         }
+
         binding.allEpisodeBtn.setOnClickListener {
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
 
             lifecycleScope.launch {
-                val traktId = fetchTraktId(movieId, imdbId)
+                val traktAccessToken = preferences.getString("trakt_access_token", null)
+                val traktId = if (traktAccessToken != null) {
+                    fetchTraktId(movieId, imdbId)
+                } else {
+                    null
+                }
+
                 binding.shimmerFrameLayout1.visibility = View.GONE
                 binding.shimmerFrameLayout1.stopShimmer()
 
-                if (traktId == null) {
-                    Toast.makeText(applicationContext, "Trakt ID not found", Toast.LENGTH_SHORT).show()
+                val iIntent = Intent(applicationContext, TVSeasonDetailsActivity::class.java).apply {
+                    putExtra("tvShowId", movieId)
+                    putExtra("numSeasons", numSeason)
+                    putExtra("tvShowName", showName)
+                    putExtra("traktId", traktId)
+                    putExtra("tmdbObject", movieDataObject.toString())
                 }
-                val iIntent = Intent(applicationContext, TVSeasonDetailsActivity::class.java)
-                iIntent.putExtra("tvShowId", movieId)
-                iIntent.putExtra("numSeasons", numSeason)
-                iIntent.putExtra("tvShowName", showName)
-                iIntent.putExtra("traktId", traktId)
-                iIntent.putExtra("tmdbObject", movieDataObject.toString())
                 startActivity(iIntent)
             }
         }
+
         binding.moreImageBtn.setOnClickListener {
             val imageintent = Intent(applicationContext, MovieImageActivity::class.java)
             imageintent.putExtra("movieId", movieId)
@@ -1031,7 +1039,7 @@ class DetailActivity : BaseActivity() {
         }
 
         binding.btnAddToTraktList.setOnClickListener {
-            val typeCheck = if (isMovie) "movie" else "tv"
+            val typeCheck = if (isMovie) "movie" else "show"
             val jsonBody = JSONObject().apply {
                 if (isMovie) {
                     put("movies", JSONArray().apply { put(traktMediaObject) })

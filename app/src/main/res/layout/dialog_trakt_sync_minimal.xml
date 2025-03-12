@@ -34,8 +34,18 @@
             android:layout_height="wrap_content"
             android:text="@string/sync_with_trakt"
             android:textStyle="bold"
+            android:layout_marginTop="10dp"
             android:textSize="20sp" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelWorker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel_sync"
+            android:layout_marginTop="16dp"
+            app:cornerRadius="10dp"
+            android:visibility="gone"
+            style="@style/Widget.Material3.Button.TonalButton" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -59,6 +69,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="10dp"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
