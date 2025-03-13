@@ -279,4 +279,7 @@
     <string name="specials">Sitemap</string>
     <string name="no_specials_available">Tidak ada spesialis yang tersedia</string>
     <string name="backup_fequency_error_text">Frekuensi cadangan tidak bisa kurang dari 15 menit</string>
+    <string name="import_cancel">Batal</string>
+    <string name="cancel">Batal</string>
+    <string name="ok">Oke</string>
 </resources>
