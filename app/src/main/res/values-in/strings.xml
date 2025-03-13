@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="place_of_birth">Tempat Lahir: %1$s</string>
+    <string name="place_of_birth">Place of Birth: %1$s</string>
     <string name="birthday">Ulang tahun: %1$s</string>
     <string name="no_permission_dialog_ok">Oke</string>
     <string name="no_permission_dialog_cancel">Batal</string>
