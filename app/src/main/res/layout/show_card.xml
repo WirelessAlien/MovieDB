@@ -75,6 +75,18 @@
                     android:padding="8dp"/>
 
                 <TextView
+                    android:id="@+id/ratingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/corner_background"
+                    android:gravity="start"
+                    android:padding="8dp"
+                    android:text="58"
+                    android:visibility="gone"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp" />
+
+                <TextView
                     android:id="@+id/seasonEpisodeText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

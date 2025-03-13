@@ -160,13 +160,13 @@
             app:iconSpaceReserved="false"/>
 
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="key_hide_account_tab"
             android:title="@string/hide_the_account_tab"
             app:iconSpaceReserved="false"/>
 
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="key_hide_account_tkt_tab"
             android:title="@string/hide_the_account_tab_tkt"
             app:iconSpaceReserved="false"/>

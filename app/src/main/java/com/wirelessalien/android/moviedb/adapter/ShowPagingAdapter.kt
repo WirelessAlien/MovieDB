@@ -47,6 +47,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
 import java.util.Locale
+import kotlin.math.ceil
 
 class ShowPagingAdapter(
     private val genreList: HashMap<String, String?>,
@@ -124,6 +125,16 @@ class ShowPagingAdapter(
             }
             holder.showDate.text = dateString
 
+
+            if (showData.has(KEY_P_RATING)) {
+                val accountRating = showData.getJSONObject(KEY_P_RATING)
+                if (accountRating.has("value")) {
+                    holder.pRating?.visibility = View.VISIBLE
+                    val ratingValue = accountRating.getDouble("value")
+                    holder.pRating?.text = ceil(ratingValue).toInt().toString()
+                }
+            }
+
             if (!gridView) {
                 holder.showDescription?.text = showData.getString(KEY_DESCRIPTION)
                 holder.showRating?.rating = showData.getString(KEY_RATING).toFloat() / 2
@@ -146,6 +157,7 @@ class ShowPagingAdapter(
                 }
                 holder.showGenre?.text = if (genreNames.isNotEmpty()) genreNames.substring(2) else ""
             }
+
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -211,6 +223,7 @@ class ShowPagingAdapter(
         val showDescription = binding?.description
         val showGenre = binding?.genre
         val showRating = binding?.rating
+        val pRating = gridBinding?.ratingText ?: binding?.ratingText
         val showDate = gridBinding?.date ?: binding!!.date
         val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
     }
@@ -227,6 +240,7 @@ class ShowPagingAdapter(
         const val KEY_DATE_MOVIE = "release_date"
         const val KEY_DATE_SERIES = "first_air_date"
         const val KEY_GENRES = "genre_ids"
+        const val KEY_P_RATING = "account_rating"
         const val KEY_RELEASE_DATE = "release_date"
         private const val HD_IMAGE_SIZE = "key_hq_images"
         private const val KEY_CATEGORIES = MovieDatabaseHelper.COLUMN_CATEGORIES

@@ -752,6 +752,21 @@ class MainActivity : BaseActivity() {
                 else -> "local"
             }
 
+            when (selectedProvider) {
+                "local" -> {
+                    preferences.edit().putBoolean(HIDE_ACCOUNT_PREFERENCE, true).apply()
+                    preferences.edit().putBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
+
+                }
+                "trakt" -> {
+                    preferences.edit().putBoolean(HIDE_ACCOUNT_PREFERENCE, true).apply()
+                    preferences.edit().putBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false).apply()
+                }
+                "tmdb" -> {
+                    preferences.edit().putBoolean(HIDE_ACCOUNT_PREFERENCE, false).apply()
+                    preferences.edit().putBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
+                }
+            }
             preferences.edit().putString("sync_provider", selectedProvider).apply()
             preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
             dialog.dismiss()

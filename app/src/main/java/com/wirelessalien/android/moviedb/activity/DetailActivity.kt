@@ -463,7 +463,7 @@ class DetailActivity : BaseActivity() {
                             R.drawable.ic_favorite_border
                         )
                     }
-                    if (ratingValue != 0.0) {
+                    if (ratingValue != 0.0.toInt()) {
                         binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_thumb_up

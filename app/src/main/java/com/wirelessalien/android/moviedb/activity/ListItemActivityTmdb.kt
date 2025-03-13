@@ -21,6 +21,7 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.Pager
@@ -88,6 +89,16 @@ class ListItemActivityTmdb : AppCompatActivity() {
             pager.flow.collectLatest { pagingData ->
                 adapter.submitData(pagingData)
             }
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }
