@@ -78,7 +78,7 @@ class RatedListPagingSource(
     private suspend fun fetchRatedListFromApi(listType: String?, page: Int): String? {
         val accessToken = preferences.getString("access_token", "")
         val accountId = preferences.getString("account_id", "")
-        val url = "https://api.themoviedb.org/4/account/$accountId/$listType/rated?page=$page"
+        val url = "https://api.themoviedb.org/4/account/$accountId/$listType/rated?page=$page&sort_by=created_at.desc"
         val client = OkHttpClient()
         val request = Request.Builder()
             .url(url)
