@@ -83,6 +83,7 @@ import java.io.IOException
 import java.text.ParseException
 import java.util.Date
 import java.util.Locale
+import kotlin.math.round
 
 class EpisodeAdapter(
     private val context: Context,
@@ -108,7 +109,7 @@ class EpisodeAdapter(
         CoroutineScope(Dispatchers.Main).launch {
             val getAccountStateTvSeason = GetAccountStateTvSeason(tvShowId, seasonNumber, context, object : GetAccountStateTvSeason.OnDataFetchedListener {
                 override fun onDataFetched(episodeRatings: Map<Int, Double>?) {
-                    this@EpisodeAdapter.episodeRatings = episodeRatings ?: emptyMap()
+                    this@EpisodeAdapter.episodeRatings = episodeRatings?.mapValues { (_, value) -> round(value).toInt().toDouble() } ?: emptyMap()
                     notifyDataSetChanged()
                 }
             })
@@ -562,7 +563,7 @@ class EpisodeAdapter(
 
         holder.binding.btnAddToTraktWatchlist.setOnClickListener {
             holder.binding.lProgressBar.visibility = View.VISIBLE
-            val currentDateTime = android.icu.text.SimpleDateFormat(
+            val currentDateTime = SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                 Locale.getDefault()
             ).format(Date())

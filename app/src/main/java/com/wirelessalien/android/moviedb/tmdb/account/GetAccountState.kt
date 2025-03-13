@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import kotlin.math.round
 
 class GetAccountState(
     private val movieId: Int,
@@ -34,11 +35,8 @@ class GetAccountState(
     activity: Activity?
 ) {
     var isInFavourites = false
-        private set
     var isInWatchlist = false
-        private set
-    var rating = 0.0
-        private set
+    var rating = 0
     private val accessToken: String?
 
     init {
@@ -64,12 +62,12 @@ class GetAccountState(
                 if (!jsonResponse.isNull("rated")) {
                     val rated = jsonResponse["rated"]
                     if (rated is JSONObject) {
-                        rating = rated.getDouble("value")
+                        rating = round(rated.getDouble("value")).toInt()
                     } else if (rated is Boolean && !rated) {
-                        rating = 0.0
+                        rating = 0
                     }
                 } else {
-                    rating = 0.0
+                    rating = 0
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
