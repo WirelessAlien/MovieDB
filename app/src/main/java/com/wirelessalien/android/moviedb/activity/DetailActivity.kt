@@ -752,6 +752,10 @@ class DetailActivity : BaseActivity() {
                         }
                         submitButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
+                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
+                            context,
+                            R.drawable.ic_thumb_up
+                        )
                     }
                 }
 
@@ -763,6 +767,10 @@ class DetailActivity : BaseActivity() {
                         }
                         deleteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
+                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
+                            context,
+                            R.drawable.ic_thumb_up_border
+                        )
                     }
                 }
 

@@ -25,11 +25,9 @@ import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
@@ -68,7 +66,7 @@ class AddRating(
             val responseBody = response.body!!.string()
             val jsonResponse = JSONObject(responseBody)
             val statusCode = jsonResponse.getInt("status_code")
-            success = statusCode == 1
+            success = statusCode == 1 || statusCode == 12
         } catch (e: Exception) {
             e.printStackTrace()
         }
