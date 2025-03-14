@@ -53,19 +53,24 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
     private fun parseDate(dateStr: String): Date? {
         return try {
-            // Try parsing full date-time format
+            // Try parsing full date-time format and convert to local time
             dateFormat.parse(dateStr)?.let { parsedDate ->
-                // Convert to local time
-                val calendar = Calendar.getInstance(TimeZone.getDefault()).apply {
+                Calendar.getInstance(TimeZone.getDefault()).apply {
                     time = parsedDate
-                }
-                calendar.time
+                }.time
             }
         } catch (e: Exception) {
             try {
-                // Handle date-only formats
+                // Handle date-only formats: convert to full date format first
                 val fullDateStr = convertToFullDateFormat(dateStr)
-                fullDateStr?.let { dateFormat.parse(it) }
+                fullDateStr?.let {
+                    // Parse then convert to local time as above
+                    dateFormat.parse(it)?.let { parsed ->
+                        Calendar.getInstance(TimeZone.getDefault()).apply {
+                            time = parsed
+                        }.time
+                    }
+                }
             } catch (e1: Exception) {
                 null
             }
