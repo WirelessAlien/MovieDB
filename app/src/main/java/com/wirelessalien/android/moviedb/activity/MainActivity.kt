@@ -87,7 +87,6 @@ import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
-import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -98,6 +97,7 @@ import com.wirelessalien.android.moviedb.fragment.LoginFragment
 import com.wirelessalien.android.moviedb.fragment.LoginFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
+import com.wirelessalien.android.moviedb.fragment.SyncProviderBottomSheet
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -715,64 +715,8 @@ class MainActivity : BaseActivity() {
     }
 
     private fun showSyncProviderDialog() {
-        val dialogBinding = DialogSyncProviderBinding.inflate(layoutInflater)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogBinding.root)
-            .setCancelable(false)
-            .create()
-
-        // Retrieve stored values from SharedPreferences
-        val syncProvider = preferences.getString("sync_provider", "local")
-        val forceLocalSync = preferences.getBoolean("force_local_sync", false)
-
-        // Set initial state of radio buttons based on stored value
-        when (syncProvider) {
-            "local" -> dialogBinding.radioLocal.isChecked = true
-            "trakt" -> dialogBinding.radioTrakt.isChecked = true
-            "tmdb" -> dialogBinding.radioTmdb.isChecked = true
-        }
-
-        // Set initial state of forceLocalSync checkbox
-        dialogBinding.forceLocalSync.isChecked = forceLocalSync
-        dialogBinding.forceLocalSync.isEnabled = syncProvider != "local"
-
-        dialogBinding.radioLocal.setOnCheckedChangeListener { _, isChecked ->
-            dialogBinding.forceLocalSync.isEnabled = !isChecked
-        }
-
-        dialogBinding.forceLocalSync.setOnCheckedChangeListener { _, isChecked ->
-            preferences.edit().putBoolean("force_local_sync", isChecked).apply()
-        }
-
-        dialogBinding.buttonOk.setOnClickListener {
-            val selectedProvider = when {
-                dialogBinding.radioLocal.isChecked -> "local"
-                dialogBinding.radioTrakt.isChecked -> "trakt"
-                dialogBinding.radioTmdb.isChecked -> "tmdb"
-                else -> "local"
-            }
-
-            when (selectedProvider) {
-                "local" -> {
-                    preferences.edit().putBoolean(HIDE_ACCOUNT_PREFERENCE, true).apply()
-                    preferences.edit().putBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
-
-                }
-                "trakt" -> {
-                    preferences.edit().putBoolean(HIDE_ACCOUNT_PREFERENCE, true).apply()
-                    preferences.edit().putBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false).apply()
-                }
-                "tmdb" -> {
-                    preferences.edit().putBoolean(HIDE_ACCOUNT_PREFERENCE, false).apply()
-                    preferences.edit().putBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
-                }
-            }
-            preferences.edit().putString("sync_provider", selectedProvider).apply()
-            preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
-            dialog.dismiss()
-        }
-
-        dialog.show()
+        val bottomSheet = SyncProviderBottomSheet()
+        bottomSheet.show(supportFragmentManager, bottomSheet.tag)
     }
 
     fun showSearch(listType: String, query: String?) {
