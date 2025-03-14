@@ -43,7 +43,7 @@ class TraktSyncService : Service() {
 
     companion object {
         const val CHANNEL_ID = "TraktSyncServiceChannel"
-        const val NOTIFICATION_ID = 1
+        const val NOTIFICATION_ID = 4
         const val ACTION_START_SERVICE = "START_SERVICE"
         const val ACTION_STOP_SERVICE = "STOP_SERVICE"
         const val EXTRA_ACCESS_TOKEN = "access_token"
@@ -61,29 +61,47 @@ class TraktSyncService : Service() {
             ACTION_START_SERVICE -> {
                 val accessToken = intent.getStringExtra(EXTRA_ACCESS_TOKEN)
                 val clientId = intent.getStringExtra(EXTRA_CLIENT_ID)
-                startForegroundService(accessToken, clientId)
+                val tmdbApi = intent.getStringExtra(EXTRA_TMDB_API_KEY)
+                startForegroundService(accessToken, clientId, tmdbApi)
             }
             ACTION_STOP_SERVICE -> stopSelf()
         }
         return START_NOT_STICKY
     }
 
-    private fun startForegroundService(accessToken: String?, clientId: String?) {
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+    private fun startForegroundService(accessToken: String?, clientId: String?, tmdbApiKey: String?) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        fun updateNotification(message: String) {
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(getString(R.string.refresh))
+                .setContentText(message)
+                .setSmallIcon(R.drawable.ic_refresh)
+                .setOngoing(true)
+                .build()
+            notificationManager.notify(NOTIFICATION_ID, notification)
+        }
+
+        val initialNotification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.refresh))
             .setContentText(getString(R.string.fetching_data))
             .setSmallIcon(R.drawable.ic_refresh)
             .setOngoing(true)
             .build()
 
-        startForeground(NOTIFICATION_ID, notification)
+        startForeground(NOTIFICATION_ID, initialNotification)
 
         getTraktSyncData = GetTraktSyncData(this, accessToken, clientId)
 
         serviceScope.launch {
+            updateNotification(getString(R.string.fetching_trakt_data))
             getTraktSyncData?.fetchData()
-            val tmdbDetails = GetTmdbDetails(this@TraktSyncService, EXTRA_TMDB_API_KEY)
+
+            updateNotification(getString(R.string.fetching_tmdb_data1))
+            val tmdbDetails = GetTmdbDetails(this@TraktSyncService, tmdbApiKey ?: "")
             tmdbDetails.fetchAndSaveTmdbDetails()
+
+            updateNotification(getString(R.string.sync_completed))
             stopSelf()
         }
     }
@@ -92,7 +110,7 @@ class TraktSyncService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                getString(R.string.sync_with_trakt),
+                getString(R.string.auto_fetch),
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

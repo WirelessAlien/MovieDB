@@ -295,6 +295,12 @@ class MainActivity : BaseActivity() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 val id = menuItem.itemId
 
+                if(id ==  android.R.id.home) {
+                    val homeFragment = HomeFragment()
+                    supportFragmentManager.beginTransaction().replace(R.id.container, homeFragment).commit()
+                    return true
+                }
+
                 if (id == R.id.action_search) {
                     binding.searchView.show()
                     return true

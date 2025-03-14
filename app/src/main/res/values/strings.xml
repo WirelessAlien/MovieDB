@@ -125,6 +125,11 @@
     <string name="get_tkt_data">Auto fetch \"Trakt\" data</string>
     <string name="get_tkt_data_summary">Get complete account data from \"Trakt\" automatically once a week</string>
     <string name="cancel_sync">Cancel Sync</string>
+    <string name="fetching_trakt_data">Fetching Trakt data...</string>
+    <string name="fetching_tmdb_data1">Fetching TMDB data...</string>
+    <string name="sync_completed">Sync completed</string>
+    <string name="auto_fetch">Automated data sync</string>
+    <string name="quick_access">Quick Access</string>
 
 
     <string-array name="media_types">

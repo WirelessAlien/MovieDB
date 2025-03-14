@@ -28,7 +28,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/seasons"
+        android:text="@string/quick_access"
+        android:layout_marginTop="16dp"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -37,7 +38,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        app:chipSpacing="5dp"
+        android:layout_marginTop="16dp"
+        app:chipSpacing="16dp"
         app:singleSelection="true"
         android:orientation="horizontal" />
 
