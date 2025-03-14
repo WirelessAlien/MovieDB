@@ -1890,18 +1890,18 @@ class DetailActivity : BaseActivity() {
         // Add the show to the database.
         try {
             // Put the necessary values into ContentValues object.
-            showValues.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, jMovieObject.getString("id").toInt())
-            showValues.put(MovieDatabaseHelper.COLUMN_IMAGE, jMovieObject.getString("backdrop_path"))
-            showValues.put(MovieDatabaseHelper.COLUMN_ICON, jMovieObject.getString("poster_path"))
+            showValues.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieDataObject.getString("id").toInt())
+            showValues.put(MovieDatabaseHelper.COLUMN_IMAGE, movieDataObject.getString("backdrop_path"))
+            showValues.put(MovieDatabaseHelper.COLUMN_ICON, movieDataObject.getString("poster_path"))
             val title = if (isMovie) "title" else "name"
-            showValues.put(MovieDatabaseHelper.COLUMN_TITLE, jMovieObject.getString(title))
-            showValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, jMovieObject.getString("overview"))
+            showValues.put(MovieDatabaseHelper.COLUMN_TITLE, movieDataObject.getString(title))
+            showValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, movieDataObject.getString("overview"))
             showValues.put(MovieDatabaseHelper.COLUMN_GENRES, genres)
             showValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, jMovieObject.getString("genre_ids"))
             showValues.put(MovieDatabaseHelper.COLUMN_MOVIE, isMovie)
-            showValues.put(MovieDatabaseHelper.COLUMN_RATING, jMovieObject.getString("vote_average"))
+            showValues.put(MovieDatabaseHelper.COLUMN_RATING, movieDataObject.getString("vote_average"))
             val releaseDate = if (isMovie) "release_date" else "first_air_date"
-            showValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, jMovieObject.getString(releaseDate))
+            showValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, movieDataObject.getString(releaseDate))
 
             // Insert the show into the database.
             database.insert(MovieDatabaseHelper.TABLE_MOVIES, null, showValues)
