@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.adapter
 import android.content.Context
 import android.content.Intent
 import android.icu.text.DateFormat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,11 +34,14 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.databinding.ShowCardBinding
 import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
+import com.wirelessalien.android.moviedb.fragment.ListFragment
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class ShowBaseAdapter(
@@ -97,36 +101,92 @@ class ShowBaseAdapter(
             holder.showTitle.text = name
 
             if (showData.has(KEY_CATEGORIES)) {
-                val categoryText = when (showData.getInt(KEY_CATEGORIES)) {
-                    0 -> "Plan to watch"
-                    1 -> "Watched"
-                    2 -> "Watching"
-                    3 -> "On hold"
-                    4 -> "Dropped"
-                    else -> "Unknown"
-                }
+                val category = showData.getInt(KEY_CATEGORIES)
                 holder.categoryColorView?.visibility = View.VISIBLE
-                holder.categoryColorView?.text = categoryText
+
+                if (category == 2 && showData.optInt(KEY_IS_MOVIE) == 0) { // Watching and it's a TV show
+                    val movieId = showData.optInt(KEY_ID)
+                    val totalEpisodes = getTotalEpisodesFromTmdb(context, movieId)
+                    Log.d("ShowBaseAdapter", "Total episodes: $totalEpisodes")
+                    val watchedEpisodes = getWatchedEpisodesCount(showData)
+                    Log.d("ShowBaseAdapter", "Watched episodes: $watchedEpisodes")
+                    val episodesLeft = totalEpisodes - watchedEpisodes
+
+                    holder.categoryColorView?.text = context.getString(
+                        R.string.ep_progress_text,
+                        watchedEpisodes,
+                        totalEpisodes,
+                        episodesLeft
+                    )
+
+                    holder.watchedProgressView?.visibility = View.VISIBLE
+                    holder.watchedProgressView?.progress = (watchedEpisodes.toFloat() / totalEpisodes.toFloat() * 100).toInt()
+                } else {
+                    val categoryText = when (category) {
+                        0 -> "Plan to watch"
+                        1 -> "Watched"
+                        2 -> "Watching"
+                        3 -> "On hold"
+                        4 -> "Dropped"
+                        else -> "Unknown"
+                    }
+                    holder.categoryColorView?.text = categoryText
+                }
             } else {
                 holder.categoryColorView?.visibility = View.GONE
+                holder.watchedProgressView?.visibility = View.GONE
             }
 
-            var dateString = if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(KEY_DATE_SERIES)
-            val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            try {
-                val date = originalFormat.parse(dateString)
+
+            if (showData.has(ListFragment.IS_UPCOMING) && showData.getBoolean(ListFragment.IS_UPCOMING)) {
+                val season = showData.optString("seasons")
+                val episodeNumber = showData.optString("upcoming_episode_number")
+
+                if (!season.isNullOrEmpty() && !episodeNumber.isNullOrEmpty()) {
+                    holder.categoryColorView?.visibility = View.VISIBLE
+                    holder.categoryColorView?.text = context.getString(
+                        R.string.episode_s,
+                        episodeNumber.toInt(), season.toInt()
+                    )
+                } else {
+                    holder.categoryColorView?.visibility = View.GONE
+                }
+            }
+
+            var dateString = when {
+                showData.has(ListFragment.UPCOMING_DATE) -> showData.optString(ListFragment.UPCOMING_DATE)
+                showData.has(KEY_DATE_MOVIE) -> showData.optString(KEY_DATE_MOVIE)
+                else -> showData.optString(KEY_DATE_SERIES)
+            }
+
+            val formats = listOf(
+                "yyyy-MM-dd",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "dd-MM-yyyy"
+            )
+
+            var parsedDate: Date? = null
+            for (format in formats) {
+                try {
+                    val formatter = SimpleDateFormat(format, Locale.getDefault())
+                    parsedDate = formatter.parse(dateString)
+                    if (parsedDate != null) break
+                } catch (e: ParseException) {
+                    continue
+                }
+            }
+
+            if (parsedDate != null) {
                 val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
-                dateString = localFormat.format(date)
-            } catch (e: ParseException) {
-                e.printStackTrace()
+                dateString = localFormat.format(parsedDate)
             }
             holder.showDate.text = dateString
 
             if (!mGridView) {
-                holder.showDescription?.text = showData.getString(KEY_DESCRIPTION)
-                holder.showRating?.rating = showData.getString(KEY_RATING).toFloat() / 2
+                holder.showDescription?.text = showData.optString(KEY_DESCRIPTION)
+                holder.showRating?.rating = showData.optString(KEY_RATING).toFloat() / 2
 
-                var genreIds = showData.getString(KEY_GENRES)
+                var genreIds = showData.optString(KEY_GENRES)
                 genreIds = if (!genreIds.isNullOrEmpty() && genreIds.length > 2) {
                     genreIds.substring(1, genreIds.length - 1)
                 } else {
@@ -151,11 +211,59 @@ class ShowBaseAdapter(
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
-            if (showData.has(KEY_NAME)) {
+            if (showData.has(ListFragment.IS_UPCOMING) && showData.getBoolean(ListFragment.IS_UPCOMING)) {
+                val upcomingType = showData.optString("upcoming_type")
+                intent.putExtra("isMovie", upcomingType == "movie")
+            } else if (showData.has(KEY_NAME)) {
                 intent.putExtra("isMovie", false)
             }
             view.context.startActivity(intent)
         }
+    }
+
+    private fun getWatchedEpisodesCount(showData: JSONObject): Int {
+        if (!showData.has("seasons")) return 0
+
+        val seasons = showData.getJSONObject("seasons")
+        var watchedCount = 0
+
+        seasons.keys().forEach { seasonNumber ->
+            val episodes = seasons.getJSONArray(seasonNumber)
+            watchedCount += episodes.length()
+        }
+
+        return watchedCount
+    }
+
+    private fun getTotalEpisodesFromTmdb(context: Context, movieId: Int): Int {
+        val tmdbDbHelper = TmdbDetailsDatabaseHelper(context)
+        val tmdbDb = tmdbDbHelper.readableDatabase
+
+        val cursor = tmdbDb.query(
+            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            arrayOf(movieId.toString()),
+            null, null, null
+        )
+
+        var totalEpisodes = 0
+        if (cursor.moveToFirst()) {
+            val seasonsEpisodeString = cursor.getString(
+                cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)
+            )
+
+            if (!seasonsEpisodeString.isNullOrEmpty()) {
+                val regex = Regex("""\d+\{(\d+(,\d+)*)\}""")
+                totalEpisodes = regex.findAll(seasonsEpisodeString).sumOf { matchResult ->
+                    matchResult.groupValues[1].split(",").size
+                }
+            }
+        }
+
+        cursor.close()
+        tmdbDb.close()
+        return totalEpisodes
     }
 
     override fun getItemId(position: Int): Long {
@@ -175,7 +283,8 @@ class ShowBaseAdapter(
         val showRating = binding?.rating
         val showDate = gridBinding?.date ?: binding!!.date
         val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
-        val categoryColorView = binding?.categoryColor
+        val categoryColorView = gridBinding?.categoryColor ?: binding?.categoryColor
+        val watchedProgressView = gridBinding?.watchedProgress ?: binding?.watchedProgress
     }
 
     companion object {
@@ -190,6 +299,7 @@ class ShowBaseAdapter(
         const val KEY_DATE_SERIES = "first_air_date"
         const val KEY_GENRES = "genre_ids"
         const val KEY_RELEASE_DATE = "release_date"
+        const val KEY_IS_MOVIE = "is_movie"
         private const val HD_IMAGE_SIZE = "key_hq_images"
         private const val KEY_CATEGORIES = MovieDatabaseHelper.COLUMN_CATEGORIES
     }

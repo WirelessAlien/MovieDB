@@ -38,16 +38,28 @@
             android:orientation="horizontal">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/all"
+                android:checkable="true"
+                style="@style/Widget.Material3.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
                 android:id="@+id/chipMovie"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
+                android:tag="movie"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:text="@string/movie" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipShow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:tag="tv"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:checkable="true"
                 android:text="@string/show" />
         </com.google.android.material.chip.ChipGroup>
@@ -59,6 +71,7 @@
             android:clipToPadding="false"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
+            android:layout_marginTop="-5dp"
             android:scrollbars="none"/>
     </LinearLayout>
 

@@ -157,39 +157,6 @@
             </LinearLayout>
 
             <View
-                android:id="@+id/categoryViewSeparator"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="10dip"
-                android:layout_marginTop="10dip"
-                android:background="?android:attr/listDivider" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dip"
-                android:text="@string/type"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:id="@+id/mediaCheckBoxesLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/movieCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="movie"
-                    android:text="@string/movie" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/tvCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="tv"
-                    android:text="@string/tv_show" />
-            </LinearLayout>
-
-            <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginBottom="10dip"

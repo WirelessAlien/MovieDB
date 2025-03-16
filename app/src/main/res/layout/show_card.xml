@@ -153,6 +153,15 @@
                 android:numStars="5"
                 android:rating="3.5" />
 
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/watchedProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:layout_below="@id/rating"/>
+
             <TextView
                 android:id="@+id/date"
                 android:layout_width="wrap_content"

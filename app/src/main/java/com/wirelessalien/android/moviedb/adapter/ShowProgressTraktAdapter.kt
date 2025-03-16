@@ -26,6 +26,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.children
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -187,7 +188,25 @@ class ShowProgressTraktAdapter(
                 recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
                 val seasons = parseSeasonsTmdb(showData.optString("seasons_episode_show_tmdb", ""))
+                val maxVisibleChips = 5
+                var isExpanded = false
 
+                // Create show more chip
+                val showMoreChip = Chip(context).apply {
+                    text = context.getString(R.string.show_more)
+                    isCheckable = false
+                    visibility = if (seasons.size > maxVisibleChips) View.VISIBLE else View.GONE
+                }
+
+                fun updateChipsVisibility() {
+                    chipGroupSeasons.children.forEachIndexed { index, view ->
+                        if (view != showMoreChip) {
+                            view.visibility = if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
+                        }
+                    }
+                }
+
+                // Add season chips
                 seasons.forEach { seasonNumber ->
                     val chip = Chip(context).apply {
                         text = context.getString(R.string.season_p, seasonNumber)
@@ -207,6 +226,19 @@ class ShowProgressTraktAdapter(
                         }
                     }
                     chipGroupSeasons.addView(chip)
+                }
+
+                // Add show more chip and set its click listener
+                if (seasons.size > maxVisibleChips) {
+                    chipGroupSeasons.addView(showMoreChip)
+                    showMoreChip.setOnClickListener {
+                        isExpanded = !isExpanded
+                        showMoreChip.text = context.getString(
+                            if (isExpanded) R.string.show_less else R.string.show_more
+                        )
+                        updateChipsVisibility()
+                    }
+                    updateChipsVisibility()
                 }
 
                 bottomSheetDialog.setContentView(bottomSheetBinding.root)

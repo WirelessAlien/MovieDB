@@ -170,6 +170,16 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         }
 
         findPreference<SwitchPreferenceCompat>("key_auto_sync_tkt_data")?.let { preference ->
+            val traktToken = preferences.getString("trakt_access_token", null)
+            preference.isEnabled = !traktToken.isNullOrEmpty()
+
+            if (!preference.isEnabled) {
+                preference.summary = getString(R.string.trakt_login_required)
+                preference.isChecked = false
+                // Cancel any existing work if token is not available
+                WorkManager.getInstance(requireContext()).cancelUniqueWork("weekly_work_tkt")
+            }
+
             preference.setOnPreferenceChangeListener { _, newValue ->
                 if (newValue as Boolean) {
                     // Check network connectivity

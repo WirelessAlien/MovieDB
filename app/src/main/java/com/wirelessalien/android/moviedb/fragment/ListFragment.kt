@@ -21,6 +21,7 @@ package com.wirelessalien.android.moviedb.fragment
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -31,6 +32,7 @@ import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -61,8 +63,10 @@ import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogTraktSyncMinimalBinding
-import com.wirelessalien.android.moviedb.databinding.FragmentShowBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentSavedBinding
 import com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
@@ -71,9 +75,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -90,11 +97,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private lateinit var mSearchShowBackupArrayList: ArrayList<JSONObject>
     private var usedFilter = false
     private lateinit var mDatabase: SQLiteDatabase
+    private val client = OkHttpClient()
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
-
+    private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
+    private var selectedMediaTypes = mutableSetOf<String>()
     private var mScrollPosition: Int? = null
+    private var accessToken: String? = null
+    private var clientId: String? = null
     private lateinit var filterActivityResultLauncher: ActivityResultLauncher<Intent>
-    private lateinit var binding: FragmentShowBinding
+    private lateinit var binding: FragmentSavedBinding
     private lateinit var activityBinding: ActivityMainBinding
 
     override fun onAdapterDataChangedListener() {
@@ -106,7 +117,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         mDatabaseHelper = MovieDatabaseHelper(requireContext().applicationContext)
-
+        epDbHelper = EpisodeReminderDatabaseHelper(requireContext().applicationContext)
+        accessToken = preferences.getString("trakt_access_token", null)
+        clientId = ConfigHelper.getConfigValue(requireContext(), "client_id")
         filterActivityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -127,7 +140,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentShowBinding.inflate(inflater, container, false)
+        binding = FragmentSavedBinding.inflate(inflater, container, false)
         val fragmentView = binding.root
         activityBinding = (activity as MainActivity).getBinding()
         showShowList(fragmentView)
@@ -151,6 +164,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         activityBinding.fab2.setOnClickListener {
             showWatchSummaryDialog()
         }
+
+        selectedMediaTypes.addAll(listOf("movie", "tv"))
+
+        setupMediaTypeChips()
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            refreshData()
+        }
+
         return fragmentView
     }
 
@@ -219,6 +241,41 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun refreshData() {
+        CoroutineScope(Dispatchers.Main).launch {
+            // Refresh data based on the selected chip
+            when {
+                binding.chipAll.isChecked -> {
+                    selectedMediaTypes.clear()
+                    selectedMediaTypes.addAll(listOf("movie", "tv"))
+                    updateShowViewAdapter()
+                }
+                binding.chipMovie.isChecked -> {
+                    selectedMediaTypes.clear()
+                    selectedMediaTypes.add("movie")
+                    filterByMediaType()
+                }
+                binding.chipShow.isChecked -> {
+                    selectedMediaTypes.clear()
+                    selectedMediaTypes.add("tv")
+                    filterByMediaType()
+                }
+                binding.chipUpcoming.isChecked -> {
+                    mShowArrayList.clear()
+                    mShowAdapter.notifyDataSetChanged()
+                    binding.shimmerFrameLayout1.apply {
+                        startShimmer()
+                        visibility = View.VISIBLE
+                    }
+                    fetchCalendarData {
+                        showUpcomingContent()
+                    }
+                }
+            }
+            binding.swipeRefreshLayout.isRefreshing = false
+        }
     }
 
     override fun onResume() {
@@ -311,7 +368,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         totalItemCount
     }
 
-
     private suspend fun getGenreIdsFromDatabase(): List<Int> = withContext(Dispatchers.IO) {
         val genreIds = mutableListOf<Int>()
         open()
@@ -380,7 +436,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    // Usage example
     private suspend fun setupGenreChips(context: Context, chipGroup: ChipGroup) {
         val genreIds = getGenreIdsFromDatabase()
         val genreNames = getGenreNamesFromSharedPreferences(context)
@@ -475,11 +530,26 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      * Create and set the new adapter to update the show view.
      */
     private fun updateShowViewAdapter() {
-        mShowArrayList = getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
-        mShowAdapter = ShowBaseAdapter(
-            mShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-        )
+        CoroutineScope(Dispatchers.Main).launch {
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
+            // Database operations on IO dispatcher
+            val shows = withContext(Dispatchers.IO) {
+                getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
+            }
+
+            // UI updates on Main dispatcher
+            mShowArrayList = shows
+            mShowAdapter = ShowBaseAdapter(
+                mShowArrayList,
+                mShowGenreList,
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
+            )
+            mShowView.adapter = mShowAdapter
+            binding.shimmerFrameLayout1.stopShimmer()
+            binding.shimmerFrameLayout1.visibility = View.GONE
+        }
+
         if (!mSearchView) {
             if (usedFilter) {
                 // Also change the backup.
@@ -490,6 +560,337 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
             if (mScrollPosition != null) {
                 mShowView.scrollToPosition(mScrollPosition!!)
+            }
+        }
+    }
+
+    private fun setupMediaTypeChips() {
+        // Initially check the "All" chip and uncheck others
+        binding.chipAll.isChecked = true
+        binding.chipMovie.isChecked = false
+        binding.chipShow.isChecked = false
+        binding.chipUpcoming.isChecked = false
+        selectedMediaTypes.clear()
+        selectedMediaTypes.addAll(listOf("movie", "tv"))
+
+        binding.chipAll.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                // When "All" is selected, uncheck others
+                binding.noUpcomingText.visibility = View.GONE
+                binding.chipMovie.isChecked = false
+                binding.chipShow.isChecked = false
+                binding.chipUpcoming.isChecked = false
+                selectedMediaTypes.clear()
+                selectedMediaTypes.addAll(listOf("movie", "tv"))
+                filterByMediaType()
+            } else if (!binding.chipMovie.isChecked && !binding.chipShow.isChecked && !binding.chipUpcoming.isChecked) {
+                // If no other chips are checked, recheck "All"
+                binding.noUpcomingText.visibility = View.GONE
+                buttonView.isChecked = true
+                selectedMediaTypes.clear()
+                selectedMediaTypes.addAll(listOf("movie", "tv"))
+                filterByMediaType()
+            }
+        }
+
+        binding.chipMovie.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                // Uncheck others when Movie is selected
+                binding.noUpcomingText.visibility = View.GONE
+                binding.chipAll.isChecked = false
+                binding.chipShow.isChecked = false
+                binding.chipUpcoming.isChecked = false
+                selectedMediaTypes.clear()
+                selectedMediaTypes.add("movie")
+            } else {
+                selectedMediaTypes.remove("movie")
+                // If no other filter is checked, check "All"
+                if (!binding.chipShow.isChecked && !binding.chipUpcoming.isChecked) {
+                    binding.chipAll.isChecked = true
+                    binding.noUpcomingText.visibility = View.GONE
+                    selectedMediaTypes.clear()
+                    selectedMediaTypes.addAll(listOf("movie", "tv"))
+                }
+            }
+            filterByMediaType()
+        }
+
+        binding.chipShow.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                // Uncheck others when Show is selected
+                binding.noUpcomingText.visibility = View.GONE
+                binding.chipAll.isChecked = false
+                binding.chipMovie.isChecked = false
+                binding.chipUpcoming.isChecked = false
+                selectedMediaTypes.clear()
+                selectedMediaTypes.add("tv")
+            } else {
+                selectedMediaTypes.remove("tv")
+                // If no other filter is checked, check "All"
+                if (!binding.chipMovie.isChecked && !binding.chipUpcoming.isChecked) {
+                    binding.chipAll.isChecked = true
+                    binding.noUpcomingText.visibility = View.GONE
+                    selectedMediaTypes.clear()
+                    selectedMediaTypes.addAll(listOf("movie", "tv"))
+                }
+            }
+            filterByMediaType()
+        }
+
+        binding.chipUpcoming.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                // Uncheck others when Upcoming is selected
+                binding.chipAll.isChecked = false
+                binding.chipMovie.isChecked = false
+                binding.chipShow.isChecked = false
+                selectedMediaTypes.clear()
+
+                mShowArrayList.clear()
+                mShowAdapter.notifyDataSetChanged()
+                showUpcomingContent()
+            } else {
+                // If no other filter is checked, check "All"
+                if (!binding.chipMovie.isChecked && !binding.chipShow.isChecked) {
+                    binding.chipAll.isChecked = true
+                    selectedMediaTypes.clear()
+                    selectedMediaTypes.addAll(listOf("movie", "tv"))
+                    updateShowViewAdapter()
+                }
+            }
+        }
+    }
+
+    private fun showUpcomingContent() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                binding.shimmerFrameLayout1.apply {
+                    visibility = View.VISIBLE
+                    startShimmer()
+                }
+
+                val upcomingContent = withContext(Dispatchers.IO) {
+                    val upcomingShows = ArrayList<JSONObject>()
+
+                    // Use try-with-resources for database helpers
+                    EpisodeReminderDatabaseHelper(requireContext()).use { epDbHelper ->
+                        MovieDatabaseHelper(requireContext()).use { movieDbHelper ->
+                            val epDb = epDbHelper.readableDatabase
+                            val movieDb = movieDbHelper.readableDatabase
+
+                            // Query episode reminders with specific columns needed
+                            val projection = arrayOf(
+                                EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
+                                EpisodeReminderDatabaseHelper.COLUMN_DATE,
+                                EpisodeReminderDatabaseHelper.COL_TYPE,
+                                EpisodeReminderDatabaseHelper.COL_SEASON,
+                                EpisodeReminderDatabaseHelper.COLUMN_NAME,
+                                EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER
+                            )
+
+                            epDb.query(
+                                EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+                                projection,
+                                null,
+                                null,
+                                null,
+                                null,
+                                "${EpisodeReminderDatabaseHelper.COLUMN_DATE} ASC"
+                            ).use { epCursor ->
+                                while (epCursor.moveToNext()) {
+                                    val movieId = epCursor.getInt(epCursor.getColumnIndexOrThrow(
+                                        EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
+
+                                    // Query movie details with specific columns
+                                    val movieProjection = arrayOf(
+                                        MovieDatabaseHelper.COLUMN_MOVIES_ID,
+                                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
+                                        MovieDatabaseHelper.COLUMN_RATING,
+                                        MovieDatabaseHelper.COLUMN_IMAGE,
+                                        MovieDatabaseHelper.COLUMN_ICON,
+                                        MovieDatabaseHelper.COLUMN_TITLE,
+                                        MovieDatabaseHelper.COLUMN_SUMMARY,
+                                        MovieDatabaseHelper.COLUMN_GENRES_IDS,
+                                        MovieDatabaseHelper.COLUMN_MOVIE
+                                    )
+
+                                    movieDb.query(
+                                        MovieDatabaseHelper.TABLE_MOVIES,
+                                        movieProjection,
+                                        "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                                        arrayOf(movieId.toString()),
+                                        null,
+                                        null,
+                                        null
+                                    ).use { movieCursor ->
+                                        if (movieCursor.moveToFirst()) {
+                                            createMovieDetails(movieCursor, epCursor)?.let {
+                                                upcomingShows.add(it)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    upcomingShows
+                }
+
+                updateUI(upcomingContent)
+
+            } catch (e: Exception) {
+                binding.shimmerFrameLayout1.apply {
+                    stopShimmer()
+                    visibility = View.GONE
+                }
+                Log.e("ListFragment", "Error loading upcoming content", e)
+                binding.noUpcomingText.visibility = View.VISIBLE
+            } finally {
+                binding.shimmerFrameLayout1.apply {
+                    stopShimmer()
+                    visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun createMovieDetails(movieCursor: Cursor, epCursor: Cursor): JSONObject? {
+        return try {
+            JSONObject().apply {
+                val movieId = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(
+                    MovieDatabaseHelper.COLUMN_MOVIES_ID))
+
+                put(ShowBaseAdapter.KEY_ID, movieId)
+                put(ShowBaseAdapter.KEY_RATING, getMovieRating(movieCursor))
+                put(ShowBaseAdapter.KEY_IMAGE, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
+                    MovieDatabaseHelper.COLUMN_IMAGE)))
+                put(ShowBaseAdapter.KEY_POSTER, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
+                    MovieDatabaseHelper.COLUMN_ICON)))
+                put(ShowBaseAdapter.KEY_TITLE, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
+                    MovieDatabaseHelper.COLUMN_TITLE)))
+                put(ShowBaseAdapter.KEY_DESCRIPTION, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
+                    MovieDatabaseHelper.COLUMN_SUMMARY)))
+                put(ShowBaseAdapter.KEY_GENRES, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
+                    MovieDatabaseHelper.COLUMN_GENRES_IDS)))
+                put(IS_MOVIE, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
+                    MovieDatabaseHelper.COLUMN_MOVIE)))
+
+                // Add upcoming specific data
+                put(IS_UPCOMING, true)
+                put(UPCOMING_DATE, epCursor.getString(epCursor.getColumnIndexOrThrow(
+                    EpisodeReminderDatabaseHelper.COLUMN_DATE)))
+                put(UPCOMING_TYPE, epCursor.getString(epCursor.getColumnIndexOrThrow(
+                    EpisodeReminderDatabaseHelper.COL_TYPE)))
+
+                if (epCursor.getString(epCursor.getColumnIndexOrThrow(
+                        EpisodeReminderDatabaseHelper.COL_TYPE)) == EPISODE) {
+                    addEpisodeDetails(this, epCursor)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ListFragment", "Error creating movie details", e)
+            null
+        }
+    }
+
+    private fun getMovieRating(cursor: Cursor): Int {
+        return if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))) {
+            cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
+        } else {
+            cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RATING))
+        }
+    }
+
+    private fun addEpisodeDetails(jsonObject: JSONObject, cursor: Cursor) {
+        jsonObject.apply {
+            put(SEASONS, cursor.getString(cursor.getColumnIndexOrThrow(
+                EpisodeReminderDatabaseHelper.COL_SEASON)))
+            put(UPCOMING_EPISODE_NAME, cursor.getString(cursor.getColumnIndexOrThrow(
+                EpisodeReminderDatabaseHelper.COLUMN_NAME)))
+            put(UPCOMING_EPISODE_NUMBER, cursor.getString(cursor.getColumnIndexOrThrow(
+                EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER)))
+        }
+    }
+
+    private fun updateUI(upcomingContent: ArrayList<JSONObject>) {
+        if (upcomingContent.isNotEmpty()) {
+            Log.d("ListFragment", "Upcoming content: $upcomingContent")
+            mShowArrayList = upcomingContent
+            mShowAdapter = ShowBaseAdapter(
+                mShowArrayList,
+                mShowGenreList,
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
+            )
+            mShowView.adapter = mShowAdapter
+            binding.noUpcomingText.visibility = View.GONE
+        } else {
+            mShowArrayList.clear()
+            mShowAdapter.notifyDataSetChanged()
+            binding.noUpcomingText.visibility = View.VISIBLE
+        }
+    }
+
+    private fun filterByMediaType() {
+        if (!mSearchView) {
+            // Clone the backup if it's the first filter
+            if (!::mShowBackupArrayList.isInitialized) {
+                mShowBackupArrayList = mShowArrayList.clone() as ArrayList<JSONObject>
+            }
+
+            // Reset to backup before filtering
+            mShowArrayList = mShowBackupArrayList.clone() as ArrayList<JSONObject>
+
+            // Apply media type filter
+            if (selectedMediaTypes.size < 2) { // Only filter if not all types are selected
+                mShowArrayList.removeIf { showObject ->
+                    val isTV = showObject.optString(IS_MOVIE) == "0"
+                    when {
+                        selectedMediaTypes.contains("movie") -> isTV
+                        selectedMediaTypes.contains("tv") -> !isTV
+                        else -> true // Remove all if nothing selected
+                    }
+                }
+            }
+
+            // Apply other filters if needed
+            if (usedFilter) {
+                filterAdapter()
+            } else {
+                // Update adapter with filtered list
+                mShowAdapter = ShowBaseAdapter(
+                    mShowArrayList,
+                    mShowGenreList,
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
+                )
+                mShowView.adapter = mShowAdapter
+            }
+        } else {
+            // Handle search view filtering
+            if (!::mSearchShowBackupArrayList.isInitialized) {
+                mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
+            }
+
+            mSearchShowArrayList = mSearchShowBackupArrayList.clone() as ArrayList<JSONObject>
+
+            if (selectedMediaTypes.size < 2) {
+                mSearchShowArrayList.removeIf { showObject ->
+                    val isTV = showObject.optString(IS_MOVIE) == "0"
+                    when {
+                        selectedMediaTypes.contains("movie") -> isTV
+                        selectedMediaTypes.contains("tv") -> !isTV
+                        else -> true
+                    }
+                }
+            }
+
+            if (usedFilter) {
+                filterAdapter()
+            } else {
+                mSearchShowAdapter = ShowBaseAdapter(
+                    mSearchShowArrayList,
+                    mShowGenreList,
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
+                )
+                mShowView.adapter = mSearchShowAdapter
             }
         }
     }
@@ -505,27 +906,35 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         // Clone the ArrayList as the original needs to be kept
         // in case the filter settings are changed (and removed shows might need to be shown again).
         if (!mSearchView) {
-            mShowBackupArrayList = (mShowArrayList.clone() as ArrayList<*>).filterNotNull() as ArrayList<JSONObject>
+            mShowBackupArrayList = mShowArrayList.clone() as ArrayList<JSONObject>
+            mShowArrayList = mShowBackupArrayList.clone() as ArrayList<JSONObject>
         } else {
-            mSearchShowArrayList = (mSearchShowArrayList.clone() as ArrayList<*>).filterNotNull() as ArrayList<JSONObject>
+            mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
+            mSearchShowArrayList = mSearchShowBackupArrayList.clone() as ArrayList<JSONObject>
         }
-        val showMovie = FilterActivity.convertStringToArrayList(
-            sharedPreferences.getString(FilterActivity.FILTER_SHOW_MOVIE, null), ", "
-        )
-        if (showMovie != null && (!showMovie.contains("movie") || !showMovie.contains("tv"))) {
-            if (mSearchView) {
-                mSearchShowArrayList.removeIf { showObject: JSONObject ->
-                    val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
-                    showMovie.contains("movie") && isTV || showMovie.contains("tv") && !isTV
+
+        // First apply media type filter
+        if (selectedMediaTypes.size < 2) {
+            if (!mSearchView) {
+                mShowArrayList.removeIf { showObject ->
+                    val isTV = showObject.optString(IS_MOVIE) == "0"
+                    when {
+                        selectedMediaTypes.contains("movie") -> isTV
+                        selectedMediaTypes.contains("tv") -> !isTV
+                        else -> true
+                    }
                 }
             } else {
-                mShowArrayList.removeIf { showObject: JSONObject ->
-                    val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
-                    showMovie.contains("movie") && isTV || showMovie.contains("tv") && !isTV
+                mSearchShowArrayList.removeIf { showObject ->
+                    val isTV = showObject.optString(IS_MOVIE) == "0"
+                    when {
+                        selectedMediaTypes.contains("movie") -> isTV
+                        selectedMediaTypes.contains("tv") -> !isTV
+                        else -> true
+                    }
                 }
             }
         }
-
 
         // Sort the ArrayList based on the chosen order.
         var sortPreference: String?
@@ -862,12 +1271,19 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      */
     private fun createShowList() {
         mShowGenreList = HashMap()
-        mShowArrayList = getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
-        mShowAdapter = ShowBaseAdapter(
-            mShowArrayList, mShowGenreList,
-            preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-        )
-        mShowView.adapter = mShowAdapter
+        CoroutineScope(Dispatchers.Main).launch {
+            val shows = withContext(Dispatchers.IO) {
+                getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
+            }
+
+            mShowArrayList = shows
+            mShowAdapter = ShowBaseAdapter(
+                mShowArrayList,
+                mShowGenreList,
+                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
+            )
+            mShowView.adapter = mShowAdapter
+        }
     }
 
     /**
@@ -888,19 +1304,30 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
         open()
         mDatabaseHelper.onCreate(mDatabase)
-        // Search for shows that fulfill the searchQuery and fit in the list.
+
+        // Base query with LEFT JOIN to include episode data
+        val baseQuery = """
+        SELECT m.*, e.${MovieDatabaseHelper.COLUMN_SEASON_NUMBER}, 
+               e.${MovieDatabaseHelper.COLUMN_EPISODE_NUMBER},
+               e.${MovieDatabaseHelper.COLUMN_EPISODE_RATING},
+               e.${MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE},
+               e.${MovieDatabaseHelper.COLUMN_EPISODE_REVIEW}
+        FROM ${MovieDatabaseHelper.TABLE_MOVIES} m
+        LEFT JOIN ${MovieDatabaseHelper.TABLE_EPISODES} e 
+        ON m.${MovieDatabaseHelper.COLUMN_MOVIES_ID} = e.${MovieDatabaseHelper.COLUMN_MOVIES_ID}
+    """
+
+        // Search for shows that fulfill the searchQuery and fit in the list
         val cursor: Cursor = if (searchQuery != null && searchQuery != "") {
-            mDatabase.rawQuery(
-                "SELECT *, " + MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE + ", " + MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE + " FROM " + MovieDatabaseHelper.TABLE_MOVIES
-                        + " WHERE " + MovieDatabaseHelper.COLUMN_TITLE + " LIKE '%"
-                        + searchQuery + "%'" + dbOrder, null
-            )
+            mDatabase.rawQuery("""
+            $baseQuery
+            WHERE m.${MovieDatabaseHelper.COLUMN_TITLE} LIKE ? 
+            $dbOrder
+        """, arrayOf("%$searchQuery%"))
         } else {
-            mDatabase.rawQuery(
-                "SELECT *, " + MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE + ", " + MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE + " FROM " +
-                        MovieDatabaseHelper.TABLE_MOVIES + dbOrder, null
-            )
+            mDatabase.rawQuery("$baseQuery $dbOrder", null)
         }
+
         return convertDatabaseListToArrayList(cursor)
     }
 
@@ -912,102 +1339,275 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      */
     private fun convertDatabaseListToArrayList(cursor: Cursor): ArrayList<JSONObject> {
         val dbShowsArrayList = ArrayList<JSONObject>()
+        val showEpisodesMap = mutableMapOf<Int, MutableMap<Int, JSONArray>>()
+
         cursor.moveToFirst()
-        // Convert the cursor object to a JSONObject (that way the code can be reused).
         while (!cursor.isAfterLast) {
-            val showObject = JSONObject()
-            try {
-                // Use the ShowBaseAdapter naming standards.
-                showObject.put(
-                    ShowBaseAdapter.KEY_ID,
-                    cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
-                )
-                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))) {
-                    showObject.put(
-                        ShowBaseAdapter.KEY_RATING, cursor.getInt(
-                            cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)
-                        )
-                    )
-                } else {
-                    showObject.put(
-                        ShowBaseAdapter.KEY_RATING, cursor.getInt(
-                            cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RATING)
-                        )
-                    )
+            val movieId = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
+
+            // Create show object if it doesn't exist for this movieId
+            if (!showEpisodesMap.containsKey(movieId)) {
+                val showObject = JSONObject().apply {
+                    try {
+                        put(ShowBaseAdapter.KEY_ID, movieId)
+                        if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))) {
+                            put(ShowBaseAdapter.KEY_RATING,
+                                cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)))
+                        } else {
+                            put(ShowBaseAdapter.KEY_RATING,
+                                cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RATING)))
+                        }
+                        put(ShowBaseAdapter.KEY_IMAGE,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_IMAGE)))
+                        put(ShowBaseAdapter.KEY_POSTER,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_ICON)))
+                        put(ShowBaseAdapter.KEY_TITLE,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE)))
+                        put(ShowBaseAdapter.KEY_DESCRIPTION,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_SUMMARY)))
+                        put(ShowBaseAdapter.KEY_GENRES,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_GENRES_IDS)))
+                        put(MovieDatabaseHelper.COLUMN_CATEGORIES,
+                            cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)))
+                        put(IS_MOVIE,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)))
+                        put(ShowBaseAdapter.KEY_DATE_MOVIE,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE)))
+                        put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)))
+                        put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE,
+                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)))
+
+                        if (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) != 1) {
+                            put(ShowBaseAdapter.KEY_NAME,
+                                cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE)))
+                            put(ShowBaseAdapter.KEY_DATE_SERIES,
+                                cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE)))
+                        }
+
+                        // Initialize seasons object
+                        put(SEASONS, JSONObject())
+                    } catch (je: JSONException) {
+                        je.printStackTrace()
+                    }
                 }
-                showObject.put(
-                    ShowBaseAdapter.KEY_IMAGE, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_IMAGE)
-                    )
-                )
-                showObject.put(
-                    ShowBaseAdapter.KEY_POSTER, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_ICON)
-                    )
-                )
-                showObject.put(
-                    ShowBaseAdapter.KEY_TITLE, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE)
-                    )
-                )
-                showObject.put(
-                    ShowBaseAdapter.KEY_DESCRIPTION, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_SUMMARY)
-                    )
-                )
-                showObject.put(
-                    ShowBaseAdapter.KEY_GENRES, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_GENRES_IDS)
-                    )
-                )
-                showObject.put(
-                    MovieDatabaseHelper.COLUMN_CATEGORIES, cursor.getInt(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)
-                    )
-                )
-                showObject.put(
-                    ShowBaseAdapter.KEY_DATE_MOVIE, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE)
-                    )
-                )
-                showObject.put(
-                    MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
-                    )
-                )
-                showObject.put(
-                    MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, cursor.getString(
-                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
-                    )
-                )
+                dbShowsArrayList.add(showObject)
+                showEpisodesMap[movieId] = mutableMapOf()
+            }
 
-                // Add a name key-value pair if it is a series.
-                // (Otherwise ShowBaseAdapter won't recognise it as a series)
-                if (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) != 1) {
-                    showObject.put(
-                        ShowBaseAdapter.KEY_NAME, cursor.getInt(
-                            cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE)
-                        )
-                    )
+            // Process episode data if it exists
+            val seasonNumber = cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_SEASON_NUMBER)
+            if (!cursor.isNull(seasonNumber)) {
+                val season = cursor.getInt(seasonNumber)
+                val episodeObject = JSONObject().apply {
+                    put(EPISODE_NUMBER,
+                        cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER)))
+                    put(EPISODE_RATING,
+                        cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_RATING)))
+                    put(EPISODE_WATCH_DATE,
+                        cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE)))
+                    put(EPISODE_REVIEW,
+                        cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_REVIEW)))
+                }
 
-                    // Same goes for release date.
-                    showObject.put(
-                        ShowBaseAdapter.KEY_DATE_SERIES, cursor.getString(
-                            cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE)
-                        )
-                    )
+                // Add episode to season array
+                val seasonEpisodes = showEpisodesMap[movieId]?.getOrPut(season) { JSONArray() }
+                seasonEpisodes?.put(episodeObject)
+            }
+
+            cursor.moveToNext()
+        }
+
+        // Add organized episodes to their respective shows
+        dbShowsArrayList.forEach { showObject ->
+            try {
+                val movieId = showObject.getInt(ShowBaseAdapter.KEY_ID)
+                val seasonMap = showEpisodesMap[movieId]
+                val seasonsObject = showObject.getJSONObject(SEASONS)
+
+                seasonMap?.forEach { (season, episodes) ->
+                    seasonsObject.put(season.toString(), episodes)
                 }
             } catch (je: JSONException) {
                 je.printStackTrace()
             }
-
-            // Add the JSONObject to the list and move on to the next one.
-            dbShowsArrayList.add(showObject)
-            cursor.moveToNext()
         }
+
         cursor.close()
         close()
+        Log.d("ShowBaseAdapter", "dbShowsArrayList: $dbShowsArrayList")
         return dbShowsArrayList
+    }
+
+    private fun fetchCalendarData(callback: () -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val sdf = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val today = sdf.format(Date())
+
+            epDbHelper.writableDatabase.delete(
+                EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+                null,
+                null
+            )
+
+            // Fetch shows calendar
+            val showsUrl = "https://api.trakt.tv/calendars/all/shows/$today/7"
+            val showsRequest = createRequest(showsUrl)
+            executeRequest(showsRequest) { showResponse ->
+                val showsArray = JSONArray(showResponse)
+                for (i in 0 until showsArray.length()) {
+                    val item = showsArray.getJSONObject(i)
+                    val firstAired = item.optString("first_aired", "NULL")
+                    val episode = item.getJSONObject("episode")
+                    val show = item.getJSONObject("show")
+
+                    val values = ContentValues().apply {
+                        put(EpisodeReminderDatabaseHelper.COL_TYPE, "episode")
+                        put(EpisodeReminderDatabaseHelper.COLUMN_DATE, firstAired)
+                        // Required fields with default values
+                        put(
+                            EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
+                            show.getJSONObject("ids").optInt("tmdb", 0)
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME,
+                            show.optString("title", "NULL")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COLUMN_NAME,
+                            episode.optString("title", "NULL")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER,
+                            episode.optString("number", "NULL")
+                        )
+
+                        // Episode details
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SEASON,
+                            episode.optInt("season")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_EPISODE_TRAKT_ID,
+                            episode.getJSONObject("ids").optInt("trakt")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_EPISODE_TVDB,
+                            episode.getJSONObject("ids").optInt("tvdb")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_EPISODE_IMDB,
+                            episode.getJSONObject("ids").optString("imdb")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_EPISODE_TMDB,
+                            episode.getJSONObject("ids").optInt("tmdb")
+                        )
+
+                        // Show details
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SHOW_YEAR,
+                            show.optInt("year")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SHOW_TRAKT_ID,
+                            show.getJSONObject("ids").optInt("trakt")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SHOW_SLUG,
+                            show.getJSONObject("ids").optString("slug")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SHOW_TVDB,
+                            show.getJSONObject("ids").optInt("tvdb")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SHOW_IMDB,
+                            show.getJSONObject("ids").optString("imdb")
+                        )
+                    }
+                    epDbHelper.writableDatabase.insert(
+                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+                        null,
+                        values
+                    )
+                }
+            }
+
+            // Fetch movies calendar
+            val moviesUrl = "https://api.trakt.tv/calendars/all/movies/$today/7"
+            val moviesRequest = createRequest(moviesUrl)
+            executeRequest(moviesRequest) { movieResponse ->
+                val moviesArray = JSONArray(movieResponse)
+                for (i in 0 until moviesArray.length()) {
+                    val item = moviesArray.getJSONObject(i)
+                    val releaseDate = item.optString("released", "NULL")
+                    val movie = item.getJSONObject("movie")
+
+                    val values = ContentValues().apply {
+                        put(EpisodeReminderDatabaseHelper.COL_TYPE, "movie")
+                        put(EpisodeReminderDatabaseHelper.COLUMN_DATE, releaseDate)
+                        put(
+                            EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
+                            movie.getJSONObject("ids").optInt("tmdb", 0)
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME,
+                            movie.optString("title", "NULL")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_YEAR,
+                            movie.optInt("year")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SHOW_TRAKT_ID,
+                            movie.getJSONObject("ids").optInt("trakt")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_SLUG,
+                            movie.getJSONObject("ids").optString("slug")
+                        )
+                        put(
+                            EpisodeReminderDatabaseHelper.COL_IMDB,
+                            movie.getJSONObject("ids").optString("imdb")
+                        )
+                        put(EpisodeReminderDatabaseHelper.COLUMN_NAME, "")
+                        put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, "")
+                    }
+                    epDbHelper.writableDatabase.insert(
+                        EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+                        null,
+                        values
+                    )
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                callback()
+            }
+        }
+    }
+
+    private fun createRequest(url: String): Request {
+        return Request.Builder()
+            .url(url)
+            .get()
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .addHeader("trakt-api-version", "2")
+            .addHeader("trakt-api-key", clientId ?: "")
+            .build()
+    }
+
+    private fun executeRequest(request: Request, onResponse: (String) -> Unit) {
+        try {
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                response.body?.string()?.let { onResponse(it) }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -1056,15 +1656,22 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     fun search(query: String) {
         if (query != "") {
             mSearchView = true
-            mSearchShowArrayList =
-                getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
-            mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
-            mSearchShowAdapter = ShowBaseAdapter(
-                mSearchShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-            )
-            mShowView.adapter = mSearchShowAdapter
+            CoroutineScope(Dispatchers.Main).launch {
+                // Database operations on IO dispatcher
+                val shows = withContext(Dispatchers.IO) {
+                    getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
+                }
 
+                // UI updates on Main dispatcher
+                mSearchShowArrayList = shows
+                mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
+                mSearchShowAdapter = ShowBaseAdapter(
+                    mSearchShowArrayList,
+                    mShowGenreList,
+                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
+                )
+                mShowView.adapter = mSearchShowAdapter
+            }
             // Only use the filter if the user has gone to the FilterActivity in this session.
             if (usedFilter) {
                 filterAdapter()
@@ -1073,7 +1680,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     companion object {
+
         private var mDatabaseUpdate = false
+        const val EPISODE_NUMBER = "episode_number"
+        const val EPISODE_RATING = "episode_rating"
+        const val EPISODE_WATCH_DATE = "episode_watch_date"
+        const val EPISODE_REVIEW = "episode_review"
+        const val SEASONS = "seasons"
+        const val IS_MOVIE = "is_movie"
+        const val IS_UPCOMING = "is_upcoming"
+        const val UPCOMING_DATE = "upcoming_date"
+        const val UPCOMING_TYPE = "upcoming_type"
+        const val UPCOMING_EPISODE_NAME = "upcoming_episode_name"
+        const val UPCOMING_EPISODE_NUMBER = "upcoming_episode_number"
+        const val EPISODE = "episode"
 
         fun newSavedInstance(): ListFragment {
             return ListFragment()

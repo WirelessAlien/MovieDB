@@ -130,7 +130,12 @@
     <string name="sync_completed">Sync completed</string>
     <string name="auto_fetch">Automated data sync</string>
     <string name="quick_access">Quick Access</string>
-
+    <string name="trakt_login_required">Login to Trakt to enable auto-sync</string>
+    <string name="show_more">Show More</string>
+    <string name="show_less">Show Less</string>
+    <string name="all">All</string>
+    <string name="no_upcoming_content">No upcoming content found</string>
+    <string name="upcoming_text">Upcoming on %1$s, Season %2$s, Episode %3$s</string>
 
     <string-array name="media_types">
         <item>digital</item>

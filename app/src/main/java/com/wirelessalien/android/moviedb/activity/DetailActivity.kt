@@ -368,12 +368,29 @@ class DetailActivity : BaseActivity() {
             //            binding.episodeRateBtn.setEnabled(true);
         }
 
+        if(tktaccessToken == null) {
+            binding.btnAddToTraktWatchlist.isEnabled = false
+            binding.btnAddToTraktFavorite.isEnabled = false
+            binding.btnAddToTraktCollection.isEnabled = false
+            binding.btnAddToTraktHistory.isEnabled = false
+            binding.btnAddToTraktList.isEnabled = false
+            binding.btnAddTraktRating.isEnabled = false
+        } else {
+            binding.btnAddToTraktWatchlist.isEnabled = true
+            binding.btnAddToTraktFavorite.isEnabled = true
+            binding.btnAddToTraktCollection.isEnabled = true
+            binding.btnAddToTraktHistory.isEnabled = true
+            binding.btnAddToTraktList.isEnabled = true
+            binding.btnAddTraktRating.isEnabled = true
+        }
+
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
         // Send the JSONObject to setMovieData() so all the data
         // will be displayed on the screen.
         val intent = intent
         isMovie = intent.getBooleanExtra("isMovie", true)
+        jMovieObject = JSONObject()
         try {
             val movieObjectString = intent.getStringExtra("movieObject")
             if (movieObjectString != null) {
@@ -889,7 +906,7 @@ class DetailActivity : BaseActivity() {
 
                         // Add the show to the database
                         addMovieToDatabase(showValues)
-
+                        addItemtoTmdb()
                         // If the selected category is CATEGORY_WATCHED, add seasons and episodes to the database
                         if (getCategoryNumber(which) == MovieDatabaseHelper.CATEGORY_WATCHED) {
                             addSeasonsAndEpisodesToDatabase()
@@ -910,6 +927,7 @@ class DetailActivity : BaseActivity() {
                         MovieDatabaseHelper.CATEGORY_WATCHING
                     )
                     addMovieToDatabase(showValues)
+                    addItemtoTmdb()
                     binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                     binding.editIcon.visibility = View.VISIBLE
                 }
@@ -3223,7 +3241,6 @@ class DetailActivity : BaseActivity() {
     private fun fetchMovieDetailsCoroutine() {
         lifecycleScope.launch {
             try {
-                OkHttpClient()
                 val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
                 val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords" else "content_ratings,external_ids,videos,keywords"
                 val baseUrl = "https://api.themoviedb.org/3/$type/$movieId?append_to_response=$additionalEndpoint"
