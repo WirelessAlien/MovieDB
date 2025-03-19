@@ -216,7 +216,7 @@ class ShowBaseAdapter(
             e.printStackTrace()
         }
 
-        if (showData.has(IS_MOVIE) && !showData.getBoolean(IS_MOVIE)) {
+        if (showData.has(IS_MOVIE) && showData.optInt(IS_MOVIE) != 1) {
             holder.itemView.setOnLongClickListener {
 
                 val bottomSheetDialog = BottomSheetDialog(context)

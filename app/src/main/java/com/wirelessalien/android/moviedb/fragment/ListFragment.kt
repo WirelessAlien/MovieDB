@@ -1175,7 +1175,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         put(MovieDatabaseHelper.COLUMN_CATEGORIES,
                             cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)))
                         put(IS_MOVIE,
-                            cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)))
+                            cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)))
                         put(ShowBaseAdapter.KEY_DATE_MOVIE,
                             cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE)))
                         put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE,
