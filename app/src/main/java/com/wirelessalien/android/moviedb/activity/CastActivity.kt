@@ -569,7 +569,7 @@ class CastActivity : BaseActivity() {
                         castMovieArrayList.add(actorMovies)
                     }
 
-                    castMovieAdapter = ShowBaseAdapter(castMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
+                    castMovieAdapter = ShowBaseAdapter(context, castMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
                     binding.castMovieRecyclerView.adapter = castMovieAdapter
                 }
 
@@ -583,7 +583,7 @@ class CastActivity : BaseActivity() {
                         crewMovieArrayList.add(crewMovies)
                     }
 
-                    crewMovieAdapter = ShowBaseAdapter(crewMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
+                    crewMovieAdapter = ShowBaseAdapter(context, crewMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
                     binding.crewMovieRecyclerView.adapter = crewMovieAdapter
                     mActorMoviesLoaded = true
                 }

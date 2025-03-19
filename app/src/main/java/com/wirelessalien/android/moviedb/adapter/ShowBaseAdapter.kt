@@ -27,14 +27,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.children
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.chip.Chip
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
+import com.wirelessalien.android.moviedb.databinding.BottomSheetSeasonEpisodeBinding
 import com.wirelessalien.android.moviedb.databinding.ShowCardBinding
 import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
 import com.wirelessalien.android.moviedb.fragment.ListFragment
+import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.IS_MOVIE
+import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.IS_UPCOMING
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import org.json.JSONException
@@ -45,6 +52,7 @@ import java.util.Date
 import java.util.Locale
 
 class ShowBaseAdapter(
+    val context: Context,
     showList: ArrayList<JSONObject>,
     genreList: HashMap<String, String?>, gridView: Boolean
 ) : RecyclerView.Adapter<ShowBaseAdapter.ShowItemViewHolder?>() {
@@ -138,7 +146,7 @@ class ShowBaseAdapter(
             }
 
 
-            if (showData.has(ListFragment.IS_UPCOMING) && showData.getBoolean(ListFragment.IS_UPCOMING)) {
+            if (showData.has(IS_UPCOMING) && showData.getBoolean(IS_UPCOMING)) {
                 val season = showData.optString("seasons")
                 val episodeNumber = showData.optString("upcoming_episode_number")
 
@@ -208,10 +216,78 @@ class ShowBaseAdapter(
             e.printStackTrace()
         }
 
+        if (showData.has(IS_MOVIE) && !showData.getBoolean(IS_MOVIE)) {
+            holder.itemView.setOnLongClickListener {
+
+                val bottomSheetDialog = BottomSheetDialog(context)
+                val bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
+                val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
+                val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
+
+                recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
+
+                val seasons = getSeasonsFromTmdbDatabase(showData.getInt(KEY_ID))
+                val maxVisibleChips = 5
+                var isExpanded = false
+
+                // Create show more chip
+                val showMoreChip = Chip(context).apply {
+                    text = context.getString(R.string.show_more)
+                    isCheckable = false
+                    visibility = if (seasons.size > maxVisibleChips) View.VISIBLE else View.GONE
+                }
+
+                fun updateChipsVisibility() {
+                    chipGroupSeasons.children.forEachIndexed { index, view ->
+                        if (view != showMoreChip) {
+                            view.visibility = if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
+                        }
+                    }
+                }
+
+                // Add season chips
+                seasons.forEach { seasonNumber ->
+                    val chip = Chip(context).apply {
+                        text = context.getString(R.string.season_p, seasonNumber)
+                        isCheckable = true
+                        setOnClickListener {
+                            val episodes = getEpisodesForSeasonFromTmdbDatabase(showData.getInt(KEY_ID), seasonNumber)
+                            val watchedEpisodes = getWatchedEpisodesFromDb(showData.getInt(KEY_ID), seasonNumber)
+                            recyclerViewEpisodes.adapter = EpisodeSavedAdapter(
+                                episodes,
+                                watchedEpisodes,
+                                showData.getInt(KEY_ID),
+                                seasonNumber,
+                                context
+                            )
+                        }
+                    }
+                    chipGroupSeasons.addView(chip)
+                }
+
+                // Add show more chip and set its click listener
+                if (seasons.size > maxVisibleChips) {
+                    chipGroupSeasons.addView(showMoreChip)
+                    showMoreChip.setOnClickListener {
+                        isExpanded = !isExpanded
+                        showMoreChip.text = context.getString(
+                            if (isExpanded) R.string.show_less else R.string.show_more
+                        )
+                        updateChipsVisibility()
+                    }
+                    updateChipsVisibility()
+                }
+
+                bottomSheetDialog.setContentView(bottomSheetBinding.root)
+                bottomSheetDialog.show()
+                true
+            }
+        }
+
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
-            if (showData.has(ListFragment.IS_UPCOMING) && showData.getBoolean(ListFragment.IS_UPCOMING)) {
+            if (showData.has(IS_UPCOMING) && showData.getBoolean(IS_UPCOMING)) {
                 val upcomingType = showData.optString("upcoming_type")
                 intent.putExtra("isMovie", upcomingType == "movie")
             } else if (showData.has(KEY_NAME)) {
@@ -219,6 +295,84 @@ class ShowBaseAdapter(
             }
             view.context.startActivity(intent)
         }
+    }
+
+    private fun getSeasonsFromTmdbDatabase(showId: Int): List<Int> {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            arrayOf(showId.toString()),
+            null, null, null
+        )
+        val seasons = if (cursor.moveToFirst()) {
+            parseSeasonsTmdb(cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)))
+        } else {
+            emptyList()
+        }
+        cursor.close()
+        db.close()
+        return seasons
+    }
+
+    private fun getEpisodesForSeasonFromTmdbDatabase(showId: Int, seasonNumber: Int): List<Int> {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            arrayOf(showId.toString()),
+            null, null, null
+        )
+        val episodes = if (cursor.moveToFirst()) {
+            parseEpisodesForSeasonTmdb(cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)), seasonNumber)
+        } else {
+            emptyList()
+        }
+        cursor.close()
+        db.close()
+        return episodes
+    }
+
+    private fun getWatchedEpisodesFromDb(showTraktId: Int, seasonNumber: Int): MutableList<Int> {
+        val dbHelper = MovieDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            MovieDatabaseHelper.TABLE_EPISODES,
+            arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER),
+            "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ? AND ${MovieDatabaseHelper.COLUMN_SEASON_NUMBER} = ?",
+            arrayOf(showTraktId.toString(), seasonNumber.toString()),
+            null, null, null
+        )
+        val watchedEpisodes = mutableListOf<Int>()
+        if (cursor.moveToFirst()) {
+            do {
+                val episodeNumber = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER))
+                watchedEpisodes.add(episodeNumber)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return watchedEpisodes
+    }
+
+    private fun parseSeasonsTmdb(seasonsString: String): List<Int> {
+        val regex = Regex("""(\d+)\{.*?\}""")
+        return regex.findAll(seasonsString).map { it.groupValues[1].toInt() }.toList()
+    }
+
+    private fun parseEpisodesForSeasonTmdb(seasonsString: String, seasonNumber: Int): List<Int> {
+        val regex = Regex("""$seasonNumber\{(\d+(,\d+)*)\}""")
+        val matchResult = regex.find(seasonsString) ?: return emptyList()
+        return matchResult.groupValues[1].split(",").map { it.toInt() }
+    }
+
+    fun updateData(newData: ArrayList<JSONObject>) {
+        mShowArrayList.clear()
+        mShowArrayList.addAll(newData)
+        notifyDataSetChanged()
     }
 
     private fun getWatchedEpisodesCount(showData: JSONObject): Int {

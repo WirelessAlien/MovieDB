@@ -44,6 +44,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
@@ -73,6 +74,7 @@ import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
 import com.wirelessalien.android.moviedb.work.TktAutoSyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -93,14 +95,11 @@ import java.util.Locale
 class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private val REQUEST_CODE_ASK_PERMISSIONS_EXPORT = 123
     private val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
-    private lateinit var mShowBackupArrayList: ArrayList<JSONObject>
-    private lateinit var mSearchShowBackupArrayList: ArrayList<JSONObject>
     private var usedFilter = false
     private lateinit var mDatabase: SQLiteDatabase
     private val client = OkHttpClient()
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
     private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
-    private var selectedMediaTypes = mutableSetOf<String>()
     private var mScrollPosition: Int? = null
     private var accessToken: String? = null
     private var clientId: String? = null
@@ -131,8 +130,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
 
         mShowArrayList = ArrayList()
+        mShowGenreList = HashMap()
         mShowView = RecyclerView(requireContext())
         preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity())
+
         createShowList()
     }
 
@@ -143,7 +144,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         binding = FragmentSavedBinding.inflate(inflater, container, false)
         val fragmentView = binding.root
         activityBinding = (activity as MainActivity).getBinding()
-        showShowList(fragmentView)
         activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
         activityBinding.fab.isEnabled = true
         activityBinding.fab.setOnClickListener {
@@ -164,14 +164,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         activityBinding.fab2.setOnClickListener {
             showWatchSummaryDialog()
         }
-
-        selectedMediaTypes.addAll(listOf("movie", "tv"))
-
         setupMediaTypeChips()
 
         binding.swipeRefreshLayout.setOnRefreshListener {
             refreshData()
         }
+        showShowList(fragmentView)
+        updateShowViewAdapter()
 
         return fragmentView
     }
@@ -248,19 +247,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             // Refresh data based on the selected chip
             when {
                 binding.chipAll.isChecked -> {
-                    selectedMediaTypes.clear()
-                    selectedMediaTypes.addAll(listOf("movie", "tv"))
                     updateShowViewAdapter()
-                }
-                binding.chipMovie.isChecked -> {
-                    selectedMediaTypes.clear()
-                    selectedMediaTypes.add("movie")
-                    filterByMediaType()
-                }
-                binding.chipShow.isChecked -> {
-                    selectedMediaTypes.clear()
-                    selectedMediaTypes.add("tv")
-                    filterByMediaType()
                 }
                 binding.chipUpcoming.isChecked -> {
                     mShowArrayList.clear()
@@ -530,138 +517,80 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      * Create and set the new adapter to update the show view.
      */
     private fun updateShowViewAdapter() {
-        CoroutineScope(Dispatchers.Main).launch {
+        lifecycleScope.launch(Dispatchers.Main) {
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
-            // Database operations on IO dispatcher
-            val shows = withContext(Dispatchers.IO) {
-                getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
-            }
 
-            // UI updates on Main dispatcher
-            mShowArrayList = shows
-            mShowAdapter = ShowBaseAdapter(
-                mShowArrayList,
-                mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-            )
-            mShowView.adapter = mShowAdapter
-            binding.shimmerFrameLayout1.stopShimmer()
-            binding.shimmerFrameLayout1.visibility = View.GONE
-        }
+            try {
+                // Perform the database operation in the IO dispatcher
+                val showsDeferred = async(Dispatchers.IO) {
+                    getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
+                }
+                val showArrayList = showsDeferred.await()
 
-        if (!mSearchView) {
-            if (usedFilter) {
-                // Also change the backup.
-                mShowBackupArrayList = mShowArrayList.clone() as ArrayList<JSONObject>
-                filterAdapter()
-            } else {
-                mShowView.adapter = mShowAdapter
-            }
-            if (mScrollPosition != null) {
-                mShowView.scrollToPosition(mScrollPosition!!)
+                mShowArrayList = showArrayList
+
+                mShowAdapter.updateData(mShowArrayList)
+
+                if (!mSearchView) {
+                    mShowView.adapter = mShowAdapter
+                    if (usedFilter) {
+                        filterAdapter()
+                    }
+                    mScrollPosition?.let { mShowView.scrollToPosition(it) }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
             }
         }
     }
 
     private fun setupMediaTypeChips() {
-        // Initially check the "All" chip and uncheck others
         binding.chipAll.isChecked = true
-        binding.chipMovie.isChecked = false
-        binding.chipShow.isChecked = false
         binding.chipUpcoming.isChecked = false
-        selectedMediaTypes.clear()
-        selectedMediaTypes.addAll(listOf("movie", "tv"))
 
-        binding.chipAll.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked) {
-                // When "All" is selected, uncheck others
-                binding.noUpcomingText.visibility = View.GONE
-                binding.chipMovie.isChecked = false
-                binding.chipShow.isChecked = false
-                binding.chipUpcoming.isChecked = false
-                selectedMediaTypes.clear()
-                selectedMediaTypes.addAll(listOf("movie", "tv"))
-                filterByMediaType()
-            } else if (!binding.chipMovie.isChecked && !binding.chipShow.isChecked && !binding.chipUpcoming.isChecked) {
-                // If no other chips are checked, recheck "All"
-                binding.noUpcomingText.visibility = View.GONE
-                buttonView.isChecked = true
-                selectedMediaTypes.clear()
-                selectedMediaTypes.addAll(listOf("movie", "tv"))
-                filterByMediaType()
+        binding.chipAll.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, binding.chipUpcoming) {
+                updateShowViewAdapter()
             }
-        }
-
-        binding.chipMovie.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                // Uncheck others when Movie is selected
-                binding.noUpcomingText.visibility = View.GONE
-                binding.chipAll.isChecked = false
-                binding.chipShow.isChecked = false
-                binding.chipUpcoming.isChecked = false
-                selectedMediaTypes.clear()
-                selectedMediaTypes.add("movie")
-            } else {
-                selectedMediaTypes.remove("movie")
-                // If no other filter is checked, check "All"
-                if (!binding.chipShow.isChecked && !binding.chipUpcoming.isChecked) {
-                    binding.chipAll.isChecked = true
-                    binding.noUpcomingText.visibility = View.GONE
-                    selectedMediaTypes.clear()
-                    selectedMediaTypes.addAll(listOf("movie", "tv"))
-                }
-            }
-            filterByMediaType()
-        }
-
-        binding.chipShow.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                // Uncheck others when Show is selected
-                binding.noUpcomingText.visibility = View.GONE
-                binding.chipAll.isChecked = false
-                binding.chipMovie.isChecked = false
-                binding.chipUpcoming.isChecked = false
-                selectedMediaTypes.clear()
-                selectedMediaTypes.add("tv")
-            } else {
-                selectedMediaTypes.remove("tv")
-                // If no other filter is checked, check "All"
-                if (!binding.chipMovie.isChecked && !binding.chipUpcoming.isChecked) {
-                    binding.chipAll.isChecked = true
-                    binding.noUpcomingText.visibility = View.GONE
-                    selectedMediaTypes.clear()
-                    selectedMediaTypes.addAll(listOf("movie", "tv"))
-                }
-            }
-            filterByMediaType()
         }
 
         binding.chipUpcoming.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                // Uncheck others when Upcoming is selected
-                binding.chipAll.isChecked = false
-                binding.chipMovie.isChecked = false
-                binding.chipShow.isChecked = false
-                selectedMediaTypes.clear()
-
-                mShowArrayList.clear()
-                mShowAdapter.notifyDataSetChanged()
+            handleChipChange(isChecked, binding.chipAll) {
                 showUpcomingContent()
-            } else {
-                // If no other filter is checked, check "All"
-                if (!binding.chipMovie.isChecked && !binding.chipShow.isChecked) {
-                    binding.chipAll.isChecked = true
-                    selectedMediaTypes.clear()
-                    selectedMediaTypes.addAll(listOf("movie", "tv"))
-                    updateShowViewAdapter()
-                }
             }
         }
     }
 
+    private fun handleChipChange(isChecked: Boolean, otherChip: Chip, dataLoader: suspend () -> Unit) {
+        if (isChecked) {
+            otherChip.isChecked = false
+
+            lifecycleScope.launch {
+                mShowArrayList.clear()
+                mShowAdapter.notifyDataSetChanged()
+                binding.shimmerFrameLayout1.apply {
+                    startShimmer()
+                    visibility = View.VISIBLE
+                }
+                try {
+                    dataLoader()
+                } catch (e: Exception) {
+                    Log.e("ListFragment", "Error loading data", e)
+                }
+            }
+        }
+        else if(!isChecked && !otherChip.isChecked){
+            binding.chipAll.isChecked = true
+        }
+    }
+
     private fun showUpcomingContent() {
-        CoroutineScope(Dispatchers.Main).launch {
+        lifecycleScope.launch(Dispatchers.Main) {
             try {
                 binding.shimmerFrameLayout1.apply {
                     visibility = View.VISIBLE
@@ -734,14 +663,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
                     upcomingShows
                 }
-
-                updateUI(upcomingContent)
-
+                mShowAdapter.updateData(upcomingContent)
             } catch (e: Exception) {
-                binding.shimmerFrameLayout1.apply {
-                    stopShimmer()
-                    visibility = View.GONE
-                }
                 Log.e("ListFragment", "Error loading upcoming content", e)
                 binding.noUpcomingText.visibility = View.VISIBLE
             } finally {
@@ -811,90 +734,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    private fun updateUI(upcomingContent: ArrayList<JSONObject>) {
-        if (upcomingContent.isNotEmpty()) {
-            Log.d("ListFragment", "Upcoming content: $upcomingContent")
-            mShowArrayList = upcomingContent
-            mShowAdapter = ShowBaseAdapter(
-                mShowArrayList,
-                mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-            )
-            mShowView.adapter = mShowAdapter
-            binding.noUpcomingText.visibility = View.GONE
-        } else {
-            mShowArrayList.clear()
-            mShowAdapter.notifyDataSetChanged()
-            binding.noUpcomingText.visibility = View.VISIBLE
-        }
-    }
-
-    private fun filterByMediaType() {
-        if (!mSearchView) {
-            // Clone the backup if it's the first filter
-            if (!::mShowBackupArrayList.isInitialized) {
-                mShowBackupArrayList = mShowArrayList.clone() as ArrayList<JSONObject>
-            }
-
-            // Reset to backup before filtering
-            mShowArrayList = mShowBackupArrayList.clone() as ArrayList<JSONObject>
-
-            // Apply media type filter
-            if (selectedMediaTypes.size < 2) { // Only filter if not all types are selected
-                mShowArrayList.removeIf { showObject ->
-                    val isTV = showObject.optString(IS_MOVIE) == "0"
-                    when {
-                        selectedMediaTypes.contains("movie") -> isTV
-                        selectedMediaTypes.contains("tv") -> !isTV
-                        else -> true // Remove all if nothing selected
-                    }
-                }
-            }
-
-            // Apply other filters if needed
-            if (usedFilter) {
-                filterAdapter()
-            } else {
-                // Update adapter with filtered list
-                mShowAdapter = ShowBaseAdapter(
-                    mShowArrayList,
-                    mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-                )
-                mShowView.adapter = mShowAdapter
-            }
-        } else {
-            // Handle search view filtering
-            if (!::mSearchShowBackupArrayList.isInitialized) {
-                mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
-            }
-
-            mSearchShowArrayList = mSearchShowBackupArrayList.clone() as ArrayList<JSONObject>
-
-            if (selectedMediaTypes.size < 2) {
-                mSearchShowArrayList.removeIf { showObject ->
-                    val isTV = showObject.optString(IS_MOVIE) == "0"
-                    when {
-                        selectedMediaTypes.contains("movie") -> isTV
-                        selectedMediaTypes.contains("tv") -> !isTV
-                        else -> true
-                    }
-                }
-            }
-
-            if (usedFilter) {
-                filterAdapter()
-            } else {
-                mSearchShowAdapter = ShowBaseAdapter(
-                    mSearchShowArrayList,
-                    mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-                )
-                mShowView.adapter = mSearchShowAdapter
-            }
-        }
-    }
-
     /**
      * Filters the shows based on the settings in the FilterActivity.
      */
@@ -903,35 +742,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val sharedPreferences =
             requireActivity().getSharedPreferences(FilterActivity.FILTER_PREFERENCES, Context.MODE_PRIVATE)
 
-        // Clone the ArrayList as the original needs to be kept
-        // in case the filter settings are changed (and removed shows might need to be shown again).
-        if (!mSearchView) {
-            mShowBackupArrayList = mShowArrayList.clone() as ArrayList<JSONObject>
-            mShowArrayList = mShowBackupArrayList.clone() as ArrayList<JSONObject>
-        } else {
-            mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
-            mSearchShowArrayList = mSearchShowBackupArrayList.clone() as ArrayList<JSONObject>
-        }
-
-        // First apply media type filter
-        if (selectedMediaTypes.size < 2) {
-            if (!mSearchView) {
-                mShowArrayList.removeIf { showObject ->
-                    val isTV = showObject.optString(IS_MOVIE) == "0"
-                    when {
-                        selectedMediaTypes.contains("movie") -> isTV
-                        selectedMediaTypes.contains("tv") -> !isTV
-                        else -> true
-                    }
+        // Filter by show type (movie or TV)
+        val showMovie = FilterActivity.convertStringToArrayList(
+            sharedPreferences.getString(FilterActivity.FILTER_SHOW_MOVIE, null), ", "
+        )
+        if (showMovie != null && (!showMovie.contains("movie") || !showMovie.contains("tv"))) {
+            if (mSearchView) {
+                mSearchShowArrayList.removeIf { showObject: JSONObject ->
+                    val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
+                    showMovie.contains("movie") && isTV || showMovie.contains("tv") && !isTV
                 }
             } else {
-                mSearchShowArrayList.removeIf { showObject ->
-                    val isTV = showObject.optString(IS_MOVIE) == "0"
-                    when {
-                        selectedMediaTypes.contains("movie") -> isTV
-                        selectedMediaTypes.contains("tv") -> !isTV
-                        else -> true
-                    }
+                mShowArrayList.removeIf { showObject: JSONObject ->
+                    val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
+                    showMovie.contains("movie") && isTV || showMovie.contains("tv") && !isTV
                 }
             }
         }
@@ -964,37 +788,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                 "release_date" -> {
                     if (mSearchView) {
-                        mSearchShowArrayList.sortWith(java.util.Comparator<JSONObject> { firstObject: JSONObject, secondObject: JSONObject ->
-                            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                            val firstDate: Date?
-                            val secondDate: Date?
-                            try {
-                                firstDate =
-                                    simpleDateFormat.parse(firstObject.optString(ShowBaseAdapter.KEY_RELEASE_DATE))
-                                secondDate =
-                                    simpleDateFormat.parse(secondObject.optString(ShowBaseAdapter.KEY_RELEASE_DATE))
-                            } catch (e: ParseException) {
-                                e.printStackTrace()
-                                return@Comparator 0
-                            }
-                            if (firstDate.time > secondDate.time) -1 else 1
-                        })
+                        mSearchShowArrayList.sortWith(compareByDescending { getDateFromString(it.optString(ShowBaseAdapter.KEY_RELEASE_DATE)) })
                     } else {
-                        mShowArrayList.sortWith(java.util.Comparator<JSONObject> { firstObject: JSONObject, secondObject: JSONObject ->
-                            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-                            val firstDate: Date?
-                            val secondDate: Date?
-                            try {
-                                firstDate =
-                                    simpleDateFormat.parse(firstObject.optString(ShowBaseAdapter.KEY_RELEASE_DATE))
-                                secondDate =
-                                    simpleDateFormat.parse(secondObject.optString(ShowBaseAdapter.KEY_RELEASE_DATE))
-                            } catch (e: ParseException) {
-                                e.printStackTrace()
-                                return@Comparator 0
-                            }
-                            if (firstDate.time > secondDate.time) -1 else 1
-                        })
+                        mShowArrayList.sortWith(compareByDescending { getDateFromString(it.optString(ShowBaseAdapter.KEY_RELEASE_DATE)) })
                     }
                 }
 
@@ -1021,7 +817,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 "start_date_order" -> {
                     val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
                     if (mSearchView) {
-                        mSearchShowArrayList.sortWith(java.util.Comparator<JSONObject> { firstObject: JSONObject, secondObject: JSONObject ->
+                        mSearchShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
                             val firstDate: Date?
                             val secondDate: Date?
                             try {
@@ -1041,50 +837,46 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                                 }
                             } catch (e: ParseException) {
                                 e.printStackTrace()
-                                return@Comparator 0
+                                return@sortWith 0
                             }
-                            // * -1 is to make the order descending instead of ascending.
-                            if (firstDate != null) {
-                                return@Comparator firstDate.compareTo(secondDate) * -1
-                            } else if (secondDate != null) {
-                                return@Comparator -1
-                            }
-                            0
-                        })
-                    } else {
-                        mShowArrayList.sortWith(java.util.Comparator<JSONObject> { firstObject: JSONObject, secondObject: JSONObject ->
-                            val firstDate: Date?
-                            val secondDate: Date?
-                            try {
-                                val firstDateString =
-                                    firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
-                                val secondDateString =
-                                    secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
-                                firstDate = if (firstDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(firstDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                                secondDate = if (secondDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(secondDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                            } catch (e: ParseException) {
-                                e.printStackTrace()
-                                return@Comparator 0
-                            }
-                            if (firstDate == null) return@Comparator if (secondDate == null) 0 else 1
-                            if (secondDate == null) return@Comparator -1
+                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
+                            if (secondDate == null) return@sortWith -1
                             firstDate.compareTo(secondDate) * -1
-                        })
+                        }
+                    } else {
+                        mShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
+                            val firstDate: Date?
+                            val secondDate: Date?
+                            try {
+                                val firstDateString =
+                                    firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
+                                val secondDateString =
+                                    secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
+                                firstDate = if (firstDateString.isNotEmpty()) {
+                                    simpleDateFormat.parse(firstDateString)
+                                } else {
+                                    Date(Long.MIN_VALUE)
+                                }
+                                secondDate = if (secondDateString.isNotEmpty()) {
+                                    simpleDateFormat.parse(secondDateString)
+                                } else {
+                                    Date(Long.MIN_VALUE)
+                                }
+                            } catch (e: ParseException) {
+                                e.printStackTrace()
+                                return@sortWith 0
+                            }
+                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
+                            if (secondDate == null) return@sortWith -1
+                            firstDate.compareTo(secondDate) * -1
+                        }
                     }
                 }
 
                 "finish_date_order" -> {
                     val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
                     if (mSearchView) {
-                        mSearchShowArrayList.sortWith(java.util.Comparator<JSONObject> { firstObject: JSONObject, secondObject: JSONObject ->
+                        mSearchShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
                             val firstDate: Date?
                             val secondDate: Date?
                             try {
@@ -1104,14 +896,14 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                                 }
                             } catch (e: ParseException) {
                                 e.printStackTrace()
-                                return@Comparator 0
+                                return@sortWith 0
                             }
-                            if (firstDate == null) return@Comparator if (secondDate == null) 0 else 1
-                            if (secondDate == null) return@Comparator -1
+                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
+                            if (secondDate == null) return@sortWith -1
                             firstDate.compareTo(secondDate) * -1
-                        })
+                        }
                     } else {
-                        mShowArrayList.sortWith(java.util.Comparator<JSONObject> { firstObject: JSONObject, secondObject: JSONObject ->
+                        mShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
                             val firstDate: Date?
                             val secondDate: Date?
                             try {
@@ -1131,26 +923,24 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                                 }
                             } catch (e: ParseException) {
                                 e.printStackTrace()
-                                return@Comparator 0
+                                return@sortWith 0
                             }
-                            if (firstDate == null) return@Comparator if (secondDate == null) 0 else 1
-                            if (secondDate == null) return@Comparator -1
+                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
+                            if (secondDate == null) return@sortWith -1
                             firstDate.compareTo(secondDate) * -1
-                        })
+                        }
                     }
                 }
             }
         }
 
-
-        // Remove the movies that should not be displayed from the list.
+        // Filter by selected categories
         val selectedCategories = FilterActivity.convertStringToArrayList(
             sharedPreferences.getString(
                 FilterActivity.FILTER_CATEGORIES,
                 null
             ), ", "
         )
-        // Filter the search list if the user was searching, otherwise filter the normal list.
         if (mSearchView && selectedCategories != null) {
             val iterator = mSearchShowArrayList.iterator()
             while (iterator.hasNext()) {
@@ -1185,7 +975,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
-        // Remove shows that do not contain certain genres from the list.
+        // Filter by genres to include
         val withGenres = FilterActivity.convertStringToIntegerArrayList(
             sharedPreferences.getString(
                 FilterActivity.FILTER_WITH_GENRES,
@@ -1218,7 +1008,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
-// Remove shows that contain certain genres from the list.
+        // Filter by genres to exclude
         val withoutGenres = FilterActivity.convertStringToIntegerArrayList(
             sharedPreferences.getString(
                 FilterActivity.FILTER_WITHOUT_GENRES,
@@ -1251,18 +1041,31 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
-        // Set a new adapter with the cloned (and filtered) ArrayList.
+        // Set a new adapter with the filtered ArrayList.
         if (mSearchView) {
-            mShowView.adapter = ShowBaseAdapter(
-                mSearchShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-            )
+            mShowAdapter.updateData(mSearchShowArrayList)
         } else {
-            mShowView.adapter = ShowBaseAdapter(
-                mShowArrayList, mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-            )
+            mShowAdapter.updateData(mShowArrayList)
         }
+        mShowView.adapter = mShowAdapter
+    }
+
+    private fun getDateFromString(dateString: String): Date? {
+        val formats = arrayOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd",
+            "dd-MM-yyyy"
+        )
+        for (format in formats) {
+            try {
+                val sdf = SimpleDateFormat(format, Locale.US)
+                sdf.isLenient = false // Important:  Make parsing strict
+                return sdf.parse(dateString)
+            } catch (e: ParseException) {
+                // Try the next format
+            }
+        }
+        return null
     }
 
     /**
@@ -1270,19 +1073,21 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      * genres loaded from the API.
      */
     private fun createShowList() {
-        mShowGenreList = HashMap()
         CoroutineScope(Dispatchers.Main).launch {
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
             val shows = withContext(Dispatchers.IO) {
                 getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
             }
 
             mShowArrayList = shows
-            mShowAdapter = ShowBaseAdapter(
+            mShowAdapter = ShowBaseAdapter(requireContext(),
                 mShowArrayList,
                 mShowGenreList,
                 preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
             )
-            mShowView.adapter = mShowAdapter
+            binding.shimmerFrameLayout1.visibility = View.GONE
+            binding.shimmerFrameLayout1.stopShimmer()
         }
     }
 
@@ -1664,12 +1469,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                 // UI updates on Main dispatcher
                 mSearchShowArrayList = shows
-                mSearchShowBackupArrayList = mSearchShowArrayList.clone() as ArrayList<JSONObject>
-                mSearchShowAdapter = ShowBaseAdapter(
-                    mSearchShowArrayList,
-                    mShowGenreList,
-                    preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-                )
+
+                mSearchShowAdapter.updateData(mSearchShowArrayList)
+
                 mShowView.adapter = mSearchShowAdapter
             }
             // Only use the filter if the user has gone to the FilterActivity in this session.
@@ -1680,7 +1482,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     companion object {
-
         private var mDatabaseUpdate = false
         const val EPISODE_NUMBER = "episode_number"
         const val EPISODE_RATING = "episode_rating"

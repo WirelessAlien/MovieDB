@@ -28,58 +28,33 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <HorizontalScrollView
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollIndicators="none"
-            android:scrollbars="none">
+            app:singleSelection="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="horizontal">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroup"
-                android:layout_width="match_parent"
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleSelection="true"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:orientation="horizontal">
+                android:text="@string/all"
+                android:tag="all"
+                android:checkable="true"
+                style="@style/Widget.Material3.Chip.Filter" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/all"
-                    android:tag="all"
-                    android:checkable="true"
-                    style="@style/Widget.Material3.Chip.Filter" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipMovie"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checkable="true"
-                    android:tag="movie"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:text="@string/movie" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipShow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="tv"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:checkable="true"
-                    android:text="@string/show" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipUpcoming"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="upcoming"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:checkable="true"
-                    android:text="@string/upcoming" />
-            </com.google.android.material.chip.ChipGroup>
-        </HorizontalScrollView>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipUpcoming"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="upcoming"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:checkable="true"
+                android:text="@string/upcoming" />
+        </com.google.android.material.chip.ChipGroup>
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh_layout"

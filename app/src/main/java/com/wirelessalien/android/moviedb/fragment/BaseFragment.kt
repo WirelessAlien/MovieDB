@@ -75,7 +75,7 @@ open class BaseFragment : Fragment() {
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
             // If the user changed from a list layout to a grid layout, reload the ShowBaseAdapter.
             if (mShowView.layoutManager !is GridLayoutManager) {
-                mShowAdapter = ShowBaseAdapter(
+                mShowAdapter = ShowBaseAdapter(requireContext(),
                     mShowArrayList, mShowGenreList,
                     preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
                 )
@@ -89,7 +89,7 @@ open class BaseFragment : Fragment() {
         } else {
             // If the user changed from a list layout to a grid layout, reload the ShowBaseAdapter.
             if (mShowView.layoutManager !is LinearLayoutManager) {
-                mShowAdapter = ShowBaseAdapter(
+                mShowAdapter = ShowBaseAdapter(requireContext(),
                     mShowArrayList, mShowGenreList,
                     preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
                 )

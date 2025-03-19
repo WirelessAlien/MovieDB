@@ -773,7 +773,7 @@ class MainActivity : BaseActivity() {
             val currentFragment = getCurrentFragment()
             if (currentFragment is ListFragment) {
                 val showsFromDatabase = currentFragment.getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
-                mDatabaseSearchAdapter = ShowBaseAdapter(
+                mDatabaseSearchAdapter = ShowBaseAdapter(context,
                     showsFromDatabase, mShowGenreList,
                     preferences.getBoolean(BaseFragment.SHOWS_LIST_PREFERENCE, true)
                 )
