@@ -134,7 +134,6 @@ class ShowProgressTraktAdapter(
 
             if (showData.getString("type") == "movie") {
                 holder.watchedProgressBar?.visibility = View.GONE
-                holder.showSeasonBtn?.visibility = View.GONE
                 holder.seasonEpisodeText.visibility = View.GONE
             }
 
@@ -145,7 +144,6 @@ class ShowProgressTraktAdapter(
                 val progress = if (totalEpisodes > 0) (watchedEpisodes.size.toFloat() / totalEpisodes.toFloat() * 100).toInt() else 0
                 holder.watchedProgressBar?.progress = progress
                 holder.watchedProgressBar?.visibility = View.VISIBLE
-                holder.showSeasonBtn?.visibility = View.VISIBLE
                 holder.seasonEpisodeText.visibility = View.VISIBLE
                 if (watchedEpisodes.size == totalEpisodes) {
                     holder.seasonEpisodeText.text = context.getString(R.string.watched)
@@ -179,71 +177,85 @@ class ShowProgressTraktAdapter(
                 holder.showGenre?.text = if (genreNames.isNotEmpty()) genreNames.substring(2) else ""
             }
 
-            holder.showSeasonBtn?.setOnClickListener {
-                val bottomSheetDialog = BottomSheetDialog(context)
-                val bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
-                val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
-                val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
+           if (showData.has("type") && showData.getString("type") == "show") {
+               holder.itemView.setOnLongClickListener {
+                   val bottomSheetDialog = BottomSheetDialog(context)
+                   val bottomSheetBinding =
+                       BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
+                   val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
+                   val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
 
-                recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
+                   recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
-                val seasons = parseSeasonsTmdb(showData.optString("seasons_episode_show_tmdb", ""))
-                val maxVisibleChips = 5
-                var isExpanded = false
+                   val seasons =
+                       parseSeasonsTmdb(showData.optString("seasons_episode_show_tmdb", ""))
+                   val maxVisibleChips = 5
+                   var isExpanded = false
 
-                // Create show more chip
-                val showMoreChip = Chip(context).apply {
-                    text = context.getString(R.string.show_more)
-                    isCheckable = false
-                    visibility = if (seasons.size > maxVisibleChips) View.VISIBLE else View.GONE
-                }
+                   // Create show more chip
+                   val showMoreChip = Chip(context).apply {
+                       text = context.getString(R.string.show_more)
+                       isCheckable = false
+                       visibility = if (seasons.size > maxVisibleChips) View.VISIBLE else View.GONE
+                   }
 
-                fun updateChipsVisibility() {
-                    chipGroupSeasons.children.forEachIndexed { index, view ->
-                        if (view != showMoreChip) {
-                            view.visibility = if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
-                        }
-                    }
-                }
+                   fun updateChipsVisibility() {
+                       chipGroupSeasons.children.forEachIndexed { index, view ->
+                           if (view != showMoreChip) {
+                               view.visibility =
+                                   if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
+                           }
+                       }
+                   }
 
-                // Add season chips
-                seasons.forEach { seasonNumber ->
-                    val chip = Chip(context).apply {
-                        text = context.getString(R.string.season_p, seasonNumber)
-                        isCheckable = true
-                        setOnClickListener {
-                            val episodes = parseEpisodesForSeasonTmdb(showData.optString("seasons_episode_show_tmdb", ""), seasonNumber)
-                            val watchedEpisodesD = getWatchedEpisodesFromDb(showData.getInt("trakt_id"), seasonNumber)
-                            recyclerViewEpisodes.adapter = EpisodeTraktAdapter(
-                                episodes,
-                                watchedEpisodesD,
-                                showData,
-                                seasonNumber,
-                                context,
-                                traktAccessToken,
-                                clientId
-                            )
-                        }
-                    }
-                    chipGroupSeasons.addView(chip)
-                }
+                   // Add season chips
+                   seasons.forEach { seasonNumber ->
+                       val chip = Chip(context).apply {
+                           text = context.getString(R.string.season_p, seasonNumber)
+                           isCheckable = true
+                           setOnClickListener {
+                               val episodes = parseEpisodesForSeasonTmdb(
+                                   showData.optString(
+                                       "seasons_episode_show_tmdb",
+                                       ""
+                                   ), seasonNumber
+                               )
+                               val watchedEpisodesD = getWatchedEpisodesFromDb(
+                                   showData.getInt("trakt_id"),
+                                   seasonNumber
+                               )
+                               recyclerViewEpisodes.adapter = EpisodeTraktAdapter(
+                                   episodes,
+                                   watchedEpisodesD,
+                                   showData,
+                                   seasonNumber,
+                                   context,
+                                   traktAccessToken,
+                                   clientId
+                               )
+                           }
+                       }
+                       chipGroupSeasons.addView(chip)
+                   }
 
-                // Add show more chip and set its click listener
-                if (seasons.size > maxVisibleChips) {
-                    chipGroupSeasons.addView(showMoreChip)
-                    showMoreChip.setOnClickListener {
-                        isExpanded = !isExpanded
-                        showMoreChip.text = context.getString(
-                            if (isExpanded) R.string.show_less else R.string.show_more
-                        )
-                        updateChipsVisibility()
-                    }
-                    updateChipsVisibility()
-                }
+                   // Add show more chip and set its click listener
+                   if (seasons.size > maxVisibleChips) {
+                       chipGroupSeasons.addView(showMoreChip)
+                       showMoreChip.setOnClickListener {
+                           isExpanded = !isExpanded
+                           showMoreChip.text = context.getString(
+                               if (isExpanded) R.string.show_less else R.string.show_more
+                           )
+                           updateChipsVisibility()
+                       }
+                       updateChipsVisibility()
+                   }
 
-                bottomSheetDialog.setContentView(bottomSheetBinding.root)
-                bottomSheetDialog.show()
-            }
+                   bottomSheetDialog.setContentView(bottomSheetBinding.root)
+                   bottomSheetDialog.show()
+                   true
+               }
+           }
 
         } catch (e: JSONException) {
             e.printStackTrace()
@@ -341,7 +353,6 @@ class ShowProgressTraktAdapter(
         val showDate = gridBinding?.date ?: binding!!.date
         val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
         val watchedProgressBar = gridBinding?.watchedProgress ?: binding?.watchedProgress
-        val showSeasonBtn = gridBinding?.showSeasonsButton ?: binding?.showSeasonsButton
         val seasonEpisodeText = gridBinding?.seasonEpisodeText ?: binding!!.seasonEpisodeText
     }
 

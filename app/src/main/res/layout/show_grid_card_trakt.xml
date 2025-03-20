@@ -101,17 +101,6 @@
                             android:visibility="gone"
                             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/showSeasonsButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|end"
-                            app:cornerRadius="10dp"
-                            app:icon="@drawable/ic_read_more"
-                            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                            android:layout_marginEnd="2dp"
-                            android:layout_marginBottom="5dp"/>
-
                         <com.google.android.material.progressindicator.LinearProgressIndicator
                             android:id="@+id/watchedProgress"
                             android:layout_width="match_parent"

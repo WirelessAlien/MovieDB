@@ -266,6 +266,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     override fun onResume() {
+        super.onResume()
 
         if (mDatabaseUpdate) {
             // The database is updated, load the changes into the array list.
@@ -277,21 +278,27 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             filterAdapter()
         }
 
-        activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
-        activityBinding.fab.visibility = View.VISIBLE
-        activityBinding.fab.isEnabled = true
-        activityBinding.fab.setOnClickListener {
-            val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
-            intent.putExtra("categories", true)
-            intent.putExtra("most_popular", false)
-            intent.putExtra("dates", false)
-            intent.putExtra("keywords", false)
-            intent.putExtra("startDate", true)
-            intent.putExtra("finishDate", true)
-            intent.putExtra("account", false)
-            filterActivityResultLauncher.launch(intent)
+        if (binding.chipUpcoming.isChecked) {
+            // Hide the FAB if the "Upcoming" chip is checked
+            activityBinding.fab.visibility = View.GONE
+            activityBinding.fab2.visibility = View.GONE
+        } else {
+            // Otherwise, show and configure the FAB (your original logic)
+            activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
+            activityBinding.fab.visibility = View.VISIBLE
+            activityBinding.fab.isEnabled = true
+            activityBinding.fab.setOnClickListener {
+                val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
+                intent.putExtra("categories", true)
+                intent.putExtra("most_popular", false)
+                intent.putExtra("dates", false)
+                intent.putExtra("keywords", false)
+                intent.putExtra("startDate", true)
+                intent.putExtra("finishDate", true)
+                intent.putExtra("account", false)
+                filterActivityResultLauncher.launch(intent)
+            }
         }
-        super.onResume()
     }
 
     override fun onPause() {
@@ -555,12 +562,16 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
         binding.chipAll.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, binding.chipUpcoming) {
+                activityBinding.fab.visibility = View.VISIBLE
+                activityBinding.fab2.visibility = View.VISIBLE
                 updateShowViewAdapter()
             }
         }
 
         binding.chipUpcoming.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, binding.chipAll) {
+                activityBinding.fab.visibility = View.GONE
+                activityBinding.fab2.visibility = View.GONE
                 showUpcomingContent()
             }
         }
@@ -583,9 +594,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     Log.e("ListFragment", "Error loading data", e)
                 }
             }
-        }
-        else if(!isChecked && !otherChip.isChecked){
-            binding.chipAll.isChecked = true
+        } else if (!otherChip.isChecked) {
+            otherChip.isChecked = true
         }
     }
 
@@ -1487,13 +1497,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         const val EPISODE_RATING = "episode_rating"
         const val EPISODE_WATCH_DATE = "episode_watch_date"
         const val EPISODE_REVIEW = "episode_review"
-        const val SEASONS = "seasons"
+        const val SEASONS = "season"
         const val IS_MOVIE = "is_movie"
         const val IS_UPCOMING = "is_upcoming"
         const val UPCOMING_DATE = "upcoming_date"
         const val UPCOMING_TYPE = "upcoming_type"
         const val UPCOMING_EPISODE_NAME = "upcoming_episode_name"
-        const val UPCOMING_EPISODE_NUMBER = "upcoming_episode_number"
+        const val UPCOMING_EPISODE_NUMBER = "number"
         const val EPISODE = "episode"
 
         fun newSavedInstance(): ListFragment {

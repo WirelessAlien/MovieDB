@@ -82,7 +82,7 @@ class EpisodeTraktAdapter(
                 Date()
             )
             CoroutineScope(Dispatchers.Main).launch {
-                val episodeData = fetchEpisodeData(showData.getInt("trakt_id"), seasonNumber, episodeNumber, traktAccessToken)
+                val episodeData = fetchEpisodeData(showData.optInt("trakt_id", -1), seasonNumber, episodeNumber, traktAccessToken)
                 val episodeObject = if (episodeData != null) {
                     createTraktEpisodeObject(
                         episodeSeason = seasonNumber,
@@ -184,18 +184,18 @@ class EpisodeTraktAdapter(
                     val message = if (response.isSuccessful) {
                         val dbHelper = TraktDatabaseHelper(context)
                         val db = dbHelper.writableDatabase
-                        val traktId = showData.getInt("trakt_id")
+                        val traktId = showData.optInt("trakt_id", -1)
 
                         if (endpoint == "sync/history") {
                             val values = ContentValues().apply {
                                 put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, traktId)
-                                put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, showData.getInt("id"))
+                                put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, showData.optInt("id", -1))
                                 put(TraktDatabaseHelper.COL_SEASON_NUMBER, seasonNumber)
                                 put(TraktDatabaseHelper.COL_EPISODE_NUMBER, episodeNumber)
                                 put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, currentTime)
                             }
                             dbHelper.insertSeasonEpisodeWatchedData(values)
-                            dbHelper.addEpisodeToHistory(showData.getString("title"), traktId, showData.getInt("id"), "episode", seasonNumber, episodeNumber, currentTime)
+                            dbHelper.addEpisodeToHistory(showData.optString("title", "NULL"), traktId, showData.optInt("id", -1), "episode", seasonNumber, episodeNumber, currentTime)
                             watchedEpisodes.add(episodeNumber)
                             holder.episodeStatusButton.setImageResource(R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {

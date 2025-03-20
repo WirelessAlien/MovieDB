@@ -22,29 +22,97 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/quick_access"
-        android:layout_marginTop="16dp"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.wirelessalien.android.moviedb.view.WideRatioImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/quick_access"
+                    android:textSize="18sp"
+                    android:layout_centerVertical="true"
+                    android:textStyle="bold"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/addToWatched"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    app:icon="@drawable/ic_visibility"
+                    android:visibility="gone"
+                    app:cornerRadius="10dp"/>
+            </RelativeLayout>
+
+           <LinearLayout
+               android:id="@+id/linearLayout"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:orientation="vertical"
+               android:layout_marginStart="16dp"
+               android:layout_marginEnd="16dp"
+               android:visibility="gone"
+               android:layout_gravity="bottom">
+
+               <TextView
+                   android:id="@+id/episodeName"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"/>
+
+               <TextView
+                   android:id="@+id/episodeOverview"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"/>
+
+               <TextView
+                   android:id="@+id/episodeAirDate"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"/>
+
+             <com.google.android.material.chip.Chip
+                 android:id="@+id/chipEpS"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 style="@style/Widget.Material3.Chip.Suggestion"/>
+           </LinearLayout>
+        </LinearLayout>
+   </FrameLayout>
 
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/chipGroupSeasons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:layout_marginTop="16dp"
         app:chipSpacing="10dp"
+        android:padding="16dp"
         app:singleSelection="true"
         android:orientation="horizontal" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewEpisodes"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"/>
 </LinearLayout>

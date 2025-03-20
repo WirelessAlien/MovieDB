@@ -19,24 +19,51 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.icu.text.DateFormat
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.children
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.chip.Chip
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
+import com.wirelessalien.android.moviedb.databinding.BottomSheetSeasonEpisodeBinding
 import com.wirelessalien.android.moviedb.databinding.ShowCardBinding
 import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.trakt.TraktSync
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -47,6 +74,11 @@ class ShowTraktAdapter(
 ) : RecyclerView.Adapter<ShowTraktAdapter.ShowItemViewHolder>() {
     private var mShowArrayList: ArrayList<JSONObject>
     private val mGridView: Boolean
+    private lateinit var context: Context
+    private var clientId: String? = null
+    private var traktAccessToken: String? = null
+    private lateinit var preferences: SharedPreferences
+    private var apiKey: String? = null
 
     init {
         mShowArrayList = showList
@@ -96,7 +128,12 @@ class ShowTraktAdapter(
 
     override fun onBindViewHolder(holder: ShowItemViewHolder, position: Int) {
         val showData = mShowArrayList[position]
-        val context = holder.showView.context
+        context = holder.showView.context
+        preferences = PreferenceManager.getDefaultSharedPreferences(context)
+        clientId = ConfigHelper.getConfigValue(context, "client_id")
+        traktAccessToken = preferences.getString("trakt_access_token", "")
+        apiKey = ConfigHelper.getConfigValue(context, "api_key")
+
         try {
             val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
@@ -150,13 +187,13 @@ class ShowTraktAdapter(
             }
             holder.showDate.text = dateString
 
-            when (showData.getString("type")) {
+            when (showData.optString("type")) {
                 "season", "episode" -> {
-                    holder.showTitle.text = showData.getString("show_title")
-                    holder.seasonEpisodeText.text = if (showData.getString("type") == "season") {
-                        context.getString(R.string.season_p, showData.getInt("season"))
+                    holder.showTitle.text = showData.optString("show_title")
+                    holder.seasonEpisodeText.text = if (showData.optString("type") == "season") {
+                        context.getString(R.string.season_p, showData.optInt("season"))
                     } else {
-                        context.getString(R.string.episode_s, showData.getInt("number"), showData.getInt("season"))
+                        context.getString(R.string.episode_s, showData.optInt("number"), showData.optInt("season"))
                     }
                     holder.seasonEpisodeText.visibility = View.VISIBLE
 
@@ -211,6 +248,141 @@ class ShowTraktAdapter(
                     }
                 }
             }
+
+            if (showData.has("type") && showData.optString("type") == "episode") {
+                holder.itemView.setOnLongClickListener {
+                    val bottomSheetDialog = BottomSheetDialog(context)
+                    val bottomSheetBinding =
+                        BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
+                    val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
+                    val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
+                    bottomSheetBinding.linearLayout.visibility = View.VISIBLE
+                    bottomSheetBinding.addToWatched.visibility = View.VISIBLE
+
+                    recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
+
+                    val seasons = parseSeasonsTmdb(showData.optString("seasons_episode_show_tmdb", ""))
+                    val maxVisibleChips = 5
+                    var isExpanded = false
+
+                    // Create show more chip
+                    val showMoreChip = Chip(context).apply {
+                        text = context.getString(R.string.show_more)
+                        isCheckable = false
+                        visibility = if (seasons.size > maxVisibleChips) View.VISIBLE else View.GONE
+                    }
+
+                    fun updateChipsVisibility() {
+                        chipGroupSeasons.children.forEachIndexed { index, view ->
+                            if (view != showMoreChip) {
+                                view.visibility =
+                                    if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
+                            }
+                        }
+                    }
+
+                    // Add season chips
+                    seasons.forEach { seasonNumber ->
+                        val chip = Chip(context).apply {
+                            text = context.getString(R.string.season_p, seasonNumber)
+                            isCheckable = true
+                            setOnClickListener {
+                                val episodes = parseEpisodesForSeasonTmdb(
+                                    showData.optString(
+                                        "seasons_episode_show_tmdb",
+                                        ""
+                                    ), seasonNumber
+                                )
+                                val watchedEpisodesD = getWatchedEpisodesFromDb(
+                                    showData.optInt("trakt_id", -1),
+                                    seasonNumber
+                                )
+                                recyclerViewEpisodes.adapter = EpisodeTraktAdapter(
+                                    episodes,
+                                    watchedEpisodesD,
+                                    showData,
+                                    seasonNumber,
+                                    context,
+                                    traktAccessToken?: "",
+                                    clientId?: ""
+                                )
+                            }
+                        }
+                        chipGroupSeasons.addView(chip)
+                    }
+
+                    // Add show more chip and set its click listener
+                    if (seasons.size > maxVisibleChips) {
+                        chipGroupSeasons.addView(showMoreChip)
+                        showMoreChip.setOnClickListener {
+                            isExpanded = !isExpanded
+                            showMoreChip.text = context.getString(
+                                if (isExpanded) R.string.show_less else R.string.show_more
+                            )
+                            updateChipsVisibility()
+                        }
+                        updateChipsVisibility()
+                    }
+
+                    if (showData.has("number") && showData.has("season") ) {
+
+                        val traktId = showData.optInt("show_trakt_id")
+                        val seasonNumber = showData.optInt("season", 1)
+                        val episodeNumber = showData.optInt("number", 1)
+                        Log.d("fjuygjyguj", seasonNumber.toString() + episodeNumber )
+
+                        bottomSheetBinding.chipEpS.text = "S" + seasonNumber + ":E" + episodeNumber
+                        val isWatched = isEpisodeWatched(traktId, seasonNumber, episodeNumber)
+
+                            if (isWatched) {
+                                bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
+                            } else {
+                                bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_close)
+                            }
+                            bottomSheetBinding.addToWatched.setOnClickListener {
+                                val currentDateTime = android.icu.text.SimpleDateFormat(
+                                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                                    Locale.getDefault()
+                                ).format(
+                                    Date()
+                                )
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val episodeObject = createTraktEpisodeObject(
+                                            episodeSeason = seasonNumber,
+                                            episodeNumber = episodeNumber,
+                                            episodeTraktId = showData.optInt("trakt_id"),
+
+                                        )
+
+                                    val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
+                                    traktSync(episodeObject, endpoint, bottomSheetBinding, showData.optInt("id"), traktId, showData.optString("episode_title"), seasonNumber, episodeNumber, currentDateTime)
+                                }
+                            }
+
+                        // Fetch and display episode details on initial load
+                        fetchAndDisplayEpisodeDetails(
+                            showData.optInt(ShowBaseAdapter.KEY_ID),
+                            seasonNumber,
+                            episodeNumber,
+                            bottomSheetBinding.episodeName,
+                            bottomSheetBinding.episodeOverview,
+                            bottomSheetBinding.episodeAirDate,
+                            bottomSheetBinding.imageView,
+                            preferences.getBoolean(HD_IMAGE_SIZE, false),
+                            apiKey?: ""
+                        )
+                    } else {
+                        bottomSheetBinding.episodeName.visibility = View.GONE
+                        bottomSheetBinding.episodeOverview.visibility = View.GONE
+                        bottomSheetBinding.episodeAirDate.visibility = View.GONE
+                        bottomSheetBinding.imageView.visibility = View.GONE
+                    }
+
+                    bottomSheetDialog.setContentView(bottomSheetBinding.root)
+                    bottomSheetDialog.show()
+                    true
+                }
+            }
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -218,10 +390,232 @@ class ShowTraktAdapter(
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
-            val isMovie = showData.getString("type") == "movie"
+            val isMovie = showData.optString("type") == "movie"
             intent.putExtra("isMovie", isMovie)
             view.context.startActivity(intent)
         }
+    }
+
+    private fun isEpisodeWatched(showTraktId: Int, seasonNumber: Int, episodeNumber: Int): Boolean {
+        val dbHelper = TraktDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
+            arrayOf(TraktDatabaseHelper.COL_EPISODE_NUMBER),
+            "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_SEASON_NUMBER} = ? AND ${TraktDatabaseHelper.COL_EPISODE_NUMBER} = ?",
+            arrayOf(showTraktId.toString(), seasonNumber.toString(), episodeNumber.toString()),
+            null, null, null
+        )
+        val isWatched = cursor.count > 0
+        cursor.close()
+        db.close()
+        return isWatched
+    }
+
+    private fun fetchAndDisplayEpisodeDetails(
+        seriesId: Int,
+        seasonNumber: Int,
+        episodeNumber: Int,
+        episodeName: TextView,
+        episodeOverview: TextView,
+        episodeAirDate: TextView,
+        episodeImageView: ImageView,
+        loadHdImage : Boolean,
+        apiKey: String
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("https://api.themoviedb.org/3/tv/$seriesId/season/$seasonNumber/episode/$episodeNumber?api_key=$apiKey")
+                    .build()
+
+                val response = client.newCall(request).execute()
+                val jsonResponse = response.body?.string()?.let { JSONObject(it) }
+
+                Log.d("efdfdgf", jsonResponse.toString())
+                if (jsonResponse != null) {
+                    val name = jsonResponse.optString("name", "N/A")
+                    val overview = jsonResponse.optString("overview", "No overview available.")
+                    val stillPath = jsonResponse.optString("still_path")
+                    val airDate = jsonResponse.optString("air_date")
+
+                    val formats = listOf(
+                        "yyyy-MM-dd",
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                        "dd-MM-yyyy"
+                    )
+
+                    var parsedDate: Date? = null
+                    for (format in formats) {
+                        try {
+                            val formatter = SimpleDateFormat(format, Locale.getDefault())
+                            parsedDate = formatter.parse(airDate)
+                            if (parsedDate != null) break
+                        } catch (e: ParseException) {
+                            continue
+                        }
+                    }
+
+                    var formattedAirDate : String = airDate;
+                    if (parsedDate != null) {
+                        val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+                        formattedAirDate = localFormat.format(parsedDate)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        episodeName.text = name
+                        episodeOverview.text = overview
+                        episodeAirDate.text = formattedAirDate
+
+                        if (stillPath.isNotEmpty() && stillPath != "null") {
+                            val imageSize = if (loadHdImage) "w780" else "w500"
+                            Picasso.get()
+                                .load("https://image.tmdb.org/t/p/$imageSize$stillPath")
+                                .into(episodeImageView)
+                            episodeImageView.visibility = View.VISIBLE
+                        } else {
+                            episodeImageView.visibility = View.GONE
+                            episodeName.visibility = View.GONE
+                            episodeOverview.visibility = View.GONE
+                            episodeAirDate.visibility = View.GONE
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        episodeImageView.visibility = View.GONE
+                        episodeName.visibility = View.GONE
+                        episodeOverview.visibility = View.GONE
+                        episodeAirDate.visibility = View.GONE
+                    }
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    episodeImageView.visibility = View.GONE
+                    episodeName.visibility = View.GONE
+                    episodeOverview.visibility = View.GONE
+                    episodeAirDate.visibility = View.GONE
+                }
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun createTraktEpisodeObject(
+        episodeSeason: Int,
+        episodeNumber: Int,
+        episodeTraktId: Int,
+    ): JSONObject {
+        val episodeIds = JSONObject().apply {
+            put("trakt", episodeTraktId)
+        }
+
+        val episodeObject = JSONObject().apply {
+            put("season", episodeSeason)
+            put("number", episodeNumber)
+            put("ids", episodeIds)
+        }
+
+        return JSONObject().apply {
+            put("episodes", JSONArray().put(episodeObject))
+        }
+    }
+
+    private fun traktSync(episodeJSONObject: JSONObject, endpoint: String, binding: BottomSheetSeasonEpisodeBinding, tmdbId: Int, traktId:Int, title: String, seasonNumber: Int, episodeNumber: Int, currentTime: String) {
+        val traktApiService = TraktSync(traktAccessToken?: "", context)
+        traktApiService.post(endpoint, episodeJSONObject, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.failed_to_sync, endpoint),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                Handler(Looper.getMainLooper()).post {
+                    val message = if (response.isSuccessful) {
+                        val dbHelper = TraktDatabaseHelper(context)
+                        val db = dbHelper.writableDatabase
+
+                        if (endpoint == "sync/history") {
+                            val values = ContentValues().apply {
+                                put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, traktId)
+                                put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, tmdbId)
+                                put(TraktDatabaseHelper.COL_SEASON_NUMBER, seasonNumber)
+                                put(TraktDatabaseHelper.COL_EPISODE_NUMBER, episodeNumber)
+                                put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, currentTime)
+                            }
+                            dbHelper.insertSeasonEpisodeWatchedData(values)
+                            dbHelper.addEpisodeToHistory(
+                                title,
+                                traktId,
+                                tmdbId,
+                                "episode",
+                                seasonNumber,
+                                episodeNumber,
+                                currentTime
+                            )
+                            binding.addToWatched.icon =
+                                AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
+                        } else if (endpoint == "sync/history/remove") {
+                            db.delete(
+                                TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
+                                "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_SEASON_NUMBER} = ? AND ${TraktDatabaseHelper.COL_EPISODE_NUMBER} = ?",
+                                arrayOf(
+                                    traktId.toString(),
+                                    seasonNumber.toString(),
+                                    episodeNumber.toString()
+                                )
+                            )
+                            binding.addToWatched.icon =
+                                AppCompatResources.getDrawable(context, R.drawable.ic_close)
+                        }
+
+                        db.close()
+                        context.getString(R.string.success)
+                    } else {
+                        response.message
+                    }
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    private fun getWatchedEpisodesFromDb(showTraktId: Int, seasonNumber: Int): MutableList<Int> {
+        val dbHelper = TraktDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
+            arrayOf(TraktDatabaseHelper.COL_EPISODE_NUMBER),
+            "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_SEASON_NUMBER} = ?",
+            arrayOf(showTraktId.toString(), seasonNumber.toString()),
+            null, null, null
+        )
+        val watchedEpisodes = mutableListOf<Int>()
+        if (cursor.moveToFirst()) {
+            do {
+                val episodeNumber = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_EPISODE_NUMBER))
+                watchedEpisodes.add(episodeNumber)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return watchedEpisodes
+    }
+
+    private fun parseSeasonsTmdb(seasonsString: String): List<Int> {
+        val regex = Regex("""(\d+)\{.*?\}""")
+        return regex.findAll(seasonsString).map { it.groupValues[1].toInt() }.toList()
+    }
+
+    private fun parseEpisodesForSeasonTmdb(seasonsString: String, seasonNumber: Int): List<Int> {
+        val regex = Regex("""$seasonNumber\{(\d+(,\d+)*)\}""")
+        val matchResult = regex.find(seasonsString) ?: return emptyList()
+        return matchResult.groupValues[1].split(",").map { it.toInt() }
     }
 
     override fun getItemId(position: Int): Long {

@@ -21,11 +21,15 @@ package com.wirelessalien.android.moviedb.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.icu.text.DateFormat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.children
 import androidx.preference.PreferenceManager
@@ -42,8 +46,15 @@ import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
 import com.wirelessalien.android.moviedb.fragment.ListFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.IS_MOVIE
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.IS_UPCOMING
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
@@ -60,6 +71,8 @@ class ShowBaseAdapter(
     private val mGenreHashMap: HashMap<String, String?>
     private var mGridView: Boolean
     private var genreType: String? = null
+    private lateinit var preference: SharedPreferences
+    private var apiKey: String? = null
 
     init {
         genreType = when (genreType) {
@@ -94,6 +107,8 @@ class ShowBaseAdapter(
     override fun onBindViewHolder(holder: ShowItemViewHolder, position: Int) {
         val showData = mShowArrayList[position]
         val context = holder.showView.context
+        preference = PreferenceManager.getDefaultSharedPreferences(context)
+        apiKey = ConfigHelper.getConfigValue(context, "api_key")
 
         try {
             val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -146,7 +161,7 @@ class ShowBaseAdapter(
             }
 
 
-            if (showData.has(IS_UPCOMING) && showData.getBoolean(IS_UPCOMING)) {
+            if (showData.has(IS_UPCOMING) && showData.optBoolean(IS_UPCOMING)) {
                 val season = showData.optString("seasons")
                 val episodeNumber = showData.optString("upcoming_episode_number")
 
@@ -226,7 +241,7 @@ class ShowBaseAdapter(
 
                 recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
-                val seasons = getSeasonsFromTmdbDatabase(showData.getInt(KEY_ID))
+                val seasons = getSeasonsFromTmdbDatabase(showData.optInt(KEY_ID))
                 val maxVisibleChips = 5
                 var isExpanded = false
 
@@ -251,12 +266,12 @@ class ShowBaseAdapter(
                         text = context.getString(R.string.season_p, seasonNumber)
                         isCheckable = true
                         setOnClickListener {
-                            val episodes = getEpisodesForSeasonFromTmdbDatabase(showData.getInt(KEY_ID), seasonNumber)
-                            val watchedEpisodes = getWatchedEpisodesFromDb(showData.getInt(KEY_ID), seasonNumber)
+                            val episodes = getEpisodesForSeasonFromTmdbDatabase(showData.optInt(KEY_ID), seasonNumber)
+                            val watchedEpisodes = getWatchedEpisodesFromDb(showData.optInt(KEY_ID), seasonNumber)
                             recyclerViewEpisodes.adapter = EpisodeSavedAdapter(
                                 episodes,
                                 watchedEpisodes,
-                                showData.getInt(KEY_ID),
+                                showData.optInt(KEY_ID),
                                 seasonNumber,
                                 context
                             )
@@ -278,6 +293,57 @@ class ShowBaseAdapter(
                     updateChipsVisibility()
                 }
 
+                if (showData.has("number") && showData.has("season") ) {
+
+                    bottomSheetBinding.linearLayout.visibility = View.VISIBLE
+                    bottomSheetBinding.addToWatched.visibility = View.VISIBLE
+                    val tvShowId = showData.optInt(KEY_ID)
+                    val seasonNumber = showData.optInt("season", 1)
+                    val episodeNumber = showData.optInt("number", 1)
+
+                    bottomSheetBinding.chipEpS.text = "S" + seasonNumber + ":E" + episodeNumber
+
+                    MovieDatabaseHelper(context).use { db ->
+                        if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))) {
+                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
+                        } else {
+                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
+                        }
+                        bottomSheetBinding.addToWatched.setOnClickListener {
+                            // If the episode is in the database, remove it
+                            if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))) {
+                                db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
+
+                                    bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
+                            } else {
+                                // If the episode is not in the database, add it
+                                db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
+
+                                bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
+                            }
+                        }
+                    }
+
+                    // Fetch and display episode details on initial load
+                    fetchAndDisplayEpisodeDetails(
+                        showData.optInt(KEY_ID),
+                        seasonNumber,
+                        episodeNumber,
+                        bottomSheetBinding.episodeName,
+                        bottomSheetBinding.episodeOverview,
+                        bottomSheetBinding.episodeAirDate,
+                        bottomSheetBinding.imageView,
+                        showData.optString("upcoming_date"),
+                        preference.getBoolean(HD_IMAGE_SIZE, false),
+                        apiKey?: ""
+                    )
+                } else {
+                    bottomSheetBinding.episodeName.visibility = View.GONE
+                    bottomSheetBinding.episodeOverview.visibility = View.GONE
+                    bottomSheetBinding.episodeAirDate.visibility = View.GONE
+                    bottomSheetBinding.imageView.visibility = View.GONE
+                }
+
                 bottomSheetDialog.setContentView(bottomSheetBinding.root)
                 bottomSheetDialog.show()
                 true
@@ -287,13 +353,103 @@ class ShowBaseAdapter(
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
-            if (showData.has(IS_UPCOMING) && showData.getBoolean(IS_UPCOMING)) {
+            if (showData.has(IS_UPCOMING) && showData.optBoolean(IS_UPCOMING)) {
                 val upcomingType = showData.optString("upcoming_type")
                 intent.putExtra("isMovie", upcomingType == "movie")
             } else if (showData.has(KEY_NAME)) {
                 intent.putExtra("isMovie", false)
             }
             view.context.startActivity(intent)
+        }
+    }
+
+    private fun fetchAndDisplayEpisodeDetails(
+        seriesId: Int,
+        seasonNumber: Int,
+        episodeNumber: Int,
+        episodeName: TextView,
+        episodeOverview: TextView,
+        episodeAirDate: TextView,
+        episodeImageView: ImageView,
+        airDate: String,
+        loadHdImage : Boolean,
+        apiKey: String
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("https://api.themoviedb.org/3/tv/$seriesId/season/$seasonNumber/episode/$episodeNumber?api_key=$apiKey")
+                    .build()
+
+                val response = client.newCall(request).execute()
+                val jsonResponse = response.body?.string()?.let { JSONObject(it) }
+
+                Log.d("efdfdgf", jsonResponse.toString())
+                if (jsonResponse != null) {
+                    val name = jsonResponse.optString("name", "N/A")
+                    val overview = jsonResponse.optString("overview", "No overview available.")
+                    val stillPath = jsonResponse.optString("still_path")
+
+                    val formats = listOf(
+                        "yyyy-MM-dd",
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                        "dd-MM-yyyy"
+                    )
+
+                    var parsedDate: Date? = null
+                    for (format in formats) {
+                        try {
+                            val formatter = SimpleDateFormat(format, Locale.getDefault())
+                            parsedDate = formatter.parse(airDate)
+                            if (parsedDate != null) break
+                        } catch (e: ParseException) {
+                            continue
+                        }
+                    }
+
+                    var formattedAirDate : String = airDate;
+                    if (parsedDate != null) {
+                        val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+                        formattedAirDate = localFormat.format(parsedDate)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        episodeName.text = name
+                        episodeOverview.text = overview
+                        episodeAirDate.text = formattedAirDate
+
+                        if (stillPath.isNotEmpty() && stillPath != "null") {
+                            val imageSize = if (loadHdImage) "w780" else "w500"
+                            Picasso.get()
+                                .load("https://image.tmdb.org/t/p/$imageSize$stillPath")
+                                .into(episodeImageView)
+                            episodeImageView.visibility = View.VISIBLE
+                        } else {
+                            episodeImageView.visibility = View.GONE
+                            episodeName.visibility = View.GONE
+                            episodeOverview.visibility = View.GONE
+                            episodeAirDate.visibility = View.GONE
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        episodeImageView.visibility = View.GONE
+                        episodeName.visibility = View.GONE
+                        episodeOverview.visibility = View.GONE
+                        episodeAirDate.visibility = View.GONE
+                    }
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    episodeImageView.visibility = View.GONE
+                    episodeName.visibility = View.GONE
+                    episodeOverview.visibility = View.GONE
+                    episodeAirDate.visibility = View.GONE
+                }
+                e.printStackTrace()
+            }
         }
     }
 
