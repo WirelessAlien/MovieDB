@@ -123,6 +123,7 @@ class CollectionFragmentTkt : BaseFragment() {
                             put("tvdb", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TVDB)))
                             put("season", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SEASON)))
                             put("number", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER)))
+                            put("show_title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE)))
                         }
                         // Fetch additional details from TMDB table
                         val tmdbId = if (jsonObject.getString("type") == "season" || jsonObject.getString("type") == "episode") {

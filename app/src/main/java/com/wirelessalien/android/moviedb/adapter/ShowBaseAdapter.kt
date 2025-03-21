@@ -160,10 +160,9 @@ class ShowBaseAdapter(
                 holder.watchedProgressView?.visibility = View.GONE
             }
 
-
             if (showData.has(IS_UPCOMING) && showData.optBoolean(IS_UPCOMING)) {
-                val season = showData.optString("seasons")
-                val episodeNumber = showData.optString("upcoming_episode_number")
+                val season = showData.optString("season")
+                val episodeNumber = showData.optString("number")
 
                 if (!season.isNullOrEmpty() && !episodeNumber.isNullOrEmpty()) {
                     holder.categoryColorView?.visibility = View.VISIBLE
@@ -238,8 +237,9 @@ class ShowBaseAdapter(
                 val bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
                 val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
                 val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
-
                 recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
+
+                val nextEpisode = getNextEpisodeDetails(showData.optInt(KEY_ID))
 
                 val seasons = getSeasonsFromTmdbDatabase(showData.optInt(KEY_ID))
                 val maxVisibleChips = 5
@@ -305,21 +305,42 @@ class ShowBaseAdapter(
 
                     MovieDatabaseHelper(context).use { db ->
                         if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))) {
-                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
+                            bottomSheetBinding.addToWatched.icon =
+                                AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
                         } else {
-                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
+                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(
+                                context,
+                                R.drawable.ic_visibility_off
+                            )
                         }
                         bottomSheetBinding.addToWatched.setOnClickListener {
                             // If the episode is in the database, remove it
-                            if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))) {
-                                db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
+                            if (db.isEpisodeInDatabase(
+                                    tvShowId,
+                                    seasonNumber,
+                                    listOf(episodeNumber)
+                                )
+                            ) {
+                                db.removeEpisodeNumber(
+                                    tvShowId,
+                                    seasonNumber,
+                                    listOf(episodeNumber)
+                                )
 
-                                    bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
+                                bottomSheetBinding.addToWatched.icon =
+                                    AppCompatResources.getDrawable(
+                                        context,
+                                        R.drawable.ic_visibility_off
+                                    )
                             } else {
                                 // If the episode is not in the database, add it
                                 db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
 
-                                bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
+                                bottomSheetBinding.addToWatched.icon =
+                                    AppCompatResources.getDrawable(
+                                        context,
+                                        R.drawable.ic_visibility
+                                    )
                             }
                         }
                     }
@@ -335,13 +356,73 @@ class ShowBaseAdapter(
                         bottomSheetBinding.imageView,
                         showData.optString("upcoming_date"),
                         preference.getBoolean(HD_IMAGE_SIZE, false),
-                        apiKey?: ""
+                        apiKey ?: ""
                     )
+                } else if (nextEpisode != null) {
+                    val (seasonNumberN, episodeNumberN) = nextEpisode
+                    bottomSheetBinding.chipEpS.text = "S" + seasonNumberN + ":E" + episodeNumberN
+                    val tvShowId = showData.optInt(KEY_ID)
+                    MovieDatabaseHelper(context).use { db ->
+                        if (db.isEpisodeInDatabase(tvShowId, seasonNumberN!!, listOf(episodeNumberN!!))) {
+                            bottomSheetBinding.addToWatched.icon =
+                                AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
+                        } else {
+                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(
+                                context,
+                                R.drawable.ic_visibility_off
+                            )
+                        }
+                        bottomSheetBinding.addToWatched.setOnClickListener {
+                            // If the episode is in the database, remove it
+                            if (db.isEpisodeInDatabase(
+                                    tvShowId,
+                                    seasonNumberN,
+                                    listOf(episodeNumberN)
+                                )
+                            ) {
+                                db.removeEpisodeNumber(
+                                    tvShowId,
+                                    seasonNumberN,
+                                    listOf(episodeNumberN)
+                                )
+
+                                bottomSheetBinding.addToWatched.icon =
+                                    AppCompatResources.getDrawable(
+                                        context,
+                                        R.drawable.ic_visibility_off
+                                    )
+                            } else {
+                                // If the episode is not in the database, add it
+                                db.addEpisodeNumber(tvShowId, seasonNumberN, listOf(episodeNumberN))
+
+                                bottomSheetBinding.addToWatched.icon =
+                                    AppCompatResources.getDrawable(
+                                        context,
+                                        R.drawable.ic_visibility
+                                    )
+                            }
+                        }
+                    }
+
+                    fetchAndDisplayEpisodeDetails(
+                        showData.optInt(KEY_ID),
+                        seasonNumberN?: 1,
+                        episodeNumberN?: 1,
+                        bottomSheetBinding.episodeName,
+                        bottomSheetBinding.episodeOverview,
+                        bottomSheetBinding.episodeAirDate,
+                        bottomSheetBinding.imageView,
+                        showData.optString("upcoming_date"),
+                        preference.getBoolean(HD_IMAGE_SIZE, false),
+                        apiKey ?: "")
+
                 } else {
                     bottomSheetBinding.episodeName.visibility = View.GONE
                     bottomSheetBinding.episodeOverview.visibility = View.GONE
                     bottomSheetBinding.episodeAirDate.visibility = View.GONE
                     bottomSheetBinding.imageView.visibility = View.GONE
+                    bottomSheetBinding.chipEpS.visibility = View.GONE
+                    bottomSheetBinding.addToWatched.visibility = View.GONE
                 }
 
                 bottomSheetDialog.setContentView(bottomSheetBinding.root)
@@ -361,6 +442,26 @@ class ShowBaseAdapter(
             }
             view.context.startActivity(intent)
         }
+    }
+
+    private fun getNextEpisodeDetails(showId: Int): Pair<Int?, Int?>? {
+
+        // Get all seasons from TMDB database
+        val seasons = getSeasonsFromTmdbDatabase(showId)
+
+        // Iterate through seasons and episodes to find the next unwatched one
+        for (seasonNumber in seasons) {
+            val episodes = getEpisodesForSeasonFromTmdbDatabase(showId, seasonNumber)
+            val watchedEpisodes = getWatchedEpisodesFromDb(showId, seasonNumber)
+
+            for (episodeNumber in episodes) {
+                if (episodeNumber !in watchedEpisodes) {
+                    return Pair(seasonNumber, episodeNumber)
+                }
+            }
+        }
+
+        return null
     }
 
     private fun fetchAndDisplayEpisodeDetails(
@@ -408,7 +509,7 @@ class ShowBaseAdapter(
                         }
                     }
 
-                    var formattedAirDate : String = airDate;
+                    var formattedAirDate : String = airDate
                     if (parsedDate != null) {
                         val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                         formattedAirDate = localFormat.format(parsedDate)

@@ -124,6 +124,8 @@ class FavoriteFragmentTkt : BaseFragment() {
                             put("imdb", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_IMDB)))
                             put("tmdb", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TMDB)))
                             put("tvdb", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TVDB)))
+                            put("show_title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE)))
+
                         }
                         // Fetch additional details from TMDB table
                         val tmdbId = if (jsonObject.getString("type") == "season" || jsonObject.getString("type") == "episode") {

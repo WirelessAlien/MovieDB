@@ -176,6 +176,9 @@ class RatingFragmentTkt : BaseFragment() {
                                     tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_RELEASE_DATE)))
                             jsonObject.put("genre_ids",
                                 tmdbCursor.getString(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_GENRE_IDS)))
+                            jsonObject.put("seasons_episode_show_tmdb",
+                                tmdbCursor.getString(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)))
+
                         }
                         tmdbCursor.close()
 
