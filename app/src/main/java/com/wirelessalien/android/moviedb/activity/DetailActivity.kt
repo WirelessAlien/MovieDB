@@ -2219,7 +2219,10 @@ class DetailActivity : BaseActivity() {
 
                 // Make it possible to change the values.
                 binding.editIcon.visibility = View.VISIBLE
-            } else if (movieObject.has("vote_average") &&
+            }
+
+            // Set TMDB rating if it exists
+            if (movieObject.has("vote_average") &&
                 movieObject.getString("vote_average") != voteAverage
             ) {
                 val voteAverage = movieObject.getString("vote_average").toFloat()
