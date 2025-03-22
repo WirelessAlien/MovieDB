@@ -39,15 +39,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:singleSelection="true"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:orientation="horizontal">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/all"
+                    android:checkable="true"
+                    style="@style/Widget.Material3.Chip.Filter" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipMovie"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checkable="true"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:text="@string/movie" />
 
                 <com.google.android.material.chip.Chip
@@ -55,6 +64,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checkable="true"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:text="@string/show" />
 
                 <com.google.android.material.chip.Chip
@@ -62,6 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checkable="true"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:text="@string/season1" />
 
                 <com.google.android.material.chip.Chip
@@ -69,6 +80,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checkable="true"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:text="@string/episode" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>

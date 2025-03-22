@@ -562,7 +562,11 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val request = createRequest(url)
         executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
-            db.delete(TraktDatabaseHelper.TABLE_LIST_ITEM, null, null)
+            db.delete(
+                TraktDatabaseHelper.TABLE_LIST_ITEM,
+                "${TraktDatabaseHelper.COL_LIST_ID} = ?",
+                arrayOf(listId)
+            )
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)

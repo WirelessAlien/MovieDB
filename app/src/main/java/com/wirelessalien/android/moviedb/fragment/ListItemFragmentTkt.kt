@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowTraktAdapter
-import com.wirelessalien.android.moviedb.databinding.FragmentProgressTktBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentWatchlistTktBinding
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +46,7 @@ class ListItemFragmentTkt : BaseFragment() {
     private lateinit var tmdbHelper: TmdbDetailsDatabaseHelper
     private lateinit var linearLayoutManager: LinearLayoutManager
     private var listId: Int? = null
-    private lateinit var binding: FragmentProgressTktBinding
+    private lateinit var binding: FragmentWatchlistTktBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +61,7 @@ class ListItemFragmentTkt : BaseFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentProgressTktBinding.inflate(inflater, container, false)
+        binding = FragmentWatchlistTktBinding.inflate(inflater, container, false)
         val view = binding.root
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
@@ -84,11 +84,15 @@ class ListItemFragmentTkt : BaseFragment() {
 
         binding.showRecyclerView.adapter = adapter
 
+        binding.chipAll.isChecked = true
         binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
+                    R.id.chipAll -> adapter.updateShowList(fullListItemList)
                     R.id.chipMovie -> filterListItemData("movie")
                     R.id.chipShow -> filterListItemData("show")
+                    R.id.chipSeason -> filterListItemData("season")
+                    R.id.chipEpisode -> filterListItemData("episode")
                 }
             }
         }
@@ -124,7 +128,18 @@ class ListItemFragmentTkt : BaseFragment() {
                             put("type", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE)))
                             put("title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE)))
                             put("year", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_YEAR)))
-                            put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)))
+                            when (cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))) {
+                                "movie", "show" -> {
+                                    put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)))
+                                }
+                                "episode" -> {
+                                    put("episode_trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)))
+                                    put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TRAKT_ID)))
+                                }
+                                "season" -> {
+                                    put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TRAKT_ID)))
+                                }
+                            }
                             put("slug", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SLUG)))
                             put("imdb", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_IMDB)))
                             put("tmdb", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TMDB)))
@@ -135,7 +150,6 @@ class ListItemFragmentTkt : BaseFragment() {
                             put("notes", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NOTES)))
                             put("show_title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE)))
                             put("show_year", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_YEAR)))
-                            put("show_trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TRAKT_ID)))
                             put("show_slug", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_SLUG)))
                             put("show_tvdb", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TVDB)))
                             put("show_imdb", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_IMDB)))
@@ -173,6 +187,7 @@ class ListItemFragmentTkt : BaseFragment() {
                             jsonObject.put("vote_average", tmdbCursor.getDouble(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_VOTE_AVERAGE)))
                             jsonObject.put("release_date", tmdbCursor.getString(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_RELEASE_DATE)))
                             jsonObject.put("genre_ids", tmdbCursor.getString(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_GENRE_IDS)))
+                            jsonObject.put("seasons_episode_show_tmdb", tmdbCursor.getString(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)))
                         }
                         tmdbCursor.close()
 

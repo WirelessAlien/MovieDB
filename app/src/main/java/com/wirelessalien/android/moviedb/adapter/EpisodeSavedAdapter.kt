@@ -29,16 +29,20 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
-import org.json.JSONException
-import org.json.JSONObject
 
 class EpisodeSavedAdapter(
     private val episodes: List<Int>,
-    private val watchedEpisodes: List<Int>,
+    private val watchedEpisodes: MutableList<Int>,
     private val tvShowId: Int,
     private val seasonNumber: Int,
     private val context: Context,
+    private val listener: EpisodeClickListener
 ) : RecyclerView.Adapter<EpisodeSavedAdapter.EpisodeViewHolder>() {
+
+    interface EpisodeClickListener {
+        fun onEpisodeClick(tvShowId: Int, seasonNumber: Int, episodeNumber: Int)
+        fun onEpisodeWatchedStatusChanged(tvShowId: Int, seasonNumber: Int, episodeNumber: Int, isWatched: Boolean)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodeViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.episode_trakt_item, parent, false)
@@ -50,14 +54,17 @@ class EpisodeSavedAdapter(
         holder.episodeTextView.text = context.getString(R.string.episode_p, episodeNumber)
 
         // Check if the episode is watched
-        val isWatched = watchedEpisodes.contains(episodeNumber)
+        var isWatched = watchedEpisodes.contains(episodeNumber)
 
-        val iconRes = if (isWatched) {
-            R.drawable.ic_visibility
-        } else {
-            R.drawable.ic_visibility_off
+        fun updateIcon() {
+            val iconRes = if (isWatched) {
+                R.drawable.ic_visibility
+            } else {
+                R.drawable.ic_visibility_off
+            }
+            holder.episodeStatusButton.setImageResource(iconRes)
         }
-        holder.episodeStatusButton.setImageResource(iconRes)
+        updateIcon()
 
         MovieDatabaseHelper(context).use { db ->
             holder.episodeStatusButton.setOnClickListener {
@@ -65,16 +72,31 @@ class EpisodeSavedAdapter(
 
                 if (currentlyWatched) {
                     db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
-                    holder.episodeStatusButton.setImageResource(R.drawable.ic_visibility_off)
+                    watchedEpisodes.remove(episodeNumber)
                 } else {
                     db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
-                    holder.episodeStatusButton.setImageResource(R.drawable.ic_visibility)
+                    watchedEpisodes.add(episodeNumber)
                 }
+                isWatched = !currentlyWatched
+                updateIcon()
+                listener.onEpisodeWatchedStatusChanged(tvShowId, seasonNumber, episodeNumber, isWatched)
             }
+        }
+
+        holder.itemView.setOnClickListener {
+            listener.onEpisodeClick(tvShowId, seasonNumber, episodeNumber)
         }
     }
 
     override fun getItemCount(): Int = episodes.size
+    fun updateEpisodeWatched(episodeNumber: Int, isWatched: Boolean) {
+        if (isWatched && !watchedEpisodes.contains(episodeNumber)) {
+            watchedEpisodes.add(episodeNumber)
+        } else if (!isWatched && watchedEpisodes.contains(episodeNumber)) {
+            watchedEpisodes.remove(episodeNumber)
+        }
+        notifyDataSetChanged()
+    }
 
     class EpisodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val episodeTextView: TextView = itemView.findViewById(R.id.episodeTextView)

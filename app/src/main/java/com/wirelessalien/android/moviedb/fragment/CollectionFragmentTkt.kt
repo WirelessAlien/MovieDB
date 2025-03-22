@@ -82,10 +82,11 @@ class CollectionFragmentTkt : BaseFragment() {
 
         binding.showRecyclerView.adapter = adapter
 
-
+        binding.chipAll.isChecked = true
         binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
+                    R.id.chipAll -> adapter.updateShowList(fullCollectionList)
                     R.id.chipMovie -> filterCollectionData("movie")
                     R.id.chipShow -> filterCollectionData("show")
                 }

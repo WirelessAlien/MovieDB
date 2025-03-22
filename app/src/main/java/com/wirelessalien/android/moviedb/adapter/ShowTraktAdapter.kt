@@ -128,6 +128,8 @@ class ShowTraktAdapter(
 
     override fun onBindViewHolder(holder: ShowItemViewHolder, position: Int) {
         val showData = mShowArrayList[position]
+        holder.showData = showData
+
         context = holder.showView.context
         preferences = PreferenceManager.getDefaultSharedPreferences(context)
         clientId = ConfigHelper.getConfigValue(context, "client_id")
@@ -331,35 +333,34 @@ class ShowTraktAdapter(
                         val traktId = showData.optInt("trakt_id")
                         val seasonNumber = showData.optInt("season", 1)
                         val episodeNumber = showData.optInt("number", 1)
-                        Log.d("fjuygjyguj", seasonNumber.toString() + episodeNumber )
 
                         bottomSheetBinding.chipEpS.text = "S" + seasonNumber + ":E" + episodeNumber
                         val isWatched = isEpisodeWatched(traktId, seasonNumber, episodeNumber)
 
-                            if (isWatched) {
-                                bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
-                            } else {
-                                bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_close)
-                            }
-                            bottomSheetBinding.addToWatched.setOnClickListener {
-                                val currentDateTime = android.icu.text.SimpleDateFormat(
-                                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                                    Locale.getDefault()
-                                ).format(
-                                    Date()
-                                )
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    val episodeObject = createTraktEpisodeObject(
-                                            episodeSeason = seasonNumber,
-                                            episodeNumber = episodeNumber,
-                                            episodeTraktId = showData.optInt("episode_trakt_id"),
+                        if (isWatched) {
+                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
+                        } else {
+                            bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_close)
+                        }
+                        bottomSheetBinding.addToWatched.setOnClickListener {
+                            val currentDateTime = android.icu.text.SimpleDateFormat(
+                                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                                Locale.getDefault()
+                            ).format(
+                                Date()
+                            )
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val episodeObject = createTraktEpisodeObject(
+                                    episodeSeason = seasonNumber,
+                                    episodeNumber = episodeNumber,
+                                    episodeTraktId = showData.optInt("episode_trakt_id"),
 
-                                        )
+                                    )
 
-                                    val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
-                                    traktSync(episodeObject, endpoint, bottomSheetBinding, showData.optInt("id"), traktId, showData.optString("show_title"), seasonNumber, episodeNumber, currentDateTime)
-                                }
+                                val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
+                                traktSync(episodeObject, endpoint, bottomSheetBinding, showData.optInt("id"), traktId, showData.optString("show_title"), seasonNumber, episodeNumber, currentDateTime)
                             }
+                        }
 
                         // Fetch and display episode details on initial load
                         fetchAndDisplayEpisodeDetails(
@@ -434,11 +435,13 @@ class ShowTraktAdapter(
         }
 
         holder.itemView.setOnClickListener { view: View ->
-            val intent = Intent(view.context, DetailActivity::class.java)
-            intent.putExtra("movieObject", showData.toString())
-            val isMovie = showData.optString("type") == "movie"
-            intent.putExtra("isMovie", isMovie)
-            view.context.startActivity(intent)
+            holder.showData?.let { safeShowData ->
+                val intent = Intent(view.context, DetailActivity::class.java)
+                intent.putExtra("movieObject", safeShowData.toString())
+                val isMovie = safeShowData.optString("type") == "movie"
+                intent.putExtra("isMovie", isMovie)
+                view.context.startActivity(intent)
+            }
         }
     }
 
@@ -689,6 +692,9 @@ class ShowTraktAdapter(
         val binding: ShowCardBinding?,
         val gridBinding: ShowGridCardBinding?
     ) : RecyclerView.ViewHolder(gridBinding?.root ?: binding!!.root) {
+
+        // Add a property to store the current show data
+        var showData: JSONObject? = null
 
         val showView = gridBinding?.cardView ?: binding!!.cardView
         val showTitle = gridBinding?.title ?: binding!!.title

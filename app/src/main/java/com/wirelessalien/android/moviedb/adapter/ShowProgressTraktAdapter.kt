@@ -302,9 +302,7 @@ class ShowProgressTraktAdapter(
                                    episodeSeason = seasonNumberN,
                                    episodeNumber = episodeNumberN,
                                    episodeTraktId = showData.optInt("episode_trakt_id"),
-
                                    )
-
                                val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
                                traktSync(episodeObject, endpoint, bottomSheetBinding, showData.optInt("id"), traktId, showData.optString("show_title"), seasonNumberN, episodeNumberN, currentDateTime)
                            }
