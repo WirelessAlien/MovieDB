@@ -65,7 +65,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         val cursor = db.query(
             TABLE_SEASON_EPISODE_WATCHED,
             arrayOf(COL_ID),
-            "$COL_TRAKT_ID = ? AND $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?",
+            "$COL_SHOW_TRAKT_ID = ? AND $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?",
             arrayOf(showTraktId.toString(), showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString()),
             null,
             null,
@@ -77,7 +77,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             db.update(
                 TABLE_SEASON_EPISODE_WATCHED,
                 values,
-                "$COL_TRAKT_ID = ? AND $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?",
+                "$COL_SHOW_TRAKT_ID = ? AND $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?",
                 arrayOf(showTraktId.toString(), showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString())
             )
         } else {

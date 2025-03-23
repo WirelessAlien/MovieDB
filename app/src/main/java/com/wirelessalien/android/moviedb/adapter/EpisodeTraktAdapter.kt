@@ -56,9 +56,17 @@ class EpisodeTraktAdapter(
     private val showData: JSONObject,
     private val seasonNumber: Int,
     private val context: Context,
-    private val traktAccessToken: String, private val clientId: String
+    private val traktAccessToken: String,
+    private val clientId: String,
+    private val listener: EpisodeClickListener
 ) : RecyclerView.Adapter<EpisodeTraktAdapter.EpisodeViewHolder>() {
     private var mediaObject: JSONObject? = null
+    private var episodeTraktId: Int = -1
+
+    interface EpisodeClickListener {
+        fun onEpisodeClick(tvShowId: Int, traktId: Int, seasonNumber: Int, episodeNumber: Int, episodeTraktId: Int, title: String)
+        fun onEpisodeWatchedStatusChanged(tvShowId: Int, seasonNumber: Int, episodeNumber: Int, isWatched: Boolean)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodeViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.episode_trakt_item, parent, false)
@@ -69,6 +77,7 @@ class EpisodeTraktAdapter(
         val episodeNumber = episodes[position]
         holder.episodeTextView.text = context.getString(R.string.episode_p, episodeNumber)
 
+        val tvShowId = showData.optInt("id", -1)
         val isWatched = watchedEpisodes.contains(episodeNumber)
         val iconRes = if (isWatched) {
             R.drawable.ic_done_2
@@ -96,10 +105,15 @@ class EpisodeTraktAdapter(
                 } else {
                     null
                 }
+                episodeTraktId = episodeData?.getJSONObject("ids")?.getInt("trakt")?: -1
                 mediaObject = episodeObject
                 val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
                 traktSync(endpoint, holder, episodeNumber, currentDateTime)
             }
+        }
+
+        holder.itemView.setOnClickListener {
+            listener.onEpisodeClick(tvShowId, showData.optInt("trakt_id", -1), seasonNumber, episodeNumber, episodeTraktId, showData.optString("show_title", "NULL"))
         }
     }
 
@@ -170,6 +184,7 @@ class EpisodeTraktAdapter(
     }
 
     private fun traktSync(endpoint: String, holder: EpisodeViewHolder, episodeNumber: Int, currentTime: String) {
+        val isWatched = watchedEpisodes.contains(episodeNumber)
         val traktApiService = TraktSync(traktAccessToken, context)
         val jsonBody = mediaObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
@@ -207,6 +222,7 @@ class EpisodeTraktAdapter(
                             watchedEpisodes.remove(episodeNumber)
                             holder.episodeStatusButton.setImageResource(R.drawable.ic_close)
                         }
+                        listener.onEpisodeWatchedStatusChanged(showData.optInt("id"), seasonNumber, episodeNumber, isWatched)
 
                         db.close()
                         context.getString(R.string.success)
@@ -217,6 +233,18 @@ class EpisodeTraktAdapter(
                 }
             }
         })
+    }
+
+    fun updateEpisodeWatched(episodeNumberToUpdate: Int, isWatched: Boolean) {
+        val episodeIndex = episodes.indexOf(episodeNumberToUpdate)
+        if (episodeIndex != -1) {
+            if (isWatched && !watchedEpisodes.contains(episodeNumberToUpdate)) {
+                watchedEpisodes.add(episodeNumberToUpdate)
+            } else if (!isWatched && watchedEpisodes.contains(episodeNumberToUpdate)) {
+                watchedEpisodes.remove(episodeNumberToUpdate)
+            }
+            notifyItemChanged(episodeIndex)
+        }
     }
 
     class EpisodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

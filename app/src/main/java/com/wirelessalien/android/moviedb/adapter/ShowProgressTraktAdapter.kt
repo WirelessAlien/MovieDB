@@ -74,12 +74,17 @@ class ShowProgressTraktAdapter(
     gridView: Boolean,
     private val traktAccessToken: String,
     private val clientId: String
-) : RecyclerView.Adapter<ShowProgressTraktAdapter.ShowItemViewHolder?>() {
+) : RecyclerView.Adapter<ShowProgressTraktAdapter.ShowItemViewHolder?>(),
+    EpisodeTraktAdapter.EpisodeClickListener {
     private var mShowArrayList: ArrayList<JSONObject>
     private val mGridView: Boolean
     private lateinit var context: Context
     private lateinit var preferences: SharedPreferences
     private var apiKey: String? = null
+    private var bottomSheetDialog: BottomSheetDialog? = null
+    private var bottomSheetBinding: BottomSheetSeasonEpisodeBinding? = null
+    private var currentEpisodeAdapter: EpisodeTraktAdapter? = null
+
 
     init {
 
@@ -206,10 +211,10 @@ class ShowProgressTraktAdapter(
 
            if (showData.has("type") && showData.getString("type") == "show") {
                holder.itemView.setOnLongClickListener {
-                   val bottomSheetDialog = BottomSheetDialog(context)
-                   val bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
-                   val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
-                   val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
+                   bottomSheetDialog = BottomSheetDialog(context)
+                   bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
+                   val chipGroupSeasons = bottomSheetBinding!!.chipGroupSeasons
+                   val recyclerViewEpisodes = bottomSheetBinding!!.recyclerViewEpisodes
 
                    recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
@@ -251,15 +256,17 @@ class ShowProgressTraktAdapter(
                                    showData.getInt("trakt_id"),
                                    seasonNumber
                                )
-                               recyclerViewEpisodes.adapter = EpisodeTraktAdapter(
+                               currentEpisodeAdapter = EpisodeTraktAdapter(
                                    episodes,
                                    watchedEpisodesD,
                                    showData,
                                    seasonNumber,
                                    context,
                                    traktAccessToken,
-                                   clientId
+                                   clientId,
+                                   this@ShowProgressTraktAdapter
                                )
+                               recyclerViewEpisodes.adapter = currentEpisodeAdapter
                            }
                        }
                        chipGroupSeasons.addView(chip)
@@ -280,17 +287,18 @@ class ShowProgressTraktAdapter(
 
                    if (nextEpisode != null) {
                        val (seasonNumberN, episodeNumberN) = nextEpisode
-
-                       bottomSheetBinding.chipEpS.text = "S" + seasonNumberN + ":E" + episodeNumberN
+                       val tvShowId = showData.optInt("id")
+                       val episodeTraktId = showData.optInt("episode_trakt_id")
+                       bottomSheetBinding!!.chipEpS.text = "S" + seasonNumberN + ":E" + episodeNumberN
                        val traktId = showData.optInt("trakt_id")
                        val isWatched = isEpisodeWatched(traktId, seasonNumberN!!, episodeNumberN!!)
 
                        if (isWatched) {
-                           bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
+                           bottomSheetBinding!!.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
                        } else {
-                           bottomSheetBinding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_close)
+                           bottomSheetBinding!!.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_close)
                        }
-                       bottomSheetBinding.addToWatched.setOnClickListener {
+                       bottomSheetBinding!!.addToWatched.setOnClickListener {
                            val currentDateTime = android.icu.text.SimpleDateFormat(
                                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                                Locale.getDefault()
@@ -304,35 +312,25 @@ class ShowProgressTraktAdapter(
                                    episodeTraktId = showData.optInt("episode_trakt_id"),
                                    )
                                val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
-                               traktSync(episodeObject, endpoint, bottomSheetBinding, showData.optInt("id"), traktId, showData.optString("show_title"), seasonNumberN, episodeNumberN, currentDateTime)
+                               traktSync(episodeObject, endpoint, bottomSheetBinding!!, showData.optInt("id"), traktId, showData.optString("show_title"), seasonNumberN, episodeNumberN, currentDateTime)
                            }
                        }
 
                        // Fetch and display episode details on initial load
-                       fetchAndDisplayEpisodeDetails(
-                           showData.optInt(ShowBaseAdapter.KEY_ID),
-                           seasonNumberN,
-                           episodeNumberN,
-                           bottomSheetBinding.episodeName,
-                           bottomSheetBinding.episodeOverview,
-                           bottomSheetBinding.episodeAirDate,
-                           bottomSheetBinding.imageView,
-                           preferences.getBoolean(HD_IMAGE_SIZE, false),
-                           apiKey?: ""
-                       )
+                       showInitialEpisode(tvShowId, traktId, seasonNumberN, episodeNumberN, episodeTraktId, title = showData.optString("show_title"))
 
                    } else {
-                       bottomSheetBinding.episodeName.visibility = View.GONE
-                       bottomSheetBinding.episodeOverview.visibility = View.GONE
-                       bottomSheetBinding.episodeAirDate.visibility = View.GONE
-                       bottomSheetBinding.imageView.visibility = View.GONE
-                       bottomSheetBinding.chipEpS.visibility = View.GONE
-                       bottomSheetBinding.addToWatched.visibility = View.GONE
+                       bottomSheetBinding!!.episodeName.visibility = View.GONE
+                       bottomSheetBinding!!.episodeOverview.visibility = View.GONE
+                       bottomSheetBinding!!.episodeAirDate.visibility = View.GONE
+                       bottomSheetBinding!!.imageView.visibility = View.GONE
+                       bottomSheetBinding!!.chipEpS.visibility = View.GONE
+                       bottomSheetBinding!!.addToWatched.visibility = View.GONE
 
                    }
 
-                   bottomSheetDialog.setContentView(bottomSheetBinding.root)
-                   bottomSheetDialog.show()
+                   bottomSheetDialog?.setContentView(bottomSheetBinding!!.root)
+                   bottomSheetDialog?.show()
                    true
                }
            }
@@ -348,6 +346,57 @@ class ShowProgressTraktAdapter(
             intent.putExtra("isMovie", isMovie)
             view.context.startActivity(intent)
         }
+    }
+
+    private fun showInitialEpisode(tvShowId: Int, traktId: Int, seasonNumber: Int, episodeNumber: Int, episodeTraktId: Int, title: String) {
+
+        bottomSheetBinding?.chipEpS?.text = "S${seasonNumber}:E${episodeNumber}"
+
+        val isWatched = isEpisodeWatched(traktId, seasonNumber, episodeNumber)
+        bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context,
+            if (isWatched) R.drawable.ic_done_2 else R.drawable.ic_close
+        )
+
+        bottomSheetBinding?.addToWatched?.setOnClickListener {
+            val isCurrentlyWatched = isEpisodeWatched(traktId, seasonNumber, episodeNumber)
+            val newWatchedStatus = !isCurrentlyWatched
+
+            val currentDateTime = android.icu.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.getDefault()
+            ).format(
+                Date()
+            )
+            CoroutineScope(Dispatchers.Main).launch {
+                val episodeObject = createTraktEpisodeObject(
+                    episodeSeason = seasonNumber,
+                    episodeNumber = episodeNumber,
+                    episodeTraktId = episodeTraktId,
+
+                    )
+
+                val endpoint = if (isCurrentlyWatched) "sync/history/remove" else "sync/history"
+                traktSync(episodeObject, endpoint, bottomSheetBinding!!, tvShowId, traktId, title, seasonNumber, episodeNumber, currentDateTime)
+            }
+
+            bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context,
+                if (newWatchedStatus) R.drawable.ic_done_2 else R.drawable.ic_close
+            )
+
+            currentEpisodeAdapter?.updateEpisodeWatched(episodeNumber, newWatchedStatus)
+        }
+
+        fetchAndDisplayEpisodeDetails(
+            tvShowId,
+            seasonNumber,
+            episodeNumber,
+            bottomSheetBinding!!.episodeName,
+            bottomSheetBinding!!.episodeOverview,
+            bottomSheetBinding!!.episodeAirDate,
+            bottomSheetBinding!!.imageView,
+            preferences.getBoolean(HD_IMAGE_SIZE, false),
+            apiKey ?: ""
+        )
     }
 
     private fun getNextEpisodeDetails(showId: Int, seasons: List<Int>, episodeSeason: String): Pair<Int?, Int?>? {
@@ -624,6 +673,22 @@ class ShowProgressTraktAdapter(
     override fun getItemId(position: Int): Long {
 
         return position.toLong()
+    }
+
+    override fun onEpisodeClick(tvShowId: Int, traktId: Int, seasonNumber: Int, episodeNumber: Int, episodeTraktId: Int, title: String) {
+        bottomSheetBinding?.let {
+            showInitialEpisode(tvShowId, traktId, seasonNumber, episodeNumber, episodeTraktId, title)
+        }
+    }
+
+    override fun onEpisodeWatchedStatusChanged(tvShowId: Int, seasonNumber: Int, episodeNumber: Int, isWatched: Boolean) {
+        bottomSheetBinding?.let{
+            if(it.chipEpS.text == "S${seasonNumber}:E${episodeNumber}"){
+                it.addToWatched.icon = AppCompatResources.getDrawable(context,
+                    if (isWatched) R.drawable.ic_close else R.drawable.ic_done_2
+                )
+            }
+        }
     }
 
     class ShowItemViewHolder(

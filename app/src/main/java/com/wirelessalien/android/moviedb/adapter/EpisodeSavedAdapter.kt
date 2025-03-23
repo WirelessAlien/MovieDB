@@ -89,13 +89,17 @@ class EpisodeSavedAdapter(
     }
 
     override fun getItemCount(): Int = episodes.size
-    fun updateEpisodeWatched(episodeNumber: Int, isWatched: Boolean) {
-        if (isWatched && !watchedEpisodes.contains(episodeNumber)) {
-            watchedEpisodes.add(episodeNumber)
-        } else if (!isWatched && watchedEpisodes.contains(episodeNumber)) {
-            watchedEpisodes.remove(episodeNumber)
+
+    fun updateEpisodeWatched(episodeNumberToUpdate: Int, isWatched: Boolean) {
+        val episodeIndex = episodes.indexOf(episodeNumberToUpdate)
+        if (episodeIndex != -1) {
+            if (isWatched && !watchedEpisodes.contains(episodeNumberToUpdate)) {
+                watchedEpisodes.add(episodeNumberToUpdate)
+            } else if (!isWatched && watchedEpisodes.contains(episodeNumberToUpdate)) {
+                watchedEpisodes.remove(episodeNumberToUpdate)
+            }
+            notifyItemChanged(episodeIndex)
         }
-        notifyDataSetChanged()
     }
 
     class EpisodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

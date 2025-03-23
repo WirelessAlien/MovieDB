@@ -274,7 +274,7 @@ class ShowBaseAdapter(
                             val watchedEpisodes = getWatchedEpisodesFromDb(showData.optInt(KEY_ID), seasonNumber)
                             currentEpisodeAdapter = EpisodeSavedAdapter(
                                 episodes,
-                                watchedEpisodes,
+                                watchedEpisodes.toMutableList(),
                                 showData.optInt(KEY_ID),
                                 seasonNumber,
                                 context,
@@ -298,8 +298,6 @@ class ShowBaseAdapter(
                     }
                     updateChipsVisibility()
                 }
-
-
 
                 if (showData.has("number") && showData.has("season") ) {
                     val tvShowId = showData.optInt(KEY_ID)
@@ -340,14 +338,12 @@ class ShowBaseAdapter(
     }
 
     override fun onEpisodeClick(tvShowId: Int, seasonNumber: Int, episodeNumber: Int) {
-        // Handle episode click: Load details in the bottom sheet
         bottomSheetBinding?.let {
-            showInitialEpisode(tvShowId, seasonNumber, episodeNumber) //Re-use the method.
+            showInitialEpisode(tvShowId, seasonNumber, episodeNumber)
         }
     }
 
     override fun onEpisodeWatchedStatusChanged(tvShowId: Int, seasonNumber: Int, episodeNumber: Int, isWatched: Boolean) {
-        //Update Bottom Sheet Button
         bottomSheetBinding?.let{
             if(it.chipEpS.text == "S${seasonNumber}:E${episodeNumber}"){
                 it.addToWatched.icon = AppCompatResources.getDrawable(context,
@@ -369,15 +365,19 @@ class ShowBaseAdapter(
             )
 
             bottomSheetBinding?.addToWatched?.setOnClickListener {
-                if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))) {
+                val isCurrentlyWatched = db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))
+                val newWatchedStatus = !isCurrentlyWatched
+
+                if (isCurrentlyWatched) {
                     db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
-                    bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
                 } else {
                     db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
-                    bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
                 }
-                //Crucial: Notify the adapter about the change
-                currentEpisodeAdapter?.updateEpisodeWatched(episodeNumber, !isEpWatched)
+                bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context,
+                    if (newWatchedStatus) R.drawable.ic_visibility else R.drawable.ic_visibility_off
+                )
+
+                currentEpisodeAdapter?.updateEpisodeWatched(episodeNumber, newWatchedStatus)
             }
         }
 
@@ -389,8 +389,7 @@ class ShowBaseAdapter(
             bottomSheetBinding!!.episodeOverview,
             bottomSheetBinding!!.episodeAirDate,
             bottomSheetBinding!!.imageView,
-            // Assuming showData is accessible, or pass it as a parameter if needed
-            mShowArrayList.getOrNull(0)?.optString("upcoming_date") ?: "", //Safely get upcoming date
+            mShowArrayList.getOrNull(0)?.optString("upcoming_date") ?: "",
             preference.getBoolean(HD_IMAGE_SIZE, false),
             apiKey ?: ""
         )
@@ -585,9 +584,9 @@ class ShowBaseAdapter(
     }
 
     private fun getWatchedEpisodesCount(showData: JSONObject): Int {
-        if (!showData.has("seasons")) return 0
+        if (!showData.has("season")) return 0
 
-        val seasons = showData.getJSONObject("seasons")
+        val seasons = showData.getJSONObject("season")
         var watchedCount = 0
 
         seasons.keys().forEach { seasonNumber ->
