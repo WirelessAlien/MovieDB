@@ -73,6 +73,10 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
 
         binding.forceLocalSync.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit().putBoolean("force_local_sync", isChecked).apply()
+            // Apply HIDE_SAVED_PREFERENCE based on forceLocalSync state
+            if (isChecked) {
+                preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false).apply()
+            }
         }
 
         binding.buttonOk.setOnClickListener {
@@ -83,20 +87,29 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
                 else -> "local"
             }
 
-            when (selectedProvider) {
-                "local" -> {
-                    preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true).apply()
-                    preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
-                }
-                "trakt" -> {
-                    preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true).apply()
-                    preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, false).apply()
-                }
-                "tmdb" -> {
-                    preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, false).apply()
-                    preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
+            // Apply preferences based on forceLocalSync *before* applying provider-specific settings
+            if (forceLocalSync) {
+                preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false).apply()
+            } else { // Only apply based on selected provider if forceLocalSync is NOT checked.
+                when (selectedProvider) {
+                    "local" -> {
+                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true).apply()
+                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
+                        preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false).apply()
+                    }
+                    "trakt" -> {
+                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true).apply()
+                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, false).apply()
+                        preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true).apply()
+                    }
+                    "tmdb" -> {
+                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, false).apply()
+                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
+                        preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true).apply()
+                    }
                 }
             }
+
             preferences.edit().putString("sync_provider", selectedProvider).apply()
             preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
             dismiss()

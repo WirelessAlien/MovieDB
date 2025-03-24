@@ -156,7 +156,7 @@ class CalenderAllWorkerTkt(
         val today = sdf.format(Date())
 
         // Fetch shows calendar
-        val showsUrl = "https://api.trakt.tv/calendars/my/shows/$today/7"
+        val showsUrl = "https://api.trakt.tv/calendars/my/shows/$today/30"
         val showsRequest = createRequest(showsUrl)
         executeRequest(showsRequest) { showResponse ->
             val db = dbHelper.writableDatabase
@@ -194,7 +194,7 @@ class CalenderAllWorkerTkt(
         }
 
         // Fetch movies calendar
-        val moviesUrl = "https://api.trakt.tv/calendars/my/movies/$today/7"
+        val moviesUrl = "https://api.trakt.tv/calendars/my/movies/$today/30"
         val moviesRequest = createRequest(moviesUrl)
         executeRequest(moviesRequest) { movieResponse ->
             val db = dbHelper.writableDatabase

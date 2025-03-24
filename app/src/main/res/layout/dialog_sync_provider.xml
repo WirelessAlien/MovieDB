@@ -36,9 +36,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/select_default_sync_provider"
+            android:text="@string/sync_provider"
             android:textStyle="bold"
             android:textSize="18sp"
+            android:layout_marginTop="10dp"
             android:layout_gravity="center"
             android:paddingBottom="16dp"/>
 
@@ -96,6 +97,12 @@
             android:layout_height="wrap_content"
             android:text="@string/force_local_sync"
             android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_provider_caution"
+            android:textSize="14sp"/>
 
         <TextView
             android:layout_width="wrap_content"

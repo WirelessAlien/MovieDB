@@ -1118,7 +1118,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             ""
         }
         open()
-        mDatabaseHelper.onCreate(mDatabase)
 
         // Base query with LEFT JOIN to include episode data
         val baseQuery = """
@@ -1156,8 +1155,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val dbShowsArrayList = ArrayList<JSONObject>()
         val showEpisodesMap = mutableMapOf<Int, MutableMap<Int, JSONArray>>()
 
-        cursor.moveToFirst()
-        while (!cursor.isAfterLast) {
+        if (cursor.isClosed) {
+            Log.e("ListFragment", "Cursor is closed, cannot convert database list to array list.")
+            return dbShowsArrayList
+        }
+
+        if (!cursor.moveToFirst()) {
+            Log.d("ListFragment", "Cursor is empty, no data to convert.")
+            cursor.close()
+            close()
+            return dbShowsArrayList
+        }
+
+        // Proceed with processing the cursor only if it's not empty
+        do {
             val movieId = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
 
             // Create show object if it doesn't exist for this movieId
@@ -1230,8 +1241,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 seasonEpisodes?.put(episodeObject)
             }
 
-            cursor.moveToNext()
-        }
+        } while (cursor.moveToNext())
 
         // Add organized episodes to their respective shows
         dbShowsArrayList.forEach { showObject ->

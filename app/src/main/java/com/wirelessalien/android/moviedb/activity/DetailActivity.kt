@@ -492,20 +492,6 @@ class DetailActivity : BaseActivity() {
                         )
                     }
                 }
-            } else {
-                val isToastShown = preferences.getBoolean("isToastShown", false)
-                if (!isToastShown) {
-                    runOnUiThread {
-                        Toast.makeText(
-                            applicationContext,
-                            R.string.login_is_required_to_use_tmdb_based_sync,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    val editor = preferences.edit()
-                    editor.putBoolean("isToastShown", true)
-                    editor.apply()
-                }
             }
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
@@ -2394,6 +2380,10 @@ class DetailActivity : BaseActivity() {
             val combinedText = "$formattedBudget / $formattedRevenue"
             binding.revenueDataText.text = combinedText
             cursor.close()
+
+            if (added) {
+                addItemtoTmdb()
+            }
         } catch (e: JSONException) {
             e.printStackTrace()
         }
