@@ -19,25 +19,33 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ListItemActivityTkt
+import com.wirelessalien.android.moviedb.databinding.ListListItemBinding
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.trakt.TraktSync
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
 import org.json.JSONObject
+import java.io.IOException
 
 class ListAdapterTkt(
     private val listData: ArrayList<JSONObject>,
+    private val accessToken: String
 ) : RecyclerView.Adapter<ListAdapterTkt.ViewHolder>() {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.list_list_item, parent, false)
-        return ViewHolder(view)
+        val binding = ListListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -75,39 +83,69 @@ class ListAdapterTkt(
         diffResult.dispatchUpdatesTo(this)
     }
 
-    inner class ViewHolder(itemView: View) :
-        RecyclerView.ViewHolder(itemView) {
-        private val listNameTextView: TextView
-        private val descriptionTextView: TextView
-        private val itemCountTextView: TextView
-        private val deleteButton: Button
-
-        init {
-            listNameTextView = itemView.findViewById(R.id.listNameTextView)
-            descriptionTextView = itemView.findViewById(R.id.description)
-            itemCountTextView = itemView.findViewById(R.id.itemCount)
-            deleteButton = itemView.findViewById(R.id.deleteButton)
-        }
+    inner class ViewHolder(private val binding: ListListItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(jsonObject: JSONObject) {
-            listNameTextView.text = jsonObject.getString("name")
+            binding.listNameTextView.text = jsonObject.getString("name")
 
             val description = jsonObject.getString("description")
             if (description.isEmpty()) {
-                descriptionTextView.setText(R.string.no_description)
+                binding.description.setText(R.string.no_description)
             } else {
-                descriptionTextView.text = description
+                binding.description.text = description
             }
-            itemCountTextView.text = itemView.context.getString(R.string.items_count, jsonObject.getInt("number_of_items"))
-            itemView.tag = jsonObject
-            itemView.setOnClickListener {
-                val context = itemView.context
+            binding.itemCount.text = itemView.context.getString(R.string.items_count, jsonObject.getInt("number_of_items"))
+            binding.root.tag = jsonObject
+            binding.root.setOnClickListener {
+                val context = binding.root.context
                 val intent = Intent(context, ListItemActivityTkt::class.java).apply {
                     putExtra("trakt_list_id", jsonObject.getInt("trakt_list_id"))
                     putExtra("trakt_list_name", jsonObject.getString("name"))
                 }
                 context.startActivity(intent)
             }
+
+            binding.deleteButton.setOnClickListener {
+                val context = binding.root.context
+                val listId = jsonObject.getInt("trakt_list_id")
+                deleteList(context, listId, bindingAdapterPosition)
+            }
         }
+
+    }
+
+    private fun deleteList(context: Context, listId: Int, position: Int) {
+        val traktSync = TraktSync(accessToken, context)
+        val endpoint = "users/me/lists/$listId"
+
+        traktSync.delete(endpoint, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                (context as? Activity)?.runOnUiThread {
+                    Toast.makeText(context, context.getString(R.string.failed_to_delete_list), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                (context as? Activity)?.runOnUiThread {
+                    if (response.isSuccessful) {
+                        listData.removeAt(position)
+                        notifyItemRemoved(position)
+
+                        // Delete from local database
+                        val db = TraktDatabaseHelper(context).writableDatabase
+                        db.delete(
+                            TraktDatabaseHelper.USER_LISTS,
+                            "${TraktDatabaseHelper.COL_TRAKT_ID} = ?",
+                            arrayOf(listId.toString())
+                        )
+
+                        Toast.makeText(context, context.getString(R.string.list_delete_success), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, context.getString(R.string.failed_to_delete_list), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
     }
 }

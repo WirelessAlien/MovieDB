@@ -59,4 +59,17 @@ class TraktSync(private val accessToken: String, applicationContext: Context) {
             }
         })
     }
+
+    fun delete(endpoint: String, callback: Callback) {
+        val request = Request.Builder()
+            .url("$baseUrl/$endpoint")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .addHeader("trakt-api-version", "2")
+            .addHeader("trakt-api-key", clientId ?: "")
+            .delete()
+            .build()
+
+        client.newCall(request).enqueue(callback)
+    }
 }

@@ -147,6 +147,7 @@ class ShowBaseAdapter(
                     )
 
                     holder.watchedProgressView?.visibility = View.VISIBLE
+                    holder.showRating?.visibility = View.GONE
                     holder.watchedProgressView?.progress = (watchedEpisodes.toFloat() / totalEpisodes.toFloat() * 100).toInt()
                 } else {
                     val categoryText = when (category) {

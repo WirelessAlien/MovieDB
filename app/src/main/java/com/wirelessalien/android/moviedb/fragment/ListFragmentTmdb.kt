@@ -66,11 +66,13 @@ class ListFragmentTmdb : BaseFragment() {
 
         val fetcher = FetchList(context, null)
 
-        requireActivity().lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val listData = fetcher.fetchLists()
             requireActivity().runOnUiThread {
-                listAdapter!!.updateData(listData)
-                binding.progressBar.visibility = View.GONE
+                if (isAdded) {
+                    listAdapter?.updateData(listData)
+                    binding.progressBar.visibility = View.GONE
+                }
             }
         }
 
@@ -98,10 +100,12 @@ class ListFragmentTmdb : BaseFragment() {
         }
 
         val fetcher = FetchList(context, null)
-        requireActivity().lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val listData = fetcher.fetchLists()
             requireActivity().runOnUiThread {
-                listAdapter!!.updateData(listData)
+                if (isAdded) {
+                    listAdapter?.updateData(listData)
+                }
             }
         }
     }

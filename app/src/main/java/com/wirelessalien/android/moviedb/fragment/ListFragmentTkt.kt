@@ -25,6 +25,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wirelessalien.android.moviedb.R
@@ -43,10 +44,15 @@ class ListFragmentTkt : BaseFragment() {
     private lateinit var dbHelper: TraktDatabaseHelper
     private lateinit var linearLayoutManager: LinearLayoutManager
     private lateinit var binding: FragmentMyListsBinding
+    private var accessToken: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dbHelper = TraktDatabaseHelper(requireContext())
+        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        preferences.getString("trakt_access_token", null)?.let {
+            accessToken = it
+        }
     }
 
     override fun onCreateView(
@@ -59,7 +65,7 @@ class ListFragmentTkt : BaseFragment() {
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.visibility = View.VISIBLE
         fab.setImageResource(R.drawable.ic_add)
-        adapter = ListAdapterTkt(listData)
+        adapter = ListAdapterTkt(listData, accessToken!!)
 
         linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.layoutManager = linearLayoutManager

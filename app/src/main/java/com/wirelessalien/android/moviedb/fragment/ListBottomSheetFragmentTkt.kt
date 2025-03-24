@@ -90,6 +90,10 @@ class ListBottomSheetFragmentTkt(
             traktSync("users/me/lists")
         }
 
+        if (!fetchList) {
+            binding.previousListText.visibility = View.GONE
+        }
+
         if (fetchList) {
             loadPreviousLists(binding.recyclerView)
         }
@@ -156,6 +160,7 @@ class ListBottomSheetFragmentTkt(
             override fun onResponse(call: Call, response: Response) {
                 val responseBodyString = response.body?.string()
 
+                Log.d("gyjhguyjhi", responseBodyString?:"")
                 Handler(Looper.getMainLooper()).post {
                     if (response.isSuccessful) {
                         if (!responseBodyString.isNullOrEmpty()) {

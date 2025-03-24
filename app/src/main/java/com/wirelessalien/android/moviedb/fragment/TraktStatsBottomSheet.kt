@@ -26,12 +26,12 @@ import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.BottomSheetTraktStatsBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,8 +64,8 @@ class TraktStatsBottomSheet : BottomSheetDialogFragment() {
     private fun fetchStats() {
         binding.shimmerFrameLayout1.visibility = View.VISIBLE
         binding.shimmerFrameLayout1.startShimmer()
-        CoroutineScope(Dispatchers.IO).launch {
-            val request = Request.Builder()
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+        val request = Request.Builder()
                 .url("https://api.trakt.tv/users/me/stats")
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Authorization", "Bearer $accessToken")
@@ -79,14 +79,18 @@ class TraktStatsBottomSheet : BottomSheetDialogFragment() {
             if (response.isSuccessful && responseBody != null) {
                 val jsonObject = JSONObject(responseBody)
                 withContext(Dispatchers.Main) {
-                    displayStats(jsonObject)
-                    binding.shimmerFrameLayout1.visibility = View.GONE
-                    binding.shimmerFrameLayout1.stopShimmer()
+                    if (isAdded) {
+                        displayStats(jsonObject)
+                        binding.shimmerFrameLayout1.visibility = View.GONE
+                        binding.shimmerFrameLayout1.stopShimmer()
+                    }
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    binding.shimmerFrameLayout1.visibility = View.GONE
-                    binding.shimmerFrameLayout1.stopShimmer()
+                    if (isAdded) {
+                        binding.shimmerFrameLayout1.visibility = View.GONE
+                        binding.shimmerFrameLayout1.stopShimmer()
+                    }
                 }
             }
         }

@@ -158,7 +158,8 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="3dp"
-                android:textSize="11sp"/>
+                android:textStyle="bold"
+                android:textSize="12sp"/>
         </RelativeLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

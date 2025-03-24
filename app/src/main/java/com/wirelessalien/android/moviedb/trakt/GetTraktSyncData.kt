@@ -530,6 +530,8 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val url = "https://api.trakt.tv/users/me/lists"
         val request = createRequest(url)
         executeRequest(request) { response ->
+            val db = dbHelper.writableDatabase
+            db.delete(USER_LISTS, null, null)
             val jsonArray = JSONArray(response)
             for (i in 0 until jsonArray.length()) {
                 val jsonObject = jsonArray.getJSONObject(i)
