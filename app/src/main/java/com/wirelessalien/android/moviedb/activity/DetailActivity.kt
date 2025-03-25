@@ -368,7 +368,7 @@ class DetailActivity : BaseActivity() {
             //            binding.episodeRateBtn.setEnabled(true);
         }
 
-        if(tktaccessToken == null) {
+        if (tktaccessToken == null) {
             binding.btnAddToTraktWatchlist.isEnabled = false
             binding.btnAddToTraktFavorite.isEnabled = false
             binding.btnAddToTraktCollection.isEnabled = false
@@ -1212,6 +1212,12 @@ class DetailActivity : BaseActivity() {
             dialogBuilder.setNegativeButton(getString(R.string.no)) { _, _ -> }
             dialogBuilder.show()
         }
+
+        val currentDateTime = android.icu.text.SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            Locale.getDefault()
+        ).format(Date())
+        dialogViewBinding.etSelectedDate.setText(currentDateTime)
 
         dialogViewBinding.btnSelectDate.setOnClickListener {
             showDatePicker { selectedDate ->

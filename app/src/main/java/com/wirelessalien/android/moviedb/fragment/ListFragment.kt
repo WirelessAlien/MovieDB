@@ -602,6 +602,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private fun showUpcomingContent() {
         lifecycleScope.launch(Dispatchers.Main) {
             try {
+                mShowArrayList.clear()
+                mShowAdapter.notifyDataSetChanged()
                 binding.shimmerFrameLayout1.apply {
                     visibility = View.VISIBLE
                     startShimmer()

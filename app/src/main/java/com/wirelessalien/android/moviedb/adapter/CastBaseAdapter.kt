@@ -79,8 +79,7 @@ class CastBaseAdapter(private val castList: ArrayList<JSONObject>, private val c
             je.printStackTrace()
         }
 
-        holder.itemView.setBackgroundColor(Color.TRANSPARENT)
-
+        holder.binding.cardView.setBackgroundColor(Color.TRANSPARENT)
         holder.itemView.setOnClickListener { view ->
             val intent = Intent(view.context, CastActivity::class.java)
             intent.putExtra("actorObject", actorData.toString())

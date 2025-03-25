@@ -134,9 +134,7 @@ class ShowBaseAdapter(
                 if (category == 2 && showData.optInt(KEY_IS_MOVIE) == 0) { // Watching and it's a TV show
                     val movieId = showData.optInt(KEY_ID)
                     val totalEpisodes = getTotalEpisodesFromTmdb(context, movieId)
-                    Log.d("ShowBaseAdapter", "Total episodes: $totalEpisodes")
                     val watchedEpisodes = getWatchedEpisodesCount(showData)
-                    Log.d("ShowBaseAdapter", "Watched episodes: $watchedEpisodes")
                     val episodesLeft = totalEpisodes - watchedEpisodes
 
                     holder.categoryColorView?.text = context.getString(
@@ -159,10 +157,13 @@ class ShowBaseAdapter(
                         else -> "Unknown"
                     }
                     holder.categoryColorView?.text = categoryText
+                    holder.watchedProgressView?.visibility = View.GONE
+                    holder.showRating?.visibility = View.VISIBLE
                 }
             } else {
                 holder.categoryColorView?.visibility = View.GONE
                 holder.watchedProgressView?.visibility = View.GONE
+                holder.showRating?.visibility = View.VISIBLE
             }
 
             if (showData.has(IS_UPCOMING) && showData.optBoolean(IS_UPCOMING)) {
