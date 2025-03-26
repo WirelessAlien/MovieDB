@@ -21,6 +21,7 @@ package com.wirelessalien.android.moviedb.tmdb.account
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.paging.PagingData
 import androidx.preference.PreferenceManager
@@ -100,7 +101,7 @@ class DeleteFromList(
             e.printStackTrace()
         }
         val finalSuccess = success
-        if (context is Activity) {
+        if (context is Activity && !context.isFinishing) {
             context.runOnUiThread {
                 if (finalSuccess) {
                     Toast.makeText(context, R.string.media_removed_from_list, Toast.LENGTH_SHORT).show()
@@ -115,6 +116,8 @@ class DeleteFromList(
                     Toast.makeText(context, R.string.failed_to_remove_media_from_list, Toast.LENGTH_SHORT).show()
                 }
             }
+        } else {
+            Log.w("DeleteFromList", "Activity is null or finishing")
         }
     }
 }

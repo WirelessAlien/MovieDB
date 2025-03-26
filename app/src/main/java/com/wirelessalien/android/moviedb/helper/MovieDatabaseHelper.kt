@@ -707,13 +707,16 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         return details
     }
 
-    fun addEpisodeNumber(movieId: Int, seasonNumber: Int, episodeNumbers: List<Int?>) {
+    fun addEpisodeNumber(movieId: Int, seasonNumber: Int, episodeNumbers: List<Int?>, watchDate: String?) {
         val db = this.writableDatabase
         val values = ContentValues()
         for (episodeNumber in episodeNumbers) {
             values.put(COLUMN_MOVIES_ID, movieId)
             values.put(COLUMN_SEASON_NUMBER, seasonNumber)
             values.put(COLUMN_EPISODE_NUMBER, episodeNumber)
+            if (watchDate != null) {
+                values.put(COLUMN_EPISODE_WATCH_DATE, watchDate)
+            }
             db.insert(TABLE_EPISODES, null, values)
         }
     }

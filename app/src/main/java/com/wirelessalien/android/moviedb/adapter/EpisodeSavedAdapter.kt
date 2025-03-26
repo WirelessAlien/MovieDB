@@ -21,6 +21,8 @@
 package com.wirelessalien.android.moviedb.adapter
 
 import android.content.Context
+import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +31,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import java.util.Locale
 
 class EpisodeSavedAdapter(
     private val episodes: List<Int>,
@@ -66,6 +69,8 @@ class EpisodeSavedAdapter(
         }
         updateIcon()
 
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
+
         MovieDatabaseHelper(context).use { db ->
             holder.episodeStatusButton.setOnClickListener {
                 val currentlyWatched = watchedEpisodes.contains(episodeNumber)
@@ -74,7 +79,7 @@ class EpisodeSavedAdapter(
                     db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
                     watchedEpisodes.remove(episodeNumber)
                 } else {
-                    db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
+                    db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber), currentDate)
                     watchedEpisodes.add(episodeNumber)
                 }
                 isWatched = !currentlyWatched

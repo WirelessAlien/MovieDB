@@ -89,6 +89,7 @@ import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding
 import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
 import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentButtonsDescriptionBinding
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
@@ -631,6 +632,11 @@ class DetailActivity : BaseActivity() {
             }
         }
 
+        val dialogShown = preferences.getBoolean("sync_provider_action_dialog_shown", false)
+        if (!dialogShown) {
+            showSyncProviderActionsDialog()
+        }
+
         binding.watchListButtonTmdb.setOnClickListener {
             lifecycleScope.launch {
                 if (accountId != null) {
@@ -1091,6 +1097,18 @@ class DetailActivity : BaseActivity() {
                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(browserIntent)
             }
+        }
+    }
+
+    private fun showSyncProviderActionsDialog() {
+        val editor = preferences.edit()
+        val dialog = BottomSheetDialog(this)
+        val dialogViewBinding = FragmentButtonsDescriptionBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogViewBinding.root)
+        dialog.show()
+
+        dialogViewBinding.displayConfirmation.setOnCheckedChangeListener { _, _ ->
+            editor.putBoolean("sync_provider_action_dialog_shown", true).apply()
         }
     }
 

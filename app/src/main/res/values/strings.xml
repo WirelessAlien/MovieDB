@@ -137,6 +137,14 @@
     <string name="no_upcoming_content">No upcoming content found</string>
     <string name="upcoming_text">Upcoming on %1$s, Season %2$s, Episode %3$s</string>
     <string name="sync_provider_caution">\u26a0 If multiple provider is enabled, it may not be easier to differentiate between the input methods of all provider, so use with caution.</string>
+    <string name="trakt_login_required_1">Log In - Trakt</string>
+    <string name="omdb_api_key1">OMDB API Key</string>
+    <string name="omdb_api_desc_1">To display ratings from IMDb, Rotten Tomatoes, and Metacritic, you need to enter your OMDB API key. This API key is used to fetch external ratings data.</string>
+    <string name="omdb_api_desc2">OMDB API has a free tier for personal use. To get your free API key, follow these steps:</string>
+    <string name="omdb_api_desc3">1. Go to the OMDB website: https://www.omdbapi.com/\n2. Click on \'API key\' in the navigation menu.\n3. Sign up for a free account.\n4. Once signed up, your API key will be sent to your email.</string>
+    <string name="omdb_api_desc_4">You can also enter your OMDB API key later in the settings.</string>
+    <string name="api_key">API Key</string>
+    <string name="dont_show_this_dialog_again">Dont show this dialog again.</string>
 
     <string-array name="media_types">
         <item>digital</item>

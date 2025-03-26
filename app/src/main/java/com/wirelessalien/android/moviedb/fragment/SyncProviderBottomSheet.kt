@@ -113,6 +113,9 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
             preferences.edit().putString("sync_provider", selectedProvider).apply()
             preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
             dismiss()
+
+            val omdbSetupFragment = OmdbSetupFragment()
+            omdbSetupFragment.show(parentFragmentManager, "OmdbSetupFragment")
         }
     }
 }

@@ -452,6 +452,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 binding.btnCancelWorker.visibility = if (isWorkRunning) View.VISIBLE else View.GONE
             }
 
+
+        if (accessToken == null) {
+            binding.btnOk.isEnabled = false
+            binding.btnLogin.visibility = View.VISIBLE
+        } else {
+            binding.btnOk.isEnabled = true
+            binding.btnLogin.visibility = View.GONE
+        }
+
+        binding.btnLogin.setOnClickListener {
+            LoginFragmentTkt().show(childFragmentManager, "LoginFragmentTkt")
+            dialog.dismiss()
+        }
+
         binding.btnCancelWorker.setOnClickListener {
             workManager.cancelUniqueWork(TktAutoSyncWorker.WORK_NAME)
             binding.btnCancelWorker.visibility = View.GONE
@@ -486,6 +500,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private fun showWatchSummaryDialog() {
+        if (!isAdded) {
+            Log.w("ListFragment", "Fragment not attached to activity")
+            return
+        }
+
         val binding = WatchSummaryBinding.inflate(LayoutInflater.from(requireContext()))
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog.setContentView(binding.root)

@@ -21,6 +21,7 @@ package com.wirelessalien.android.moviedb.fragment
 
 import android.content.SharedPreferences
 import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
 import android.icu.util.TimeZone
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -317,6 +318,8 @@ class SeasonDetailsFragment : Fragment() {
 //                    }
                     R.id.action_watched -> {
                         val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
+                        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            .format(Calendar.getInstance().time)
                         if (adapter != null) {
                             val episodes = adapter.episodes
                             val db = MovieDatabaseHelper(requireContext())
@@ -330,7 +333,7 @@ class SeasonDetailsFragment : Fragment() {
                             if (!allEpisodesInDatabase) {
                                 for (episode in episodes) {
                                     if (!db.isEpisodeInDatabase(tvShowId, currentTabNumber, listOf(episode.episodeNumber))) {
-                                        db.addEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
+                                        db.addEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber), currentDate)
                                     }
                                 }
                                 Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT).show()

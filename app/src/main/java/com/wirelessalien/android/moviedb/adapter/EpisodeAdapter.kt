@@ -371,6 +371,8 @@ class EpisodeAdapter(
             holder.binding.btnAddToTraktHistory.text = context.getText(R.string.history)
         }
 
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
+
         try {
             MovieDatabaseHelper(context).use { db ->
                 if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
@@ -386,7 +388,7 @@ class EpisodeAdapter(
                         holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
                     } else {
                         // If the episode is not in the database, add it
-                        db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
+                        db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber), currentDate)
 
                         holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
                     }

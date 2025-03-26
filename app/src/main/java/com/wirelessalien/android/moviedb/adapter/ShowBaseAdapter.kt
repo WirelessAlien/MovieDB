@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.icu.text.DateFormat
+import android.icu.util.Calendar
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -355,10 +356,16 @@ class ShowBaseAdapter(
         }
     }
 
+    val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        .format(Calendar.getInstance().time)
+
     private fun showInitialEpisode(tvShowId: Int, seasonNumber: Int, episodeNumber: Int) {
         bottomSheetBinding?.linearLayout?.visibility = View.VISIBLE
         bottomSheetBinding?.addToWatched?.visibility = View.VISIBLE
         bottomSheetBinding?.chipEpS?.text = "S${seasonNumber}:E${episodeNumber}"
+
+        val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            .format(Calendar.getInstance().time)
 
         MovieDatabaseHelper(context).use { db ->
             val isEpWatched = db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))
@@ -373,7 +380,7 @@ class ShowBaseAdapter(
                 if (isCurrentlyWatched) {
                     db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
                 } else {
-                    db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber))
+                    db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber), currentDate)
                 }
                 bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context,
                     if (newWatchedStatus) R.drawable.ic_visibility else R.drawable.ic_visibility_off

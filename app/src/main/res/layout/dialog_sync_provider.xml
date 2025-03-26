@@ -37,10 +37,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sync_provider"
-            android:textStyle="bold"
-            android:textSize="18sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:layout_marginTop="10dp"
-            android:layout_gravity="center"
             android:paddingBottom="16dp"/>
 
         <TextView
