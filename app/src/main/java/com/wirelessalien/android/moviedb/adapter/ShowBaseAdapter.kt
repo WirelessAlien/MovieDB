@@ -356,9 +356,6 @@ class ShowBaseAdapter(
         }
     }
 
-    val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        .format(Calendar.getInstance().time)
-
     private fun showInitialEpisode(tvShowId: Int, seasonNumber: Int, episodeNumber: Int) {
         bottomSheetBinding?.linearLayout?.visibility = View.VISIBLE
         bottomSheetBinding?.addToWatched?.visibility = View.VISIBLE

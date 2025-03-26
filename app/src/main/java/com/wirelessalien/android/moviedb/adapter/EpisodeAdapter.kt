@@ -539,7 +539,7 @@ class EpisodeAdapter(
             Handler(Looper.getMainLooper())
             binding.btnSubmit.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
-                    val ratingS = binding.ratingSlider.value.toDouble()
+                    val ratingS = round(binding.ratingSlider.value.toDouble())
                     val addEpisodeRating = AddEpisodeRating(tvShowId, seasonNumber, episode.episodeNumber, ratingS, context)
                     addEpisodeRating.addRating()
                     if (addEpisodeRating.isSuccessful()) {

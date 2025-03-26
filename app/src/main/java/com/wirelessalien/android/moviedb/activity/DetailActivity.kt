@@ -128,6 +128,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.abs
+import kotlin.math.round
 
 /**
  * This class provides all the details about the shows.
@@ -755,7 +756,7 @@ class DetailActivity : BaseActivity() {
                 submitButton.setOnClickListener {
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
-                        val rating = ratingBar.value.toDouble()
+                        val rating = round(ratingBar.value.toDouble())
                         withContext(Dispatchers.IO) {
                             AddRating(movieId, rating, type, mActivity).addRating()
                         }
