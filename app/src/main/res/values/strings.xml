@@ -145,6 +145,11 @@
     <string name="omdb_api_desc_4">You can also enter your OMDB API key later in the settings.</string>
     <string name="api_key">API Key</string>
     <string name="dont_show_this_dialog_again">Dont show this dialog again.</string>
+    <string name="quick_access_with_long_click">Quick Access with Long Click</string>
+    <string name="quick_access_desc1">Discover quick actions for your shows by using a long click on the \'Show\' item. This provides instant access to seasons and episodes you need to watch.</string>
+    <string name="when_watching_a_show">When Watching a Show:</string>
+    <string name="quick_access_desc2">Long click the \'Show\' to instantly jump to the next episode you need to watch. This is the fastest way to continue watching your favorite series.</string>
+    <string name="tap_anywhere_outside_this_sheet_to_dismiss">Tap anywhere outside this sheet to dismiss.</string>
 
     <string-array name="media_types">
         <item>digital</item>

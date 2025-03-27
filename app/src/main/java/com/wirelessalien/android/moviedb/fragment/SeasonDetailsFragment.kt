@@ -344,6 +344,7 @@ class SeasonDetailsFragment : Fragment() {
                                 Toast.makeText(requireContext(), R.string.episodes_added, Toast.LENGTH_SHORT).show()
                             }
                             adapter.updateEpisodes(episodes)
+                            adapter.notifyDataSetChanged()
                             true
                         } else {
                             false

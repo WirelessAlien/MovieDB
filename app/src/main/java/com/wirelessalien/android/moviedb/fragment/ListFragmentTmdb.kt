@@ -36,16 +36,17 @@ import com.wirelessalien.android.moviedb.databinding.FragmentMyListsBinding
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import kotlinx.coroutines.launch
 
-class ListFragmentTmdb : BaseFragment() {
+class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedListener {
     private var listAdapter: ListAdapter? = null
     private lateinit var activityBinding: ActivityMainBinding
+    private lateinit var binding: FragmentMyListsBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?): View {
 
-        val binding = FragmentMyListsBinding.inflate(inflater, container, false)
+        binding = FragmentMyListsBinding.inflate(inflater, container, false)
         val view: View = binding.root
 
         activityBinding = (activity as MainActivity).getBinding()
@@ -64,21 +65,11 @@ class ListFragmentTmdb : BaseFragment() {
         binding.recyclerView.adapter = listAdapter
         binding.progressBar.visibility = View.VISIBLE
 
-        val fetcher = FetchList(context, null)
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            val listData = fetcher.fetchLists()
-            requireActivity().runOnUiThread {
-                if (isAdded) {
-                    listAdapter?.updateData(listData)
-                    binding.progressBar.visibility = View.GONE
-                }
-            }
-        }
+        refreshList()
 
         activityBinding.fab.setOnClickListener {
             val listBottomSheetFragment =
-                ListBottomSheetFragment(0, null, context, false)
+                ListBottomSheetFragment(0, null, context, false, this@ListFragmentTmdb)
             listBottomSheetFragment.show(
                 childFragmentManager,
                 listBottomSheetFragment.tag
@@ -92,19 +83,29 @@ class ListFragmentTmdb : BaseFragment() {
         activityBinding.fab.visibility = View.VISIBLE
         activityBinding.fab.setOnClickListener {
             val listBottomSheetFragment =
-                ListBottomSheetFragment(0, null, context, false)
+                ListBottomSheetFragment(0, null, context, false, this@ListFragmentTmdb)
             listBottomSheetFragment.show(
                 childFragmentManager,
                 listBottomSheetFragment.tag
             )
         }
 
+        refreshList()
+    }
+
+    override fun onListCreated() {
+        refreshList()
+    }
+
+    private fun refreshList() {
+        binding.progressBar.visibility = View.VISIBLE
         val fetcher = FetchList(context, null)
         viewLifecycleOwner.lifecycleScope.launch {
             val listData = fetcher.fetchLists()
             requireActivity().runOnUiThread {
                 if (isAdded) {
                     listAdapter?.updateData(listData)
+                    binding.progressBar.visibility = View.GONE
                 }
             }
         }

@@ -52,8 +52,14 @@ class ListBottomSheetFragment(
     private val movieId: Int,
     private val mediaType: String?,
     private val context: Context?,
-    private val fetchList: Boolean
+    private val fetchList: Boolean,
+    private val listener: OnListCreatedListener?
 ) : BottomSheetDialogFragment() {
+
+    interface OnListCreatedListener {
+        fun onListCreated()
+    }
+
     private val listDataAdapter: ListDataAdapter? = null
     private lateinit var binding: ListBottomSheetBinding
     override fun onCreateView(
@@ -87,10 +93,15 @@ class ListBottomSheetFragment(
             val description = binding.listDescription.text.toString()
             val isPublic = binding.publicChip.isChecked // true if public chip is checked, false if private chip is checked
             lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
+                val success = withContext(Dispatchers.IO) {
                     CreateList(listName, description, isPublic, context).createList()
                 }
-                dismiss()
+                if (success) {
+                    listener?.onListCreated()
+                    dismiss()
+                } else {
+                    Toast.makeText(context, R.string.failed_to_create_list, Toast.LENGTH_SHORT).show()
+                }
             }
         }
         if (!fetchList) {
@@ -173,6 +184,7 @@ class ListBottomSheetFragment(
     //fetch list function
     private fun fetchList() {
         val listDatabaseHelper = ListDatabaseHelper(context)
+        listDatabaseHelper.deleteAllData()
         val db = listDatabaseHelper.readableDatabase
         val cursor = db.rawQuery("SELECT * FROM " + ListDatabaseHelper.TABLE_LISTS, null)
         if (cursor.count > 0) {

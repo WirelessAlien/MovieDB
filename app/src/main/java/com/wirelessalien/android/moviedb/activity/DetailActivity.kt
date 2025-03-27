@@ -134,7 +134,7 @@ import kotlin.math.round
  * This class provides all the details about the shows.
  * It also manages personal show data.
  */
-class DetailActivity : BaseActivity() {
+class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedListener {
     private var apiKey: String? = null
     private var tktaccessToken: String? = null
     private var apiReadAccessToken: String? = null
@@ -683,7 +683,7 @@ class DetailActivity : BaseActivity() {
         binding.addToListTmdb.setOnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
             val listBottomSheetFragment =
-                ListBottomSheetFragment(movieId, typeCheck, mActivity, true)
+                ListBottomSheetFragment(movieId, typeCheck, mActivity, true, this)
             listBottomSheetFragment.show(
                 supportFragmentManager,
                 listBottomSheetFragment.tag
@@ -3439,6 +3439,9 @@ class DetailActivity : BaseActivity() {
             e.printStackTrace()
             null
         }
+    }
+
+    override fun onListCreated() {
     }
 
     companion object {

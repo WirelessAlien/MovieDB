@@ -65,6 +65,7 @@ import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogTraktSyncMinimalBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentSavedBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentSavedSetupBinding
 import com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
@@ -240,6 +241,19 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+        val dialogShown = preferences.getBoolean("quick_access_dialog_shown", false)
+        if (!dialogShown) {
+            showQuickAccessBottomSheet()
+        }
+    }
+
+    private fun showQuickAccessBottomSheet() {
+        preferences.edit().putBoolean("quick_access_dialog_shown", true).apply()
+        val binding = FragmentSavedSetupBinding.inflate(LayoutInflater.from(requireContext()))
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(binding.root)
+        dialog.show()
     }
 
     private fun refreshData() {

@@ -44,10 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -70,10 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -96,10 +90,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -122,10 +113,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -169,10 +157,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -195,10 +180,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -221,10 +203,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -247,10 +226,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -273,10 +249,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -299,10 +272,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingVertical="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -324,5 +294,6 @@
         android:id="@+id/display_confirmation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/dont_show_this_dialog_again"/>
+        android:text="@string/dont_show_this_dialog_again"
+        android:layout_marginTop="16dp"/>
 </LinearLayout>

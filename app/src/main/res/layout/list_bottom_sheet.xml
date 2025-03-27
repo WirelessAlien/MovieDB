@@ -26,36 +26,37 @@
     android:layout_height="wrap_content"
     android:padding="16dp">
 
-    <ImageView
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:src="@drawable/ic_tmdb_long"
-        android:layout_gravity="center"/>
-
     <RelativeLayout
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginStart="5dip"
-       android:layout_marginBottom="16dp">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/previousListText"
-            android:layout_width="wrap_content"
+        <ImageView
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:text="@string/previous_lists"
-            android:textSize="18sp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/ic_tmdb_long"
             android:layout_centerVertical="true"
-            android:textStyle="bold" />
+            android:layout_centerHorizontal="true"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/infoBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            style="@style/Widget.Material3.Button.IconButton"
-            app:icon="@drawable/ic_info"/>
-   </RelativeLayout>
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/infoBtn"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_alignParentEnd="true"
+          style="@style/Widget.Material3.Button.IconButton"
+          app:icon="@drawable/ic_info"/>
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/previousListText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/previous_lists"
+        android:textSize="18sp"
+        android:layout_marginStart="5dip"
+        android:layout_marginBottom="16dp"
+        android:layout_centerVertical="true"
+        android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
@@ -119,6 +120,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/public_list"
+            style="@style/Widget.Material3.Chip.Filter"
             android:checked="true"
             android:checkable="true"/>
 

@@ -30,7 +30,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
@@ -47,7 +46,7 @@ class CreateList(
         accessToken = preferences.getString("access_token", "")
     }
 
-    suspend fun createList() {
+    suspend fun createList(): Boolean {
         var success = false
         try {
             val client = OkHttpClient()
@@ -83,10 +82,9 @@ class CreateList(
             context.runOnUiThread {
                 if (finalSuccess) {
                     Toast.makeText(context, R.string.list_created_successfully, Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, R.string.failed_to_create_list, Toast.LENGTH_SHORT).show()
                 }
             }
         }
+        return finalSuccess
     }
 }

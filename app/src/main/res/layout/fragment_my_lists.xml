@@ -32,14 +32,20 @@
         android:layout_height="wrap_content"
         tools:listitem="@layout/list_details_item"/>
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        app:waveAmplitude="10dp"
-        app:wavelength="32dp"
-        app:waveSpeed="0dp"
-        android:layout_centerInParent="true"/>
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerFrameLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:minHeight="100dp"
+        android:visibility="gone"
+        app:shimmer_duration="700">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <include layout="@layout/show_skeleton" />
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
 </RelativeLayout>

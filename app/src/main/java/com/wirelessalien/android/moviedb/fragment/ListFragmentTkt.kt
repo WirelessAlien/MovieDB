@@ -65,7 +65,7 @@ class ListFragmentTkt : BaseFragment() {
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.visibility = View.VISIBLE
         fab.setImageResource(R.drawable.ic_add)
-        adapter = ListAdapterTkt(listData, accessToken!!)
+        adapter = ListAdapterTkt(listData, accessToken?:"")
 
         linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.layoutManager = linearLayoutManager
@@ -86,7 +86,8 @@ class ListFragmentTkt : BaseFragment() {
 
     private fun loadListData() {
         lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
             val newList = withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val cursor = db.query(
@@ -110,7 +111,8 @@ class ListFragmentTkt : BaseFragment() {
             }
             val sortedList = applySorting(newList)
             adapter.updateList(sortedList)
-            binding.progressBar.visibility = View.GONE
+            binding.shimmerFrameLayout1.stopShimmer()
+            binding.shimmerFrameLayout1.visibility = View.GONE
         }
     }
 
