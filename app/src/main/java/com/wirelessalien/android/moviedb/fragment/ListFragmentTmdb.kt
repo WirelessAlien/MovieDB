@@ -63,7 +63,8 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
         }, true)
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = listAdapter
-        binding.progressBar.visibility = View.VISIBLE
+        binding.shimmerFrameLayout1.visibility = View.VISIBLE
+        binding.shimmerFrameLayout1.startShimmer()
 
         refreshList()
 
@@ -98,14 +99,16 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
     }
 
     private fun refreshList() {
-        binding.progressBar.visibility = View.VISIBLE
+        binding.shimmerFrameLayout1.visibility = View.VISIBLE
+        binding.shimmerFrameLayout1.startShimmer()
         val fetcher = FetchList(context, null)
         viewLifecycleOwner.lifecycleScope.launch {
             val listData = fetcher.fetchLists()
             requireActivity().runOnUiThread {
                 if (isAdded) {
                     listAdapter?.updateData(listData)
-                    binding.progressBar.visibility = View.GONE
+                    binding.shimmerFrameLayout1.stopShimmer()
+                    binding.shimmerFrameLayout1.visibility = View.GONE
                 }
             }
         }
