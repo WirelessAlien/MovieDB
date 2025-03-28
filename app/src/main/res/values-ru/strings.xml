@@ -3,7 +3,7 @@
     <string name="between_two_dates">В промежутке между</string>
     <string name="title_persistent_filtering">Постоянный фильтр</string>
     <string name="title_show_representation">Отображение</string>
-    <string name="no_permission_dialog_ok">Хорошо</string>
+    <string name="no_permission_dialog_ok">Ок</string>
     <string name="no_permission_dialog_cancel">Отмена</string>
     <string name="cast_movie_title">Играл в</string>
     <string name="crew_movie_title">Участвовал в создании</string>
