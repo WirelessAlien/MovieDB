@@ -128,6 +128,7 @@
             android:id="@+id/privateChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            style="@style/Widget.Material3.Chip.Filter"
             android:text="@string/private_list"
             android:checkable="true"/>
     </com.google.android.material.chip.ChipGroup>

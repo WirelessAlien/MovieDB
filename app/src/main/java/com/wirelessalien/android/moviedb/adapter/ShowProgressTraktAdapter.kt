@@ -349,7 +349,9 @@ class ShowProgressTraktAdapter(
     }
 
     private fun showInitialEpisode(tvShowId: Int, traktId: Int, seasonNumber: Int, episodeNumber: Int, episodeTraktId: Int, title: String) {
-
+        bottomSheetBinding?.chipEpS?.visibility = View.VISIBLE
+        bottomSheetBinding?.linearLayout?.visibility = View.VISIBLE
+        bottomSheetBinding?.addToWatched?.visibility = View.VISIBLE
         bottomSheetBinding?.chipEpS?.text = "S${seasonNumber}:E${episodeNumber}"
 
         val isWatched = isEpisodeWatched(traktId, seasonNumber, episodeNumber)
@@ -558,6 +560,9 @@ class ShowProgressTraktAdapter(
                                 .load("https://image.tmdb.org/t/p/$imageSize$stillPath")
                                 .into(episodeImageView)
                             episodeImageView.visibility = View.VISIBLE
+                            episodeName.visibility = View.VISIBLE
+                            episodeOverview.visibility = View.VISIBLE
+                            episodeAirDate.visibility = View.VISIBLE
                         } else {
                             episodeImageView.visibility = View.GONE
                             episodeName.visibility = View.GONE

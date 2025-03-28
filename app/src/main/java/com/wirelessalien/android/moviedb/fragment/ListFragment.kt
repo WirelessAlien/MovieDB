@@ -271,7 +271,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         visibility = View.VISIBLE
                     }
                     fetchCalendarData {
-                        showUpcomingContent()
+                        lifecycleScope.launch {
+                            showUpcomingContent()
+                        }
                     }
                 }
             }
@@ -605,7 +607,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             handleChipChange(isChecked, binding.chipAll) {
                 activityBinding.fab.visibility = View.GONE
                 activityBinding.fab2.visibility = View.GONE
-                showUpcomingContent()
+                lifecycleScope.launch {
+                    showUpcomingContent()
+                }
             }
         }
     }
@@ -615,12 +619,14 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             otherChip.isChecked = false
 
             lifecycleScope.launch {
-                mShowArrayList.clear()
-                mShowAdapter.notifyDataSetChanged()
-                binding.shimmerFrameLayout1.apply {
-                    startShimmer()
-                    visibility = View.VISIBLE
+                // Clear existing data
+                withContext(Dispatchers.Main) {
+                    mShowArrayList.clear()
+                    mShowAdapter.notifyDataSetChanged()
+                    binding.shimmerFrameLayout1.startShimmer()
+                    binding.shimmerFrameLayout1.visibility = View.VISIBLE
                 }
+
                 try {
                     dataLoader()
                 } catch (e: Exception) {
@@ -632,91 +638,92 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    private fun showUpcomingContent() {
-        lifecycleScope.launch(Dispatchers.Main) {
-            try {
+    private suspend fun showUpcomingContent() {
+        try {
+            withContext(Dispatchers.Main) {
                 mShowArrayList.clear()
                 mShowAdapter.notifyDataSetChanged()
-                binding.shimmerFrameLayout1.apply {
-                    visibility = View.VISIBLE
-                    startShimmer()
-                }
+                binding.shimmerFrameLayout1.visibility = View.VISIBLE
+                binding.shimmerFrameLayout1.startShimmer()
+            }
 
-                val upcomingContent = withContext(Dispatchers.IO) {
-                    val upcomingShows = ArrayList<JSONObject>()
+            val upcomingContent = withContext(Dispatchers.IO) {
+                val upcomingShows = ArrayList<JSONObject>()
 
-                    // Use try-with-resources for database helpers
-                    EpisodeReminderDatabaseHelper(requireContext()).use { epDbHelper ->
-                        MovieDatabaseHelper(requireContext()).use { movieDbHelper ->
-                            val epDb = epDbHelper.readableDatabase
-                            val movieDb = movieDbHelper.readableDatabase
+                EpisodeReminderDatabaseHelper(requireContext()).use { epDbHelper ->
+                    MovieDatabaseHelper(requireContext()).use { movieDbHelper ->
+                        val epDb = epDbHelper.readableDatabase
+                        val movieDb = movieDbHelper.readableDatabase
 
-                            // Query episode reminders with specific columns needed
-                            val projection = arrayOf(
-                                EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
-                                EpisodeReminderDatabaseHelper.COLUMN_DATE,
-                                EpisodeReminderDatabaseHelper.COL_TYPE,
-                                EpisodeReminderDatabaseHelper.COL_SEASON,
-                                EpisodeReminderDatabaseHelper.COLUMN_NAME,
-                                EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER
-                            )
+                        // Query episode reminders with specific columns needed
+                        val projection = arrayOf(
+                            EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
+                            EpisodeReminderDatabaseHelper.COLUMN_DATE,
+                            EpisodeReminderDatabaseHelper.COL_TYPE,
+                            EpisodeReminderDatabaseHelper.COL_SEASON,
+                            EpisodeReminderDatabaseHelper.COLUMN_NAME,
+                            EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER
+                        )
 
-                            epDb.query(
-                                EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
-                                projection,
-                                null,
-                                null,
-                                null,
-                                null,
-                                "${EpisodeReminderDatabaseHelper.COLUMN_DATE} ASC"
-                            ).use { epCursor ->
-                                while (epCursor.moveToNext()) {
-                                    val movieId = epCursor.getInt(epCursor.getColumnIndexOrThrow(
-                                        EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
+                        epDb.query(
+                            EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+                            projection,
+                            null,
+                            null,
+                            null,
+                            null,
+                            "${EpisodeReminderDatabaseHelper.COLUMN_DATE} ASC"
+                        ).use { epCursor ->
+                            while (epCursor.moveToNext()) {
+                                val movieId = epCursor.getInt(epCursor.getColumnIndexOrThrow(
+                                    EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
 
-                                    // Query movie details with specific columns
-                                    val movieProjection = arrayOf(
-                                        MovieDatabaseHelper.COLUMN_MOVIES_ID,
-                                        MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
-                                        MovieDatabaseHelper.COLUMN_RATING,
-                                        MovieDatabaseHelper.COLUMN_IMAGE,
-                                        MovieDatabaseHelper.COLUMN_ICON,
-                                        MovieDatabaseHelper.COLUMN_TITLE,
-                                        MovieDatabaseHelper.COLUMN_SUMMARY,
-                                        MovieDatabaseHelper.COLUMN_GENRES_IDS,
-                                        MovieDatabaseHelper.COLUMN_MOVIE
-                                    )
+                                // Query movie details with specific columns
+                                val movieProjection = arrayOf(
+                                    MovieDatabaseHelper.COLUMN_MOVIES_ID,
+                                    MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
+                                    MovieDatabaseHelper.COLUMN_RATING,
+                                    MovieDatabaseHelper.COLUMN_IMAGE,
+                                    MovieDatabaseHelper.COLUMN_ICON,
+                                    MovieDatabaseHelper.COLUMN_TITLE,
+                                    MovieDatabaseHelper.COLUMN_SUMMARY,
+                                    MovieDatabaseHelper.COLUMN_GENRES_IDS,
+                                    MovieDatabaseHelper.COLUMN_MOVIE
+                                )
 
-                                    movieDb.query(
-                                        MovieDatabaseHelper.TABLE_MOVIES,
-                                        movieProjection,
-                                        "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
-                                        arrayOf(movieId.toString()),
-                                        null,
-                                        null,
-                                        null
-                                    ).use { movieCursor ->
-                                        if (movieCursor.moveToFirst()) {
-                                            createMovieDetails(movieCursor, epCursor)?.let {
-                                                upcomingShows.add(it)
-                                            }
+                                movieDb.query(
+                                    MovieDatabaseHelper.TABLE_MOVIES,
+                                    movieProjection,
+                                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                                    arrayOf(movieId.toString()),
+                                    null,
+                                    null,
+                                    null
+                                ).use { movieCursor ->
+                                    if (movieCursor.moveToFirst()) {
+                                        createMovieDetails(movieCursor, epCursor)?.let {
+                                            upcomingShows.add(it)
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    upcomingShows
                 }
+                upcomingShows
+            }
+            withContext(Dispatchers.Main) {
                 mShowAdapter.updateData(upcomingContent)
-            } catch (e: Exception) {
-                Log.e("ListFragment", "Error loading upcoming content", e)
+            }
+        } catch (e: Exception) {
+            Log.e("ListFragment", "Error loading upcoming content", e)
+            withContext(Dispatchers.Main) {
                 binding.noUpcomingText.visibility = View.VISIBLE
-            } finally {
-                binding.shimmerFrameLayout1.apply {
-                    stopShimmer()
-                    visibility = View.GONE
-                }
+            }
+        } finally {
+            withContext(Dispatchers.Main) {
+                binding.shimmerFrameLayout1.stopShimmer()
+                binding.shimmerFrameLayout1.visibility = View.GONE
             }
         }
     }

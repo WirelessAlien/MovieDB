@@ -359,6 +359,7 @@ class ShowBaseAdapter(
     private fun showInitialEpisode(tvShowId: Int, seasonNumber: Int, episodeNumber: Int) {
         bottomSheetBinding?.linearLayout?.visibility = View.VISIBLE
         bottomSheetBinding?.addToWatched?.visibility = View.VISIBLE
+        bottomSheetBinding?.chipEpS?.visibility = View.VISIBLE
         bottomSheetBinding?.chipEpS?.text = "S${seasonNumber}:E${episodeNumber}"
 
         val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -483,6 +484,9 @@ class ShowBaseAdapter(
                                 .load("https://image.tmdb.org/t/p/$imageSize$stillPath")
                                 .into(episodeImageView)
                             episodeImageView.visibility = View.VISIBLE
+                            episodeName.visibility = View.VISIBLE
+                            episodeOverview.visibility = View.VISIBLE
+                            episodeAirDate.visibility = View.VISIBLE
                         } else {
                             episodeImageView.visibility = View.GONE
                             episodeName.visibility = View.GONE
