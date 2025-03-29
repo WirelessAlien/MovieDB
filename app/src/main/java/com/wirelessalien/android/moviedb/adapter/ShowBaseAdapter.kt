@@ -450,6 +450,10 @@ class ShowBaseAdapter(
                     val overview = jsonResponse.optString("overview", "No overview available.")
                     val stillPath = jsonResponse.optString("still_path")
 
+                    val dateToFormat = airDate.ifEmpty {
+                        jsonResponse.optString("air_date", "")
+                    }
+
                     val formats = listOf(
                         "yyyy-MM-dd",
                         "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
@@ -460,14 +464,14 @@ class ShowBaseAdapter(
                     for (format in formats) {
                         try {
                             val formatter = SimpleDateFormat(format, Locale.getDefault())
-                            parsedDate = formatter.parse(airDate)
+                            parsedDate = formatter.parse(dateToFormat)
                             if (parsedDate != null) break
                         } catch (e: ParseException) {
                             continue
                         }
                     }
 
-                    var formattedAirDate : String = airDate
+                    var formattedAirDate : String = dateToFormat
                     if (parsedDate != null) {
                         val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                         formattedAirDate = localFormat.format(parsedDate)

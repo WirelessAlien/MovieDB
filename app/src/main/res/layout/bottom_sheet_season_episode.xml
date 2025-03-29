@@ -81,17 +81,20 @@
                <TextView
                    android:id="@+id/episodeName"
                    android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"/>
+                   android:layout_height="wrap_content"
+                   android:textStyle="bold"/>
 
                <TextView
                    android:id="@+id/episodeOverview"
                    android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"/>
-
+                   android:layout_height="wrap_content"
+                   android:layout_marginTop="5dp"/>
                <TextView
                    android:id="@+id/episodeAirDate"
                    android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"/>
+                   android:layout_height="wrap_content"
+                   android:layout_marginTop="5dp"
+                   android:text="13-Jul-2034"/>
 
              <com.google.android.material.chip.Chip
                  android:id="@+id/chipEpS"
