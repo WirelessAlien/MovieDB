@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-class ListFragmentTkt : BaseFragment() {
+class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreatedListener {
 
     private lateinit var adapter: ListAdapterTkt
     private val listData = ArrayList<JSONObject>()
@@ -75,7 +75,7 @@ class ListFragmentTkt : BaseFragment() {
         loadListData()
         fab.setOnClickListener {
             val listBottomSheetFragment =
-                ListBottomSheetFragmentTkt(0, context, false,  "", JSONObject(), JSONObject())
+                ListBottomSheetFragmentTkt(0, context, false,  "", JSONObject(), JSONObject(), this)
             listBottomSheetFragment.show(
                 childFragmentManager,
                 listBottomSheetFragment.tag
@@ -133,5 +133,9 @@ class ListFragmentTkt : BaseFragment() {
         }
 
         return list
+    }
+
+    override fun onListCreated() {
+        loadListData()
     }
 }

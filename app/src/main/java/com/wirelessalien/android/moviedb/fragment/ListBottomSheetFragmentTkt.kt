@@ -57,7 +57,8 @@ class ListBottomSheetFragmentTkt(
     private val fetchList: Boolean,
     private val type: String,
     private val mediaObject: JSONObject,
-    private val movieDataObject: JSONObject
+    private val movieDataObject: JSONObject,
+    private val listCreatedListener: OnListCreatedListener?
 ) : BottomSheetDialogFragment() {
     private var listObject: JSONObject? = null
     private var tktaccessToken: String? = null
@@ -160,7 +161,6 @@ class ListBottomSheetFragmentTkt(
             override fun onResponse(call: Call, response: Response) {
                 val responseBodyString = response.body?.string()
 
-                Log.d("gyjhguyjhi", responseBodyString?:"")
                 Handler(Looper.getMainLooper()).post {
                     if (response.isSuccessful) {
                         if (!responseBodyString.isNullOrEmpty()) {
@@ -170,6 +170,8 @@ class ListBottomSheetFragmentTkt(
                                     saveListToDatabase(responseObject)
                                     withContext(Dispatchers.Main) {
                                         Toast.makeText(context, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                                        listCreatedListener?.onListCreated()
+                                        dismiss()
                                     }
                                 }
                             } catch (e: Exception) {
@@ -206,5 +208,9 @@ class ListBottomSheetFragmentTkt(
             put(TraktDatabaseHelper.COL_SLUG, responseObject.getJSONObject("ids").getString("slug"))
         }
         db.insert(TraktDatabaseHelper.USER_LISTS, null, values)
+    }
+
+    interface OnListCreatedListener {
+        fun onListCreated()
     }
 }

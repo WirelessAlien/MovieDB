@@ -631,7 +631,7 @@ class EpisodeAdapter(
                     null
                 }
                 mediaObject = episodeObject
-                val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(tvShowId, context, true, "episode", mediaObject?: JSONObject(), tmdbObject)
+                val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(tvShowId, context, true, "episode", mediaObject?: JSONObject(), tmdbObject, null)
                 listBottomSheetFragmentTkt.show((context as FragmentActivity).supportFragmentManager, listBottomSheetFragmentTkt.tag)
                 holder.binding.lProgressBar.visibility = View.GONE
             }

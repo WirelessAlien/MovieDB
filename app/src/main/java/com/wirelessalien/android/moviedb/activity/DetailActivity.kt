@@ -1066,7 +1066,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     put("shows", JSONArray().apply { put(traktMediaObject) })
                 }
             }
-            val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(movieId, mActivity, true, typeCheck, jsonBody, movieDataObject)
+            val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(movieId, mActivity, true, typeCheck, jsonBody, movieDataObject, null)
             listBottomSheetFragmentTkt.show(supportFragmentManager, listBottomSheetFragmentTkt.tag)
         }
 

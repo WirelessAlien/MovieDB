@@ -187,65 +187,61 @@ class ListBottomSheetFragment(
         listDatabaseHelper.deleteAllData()
         val db = listDatabaseHelper.readableDatabase
         val cursor = db.rawQuery("SELECT * FROM " + ListDatabaseHelper.TABLE_LISTS, null)
-        if (cursor.count > 0) {
-            Handler(Looper.getMainLooper())
-            val progressDialog = MaterialAlertDialogBuilder(
-                requireContext()
-            )
-                .setView(R.layout.dialog_progress)
-                .setCancelable(false)
-                .create()
-            progressDialog.show()
-            lifecycleScope.launch {
-                val fetchList =
-                    FetchList(context, object : FetchList.OnListFetchListener {
-                        override fun onListFetch(listData: List<ListData>?) {
-                            if (listData != null) {
-                                for (data in listData) {
-                                    listDatabaseHelper.addList(data.id, data.name)
-                                    lifecycleScope.launch {
-                                        val getListDetails = GetAllListData(
-                                            data.id,
-                                            context,
-                                            object :
-                                                GetAllListData.OnFetchListDetailsListener {
-                                                override fun onFetchListDetails(listDetailsData: ArrayList<JSONObject>?) {
-                                                    if (listDetailsData != null) {
-                                                        for (item in listDetailsData) {
-                                                            try {
-                                                                val movieId = item.getInt("id")
-                                                                val mediaType =
-                                                                    item.getString("media_type")
-                                                                listDatabaseHelper.addListDetails(
-                                                                    data.id,
-                                                                    data.name,
-                                                                    movieId,
-                                                                    mediaType
-                                                                )
-                                                            } catch (e: JSONException) {
-                                                                e.printStackTrace()
-                                                                progressDialog.dismiss()
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    R.string.error_occurred_in_list_data,
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            }
+        Handler(Looper.getMainLooper())
+        val progressDialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(R.layout.dialog_progress)
+            .setCancelable(false)
+            .create()
+        progressDialog.show()
+        lifecycleScope.launch {
+            val fetchList =
+                FetchList(context, object : FetchList.OnListFetchListener {
+                    override fun onListFetch(listData: List<ListData>?) {
+                        if (listData != null) {
+                            for (data in listData) {
+                                listDatabaseHelper.addList(data.id, data.name)
+                                lifecycleScope.launch {
+                                    val getListDetails = GetAllListData(
+                                        data.id,
+                                        context,
+                                        object :
+                                            GetAllListData.OnFetchListDetailsListener {
+                                            override fun onFetchListDetails(listDetailsData: ArrayList<JSONObject>?) {
+                                                if (listDetailsData != null) {
+                                                    for (item in listDetailsData) {
+                                                        try {
+                                                            val movieId = item.getInt("id")
+                                                            val mediaType =
+                                                                item.getString("media_type")
+                                                            listDatabaseHelper.addListDetails(
+                                                                data.id,
+                                                                data.name,
+                                                                movieId,
+                                                                mediaType
+                                                            )
+                                                        } catch (e: JSONException) {
+                                                            e.printStackTrace()
+                                                            progressDialog.dismiss()
+                                                            Toast.makeText(
+                                                                context,
+                                                                R.string.error_occurred_in_list_data,
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
                                                         }
                                                     }
                                                 }
                                             }
-                                        )
-                                        getListDetails.fetchAllListData()
-                                    }
+                                        }
+                                    )
+                                    getListDetails.fetchAllListData()
                                 }
                             }
-                            progressDialog.dismiss()
                         }
-                    })
-                fetchList.fetchLists()
-                cursor.close()
-            }
+                        progressDialog.dismiss()
+                    }
+                })
+            fetchList.fetchLists()
+            cursor.close()
         }
     }
 }

@@ -30,11 +30,9 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
