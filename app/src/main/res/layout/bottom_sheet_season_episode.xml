@@ -18,27 +18,15 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <com.wirelessalien.android.moviedb.view.WideRatioImageView
-                android:id="@+id/imageView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:foreground="@drawable/ep_image_bg"
-                android:scaleType="fitXY" />
-        </com.google.android.material.card.MaterialCardView>
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -68,59 +56,73 @@
                     app:icon="@drawable/ic_visibility"
                     app:cornerRadius="10dp"/>
             </RelativeLayout>
-
-           <LinearLayout
-               android:id="@+id/linearLayout"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:orientation="vertical"
-               android:layout_marginStart="16dp"
-               android:layout_marginEnd="16dp"
-               android:layout_gravity="bottom">
-
-               <TextView
-                   android:id="@+id/episodeName"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:textStyle="bold"/>
-
-               <TextView
-                   android:id="@+id/episodeOverview"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:layout_marginTop="5dp"/>
-               <TextView
-                   android:id="@+id/episodeAirDate"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:layout_marginTop="5dp"
-                   android:text="13-Jul-2034"/>
-
-             <com.google.android.material.chip.Chip
-                 android:id="@+id/chipEpS"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:checkable="false"
-                 style="@style/Widget.Material3.Chip.Suggestion.Elevated"/>
-           </LinearLayout>
         </LinearLayout>
-   </FrameLayout>
 
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chipGroupSeasons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:chipSpacing="10dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        app:singleSelection="true"
-        android:orientation="horizontal" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewEpisodes"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="16dp"/>
-</LinearLayout>
+            <com.wirelessalien.android.moviedb.view.WideRatioImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scaleType="fitXY" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipEpS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="false"
+                android:layout_marginStart="16dp"
+                android:layout_gravity="start|bottom"
+                style="@style/Widget.Material3.Chip.Suggestion.Elevated"/>
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_gravity="bottom">
+
+            <TextView
+                android:id="@+id/episodeName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/episodeOverview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"/>
+            <TextView
+                android:id="@+id/episodeAirDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="13-Jul-2034"/>
+        </LinearLayout>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupSeasons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:chipSpacing="10dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            app:singleSelection="true"
+            android:orientation="horizontal" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewEpisodes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

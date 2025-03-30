@@ -20,9 +20,16 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/action_auto_sync"
-        android:orderInCategory="3"
+        android:orderInCategory="4"
         android:title="@string/auto_sync"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_fetch_tmdb_data"
+        android:orderInCategory="3"
+        android:title="@string/get_tmdb_progress_data"
         app:showAsAction="never" />
 </menu>

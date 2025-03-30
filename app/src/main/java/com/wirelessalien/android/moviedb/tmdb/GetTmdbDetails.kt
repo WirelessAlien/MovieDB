@@ -22,13 +22,11 @@ package com.wirelessalien.android.moviedb.tmdb
 
 import android.content.ContentValues
 import android.content.Context
+import android.util.Log
+import com.wirelessalien.android.moviedb.helper.RateLimiter
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
-import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper.Companion.SEASONS_EPISODE_SHOW_TMDB
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -109,74 +107,85 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
     }
 
     private fun saveTmdbDetailsToDb(details: JSONObject) {
+        if (!details.has("id")) {
+            Log.i("GetTmdbDetailsSaved", "Skipping save: No 'id' field found in JSON object.")
+            return
+        }
+
         val dbHelper = TmdbDetailsDatabaseHelper(context)
         val db = dbHelper.writableDatabase
 
-        val type = if (details.has("title")) "movie" else if (details.has("name")) "show" else return
-
-        val contentValues = ContentValues().apply {
-            put(TmdbDetailsDatabaseHelper.COL_TMDB_ID, details.getInt("id"))
-            put(TmdbDetailsDatabaseHelper.COL_NAME, if (details.has("title")) details.getString("title") else details.getString("name"))
-            put(TmdbDetailsDatabaseHelper.COL_BACKDROP_PATH, details.getString("backdrop_path"))
-            put(TmdbDetailsDatabaseHelper.COL_POSTER_PATH, details.getString("poster_path"))
-            put(TmdbDetailsDatabaseHelper.COL_SUMMARY, details.getString("overview"))
-            put(TmdbDetailsDatabaseHelper.COL_VOTE_AVERAGE, details.getDouble("vote_average"))
-            put(TmdbDetailsDatabaseHelper.COL_RELEASE_DATE,
-                if (details.has("release_date")) details.getString("release_date")
-                else details.getString("first_air_date"))
-            val genreIds = details.getJSONArray("genres").let { genresArray ->
-                val ids = (0 until genresArray.length()).joinToString(",") { i ->
-                    genresArray.getJSONObject(i).getInt("id").toString()
-                }
-                "[$ids]"
-            }
-            put(TmdbDetailsDatabaseHelper.COL_GENRE_IDS, genreIds)
-            put(TmdbDetailsDatabaseHelper.COL_TYPE, type)
+        val type = if (details.has("title") && !details.optString("title").isNullOrEmpty()) "movie"
+        else if (details.has("name") && !details.optString("name").isNullOrEmpty()) "show"
+        else {
+            Log.i("GetTmdbDetailsSaved", "Skipping save: No 'title' or 'name' field found in JSON object.")
+            db.close()
+            return
         }
 
-        if (type == "show" && details.has("seasons")) {
-            val seasons = details.getJSONArray("seasons")
-            val seasonsEpisodes = StringBuilder()
+        try {
+            val contentValues = ContentValues().apply {
+                put(TmdbDetailsDatabaseHelper.COL_TMDB_ID, details.getInt("id"))
+                put(TmdbDetailsDatabaseHelper.COL_NAME, if (type == "movie") details.optString("title", "") else details.optString("name", ""))
+                put(TmdbDetailsDatabaseHelper.COL_BACKDROP_PATH, details.optString("backdrop_path", ""))
+                put(TmdbDetailsDatabaseHelper.COL_POSTER_PATH, details.optString("poster_path", ""))
+                put(TmdbDetailsDatabaseHelper.COL_SUMMARY, details.optString("overview", ""))
+                put(TmdbDetailsDatabaseHelper.COL_VOTE_AVERAGE, details.optDouble("vote_average", 0.0))
+                put(
+                    TmdbDetailsDatabaseHelper.COL_RELEASE_DATE,
+                    if (type == "movie") details.optString("release_date", "")
+                    else details.optString("first_air_date", "")) // Use first_air_date for shows
 
-            for (i in 0 until seasons.length()) {
-                val season = seasons.getJSONObject(i)
-                val seasonNumber = season.getInt("season_number")
+                val genresArray = details.optJSONArray("genres")
+                if (genresArray != null) {
+                    val ids = (0 until genresArray.length()).mapNotNull { i ->
+                        genresArray.optJSONObject(i)?.optInt("id")?.toString()
+                    }.joinToString(",")
+                    put(TmdbDetailsDatabaseHelper.COL_GENRE_IDS, "[$ids]")
+                } else {
+                    put(TmdbDetailsDatabaseHelper.COL_GENRE_IDS, "[]")
+                }
 
-                // Skip specials (season_number == 0)
-                if (seasonNumber == 0) continue
+                put(TmdbDetailsDatabaseHelper.COL_TYPE, type)
 
-                val episodeCount = season.getInt("episode_count")
-                val episodesList = (1..episodeCount).toList()
+                // Process seasons only if it's a show and seasons data is available
+                if (type == "show" && details.has("seasons")) {
+                    val seasons = details.optJSONArray("seasons")
+                    if (seasons != null) {
+                        val seasonsEpisodes = StringBuilder()
+                        var firstSeason = true
 
-                seasonsEpisodes.append("$seasonNumber{${episodesList.joinToString(",")}}")
-                if (i < seasons.length() - 1) {
-                    seasonsEpisodes.append(",")
+                        for (i in 0 until seasons.length()) {
+                            val season = seasons.optJSONObject(i) ?: continue // Skip if null
+                            val seasonNumber = season.optInt("season_number", -1)
+                            val episodeCount = season.optInt("episode_count", 0)
+
+                            // Skip specials (season_number == 0) or invalid seasons/episodes
+                            if (seasonNumber <= 0 || episodeCount <= 0) continue
+
+                            val episodesList = (1..episodeCount).toList()
+
+                            if (!firstSeason) {
+                                seasonsEpisodes.append(",")
+                            }
+                            seasonsEpisodes.append("$seasonNumber{${episodesList.joinToString(",")}}")
+                            firstSeason = false
+                        }
+                        put(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB, seasonsEpisodes.toString())
+                    }
                 }
             }
 
-            contentValues.put(SEASONS_EPISODE_SHOW_TMDB, seasonsEpisodes.toString())
-        }
-
-        db.insert(TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS, null, contentValues)
-        db.close()
-    }
-}
-
-class RateLimiter(private val permits: Int, private val period: Long, private val unit: TimeUnit) {
-    private val mutex = Mutex()
-    private val timestamps = ArrayDeque<Long>()
-
-    suspend fun acquire() {
-        mutex.withLock {
-            val now = System.currentTimeMillis()
-            while (timestamps.size >= permits && now - timestamps.first() < unit.toMillis(period)) {
-                val timeToWait = unit.toMillis(period) - (now - timestamps.first())
-                delay(timeToWait)
-            }
-            if (timestamps.size >= permits) {
-                timestamps.removeFirst()
-            }
-            timestamps.addLast(System.currentTimeMillis())
+            db.insertWithOnConflict(
+                TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                null,
+                contentValues,
+                android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
+            )
+        } catch (e: Exception) {
+            Log.e("GetTmdbDetailsSaved", "Error saving TMDB details to database: ${e.message}")
+        } finally {
+            db.close()
         }
     }
 }

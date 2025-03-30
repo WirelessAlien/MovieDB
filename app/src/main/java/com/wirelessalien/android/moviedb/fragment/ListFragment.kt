@@ -71,10 +71,12 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
+import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
 import com.wirelessalien.android.moviedb.work.TktAutoSyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -102,6 +104,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
     private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
     private var mScrollPosition: Int? = null
+    private var tmdbApiKey: String? = null
     private var accessToken: String? = null
     private var clientId: String? = null
     private lateinit var filterActivityResultLauncher: ActivityResultLauncher<Intent>
@@ -117,6 +120,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         mDatabaseHelper = MovieDatabaseHelper(requireContext().applicationContext)
+        tmdbApiKey = ConfigHelper.getConfigValue(requireContext(), "api_key")
         epDbHelper = EpisodeReminderDatabaseHelper(requireContext().applicationContext)
         accessToken = preferences.getString("trakt_access_token", null)
         clientId = ConfigHelper.getConfigValue(requireContext(), "client_id")
@@ -237,6 +241,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         showTraktSyncDialog()
                         true
                     }
+                    R.id.action_fetch_tmdb_data -> {
+                        showTmdbDetailsDialog()
+                        true
+                    }
                     else -> false
                 }
             }
@@ -245,6 +253,28 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val dialogShown = preferences.getBoolean("quick_access_dialog_shown", false)
         if (!dialogShown) {
             showQuickAccessBottomSheet()
+        }
+    }
+
+    private fun showTmdbDetailsDialog() {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
+        var job: Job? = null
+
+        val tmdbDialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.fetching_tmdb_data))
+            .setView(dialogView)
+            .setCancelable(false)
+            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                job?.cancel()
+                dialog.dismiss()
+            }
+            .show()
+
+        job = lifecycleScope.launch {
+            val getTmdbDetails = GetTmdbDetails(requireContext(), tmdbApiKey ?: "")
+            getTmdbDetails.fetchAndSaveTmdbDetails()
+            tmdbDialog.dismiss()
+            updateShowViewAdapter()
         }
     }
 

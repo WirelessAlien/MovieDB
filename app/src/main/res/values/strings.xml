@@ -150,6 +150,7 @@
     <string name="when_watching_a_show">When Watching a Show:</string>
     <string name="quick_access_desc2">Long click the \'Show\' to instantly jump to the next episode you need to watch. This is the fastest way to continue watching your favorite series.</string>
     <string name="tap_anywhere_outside_this_sheet_to_dismiss">Tap anywhere outside this sheet to dismiss.</string>
+    <string name="get_tmdb_progress_data">Get Episode Data</string>
 
     <string-array name="media_types">
         <item>digital</item>
