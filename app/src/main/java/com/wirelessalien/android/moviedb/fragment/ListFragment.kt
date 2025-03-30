@@ -71,7 +71,7 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
-import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
+import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetailsSaved
 import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
 import com.wirelessalien.android.moviedb.work.TktAutoSyncWorker
 import kotlinx.coroutines.CoroutineScope
@@ -261,7 +261,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         var job: Job? = null
 
         val tmdbDialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.fetching_tmdb_data))
+            .setTitle(getString(R.string.fetching_episode_data))
             .setView(dialogView)
             .setCancelable(false)
             .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
@@ -271,7 +271,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             .show()
 
         job = lifecycleScope.launch {
-            val getTmdbDetails = GetTmdbDetails(requireContext(), tmdbApiKey ?: "")
+            val getTmdbDetails = GetTmdbDetailsSaved(requireContext(), tmdbApiKey ?: "")
             getTmdbDetails.fetchAndSaveTmdbDetails()
             tmdbDialog.dismiss()
             updateShowViewAdapter()

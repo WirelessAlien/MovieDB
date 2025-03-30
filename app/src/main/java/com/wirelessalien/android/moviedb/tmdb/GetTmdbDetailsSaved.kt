@@ -56,28 +56,28 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                 val tmdbId = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
                 val movieIndicator = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE))
 
-                val type = if (movieIndicator == 1) "movie" else "show"
+                if (movieIndicator != 1) {
+                    val tmdbCursor = tmdbDb.query(
+                        TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                        arrayOf(TmdbDetailsDatabaseHelper.COL_ID),
+                        "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+                        arrayOf(tmdbId.toString()),
+                        null, null, null
+                    )
 
-                val tmdbCursor = tmdbDb.query(
-                    TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
-                    arrayOf(TmdbDetailsDatabaseHelper.COL_ID),
-                    "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
-                    arrayOf(tmdbId.toString()),
-                    null, null, null
-                )
+                    val exists = tmdbCursor.moveToFirst()
+                    tmdbCursor.close()
 
-                val exists = tmdbCursor.moveToFirst()
-                tmdbCursor.close()
-
-                if (!exists && tmdbId > 0) {
-                    rateLimiter.acquire()
-                    try {
-                        // Fetch details using the determined type
-                        val tmdbDetails = fetchTmdbDetails(tmdbId, type)
-                        // Save the fetched details
-                        saveTmdbDetailsToDb(tmdbDetails)
-                    } catch (e: Exception) {
-                        Log.e("GetTmdbDetailsSaved", "Error fetching/saving TMDB details for ID $tmdbId: ${e.message}")
+                    if (!exists && tmdbId > 0) {
+                        rateLimiter.acquire()
+                        try {
+                            val tmdbDetails = fetchTmdbShowDetails(tmdbId)
+                            saveTmdbDetailsToDb(tmdbDetails)
+                        } catch (e: Exception) {
+                            Log.e("GetTmdbDetailsSaved", "Error fetching/saving TMDB show details for ID $tmdbId: ${e.message}", e)
+                        }
+                    } else if (exists) {
+                        Log.v("GetTmdbDetailsSaved", "TMDB details already exist for show ID $tmdbId, skipping fetch.")
                     }
                 }
             }
@@ -88,26 +88,25 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
         }
     }
 
-    private suspend fun fetchTmdbDetails(tmdbId: Int, type: String): JSONObject {
+    private suspend fun fetchTmdbShowDetails(tmdbId: Int): JSONObject {
         return withContext(Dispatchers.IO) {
-            val url = when (type) {
-                "movie" -> "https://api.themoviedb.org/3/movie/$tmdbId?api_key=$tmdbApiKey"
-                "show" -> "https://api.themoviedb.org/3/tv/$tmdbId?api_key=$tmdbApiKey"
-                else -> throw IllegalArgumentException("Unknown type: $type. Expected 'movie' or 'show'.")
-            }
-
+            val url = "https://api.themoviedb.org/3/tv/$tmdbId?api_key=$tmdbApiKey"
             val request = Request.Builder().url(url).build()
-            var responseString: String? = null
+            val responseString: String?
+
             try {
                 val response = client.newCall(request).execute()
-                if (!response.isSuccessful) {
-                    throw Exception("TMDB API request failed for $url with code ${response.code}: ${response.message}")
-                }
                 responseString = response.body?.string()
-                JSONObject(responseString ?: "{}")
+
+                if (!response.isSuccessful) {
+                    throw Exception("TMDB API request failed for TV $tmdbId with code ${response.code}: ${response.message}. URL: $url")
+                }
+                if (responseString.isNullOrBlank()) {
+                    throw Exception("TMDB API returned empty body for TV $tmdbId. URL: $url")
+                }
+                JSONObject(responseString)
             } catch (e: Exception) {
-                Log.e("GetTmdbDetailsSaved", "Error fetching TMDB details for ID $tmdbId: ${e.message}")
-                Log.e("GetTmdbDetailsSaved", "Response body: $responseString")
+                Log.e("GetTmdbDetailsSaved", "Error fetching TMDB TV details for ID $tmdbId from URL $url: ${e.message}")
                 throw e
             }
         }
@@ -115,33 +114,29 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
 
     private fun saveTmdbDetailsToDb(details: JSONObject) {
         if (!details.has("id")) {
-           Log.i("GetTmdbDetailsSaved", "Skipping save: No 'id' field found in JSON object.")
+            Log.w("GetTmdbDetailsSaved", "Skipping save: No 'id' field found in JSON object.")
             return
         }
+        if (!details.has("name") || details.optString("name").isNullOrEmpty()) {
+            Log.w("GetTmdbDetailsSaved", "Skipping save: No 'name' field found in JSON object for ID ${details.optInt("id", -1)}.")
+            return
+        }
+
 
         val dbHelper = TmdbDetailsDatabaseHelper(context)
         val db = dbHelper.writableDatabase
 
-        val type = if (details.has("title") && !details.optString("title").isNullOrEmpty()) "movie"
-        else if (details.has("name") && !details.optString("name").isNullOrEmpty()) "show"
-        else {
-            Log.i("GetTmdbDetailsSaved", "Skipping save: No 'title' or 'name' field found in JSON object.")
-            db.close()
-            return
-        }
-
         try {
+            val tmdbId = details.getInt("id")
+
             val contentValues = ContentValues().apply {
-                put(TmdbDetailsDatabaseHelper.COL_TMDB_ID, details.getInt("id"))
-                put(TmdbDetailsDatabaseHelper.COL_NAME, if (type == "movie") details.optString("title", "") else details.optString("name", ""))
+                put(TmdbDetailsDatabaseHelper.COL_TMDB_ID, tmdbId)
+                put(TmdbDetailsDatabaseHelper.COL_NAME, details.optString("name", ""))
                 put(TmdbDetailsDatabaseHelper.COL_BACKDROP_PATH, details.optString("backdrop_path", ""))
                 put(TmdbDetailsDatabaseHelper.COL_POSTER_PATH, details.optString("poster_path", ""))
                 put(TmdbDetailsDatabaseHelper.COL_SUMMARY, details.optString("overview", ""))
                 put(TmdbDetailsDatabaseHelper.COL_VOTE_AVERAGE, details.optDouble("vote_average", 0.0))
-                put(
-                    TmdbDetailsDatabaseHelper.COL_RELEASE_DATE,
-                    if (type == "movie") details.optString("release_date", "")
-                    else details.optString("first_air_date", "")) // Use first_air_date for shows
+                put(TmdbDetailsDatabaseHelper.COL_RELEASE_DATE, details.optString("first_air_date", ""))
 
                 val genresArray = details.optJSONArray("genres")
                 if (genresArray != null) {
@@ -153,10 +148,9 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                     put(TmdbDetailsDatabaseHelper.COL_GENRE_IDS, "[]")
                 }
 
-                put(TmdbDetailsDatabaseHelper.COL_TYPE, type)
+                put(TmdbDetailsDatabaseHelper.COL_TYPE, "show")
 
-                // Process seasons only if it's a show and seasons data is available
-                if (type == "show" && details.has("seasons")) {
+                if (details.has("seasons")) {
                     val seasons = details.optJSONArray("seasons")
                     if (seasons != null) {
                         val seasonsEpisodes = StringBuilder()
@@ -179,18 +173,30 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                             firstSeason = false
                         }
                         put(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB, seasonsEpisodes.toString())
+                    } else {
+                        Log.w("GetTmdbDetailsSaved", "Seasons array is null for show $tmdbId.")
+                        put(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB, "")
                     }
+                } else {
+                    Log.w("GetTmdbDetailsSaved", "No 'seasons' key found for show $tmdbId.")
+                    put(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB, "")
                 }
             }
 
-            db.insertWithOnConflict(
+            val result = db.insertWithOnConflict(
                 TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
                 null,
                 contentValues,
                 android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
             )
+            if (result == -1L) {
+                Log.e("GetTmdbDetailsSaved", "Failed to insert/replace details for show TMDB ID: $tmdbId")
+            } else {
+                Log.v("GetTmdbDetailsSaved", "Saved TMDB show details to database for ID $tmdbId.")
+            }
+
         } catch (e: Exception) {
-            Log.e("GetTmdbDetailsSaved", "Error saving TMDB details to database: ${e.message}")
+            Log.e("GetTmdbDetailsSaved", "Error saving TMDB show details to database for ID ${details.optInt("id", -1)}: ${e.message}", e)
         } finally {
             db.close()
         }
