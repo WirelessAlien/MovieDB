@@ -152,6 +152,9 @@
     <string name="tap_anywhere_outside_this_sheet_to_dismiss">Tap anywhere outside this sheet to dismiss.</string>
     <string name="get_tmdb_progress_data">Get Episode Data</string>
     <string name="fetching_episode_data">Fetching episode data...</string>
+    <string name="adding_show">Adding %s…</string>
+    <string name="shows_processed">shows processed</string>
+    <string name="please_wait_getting_lists_data">Please Wait...Getting Lists Data...</string>
 
     <string-array name="media_types">
         <item>digital</item>

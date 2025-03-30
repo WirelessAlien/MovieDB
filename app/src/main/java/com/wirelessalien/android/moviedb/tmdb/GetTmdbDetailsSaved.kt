@@ -23,6 +23,7 @@ package com.wirelessalien.android.moviedb.tmdb
 import android.content.ContentValues
 import android.content.Context
 import android.util.Log
+import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.RateLimiter
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
@@ -33,7 +34,10 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: String) {
+class GetTmdbDetailsSaved(
+    private val context: Context,
+    private val tmdbApiKey: String,
+    private val onProgressUpdate: (String) -> Unit) {
 
     private val client = OkHttpClient()
     private val rateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)
@@ -52,9 +56,13 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                 null, null, null, null, null
             )
 
+            val totalItems = cursor.count
+            var processedItems = 0
+
             while (cursor.moveToNext()) {
                 val tmdbId = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
                 val movieIndicator = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE))
+                val title = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
 
                 if (movieIndicator != 1) {
                     val tmdbCursor = tmdbDb.query(
@@ -69,6 +77,8 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                     tmdbCursor.close()
 
                     if (!exists && tmdbId > 0) {
+                        onProgressUpdate(context.getString(R.string.adding_show, title))
+
                         rateLimiter.acquire()
                         try {
                             val tmdbDetails = fetchTmdbShowDetails(tmdbId)
@@ -76,13 +86,13 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                         } catch (e: Exception) {
                             Log.e("GetTmdbDetailsSaved", "Error fetching/saving TMDB show details for ID $tmdbId: ${e.message}", e)
                         }
-                    } else if (exists) {
-                        Log.v("GetTmdbDetailsSaved", "TMDB details already exist for show ID $tmdbId, skipping fetch.")
                     }
                 }
+
+                processedItems++
+                onProgressUpdate("$processedItems/$totalItems ${context.getString(R.string.shows_processed)}")
             }
             cursor.close()
-
             movieDb.close()
             tmdbDb.close()
         }
@@ -183,17 +193,12 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                 }
             }
 
-            val result = db.insertWithOnConflict(
+            db.insertWithOnConflict(
                 TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
                 null,
                 contentValues,
                 android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
             )
-            if (result == -1L) {
-                Log.e("GetTmdbDetailsSaved", "Failed to insert/replace details for show TMDB ID: $tmdbId")
-            } else {
-                Log.v("GetTmdbDetailsSaved", "Saved TMDB show details to database for ID $tmdbId.")
-            }
 
         } catch (e: Exception) {
             Log.e("GetTmdbDetailsSaved", "Error saving TMDB show details to database for ID ${details.optInt("id", -1)}: ${e.message}", e)

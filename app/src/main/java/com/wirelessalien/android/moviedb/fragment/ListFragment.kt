@@ -39,6 +39,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
@@ -54,6 +55,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
@@ -74,6 +76,7 @@ import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetailsSaved
 import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
 import com.wirelessalien.android.moviedb.work.TktAutoSyncWorker
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -258,6 +261,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     private fun showTmdbDetailsDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
+        val progressText = dialogView.findViewById<TextView>(R.id.progressText)
+        val progressIndicator = dialogView.findViewById<LinearProgressIndicator>(R.id.progressIndicator)
         var job: Job? = null
 
         val tmdbDialog = MaterialAlertDialogBuilder(requireContext())
@@ -271,10 +276,26 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             .show()
 
         job = lifecycleScope.launch {
-            val getTmdbDetails = GetTmdbDetailsSaved(requireContext(), tmdbApiKey ?: "")
-            getTmdbDetails.fetchAndSaveTmdbDetails()
-            tmdbDialog.dismiss()
-            updateShowViewAdapter()
+            val getTmdbDetails = GetTmdbDetailsSaved(
+                requireContext(),
+                tmdbApiKey ?: "",
+                onProgressUpdate = { progress ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        progressText.text = progress
+                        progressIndicator.progress = progress.split("/")[0].toInt()
+                    }
+                }
+            )
+
+            try {
+                getTmdbDetails.fetchAndSaveTmdbDetails()
+                tmdbDialog.dismiss()
+                updateShowViewAdapter()
+            } catch (e: CancellationException) {
+                tmdbDialog.dismiss()
+            } catch (e: Exception) {
+                tmdbDialog.dismiss()
+            }
         }
     }
 

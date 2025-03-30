@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_gravity="center"
-        android:text="Please Wait...Getting Lists Data..."
+        android:text="@string/please_wait_getting_lists_data"
         android:textSize="16sp" />
 
 </LinearLayout>
