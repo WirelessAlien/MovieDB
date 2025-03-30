@@ -20,9 +20,7 @@
 
 package com.wirelessalien.android.moviedb.fragment
 
-import android.content.Intent
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -45,7 +43,6 @@ import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBind
 import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentAccountDataTktBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
-import com.wirelessalien.android.moviedb.service.TraktSyncService
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import kotlinx.coroutines.CoroutineScope
@@ -315,43 +312,25 @@ class AccountDataFragmentTkt : BaseFragment() {
             getString(R.string.upcoming)
         )
 
-        val allOption = getString(R.string.all)
-        val allOptionsList = listOf(allOption) + options
-
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val selectedOptions = sharedPreferences.getStringSet("selected_options", options.toMutableSet())?.toMutableSet() ?: options.toMutableSet()
 
         val dialogBinding = DialogRefreshOptionsBinding.inflate(LayoutInflater.from(context))
         val chipGroup = dialogBinding.chipGroup
 
-        allOptionsList.forEach { option ->
+        options.forEach { option ->
             val chip = Chip(context).apply {
                 text = option
                 isCheckable = true
-                isChecked = if (option == allOption) selectedOptions.size == options.size else selectedOptions.contains(option)
+                isChecked = selectedOptions.contains(option)
                 setChipIconResource(if (isChecked) R.drawable.ic_done_all else R.drawable.ic_close)
-
                 setOnCheckedChangeListener { _, isChecked ->
-                    if (option == allOption) {
-                        if (isChecked) {
-                            for (i in 1 until chipGroup.childCount) {
-                                (chipGroup.getChildAt(i) as? Chip)?.isChecked = false
-                            }
-                            selectedOptions.clear()
-                            selectedOptions.addAll(options)
-                            setChipIconResource(R.drawable.ic_done_all)
-
-                            sharedPreferences.edit().putStringSet("selected_options", selectedOptions).apply()
-                            startTraktSyncService()
-                        }
+                    if (isChecked) {
+                        selectedOptions.add(option)
+                        setChipIconResource(R.drawable.ic_done_all)
                     } else {
-                        if (isChecked) {
-                            selectedOptions.add(option)
-                            (chipGroup.getChildAt(0) as? Chip)?.isChecked = false
-                        } else {
-                            selectedOptions.remove(option)
-                        }
-                        setChipIconResource(if (isChecked) R.drawable.ic_done_all else R.drawable.ic_close)
+                        selectedOptions.remove(option)
+                        setChipIconResource(R.drawable.ic_close)
                     }
                 }
             }
@@ -363,31 +342,12 @@ class AccountDataFragmentTkt : BaseFragment() {
             .setView(dialogBinding.root)
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 sharedPreferences.edit().putStringSet("selected_options", selectedOptions).apply()
-                if (selectedOptions.size == options.size) {
-                    startTraktSyncService()
-                } else {
-                    refreshData(selectedOptions)
-                }
+                refreshData(selectedOptions)
             }
             .setNegativeButton(getString(R.string.cancel)) { _, _ ->
                 binding.swipeRefreshLayout.isRefreshing = false
             }
             .show()
-    }
-
-    private fun startTraktSyncService() {
-        val intent = Intent(requireContext(), TraktSyncService::class.java).apply {
-            action = TraktSyncService.ACTION_START_SERVICE
-            putExtra(TraktSyncService.EXTRA_ACCESS_TOKEN, accessToken)
-            putExtra(TraktSyncService.EXTRA_CLIENT_ID, clientId)
-            putExtra(TraktSyncService.EXTRA_TMDB_API_KEY, tmdbApiKey)
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            requireContext().startForegroundService(intent)
-        } else {
-            requireContext().startService(intent)
-        }
     }
 
     private fun refreshData(selectedOptions: Set<String>) {
