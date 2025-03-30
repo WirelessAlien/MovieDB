@@ -118,6 +118,7 @@ class ShowFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         activityBinding.fab.visibility = View.VISIBLE
+        activityBinding.fab2.visibility = View.GONE
         activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
         activityBinding.fab.isEnabled = true
         activityBinding.fab.setOnClickListener {

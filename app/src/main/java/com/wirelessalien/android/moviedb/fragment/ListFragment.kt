@@ -301,6 +301,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
                 binding.chipUpcoming.isChecked -> {
                     mShowArrayList.clear()
+                    mShowAdapter.updateData(mShowArrayList)
                     mShowAdapter.notifyDataSetChanged()
                     binding.shimmerFrameLayout1.apply {
                         startShimmer()
@@ -658,6 +659,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 // Clear existing data
                 withContext(Dispatchers.Main) {
                     mShowArrayList.clear()
+                    mShowAdapter.updateData(mShowArrayList)
                     mShowAdapter.notifyDataSetChanged()
                     binding.shimmerFrameLayout1.startShimmer()
                     binding.shimmerFrameLayout1.visibility = View.VISIBLE
