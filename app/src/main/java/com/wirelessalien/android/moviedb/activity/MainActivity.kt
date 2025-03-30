@@ -87,6 +87,7 @@ import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -1149,12 +1150,12 @@ class MainActivity : BaseActivity() {
     }
 
     private fun showTmdbDetailsDialog() {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
+        val binding = DialogProgressIndicatorBinding.inflate(LayoutInflater.from(context))
         var job: Job? = null
 
-        val tmdbDialog = MaterialAlertDialogBuilder(this)
+        val tmdbDialog = MaterialAlertDialogBuilder(this@MainActivity)
             .setTitle(getString(R.string.fetching_tmdb_data))
-            .setView(dialogView)
+            .setView(binding.root)
             .setCancelable(false)
             .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                 job?.cancel()
@@ -1163,8 +1164,13 @@ class MainActivity : BaseActivity() {
             .show()
 
         job = lifecycleScope.launch {
-            val getTmdbDetails = GetTmdbDetails(this@MainActivity, tmdbApiKey)
-            getTmdbDetails.fetchAndSaveTmdbDetails()
+            val getTmdbDetails = GetTmdbDetails(this@MainActivity, tmdbApiKey ?: "")
+            getTmdbDetails.fetchAndSaveTmdbDetails { showTitle, progress ->
+                lifecycleScope.launch(Dispatchers.Main) {
+                    binding.progressText.text = showTitle
+                    binding.progressIndicator.progress = progress
+                }
+            }
             tmdbDialog.dismiss()
         }
     }

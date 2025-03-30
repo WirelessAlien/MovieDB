@@ -435,12 +435,12 @@ class AccountDataFragmentTkt : BaseFragment() {
 
 
     private fun showTmdbDetailsDialog() {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_progress_indicator, null)
+        val binding = DialogProgressIndicatorBinding.inflate(LayoutInflater.from(context))
         var job: Job? = null
 
         val tmdbDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.fetching_tmdb_data))
-            .setView(dialogView)
+            .setView(binding.root)
             .setCancelable(false)
             .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                 job?.cancel()
@@ -450,7 +450,12 @@ class AccountDataFragmentTkt : BaseFragment() {
 
         job = lifecycleScope.launch {
             val getTmdbDetails = GetTmdbDetails(requireContext(), tmdbApiKey ?: "")
-            getTmdbDetails.fetchAndSaveTmdbDetails()
+            getTmdbDetails.fetchAndSaveTmdbDetails { showTitle, progress ->
+                lifecycleScope.launch(Dispatchers.Main) {
+                    binding.progressText.text = showTitle
+                    binding.progressIndicator.progress = progress
+                }
+            }
             tmdbDialog.dismiss()
             reloadFragment()
         }

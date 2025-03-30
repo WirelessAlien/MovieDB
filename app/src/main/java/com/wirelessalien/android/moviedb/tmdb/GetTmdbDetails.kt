@@ -23,6 +23,7 @@ package com.wirelessalien.android.moviedb.tmdb
 import android.content.ContentValues
 import android.content.Context
 import android.util.Log
+import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.RateLimiter
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
@@ -38,7 +39,7 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
     private val client = OkHttpClient()
     private val rateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)
 
-    suspend fun fetchAndSaveTmdbDetails() {
+    suspend fun fetchAndSaveTmdbDetails(updateProgress: (String, Int) -> Unit) {
         withContext(Dispatchers.IO) {
             val traktDbHelper = TraktDatabaseHelper(context)
             val traktDb = traktDbHelper.readableDatabase
@@ -55,6 +56,19 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
             )
             val tmdbDbHelper = TmdbDetailsDatabaseHelper(context)
             val tmdbDb = tmdbDbHelper.readableDatabase
+
+            var totalItems = 0
+            var processedItems = 0
+
+            for (table in tables) {
+                val cursor = traktDb.query(
+                    table,
+                    arrayOf(TraktDatabaseHelper.COL_TMDB, TraktDatabaseHelper.COL_TYPE, TraktDatabaseHelper.COL_SHOW_TMDB),
+                    null, null, null, null, null
+                )
+                totalItems += cursor.count
+                cursor.close()
+            }
 
             for (table in tables) {
                 val cursor = traktDb.query(
@@ -84,6 +98,11 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
                         saveTmdbDetailsToDb(tmdbDetails)
                     }
                     tmdbCursor.close()
+
+                    processedItems++
+                    val progress = (processedItems * 100) / totalItems
+                    updateProgress(
+                        context.getString(R.string.fetching_item_of, processedItems, totalItems), progress)
                 }
                 cursor.close()
             }

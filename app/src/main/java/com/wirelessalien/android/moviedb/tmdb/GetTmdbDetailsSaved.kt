@@ -38,7 +38,7 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
     private val client = OkHttpClient()
     private val rateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)
 
-    suspend fun fetchAndSaveTmdbDetails() {
+    suspend fun fetchAndSaveTmdbDetails(updateProgress: (String, Int) -> Unit) {
         withContext(Dispatchers.IO) {
             val movieDbHelper = MovieDatabaseHelper(context)
             val movieDb = movieDbHelper.readableDatabase
@@ -48,13 +48,17 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
 
             val cursor = movieDb.query(
                 MovieDatabaseHelper.TABLE_MOVIES,
-                arrayOf(MovieDatabaseHelper.COLUMN_MOVIES_ID, MovieDatabaseHelper.COLUMN_MOVIE),
+                arrayOf(MovieDatabaseHelper.COLUMN_MOVIES_ID, MovieDatabaseHelper.COLUMN_MOVIE, MovieDatabaseHelper.COLUMN_TITLE),
                 null, null, null, null, null
             )
+
+            val totalMovies = cursor.count
+            var currentMovie = 0
 
             while (cursor.moveToNext()) {
                 val tmdbId = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
                 val movieIndicator = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE))
+                val showTitle = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
 
                 if (movieIndicator != 1) {
                     val tmdbCursor = tmdbDb.query(
@@ -76,10 +80,12 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                         } catch (e: Exception) {
                             Log.e("GetTmdbDetailsSaved", "Error fetching/saving TMDB show details for ID $tmdbId: ${e.message}", e)
                         }
-                    } else if (exists) {
-                        Log.v("GetTmdbDetailsSaved", "TMDB details already exist for show ID $tmdbId, skipping fetch.")
                     }
                 }
+
+                currentMovie++
+                val progress = (currentMovie * 100) / totalMovies
+                updateProgress(showTitle, progress)
             }
             cursor.close()
 
@@ -114,11 +120,9 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
 
     private fun saveTmdbDetailsToDb(details: JSONObject) {
         if (!details.has("id")) {
-            Log.w("GetTmdbDetailsSaved", "Skipping save: No 'id' field found in JSON object.")
             return
         }
         if (!details.has("name") || details.optString("name").isNullOrEmpty()) {
-            Log.w("GetTmdbDetailsSaved", "Skipping save: No 'name' field found in JSON object for ID ${details.optInt("id", -1)}.")
             return
         }
 
@@ -174,27 +178,19 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
                         }
                         put(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB, seasonsEpisodes.toString())
                     } else {
-                        Log.w("GetTmdbDetailsSaved", "Seasons array is null for show $tmdbId.")
                         put(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB, "")
                     }
                 } else {
-                    Log.w("GetTmdbDetailsSaved", "No 'seasons' key found for show $tmdbId.")
                     put(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB, "")
                 }
             }
 
-            val result = db.insertWithOnConflict(
+            db.insertWithOnConflict(
                 TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
                 null,
                 contentValues,
                 android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
             )
-            if (result == -1L) {
-                Log.e("GetTmdbDetailsSaved", "Failed to insert/replace details for show TMDB ID: $tmdbId")
-            } else {
-                Log.v("GetTmdbDetailsSaved", "Saved TMDB show details to database for ID $tmdbId.")
-            }
-
         } catch (e: Exception) {
             Log.e("GetTmdbDetailsSaved", "Error saving TMDB show details to database for ID ${details.optInt("id", -1)}: ${e.message}", e)
         } finally {

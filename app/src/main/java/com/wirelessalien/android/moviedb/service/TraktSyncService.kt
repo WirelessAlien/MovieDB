@@ -99,7 +99,9 @@ class TraktSyncService : Service() {
 
             updateNotification(getString(R.string.fetching_tmdb_data1))
             val tmdbDetails = GetTmdbDetails(this@TraktSyncService, tmdbApiKey ?: "")
-            tmdbDetails.fetchAndSaveTmdbDetails()
+            tmdbDetails.fetchAndSaveTmdbDetails { progressData, _ ->
+                updateNotification(progressData)
+            }
 
             updateNotification(getString(R.string.sync_completed))
             stopSelf()
