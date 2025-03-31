@@ -170,13 +170,14 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         activityBinding.fab2.setOnClickListener {
             showWatchSummaryDialog()
         }
-        setupMediaTypeChips()
 
         binding.swipeRefreshLayout.setOnRefreshListener {
             refreshData()
         }
         showShowList(fragmentView)
         updateShowViewAdapter()
+
+        setupMediaTypeChips()
 
         return fragmentView
     }
@@ -659,7 +660,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 // Clear existing data
                 withContext(Dispatchers.Main) {
                     mShowArrayList.clear()
-                    mShowAdapter.updateData(mShowArrayList)
+                    mShowAdapter.updateData(ArrayList())
                     mShowAdapter.notifyDataSetChanged()
                     binding.shimmerFrameLayout1.startShimmer()
                     binding.shimmerFrameLayout1.visibility = View.VISIBLE
@@ -686,7 +687,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
 
             val upcomingContent = withContext(Dispatchers.IO) {
-                val upcomingShows = ArrayList<JSONObject>()
 
                 EpisodeReminderDatabaseHelper(requireContext()).use { epDbHelper ->
                     MovieDatabaseHelper(requireContext()).use { movieDbHelper ->
@@ -740,7 +740,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                                 ).use { movieCursor ->
                                     if (movieCursor.moveToFirst()) {
                                         createMovieDetails(movieCursor, epCursor)?.let {
-                                            upcomingShows.add(it)
+                                            mShowArrayList.add(it)
                                         }
                                     }
                                 }
@@ -748,7 +748,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         }
                     }
                 }
-                upcomingShows
+                mShowArrayList
             }
             withContext(Dispatchers.Main) {
                 mShowAdapter.updateData(upcomingContent)

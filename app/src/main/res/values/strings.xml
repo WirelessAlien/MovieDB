@@ -154,6 +154,10 @@
     <string name="fetching_episode_data">Fetching episode data...</string>
     <string name="fetching_show_data">Fetching… %s</string>
     <string name="fetching_item_of">Fetching item %1$d of %2$d</string>
+    <string name="source_code">Source Code</string>
+    <string name="license">License</string>
+    <string name="author_wirelessalien" translatable="false">Author: WirelessAlien</string>
+    <string name="report_an_issue">Report an Issue</string>
 
     <string-array name="media_types">
         <item>digital</item>

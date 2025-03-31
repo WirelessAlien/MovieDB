@@ -31,6 +31,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.fragment.app.FragmentTransaction
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
@@ -63,9 +64,18 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         val aboutPreference = findPreference<Preference>("about_key")
         aboutPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-            AboutFragment().show(parentFragmentManager, "about_dialog")
+            val fragmentManager = parentFragmentManager
+            val newFragment = AboutFragment()
+
+            // Show the fragment fullscreen.
+            val transaction = fragmentManager.beginTransaction()
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+               transaction.add(android.R.id.content, newFragment)
+                   .addToBackStack(null)
+                   .commit()
             true
         }
+
 
         val privacyKey = findPreference<Preference>("privacy_key")
         privacyKey?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
