@@ -120,9 +120,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         super.onCreate(savedInstanceState)
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+        epDbHelper = EpisodeReminderDatabaseHelper(requireContext().applicationContext)
         mDatabaseHelper = MovieDatabaseHelper(requireContext().applicationContext)
         tmdbApiKey = ConfigHelper.getConfigValue(requireContext(), "api_key")
-        epDbHelper = EpisodeReminderDatabaseHelper(requireContext().applicationContext)
         accessToken = preferences.getString("trakt_access_token", null)
         clientId = ConfigHelper.getConfigValue(requireContext(), "client_id")
         filterActivityResultLauncher = registerForActivityResult(
@@ -645,9 +645,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             handleChipChange(isChecked, binding.chipAll) {
                 activityBinding.fab.visibility = View.GONE
                 activityBinding.fab2.visibility = View.GONE
-                lifecycleScope.launch {
-                    showUpcomingContent()
-                }
+                showUpcomingContent()
             }
         }
     }
@@ -681,6 +679,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         try {
             withContext(Dispatchers.Main) {
                 mShowArrayList.clear()
+                mShowAdapter.updateData(ArrayList())
                 mShowAdapter.notifyDataSetChanged()
                 binding.shimmerFrameLayout1.visibility = View.VISIBLE
                 binding.shimmerFrameLayout1.startShimmer()
@@ -688,12 +687,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
             val upcomingContent = withContext(Dispatchers.IO) {
 
-                EpisodeReminderDatabaseHelper(requireContext()).use { epDbHelper ->
-                    MovieDatabaseHelper(requireContext()).use { movieDbHelper ->
-                        val epDb = epDbHelper.readableDatabase
-                        val movieDb = movieDbHelper.readableDatabase
-
-                        // Query episode reminders with specific columns needed
+                epDbHelper.readableDatabase.use { epDb ->
+                    mDatabaseHelper.readableDatabase.use { movieDb ->
                         val projection = arrayOf(
                             EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
                             EpisodeReminderDatabaseHelper.COLUMN_DATE,
@@ -750,6 +745,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
                 mShowArrayList
             }
+
             withContext(Dispatchers.Main) {
                 mShowAdapter.updateData(upcomingContent)
             }
