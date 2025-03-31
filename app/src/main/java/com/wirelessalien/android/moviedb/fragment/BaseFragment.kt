@@ -53,6 +53,7 @@ open class BaseFragment : Fragment() {
     lateinit var mShowAdapter: ShowBaseAdapter
     private lateinit var mShowPagingAdapter: ShowPagingAdapter
     open lateinit var mShowArrayList: ArrayList<JSONObject>
+    open lateinit var mUpcomingArrayList: ArrayList<JSONObject>
     open lateinit var mSearchShowAdapter: ShowBaseAdapter
     open lateinit var mSearchShowArrayList: ArrayList<JSONObject>
     open lateinit var mShowLinearLayoutManager: LinearLayoutManager

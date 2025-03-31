@@ -136,11 +136,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
 
         mShowArrayList = ArrayList()
+        mUpcomingArrayList = ArrayList()
         mShowGenreList = HashMap()
         mShowView = RecyclerView(requireContext())
         preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity())
 
-        createShowList()
+        lifecycleScope.launch {
+            loadInitialData()
+            if (preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
+                filterAdapter()
+            }
+        }
     }
 
     override fun onCreateView(
@@ -175,7 +181,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             refreshData()
         }
         showShowList(fragmentView)
-        updateShowViewAdapter()
 
         setupMediaTypeChips()
 
@@ -258,6 +263,92 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
+    private suspend fun loadInitialData() {
+        withContext(Dispatchers.Main) {
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
+            mShowAdapter.updateData(ArrayList())
+        }
+
+        val shows = withContext(Dispatchers.IO) {
+            getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
+        }
+        val upcomingContent = withContext(Dispatchers.IO) {
+            loadUpcomingContent()
+        }
+
+        withContext(Dispatchers.Main) {
+            mShowArrayList = shows
+            mUpcomingArrayList = upcomingContent
+            mShowAdapter.updateData(mShowArrayList)
+
+            if (!mSearchView) {
+                mShowView.adapter = mShowAdapter
+                if (usedFilter) {
+                    filterAdapter()
+                }
+            }
+            binding.shimmerFrameLayout1.stopShimmer()
+            binding.shimmerFrameLayout1.visibility = View.GONE
+        }
+    }
+
+    private fun loadUpcomingContent(): ArrayList<JSONObject> {
+        val upcomingContent = ArrayList<JSONObject>()
+        epDbHelper.readableDatabase.use { epDb ->
+            mDatabaseHelper.readableDatabase.use { movieDb ->
+                val projection = arrayOf(
+                    EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
+                    EpisodeReminderDatabaseHelper.COLUMN_DATE,
+                    EpisodeReminderDatabaseHelper.COL_TYPE,
+                    EpisodeReminderDatabaseHelper.COL_SEASON,
+                    EpisodeReminderDatabaseHelper.COLUMN_NAME,
+                    EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER
+                )
+                epDb.query(
+                    EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+                    projection,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "${EpisodeReminderDatabaseHelper.COLUMN_DATE} ASC"
+                ).use { epCursor ->
+                    while (epCursor.moveToNext()) {
+                        val movieId = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
+                        val movieProjection = arrayOf(
+                            MovieDatabaseHelper.COLUMN_MOVIES_ID,
+                            MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
+                            MovieDatabaseHelper.COLUMN_RATING,
+                            MovieDatabaseHelper.COLUMN_IMAGE,
+                            MovieDatabaseHelper.COLUMN_ICON,
+                            MovieDatabaseHelper.COLUMN_TITLE,
+                            MovieDatabaseHelper.COLUMN_SUMMARY,
+                            MovieDatabaseHelper.COLUMN_GENRES_IDS,
+                            MovieDatabaseHelper.COLUMN_MOVIE
+                        )
+                        movieDb.query(
+                            MovieDatabaseHelper.TABLE_MOVIES,
+                            movieProjection,
+                            "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                            arrayOf(movieId.toString()),
+                            null,
+                            null,
+                            null
+                        ).use { movieCursor ->
+                            if (movieCursor.moveToFirst()) {
+                                createMovieDetails(movieCursor, epCursor)?.let {
+                                    upcomingContent.add(it)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return upcomingContent
+    }
+
     private fun showTmdbDetailsDialog() {
         val binding = DialogProgressIndicatorBinding.inflate(LayoutInflater.from(context))
         var job: Job? = null
@@ -302,15 +393,24 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
                 binding.chipUpcoming.isChecked -> {
                     mShowArrayList.clear()
-                    mShowAdapter.updateData(mShowArrayList)
                     mShowAdapter.notifyDataSetChanged()
                     binding.shimmerFrameLayout1.apply {
                         startShimmer()
                         visibility = View.VISIBLE
                     }
-                    fetchCalendarData {
-                        lifecycleScope.launch {
-                            showUpcomingContent()
+
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        fetchCalendarData {
+                            val upcomingContent = loadUpcomingContent()
+
+                            lifecycleScope.launch(Dispatchers.Main) {
+                                mUpcomingArrayList = upcomingContent
+                                mShowAdapter.updateData(mUpcomingArrayList)
+                                binding.shimmerFrameLayout1.apply {
+                                    stopShimmer()
+                                    visibility = View.GONE
+                                }
+                            }
                         }
                     }
                 }
@@ -369,7 +469,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         )
         val totalItem = cursor.count
         cursor.close()
-        close()
         totalItem
     }
 
@@ -382,7 +481,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         )
         val totalMovies = cursor.count
         cursor.close()
-        close()
         totalMovies
     }
 
@@ -395,7 +493,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         )
         val totalTVShows = cursor.count
         cursor.close()
-        close()
         totalTVShows
     }
 
@@ -412,7 +509,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             0
         }
         cursor.close()
-        close()
         totalItemCount
     }
 
@@ -435,7 +531,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             } while (cursor.moveToNext())
         }
         cursor.close()
-        close()
         genreIds.distinct()
     }
 
@@ -637,7 +732,14 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             handleChipChange(isChecked, binding.chipUpcoming) {
                 activityBinding.fab.visibility = View.VISIBLE
                 activityBinding.fab2.visibility = View.VISIBLE
-                updateShowViewAdapter()
+                mShowAdapter.updateData(mShowArrayList)
+
+                if (!mSearchView) {
+                    mShowView.adapter = mShowAdapter
+                    if (usedFilter) {
+                        filterAdapter()
+                    }
+                }
             }
         }
 
@@ -645,120 +747,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             handleChipChange(isChecked, binding.chipAll) {
                 activityBinding.fab.visibility = View.GONE
                 activityBinding.fab2.visibility = View.GONE
-                showUpcomingContent()
+                mShowAdapter.updateData(mUpcomingArrayList)
             }
         }
     }
 
-    private fun handleChipChange(isChecked: Boolean, otherChip: Chip, dataLoader: suspend () -> Unit) {
+    private fun handleChipChange(isChecked: Boolean, otherChip: Chip, action: () -> Unit) {
         if (isChecked) {
             otherChip.isChecked = false
-
-            lifecycleScope.launch {
-                // Clear existing data
-                withContext(Dispatchers.Main) {
-                    mShowArrayList.clear()
-                    mShowAdapter.updateData(ArrayList())
-                    mShowAdapter.notifyDataSetChanged()
-                    binding.shimmerFrameLayout1.startShimmer()
-                    binding.shimmerFrameLayout1.visibility = View.VISIBLE
-                }
-
-                try {
-                    dataLoader()
-                } catch (e: Exception) {
-                    Log.e("ListFragment", "Error loading data", e)
-                }
-            }
+            action()
         } else if (!otherChip.isChecked) {
             otherChip.isChecked = true
-        }
-    }
-
-    private suspend fun showUpcomingContent() {
-        try {
-            withContext(Dispatchers.Main) {
-                mShowArrayList.clear()
-                mShowAdapter.updateData(ArrayList())
-                mShowAdapter.notifyDataSetChanged()
-                binding.shimmerFrameLayout1.visibility = View.VISIBLE
-                binding.shimmerFrameLayout1.startShimmer()
-            }
-
-            val upcomingContent = withContext(Dispatchers.IO) {
-
-                epDbHelper.readableDatabase.use { epDb ->
-                    mDatabaseHelper.readableDatabase.use { movieDb ->
-                        val projection = arrayOf(
-                            EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
-                            EpisodeReminderDatabaseHelper.COLUMN_DATE,
-                            EpisodeReminderDatabaseHelper.COL_TYPE,
-                            EpisodeReminderDatabaseHelper.COL_SEASON,
-                            EpisodeReminderDatabaseHelper.COLUMN_NAME,
-                            EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER
-                        )
-
-                        epDb.query(
-                            EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
-                            projection,
-                            null,
-                            null,
-                            null,
-                            null,
-                            "${EpisodeReminderDatabaseHelper.COLUMN_DATE} ASC"
-                        ).use { epCursor ->
-                            while (epCursor.moveToNext()) {
-                                val movieId = epCursor.getInt(epCursor.getColumnIndexOrThrow(
-                                    EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
-
-                                // Query movie details with specific columns
-                                val movieProjection = arrayOf(
-                                    MovieDatabaseHelper.COLUMN_MOVIES_ID,
-                                    MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
-                                    MovieDatabaseHelper.COLUMN_RATING,
-                                    MovieDatabaseHelper.COLUMN_IMAGE,
-                                    MovieDatabaseHelper.COLUMN_ICON,
-                                    MovieDatabaseHelper.COLUMN_TITLE,
-                                    MovieDatabaseHelper.COLUMN_SUMMARY,
-                                    MovieDatabaseHelper.COLUMN_GENRES_IDS,
-                                    MovieDatabaseHelper.COLUMN_MOVIE
-                                )
-
-                                movieDb.query(
-                                    MovieDatabaseHelper.TABLE_MOVIES,
-                                    movieProjection,
-                                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
-                                    arrayOf(movieId.toString()),
-                                    null,
-                                    null,
-                                    null
-                                ).use { movieCursor ->
-                                    if (movieCursor.moveToFirst()) {
-                                        createMovieDetails(movieCursor, epCursor)?.let {
-                                            mShowArrayList.add(it)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                mShowArrayList
-            }
-
-            withContext(Dispatchers.Main) {
-                mShowAdapter.updateData(upcomingContent)
-            }
-        } catch (e: Exception) {
-            Log.e("ListFragment", "Error loading upcoming content", e)
-            withContext(Dispatchers.Main) {
-                binding.noUpcomingText.visibility = View.VISIBLE
-            }
-        } finally {
-            withContext(Dispatchers.Main) {
-                binding.shimmerFrameLayout1.stopShimmer()
-                binding.shimmerFrameLayout1.visibility = View.GONE
-            }
         }
     }
 
@@ -1155,29 +1154,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     /**
-     * Creates the ShowBaseAdapter with the ArrayList containing shows from the database and
-     * genres loaded from the API.
-     */
-    private fun createShowList() {
-        CoroutineScope(Dispatchers.Main).launch {
-            binding.shimmerFrameLayout1.visibility = View.VISIBLE
-            binding.shimmerFrameLayout1.startShimmer()
-            val shows = withContext(Dispatchers.IO) {
-                getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
-            }
-
-            mShowArrayList = shows
-            mShowAdapter = ShowBaseAdapter(requireContext(),
-                mShowArrayList,
-                mShowGenreList,
-                preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
-            )
-            binding.shimmerFrameLayout1.visibility = View.GONE
-            binding.shimmerFrameLayout1.stopShimmer()
-        }
-    }
-
-    /**
      * Retrieves the shows from the database.
      *
      * @param searchQuery the text (if any) that the title should contain.
@@ -1239,7 +1215,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         if (!cursor.moveToFirst()) {
             Log.d("ListFragment", "Cursor is empty, no data to convert.")
             cursor.close()
-            close()
             return dbShowsArrayList
         }
 
@@ -1335,7 +1310,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
 
         cursor.close()
-        close()
         Log.d("ShowBaseAdapter", "dbShowsArrayList: $dbShowsArrayList")
         return dbShowsArrayList
     }
@@ -1521,11 +1495,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         mDatabase = mDatabaseHelper.writableDatabase
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        close()
+    }
+
     /**
      * Closes the writable database.
      */
     private fun close() {
         mDatabaseHelper.close()
+        epDbHelper.close()
     }
 
     /**
