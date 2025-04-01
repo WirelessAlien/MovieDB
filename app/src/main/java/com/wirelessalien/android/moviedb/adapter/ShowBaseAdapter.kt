@@ -78,6 +78,7 @@ class ShowBaseAdapter(
     private var bottomSheetDialog: BottomSheetDialog? = null
     private var bottomSheetBinding: BottomSheetSeasonEpisodeBinding? = null
     private var currentEpisodeAdapter: EpisodeSavedAdapter? = null
+    private var totalEpisodes = 0
 
     init {
         genreType = when (genreType) {
@@ -134,7 +135,7 @@ class ShowBaseAdapter(
 
                 if (category == 2 && showData.optInt(KEY_IS_MOVIE) == 0) { // Watching and it's a TV show
                     val movieId = showData.optInt(KEY_ID)
-                    val totalEpisodes = getTotalEpisodesFromTmdb(context, movieId)
+                    totalEpisodes = getTotalEpisodesFromTmdb(context, movieId)
                     val watchedEpisodes = getWatchedEpisodesCount(showData)
                     val episodesLeft = totalEpisodes - watchedEpisodes
 
@@ -244,11 +245,15 @@ class ShowBaseAdapter(
                 bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
                 val chipGroupSeasons = bottomSheetBinding!!.chipGroupSeasons
                 val recyclerViewEpisodes = bottomSheetBinding!!.recyclerViewEpisodes
+                val episodeSlider = bottomSheetBinding!!.episodeSlider
+                val saveButton = bottomSheetBinding!!.saveBtn
                 recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
-                val nextEpisode = getNextEpisodeDetails(showData.optInt(KEY_ID))
-
-                val seasons = getSeasonsFromTmdbDatabase(showData.optInt(KEY_ID))
+                val tvShowId = showData.optInt(KEY_ID)
+                val nextEpisode = getNextEpisodeDetails(tvShowId)
+                episodeSlider.valueFrom = 0f
+                episodeSlider.valueTo = totalEpisodes.toFloat()
+                val seasons = getSeasonsFromTmdbDatabase(tvShowId)
                 val maxVisibleChips = 5
                 var isExpanded = false
 
@@ -303,7 +308,6 @@ class ShowBaseAdapter(
                 }
 
                 if (showData.has("number") && showData.has("season") ) {
-                    val tvShowId = showData.optInt(KEY_ID)
                     val seasonNumber = showData.optInt("season", 1)
                     val episodeNumber = showData.optInt("number", 1)
                     showInitialEpisode(tvShowId, seasonNumber, episodeNumber)
@@ -319,6 +323,37 @@ class ShowBaseAdapter(
                     bottomSheetBinding?.imageView?.visibility = View.GONE
                     bottomSheetBinding?.chipEpS?.visibility = View.GONE
                     bottomSheetBinding?.addToWatched?.visibility = View.GONE
+                }
+
+                saveButton.setOnClickListener {
+                    val episodesToMark = episodeSlider.value.toInt()
+                    var episodesMarked = 0
+
+                    val dbHelper = MovieDatabaseHelper(context)
+                    val seasonsS = getSeasonsFromTmdbDatabase(tvShowId)
+
+                    for (seasonNumber in seasonsS) {
+                        val episodesInSeason =
+                            getEpisodesForSeasonFromTmdbDatabase(tvShowId, seasonNumber)
+                        for (episodeNumber in episodesInSeason) {
+                            if (episodesMarked < episodesToMark) {
+                                dbHelper.addEpisodeNumber(
+                                    tvShowId,
+                                    seasonNumber,
+                                    listOf(episodeNumber),
+                                    ""
+                                )
+                                episodesMarked++
+                            } else {
+                                break
+                            }
+                        }
+                    }
+
+                    val nextEpisodeDetails = getNextEpisodeDetails(tvShowId)
+                    val (seasonNumberN, episodeNumberN) = nextEpisodeDetails ?: Pair(1, 1)
+                    showInitialEpisode(tvShowId, seasonNumberN ?: 1, episodeNumberN ?: 1)
+                    currentEpisodeAdapter?.notifyDataSetChanged()
                 }
 
                 bottomSheetDialog?.setContentView(bottomSheetBinding!!.root)

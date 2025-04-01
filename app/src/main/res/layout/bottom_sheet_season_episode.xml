@@ -107,6 +107,33 @@
                 android:text="13-Jul-2034"/>
         </LinearLayout>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp">
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/episodeSlider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/saveBtn"
+                android:layout_marginStart="-4dp"
+                android:stepSize="1"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/saveBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                app:cornerRadius="10dp"
+                android:layout_marginEnd="16dp"
+                android:layout_centerVertical="true"
+                app:icon="@drawable/ic_done_2"/>
+        </RelativeLayout>
+
+
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupSeasons"
             android:layout_width="match_parent"
