@@ -142,8 +142,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity())
         mDatabase = mDatabaseHelper.writableDatabase
         mERDatabase = epDbHelper.writableDatabase
-        mDatabaseHelper.onCreate(mDatabase)
-        epDbHelper.onCreate(mERDatabase)
 
         lifecycleScope.launch {
             loadInitialData()
