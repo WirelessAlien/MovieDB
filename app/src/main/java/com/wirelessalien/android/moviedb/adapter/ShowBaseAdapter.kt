@@ -78,7 +78,6 @@ class ShowBaseAdapter(
     private var bottomSheetDialog: BottomSheetDialog? = null
     private var bottomSheetBinding: BottomSheetSeasonEpisodeBinding? = null
     private var currentEpisodeAdapter: EpisodeSavedAdapter? = null
-    private var totalEpisodes = 0
 
     init {
         genreType = when (genreType) {
@@ -135,7 +134,7 @@ class ShowBaseAdapter(
 
                 if (category == 2 && showData.optInt(KEY_IS_MOVIE) == 0) { // Watching and it's a TV show
                     val movieId = showData.optInt(KEY_ID)
-                    totalEpisodes = getTotalEpisodesFromTmdb(context, movieId)
+                    val totalEpisodes = getTotalEpisodesFromTmdb(context, movieId)
                     val watchedEpisodes = getWatchedEpisodesCount(showData)
                     val episodesLeft = totalEpisodes - watchedEpisodes
 
@@ -251,8 +250,11 @@ class ShowBaseAdapter(
 
                 val tvShowId = showData.optInt(KEY_ID)
                 val nextEpisode = getNextEpisodeDetails(tvShowId)
+                val totalEpisodes = getTotalEpisodesFromTmdb(context, tvShowId)
+                val watchedEpisodes = getWatchedEpisodesCount(showData)
                 episodeSlider.valueFrom = 0f
                 episodeSlider.valueTo = totalEpisodes.toFloat()
+                episodeSlider.value = watchedEpisodes.toFloat()
                 val seasons = getSeasonsFromTmdbDatabase(tvShowId)
                 val maxVisibleChips = 5
                 var isExpanded = false
@@ -331,29 +333,82 @@ class ShowBaseAdapter(
 
                     val dbHelper = MovieDatabaseHelper(context)
                     val seasonsS = getSeasonsFromTmdbDatabase(tvShowId)
+                    val markedEpisodes = mutableMapOf<Int, List<Int>>()
 
-                    for (seasonNumber in seasonsS) {
-                        val episodesInSeason =
-                            getEpisodesForSeasonFromTmdbDatabase(tvShowId, seasonNumber)
-                        for (episodeNumber in episodesInSeason) {
-                            if (episodesMarked < episodesToMark) {
-                                dbHelper.addEpisodeNumber(
-                                    tvShowId,
-                                    seasonNumber,
-                                    listOf(episodeNumber),
-                                    ""
-                                )
-                                episodesMarked++
-                            } else {
-                                break
+                    // First, get total marked episodes across all seasons
+                    val totalMarkedEpisodes = seasonsS.sumOf { seasonNumber ->
+                        getWatchedEpisodesFromDb(tvShowId, seasonNumber).size
+                    }
+
+                    if (episodesToMark < totalMarkedEpisodes) {
+                        // Need to remove episodes
+                        for (seasonNumber in seasonsS.reversed()) {
+                            val watchedEpisodesR = getWatchedEpisodesFromDb(tvShowId, seasonNumber).sorted()
+                            val episodesToRemove = mutableListOf<Int>()
+
+                            for (episodeNumber in watchedEpisodesR.reversed()) {
+                                if (totalMarkedEpisodes - episodesMarked > episodesToMark) {
+                                    episodesToRemove.add(episodeNumber)
+                                    episodesMarked++
+                                } else {
+                                    break
+                                }
                             }
+
+                            if (episodesToRemove.isNotEmpty()) {
+                                dbHelper.removeEpisodeNumber(tvShowId, seasonNumber, episodesToRemove)
+                                markedEpisodes[seasonNumber] = episodesToRemove
+                            }
+                        }
+                    } else {
+                        // Add episodes
+                        episodesMarked = totalMarkedEpisodes
+                        for (seasonNumber in seasonsS) {
+                            val episodesInSeason = getEpisodesForSeasonFromTmdbDatabase(tvShowId, seasonNumber)
+                            val watchedEpisodesA = getWatchedEpisodesFromDb(tvShowId, seasonNumber)
+                            val markedEpisodesInSeason = mutableListOf<Int>()
+
+                            for (episodeNumber in episodesInSeason) {
+                                if (episodesMarked < episodesToMark && !watchedEpisodesA.contains(episodeNumber)) {
+                                    dbHelper.addEpisodeNumber(
+                                        tvShowId,
+                                        seasonNumber,
+                                        listOf(episodeNumber),
+                                        ""
+                                    )
+                                    markedEpisodesInSeason.add(episodeNumber)
+                                    episodesMarked++
+                                }
+                            }
+
+                            if (markedEpisodesInSeason.isNotEmpty()) {
+                                markedEpisodes[seasonNumber] = markedEpisodesInSeason
+                            }
+                        }
+                    }
+
+                    val currentChip = bottomSheetBinding?.chipGroupSeasons?.children
+                        ?.filterIsInstance<Chip>()
+                        ?.find { it.isChecked }
+
+                    currentChip?.let { chip ->
+                        val seasonText = chip.text.toString()
+                        val currentSeason = seasonText.replace(Regex("[^0-9]"), "").toInt()
+
+                        val allEpisodesInCurrentSeason = getEpisodesForSeasonFromTmdbDatabase(tvShowId, currentSeason)
+                        val watchedEpisodesAfterUpdate = getWatchedEpisodesFromDb(tvShowId, currentSeason)
+
+                        allEpisodesInCurrentSeason.forEach { episodeNumber ->
+                            currentEpisodeAdapter?.updateEpisodeWatched(
+                                episodeNumber,
+                                watchedEpisodesAfterUpdate.contains(episodeNumber)
+                            )
                         }
                     }
 
                     val nextEpisodeDetails = getNextEpisodeDetails(tvShowId)
                     val (seasonNumberN, episodeNumberN) = nextEpisodeDetails ?: Pair(1, 1)
                     showInitialEpisode(tvShowId, seasonNumberN ?: 1, episodeNumberN ?: 1)
-                    currentEpisodeAdapter?.notifyDataSetChanged()
                 }
 
                 bottomSheetDialog?.setContentView(bottomSheetBinding!!.root)

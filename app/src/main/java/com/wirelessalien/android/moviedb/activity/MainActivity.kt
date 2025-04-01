@@ -158,8 +158,8 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        mDatabaseHelper = MovieDatabaseHelper(applicationContext)
         epDbHelper = EpisodeReminderDatabaseHelper(applicationContext)
+        mDatabaseHelper = MovieDatabaseHelper(applicationContext)
 
         context = this
 

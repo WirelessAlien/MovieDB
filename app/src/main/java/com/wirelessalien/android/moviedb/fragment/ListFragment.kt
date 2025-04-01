@@ -28,6 +28,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
@@ -100,7 +101,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
     private var usedFilter = false
     private lateinit var mDatabase: SQLiteDatabase
-    private lateinit var mERDatabase: SQLiteDatabase
     private val client = OkHttpClient()
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
     private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
@@ -140,8 +140,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         mShowGenreList = HashMap()
         mShowView = RecyclerView(requireContext())
         preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity())
-        mDatabase = mDatabaseHelper.writableDatabase
-        mERDatabase = epDbHelper.writableDatabase
 
         lifecycleScope.launch {
             loadInitialData()
@@ -297,8 +295,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     private fun loadUpcomingContent(): ArrayList<JSONObject> {
         val upcomingContent = ArrayList<JSONObject>()
-        mERDatabase.use { epDb ->
-            mDatabase.use { movieDb ->
+        epDbHelper.readableDatabase.use { epDb ->
+            mDatabaseHelper.readableDatabase.use { movieDb ->
                 val projection = arrayOf(
                     EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
                     EpisodeReminderDatabaseHelper.COLUMN_DATE,
@@ -463,6 +461,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private suspend fun getTotalItem(category: Int): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
             "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = $category",
             null
@@ -473,6 +473,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private suspend fun getTotalMoviesInWatchedCategory(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
             "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1",
             null
@@ -483,6 +485,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private suspend fun getTotalTVShowsInWatchedCategory(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
             "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 0",
             null
@@ -493,6 +497,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private suspend fun getTotalItemCountForGenre(genreId: Int): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
         val cursor: Cursor = mDatabase.rawQuery(
             "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%$genreId%'",
             null
@@ -508,6 +514,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     private suspend fun getGenreIdsFromDatabase(): List<Int> = withContext(Dispatchers.IO) {
         val genreIds = mutableListOf<Int>()
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
         val cursor: Cursor = mDatabase.rawQuery(
             "SELECT ${MovieDatabaseHelper.COLUMN_GENRES_IDS} FROM ${MovieDatabaseHelper.TABLE_MOVIES}",
             null
@@ -1161,6 +1169,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         } else {
             ""
         }
+        open()
 
         // Base query with LEFT JOIN to include episode data
         val baseQuery = """
@@ -1310,7 +1319,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             val sdf = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.US)
             val today = sdf.format(Date())
 
-            mERDatabase.delete(
+            epDbHelper.writableDatabase.delete(
                 EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
                 null,
                 null
@@ -1392,7 +1401,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                             show.getJSONObject("ids").optString("imdb")
                         )
                     }
-                    mERDatabase.insert(
+                    epDbHelper.writableDatabase.insert(
                         EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
                         null,
                         values
@@ -1440,7 +1449,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         put(EpisodeReminderDatabaseHelper.COLUMN_NAME, "")
                         put(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER, "")
                     }
-                    mERDatabase.insert(
+                    epDbHelper.writableDatabase.insert(
                         EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
                         null,
                         values
@@ -1474,6 +1483,16 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+    }
+
+    /**
+     * Gets (or creates) a writable database.
+     *
+     * @throws SQLException if the database cannot be opened for writing.
+     */
+    @Throws(SQLException::class)
+    private fun open() {
+        mDatabase = mDatabaseHelper.writableDatabase
     }
 
     /**
