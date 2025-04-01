@@ -100,6 +100,7 @@ import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.SyncProviderBottomSheet
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
@@ -146,6 +147,7 @@ class MainActivity : BaseActivity() {
     private lateinit var mShowLinearLayoutManager: LinearLayoutManager
     private lateinit var mShowGenreList: HashMap<String, String?>
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
+    private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
 
 
     @SuppressLint("InlinedApi")
@@ -156,7 +158,8 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        mDatabaseHelper = MovieDatabaseHelper(this)
+        mDatabaseHelper = MovieDatabaseHelper(applicationContext)
+        epDbHelper = EpisodeReminderDatabaseHelper(applicationContext)
 
         context = this
 
@@ -1189,6 +1192,8 @@ class MainActivity : BaseActivity() {
         super.onDestroy()
         // Unregister the listener
         preferences.unregisterOnSharedPreferenceChangeListener(prefListener)
+        mDatabaseHelper.close()
+        epDbHelper.close()
     }
 
     override fun onRequestPermissionsResult(
