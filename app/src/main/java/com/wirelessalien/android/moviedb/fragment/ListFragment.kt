@@ -140,10 +140,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         mShowGenreList = HashMap()
         mShowView = RecyclerView(requireContext())
         preferences = PreferenceManager.getDefaultSharedPreferences(requireActivity())
-        mDatabaseHelper.onCreate(mDatabase)
-        epDbHelper.onCreate(mERDatabase)
         mDatabase = mDatabaseHelper.writableDatabase
         mERDatabase = epDbHelper.writableDatabase
+        mDatabaseHelper.onCreate(mDatabase)
+        epDbHelper.onCreate(mERDatabase)
 
         lifecycleScope.launch {
             loadInitialData()
