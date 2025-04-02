@@ -30,6 +30,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.children
@@ -242,19 +243,24 @@ class ShowBaseAdapter(
 
                 bottomSheetDialog = BottomSheetDialog(context)
                 bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
+                bottomSheetBinding!!.episodeTitle.visibility = View.VISIBLE
+                bottomSheetBinding!!.episodeSliderLayout.visibility = View.VISIBLE
                 val chipGroupSeasons = bottomSheetBinding!!.chipGroupSeasons
                 val recyclerViewEpisodes = bottomSheetBinding!!.recyclerViewEpisodes
                 val episodeSlider = bottomSheetBinding!!.episodeSlider
                 val saveButton = bottomSheetBinding!!.saveBtn
                 recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
+                val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    .format(Calendar.getInstance().time)
+
                 val tvShowId = showData.optInt(KEY_ID)
                 val nextEpisode = getNextEpisodeDetails(tvShowId)
                 val totalEpisodes = getTotalEpisodesFromTmdb(context, tvShowId)
-                val watchedEpisodes = getWatchedEpisodesCount(showData)
+                val watchedEpisodesCount = getWatchedEpisodesCount(showData)
                 episodeSlider.valueFrom = 0f
                 episodeSlider.valueTo = totalEpisodes.toFloat()
-                episodeSlider.value = watchedEpisodes.toFloat()
+                episodeSlider.value = watchedEpisodesCount.toFloat()
                 val seasons = getSeasonsFromTmdbDatabase(tvShowId)
                 val maxVisibleChips = 5
                 var isExpanded = false
@@ -327,6 +333,12 @@ class ShowBaseAdapter(
                     bottomSheetBinding?.addToWatched?.visibility = View.GONE
                 }
 
+                saveButton.isEnabled = false
+
+                episodeSlider.addOnChangeListener { _, value, _ ->
+                    saveButton.isEnabled = value.toInt() != getWatchedEpisodesCount(showData)
+                }
+
                 saveButton.setOnClickListener {
                     val episodesToMark = episodeSlider.value.toInt()
                     var episodesMarked = 0
@@ -360,6 +372,9 @@ class ShowBaseAdapter(
                                 markedEpisodes[seasonNumber] = episodesToRemove
                             }
                         }
+
+                        Toast.makeText(context,
+                            context.getString(R.string.marked_episodes_as_unwatched, episodesMarked), Toast.LENGTH_SHORT).show()
                     } else {
                         // Add episodes
                         episodesMarked = totalMarkedEpisodes
@@ -374,7 +389,7 @@ class ShowBaseAdapter(
                                         tvShowId,
                                         seasonNumber,
                                         listOf(episodeNumber),
-                                        ""
+                                        currentDate
                                     )
                                     markedEpisodesInSeason.add(episodeNumber)
                                     episodesMarked++
@@ -385,8 +400,22 @@ class ShowBaseAdapter(
                                 markedEpisodes[seasonNumber] = markedEpisodesInSeason
                             }
                         }
+
+                        // Show a toast message for added episodes
+                        val episodesAdded = episodesMarked - totalMarkedEpisodes
+                        if (episodesAdded > 0) {
+                            Toast.makeText(context,
+                                context.getString(
+                                    R.string.marked_episodes_as_watched,
+                                    episodesAdded
+                                ), Toast.LENGTH_SHORT).show()
+                        }
                     }
 
+                    // Disable the save button after saving
+                    saveButton.isEnabled = false
+
+                    // Refresh the current season's data
                     val currentChip = bottomSheetBinding?.chipGroupSeasons?.children
                         ?.filterIsInstance<Chip>()
                         ?.find { it.isChecked }
