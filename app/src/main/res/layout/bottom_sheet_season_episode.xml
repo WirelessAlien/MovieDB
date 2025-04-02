@@ -107,11 +107,24 @@
                 android:text="13-Jul-2034"/>
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/episodeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/episodesL"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
         <RelativeLayout
+            android:id="@+id/episodeSliderLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="10dp"
+            android:visibility="gone">
 
             <com.google.android.material.slider.Slider
                 android:id="@+id/episodeSlider"
@@ -133,7 +146,6 @@
                 app:icon="@drawable/ic_done_2"/>
         </RelativeLayout>
 
-
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupSeasons"
             android:layout_width="match_parent"
@@ -143,6 +155,19 @@
             android:paddingEnd="16dp"
             app:singleSelection="true"
             android:orientation="horizontal" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/seasonActionButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Season to Watched"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone"
+            app:cornerRadius="10dp"
+            android:enabled="false" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewEpisodes"

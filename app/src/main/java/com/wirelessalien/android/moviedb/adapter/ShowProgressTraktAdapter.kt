@@ -215,7 +215,7 @@ class ShowProgressTraktAdapter(
                    bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
                    val chipGroupSeasons = bottomSheetBinding!!.chipGroupSeasons
                    val recyclerViewEpisodes = bottomSheetBinding!!.recyclerViewEpisodes
-
+                   bottomSheetBinding!!.seasonActionButton.visibility = View.VISIBLE
                    recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
                    val seasons = parseSeasonsTmdb(showData.optString("seasons_episode_show_tmdb", ""))
@@ -243,36 +243,46 @@ class ShowProgressTraktAdapter(
                    // Add season chips
                    seasons.forEach { seasonNumber ->
                        val chip = Chip(context).apply {
+                           tag = seasonNumber
                            text = context.getString(R.string.season_p, seasonNumber)
                            isCheckable = true
-                           setOnClickListener {
+
+                           setOnClickListener { chipView ->
+                               val season = (chipView as Chip).tag as Int
                                val episodes = parseEpisodesForSeasonTmdb(
-                                   showData.optString(
-                                       "seasons_episode_show_tmdb",
-                                       ""
-                                   ), seasonNumber
+                                   showData.optString("seasons_episode_show_tmdb", ""),
+                                   season
                                )
-                               val watchedEpisodesD = getWatchedEpisodesFromDb(
-                                   showData.getInt("trakt_id"),
-                                   seasonNumber
+                               val watchedEpisodes = getWatchedEpisodesFromDb(
+                                   showData.optInt("trakt_id"),
+                                   season
                                )
-                               currentEpisodeAdapter = EpisodeTraktAdapter(
-                                   episodes,
-                                   watchedEpisodesD,
-                                   showData,
-                                   seasonNumber,
-                                   context,
+
+                               // Update episode list
+                               currentEpisodeAdapter = EpisodeTraktAdapter(episodes, watchedEpisodes, showData, season, context,
                                    traktAccessToken,
-                                   clientId,
-                                   this@ShowProgressTraktAdapter
-                               )
+                                   clientId, this@ShowProgressTraktAdapter)
                                recyclerViewEpisodes.adapter = currentEpisodeAdapter
+
+                               // Update season action button
+                               bottomSheetBinding?.seasonActionButton?.let { seasonButton ->
+                                   seasonButton.isEnabled = true
+
+                                   val isWholeSeasonWatched = episodes.all { it in watchedEpisodes }
+                                   seasonButton.text = context.getString(
+                                       if (isWholeSeasonWatched) R.string.mark_season_unwatched
+                                       else R.string.mark_season_watched
+                                   )
+                                   seasonButton.icon = AppCompatResources.getDrawable(context,
+                                       if (isWholeSeasonWatched) R.drawable.ic_close
+                                       else R.drawable.ic_done_2
+                                   )
+                               }
                            }
                        }
                        chipGroupSeasons.addView(chip)
                    }
 
-                   // Add show more chip and set its click listener
                    if (seasons.size > maxVisibleChips) {
                        chipGroupSeasons.addView(showMoreChip)
                        showMoreChip.setOnClickListener {
@@ -285,11 +295,127 @@ class ShowProgressTraktAdapter(
                        updateChipsVisibility()
                    }
 
+                   if (seasons.isNotEmpty()) {
+                       val firstChip = chipGroupSeasons.getChildAt(0) as? Chip
+                       firstChip?.performClick()
+                   }
+
+                   bottomSheetBinding?.seasonActionButton?.setOnClickListener {
+                       // Get the currently selected season from the checked chip
+                       val selectedChip = (0 until chipGroupSeasons.childCount)
+                           .map { chipGroupSeasons.getChildAt(it) }
+                           .filterIsInstance<Chip>()
+                           .firstOrNull { it.isChecked }
+
+                       (selectedChip?.tag as? Int)?.let { season ->
+                           val currentDateTime = SimpleDateFormat(
+                               "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                               Locale.getDefault()
+                           ).format(Date())
+
+                           val episodes = parseEpisodesForSeasonTmdb(
+                               showData.optString("seasons_episode_show_tmdb", ""),
+                               season
+                           )
+                           val watchedEpisodes = getWatchedEpisodesFromDb(
+                               showData.optInt("trakt_id"),
+                               season
+                           )
+
+                           val isWholeSeasonWatched = episodes.all { it in watchedEpisodes }
+                           val endpoint = if (isWholeSeasonWatched)
+                               ACTION_MARK_SEASON_UNWATCHED
+                           else
+                               ACTION_MARK_SEASON_WATCHED
+
+                           val seasonsArray = JSONArray().apply {
+                               put(JSONObject().apply {
+                                   put("number", season)
+                                   put("watched_at", currentDateTime as String)
+                               })
+                           }
+
+                           val idsObject = JSONObject().apply {
+                               put("trakt", showData.optInt("trakt_id"))
+                               put("tmdb", showData.optInt("id"))
+                           }
+
+                           val showsObject = JSONObject().apply {
+                               put("shows", JSONArray().put(JSONObject().apply {
+                                   put("ids", idsObject)
+                                   put("seasons", seasonsArray)
+                               }))
+                           }
+
+                           // Make the API call
+                           val traktApiService = TraktSync(traktAccessToken, context)
+                           traktApiService.post(endpoint, showsObject, object : Callback {
+                               override fun onFailure(call: Call, e: IOException) {
+                                   Handler(Looper.getMainLooper()).post {
+                                       Toast.makeText(context, context.getString(R.string.failed_to_sync, "season"), Toast.LENGTH_SHORT).show()
+                                   }
+                               }
+
+                               override fun onResponse(call: Call, response: Response) {
+                                   Handler(Looper.getMainLooper()).post {
+                                       if (response.isSuccessful) {
+                                           val dbHelper = TraktDatabaseHelper(context)
+                                           val title = showData.optString("show_title")
+                                           val traktId = showData.optInt("trakt_id")
+                                           val tmdbId = showData.optInt("id")
+
+                                           if (endpoint == ACTION_MARK_SEASON_WATCHED) {
+                                               episodes.forEach { episodeNumber ->
+                                                   dbHelper.addEpisodeToHistory(title, traktId, tmdbId, "episode", season, episodeNumber, currentDateTime)
+                                                   dbHelper.addEpisodeToWatched(traktId, tmdbId, season, episodeNumber, currentDateTime)
+                                               }
+                                               dbHelper.addEpisodeToWatchedTable(tmdbId, traktId, "show", title, currentDateTime)
+                                               Toast.makeText(context, R.string.season_marked_watched, Toast.LENGTH_SHORT).show()
+                                           } else {
+                                               episodes.forEach { episodeNumber ->
+                                                   dbHelper.removeEpisodeFromHistory(tmdbId, season, episodeNumber)
+                                                   dbHelper.removeEpisodeFromWatched(tmdbId, season, episodeNumber) }
+                                               Toast.makeText(context, R.string.season_marked_unwatched, Toast.LENGTH_SHORT).show()
+                                           }
+
+                                           // Update the UI
+                                           bottomSheetBinding?.seasonActionButton?.let { seasonButton ->
+                                               seasonButton.text = context.getString(
+                                                   if (endpoint == ACTION_MARK_SEASON_WATCHED)
+                                                       R.string.mark_season_unwatched
+                                                   else
+                                                       R.string.mark_season_watched
+                                               )
+                                               seasonButton.icon = AppCompatResources.getDrawable(
+                                                   context,
+                                                   if (endpoint == ACTION_MARK_SEASON_WATCHED)
+                                                       R.drawable.ic_close
+                                                   else
+                                                       R.drawable.ic_done_2
+                                               )
+                                           }
+
+                                           // Refresh the episode list
+                                           currentEpisodeAdapter?.let { adapter ->
+                                               val newWatchedStatus = endpoint == ACTION_MARK_SEASON_WATCHED
+                                               episodes.forEach { episodeNumber ->
+                                                   adapter.updateEpisodeWatched(episodeNumber, newWatchedStatus)
+                                               }
+                                           }
+                                       } else {
+                                           Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                                       }
+                                   }
+                               }
+                           })
+                       }
+                   }
+
                    if (nextEpisode != null) {
                        val (seasonNumberN, episodeNumberN) = nextEpisode
                        val tvShowId = showData.optInt("id")
                        val episodeTraktId = showData.optInt("episode_trakt_id")
-                       bottomSheetBinding!!.chipEpS.text = "S" + seasonNumberN + ":E" + episodeNumberN
+                       bottomSheetBinding!!.chipEpS.text = "S$seasonNumberN:E$episodeNumberN"
                        val traktId = showData.optInt("trakt_id")
                        val isWatched = isEpisodeWatched(traktId, seasonNumberN!!, episodeNumberN!!)
 
@@ -543,7 +669,7 @@ class ShowProgressTraktAdapter(
                         }
                     }
 
-                    var formattedAirDate : String = airDate;
+                    var formattedAirDate : String = airDate
                     if (parsedDate != null) {
                         val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                         formattedAirDate = localFormat.format(parsedDate)
@@ -612,7 +738,7 @@ class ShowProgressTraktAdapter(
     }
 
     private fun traktSync(episodeJSONObject: JSONObject, endpoint: String, binding: BottomSheetSeasonEpisodeBinding, tmdbId: Int, traktId:Int, title: String, seasonNumber: Int, episodeNumber: Int, currentTime: String) {
-        val traktApiService = TraktSync(traktAccessToken?: "", context)
+        val traktApiService = TraktSync(traktAccessToken, context)
         traktApiService.post(endpoint, episodeJSONObject, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Handler(Looper.getMainLooper()).post {
@@ -729,5 +855,7 @@ class ShowProgressTraktAdapter(
         private const val HD_IMAGE_SIZE = "key_hq_images"
         const val TYPE_MOVIE = 0
         const val TYPE_SHOW = 1
+        private const val ACTION_MARK_SEASON_WATCHED = "sync/history"
+        private const val ACTION_MARK_SEASON_UNWATCHED = "sync/history/remove"
     }
 }

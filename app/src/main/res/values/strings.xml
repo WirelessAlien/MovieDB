@@ -158,6 +158,13 @@
     <string name="license">License</string>
     <string name="author_wirelessalien" translatable="false">Author: WirelessAlien</string>
     <string name="report_an_issue">Report an Issue</string>
+    <string name="episodesL">Episodes</string>
+    <string name="marked_episodes_as_watched">Marked %1$d episodes as watched</string>
+    <string name="marked_episodes_as_unwatched">Marked %1$d episodes as unwatched</string>
+    <string name="mark_season_watched">Mark Season Watched</string>
+    <string name="mark_season_unwatched">Mark Season Unwatched</string>
+    <string name="season_marked_watched">Season marked as watched</string>
+    <string name="season_marked_unwatched">Season marked as unwatched</string>
 
     <string-array name="media_types">
         <item>digital</item>
