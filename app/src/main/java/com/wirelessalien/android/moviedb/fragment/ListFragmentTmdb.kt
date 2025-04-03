@@ -21,9 +21,11 @@ package com.wirelessalien.android.moviedb.fragment
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wirelessalien.android.moviedb.R
@@ -34,7 +36,9 @@ import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentMyListsBinding
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedListener {
     private var listAdapter: ListAdapter? = null
@@ -99,16 +103,39 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
     }
 
     private fun refreshList() {
+        if (!isAdded || view == null) {
+            return
+        }
+
         binding.shimmerFrameLayout1.visibility = View.VISIBLE
         binding.shimmerFrameLayout1.startShimmer()
-        val fetcher = FetchList(context, null)
+
         viewLifecycleOwner.lifecycleScope.launch {
-            val listData = fetcher.fetchLists()
-            requireActivity().runOnUiThread {
+            val fetchedListData: List<ListData>? = try {
+                withContext(Dispatchers.IO) {
+                    val fetcher = FetchList(requireContext(), null)
+                    fetcher.fetchLists()
+                }
+            } catch (e: Exception) {
+                Log.e("ListFragmentTmdb", "Error fetching list", e)
+                null
+            }
+
+            withContext(Dispatchers.Main) {
+
                 if (isAdded) {
-                    listAdapter?.updateData(listData)
+                    fetchedListData?.let { listData ->
+                        listAdapter?.updateData(listData)
+                    }
                     binding.shimmerFrameLayout1.stopShimmer()
                     binding.shimmerFrameLayout1.visibility = View.GONE
+                    if (fetchedListData == null) {
+                        Toast.makeText(
+                            context,
+                            getString(R.string.error_loading_data),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         }
