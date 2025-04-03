@@ -52,10 +52,14 @@ jobs:
         run: |
           mv ${{ steps.sign_foss.outputs.signedReleaseFile }} app/build/outputs/apk/foss/release/showcase_foss_${{ github.run_number }}.apk
           mv ${{ steps.sign_full.outputs.signedReleaseFile }} app/build/outputs/apk/full/release/showcase_full_${{ github.run_number }}.apk
+
+      - name: Generate mapping.txt
+        run: ./gradlew generateReleaseMapping
+
       - name: Install curl
         run: sudo apt-get install -y curl
 
-      - name: Upload APKs to Telegram
+      - name: Upload APKs and mapping.txt to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -66,3 +70,6 @@ jobs:
           curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
           -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
           -F document=@app/build/outputs/apk/full/release/showcase_full_${{ github.run_number }}.apk
+          curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+          -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
+          -F document=@app/build/outputs/mapping/release/mapping.txt
