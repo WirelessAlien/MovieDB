@@ -104,7 +104,7 @@ class FavoriteFragment : BaseFragment() {
         super.showPagingList(fragmentView)
         mShowView.adapter = pagingAdapter
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             Pager(PagingConfig(pageSize = 20)) {
                 FavoriteListPagingSource(mListType, preferences)
             }.flow.collectLatest { pagingData ->
@@ -113,6 +113,11 @@ class FavoriteFragment : BaseFragment() {
         }
 
         pagingAdapter.addLoadStateListener { loadState ->
+
+            if (!isAdded || view == null) {
+                return@addLoadStateListener
+            }
+
             when (loadState.source.refresh) {
                 is LoadState.Loading -> {
                     binding.showRecyclerView.visibility = View.GONE
