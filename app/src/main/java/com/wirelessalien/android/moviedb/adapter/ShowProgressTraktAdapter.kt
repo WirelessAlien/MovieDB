@@ -68,6 +68,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 class ShowProgressTraktAdapter(
     showList: ArrayList<JSONObject>,
@@ -311,7 +312,9 @@ class ShowProgressTraktAdapter(
                            val currentDateTime = SimpleDateFormat(
                                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                                Locale.getDefault()
-                           ).format(Date())
+                           ).apply {
+                               timeZone = TimeZone.getTimeZone("UTC")
+                           }.format(Date())
 
                            val episodes = parseEpisodesForSeasonTmdb(
                                showData.optString("seasons_episode_show_tmdb", ""),

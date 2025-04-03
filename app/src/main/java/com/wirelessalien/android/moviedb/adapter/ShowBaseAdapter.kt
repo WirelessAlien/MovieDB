@@ -255,13 +255,23 @@ class ShowBaseAdapter(
                     .format(Calendar.getInstance().time)
 
                 val tvShowId = showData.optInt(KEY_ID)
+                val totalEpisodes = getTotalEpisodesFromTmdb(context, tvShowId).coerceAtLeast(0)
+                val watchedEpisodesCount = getWatchedEpisodesCount(showData).coerceAtLeast(0)
                 val nextEpisode = getNextEpisodeDetails(tvShowId)
-                val totalEpisodes = getTotalEpisodesFromTmdb(context, tvShowId)
-                val watchedEpisodesCount = getWatchedEpisodesCount(showData)
-                episodeSlider.valueFrom = 0f
-                episodeSlider.valueTo = totalEpisodes.toFloat()
-                episodeSlider.value = watchedEpisodesCount.toFloat()
                 val seasons = getSeasonsFromTmdbDatabase(tvShowId)
+
+                if (totalEpisodes == 0) {
+                    Toast.makeText(context, context.getString(R.string.no_episodes_found), Toast.LENGTH_SHORT).show()
+                    return@setOnLongClickListener true
+                }
+
+                episodeSlider.apply {
+                    valueFrom = 0f
+                    valueTo = totalEpisodes.toFloat()
+                    value = watchedEpisodesCount.coerceIn(valueFrom.toInt(), valueTo.toInt()).toFloat()
+                    stepSize = 1f
+                }
+
                 val maxVisibleChips = 5
                 var isExpanded = false
 
@@ -678,25 +688,32 @@ class ShowBaseAdapter(
         return episodes
     }
 
-    private fun getWatchedEpisodesFromDb(showTraktId: Int, seasonNumber: Int): MutableList<Int> {
+    private fun getWatchedEpisodesFromDb(showTraktId: Int, seasonNumber: Int): List<Int> {
         val dbHelper = MovieDatabaseHelper(context)
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            MovieDatabaseHelper.TABLE_EPISODES,
-            arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER),
-            "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ? AND ${MovieDatabaseHelper.COLUMN_SEASON_NUMBER} = ?",
-            arrayOf(showTraktId.toString(), seasonNumber.toString()),
-            null, null, null
-        )
-        val watchedEpisodes = mutableListOf<Int>()
-        if (cursor.moveToFirst()) {
-            do {
-                val episodeNumber = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER))
-                watchedEpisodes.add(episodeNumber)
-            } while (cursor.moveToNext())
+        return try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.query(
+                MovieDatabaseHelper.TABLE_EPISODES,
+                arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER),
+                "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ? AND ${MovieDatabaseHelper.COLUMN_SEASON_NUMBER} = ?",
+                arrayOf(showTraktId.toString(), seasonNumber.toString()),
+                null, null, null
+            )
+
+            val watchedEpisodes = mutableListOf<Int>()
+            cursor.use { c ->
+                if (c.moveToFirst()) {
+                    do {
+                        val episodeNumber = c.getInt(c.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER))
+                        watchedEpisodes.add(episodeNumber)
+                    } while (c.moveToNext())
+                }
+            }
+            watchedEpisodes
+        } catch (e: Exception) {
+            Log.e("ShowBaseAdapter", "Error getting watched episodes from db", e)
+            emptyList()
         }
-        cursor.close()
-        return watchedEpisodes
     }
 
     private fun parseSeasonsTmdb(seasonsString: String): List<Int> {
@@ -719,15 +736,28 @@ class ShowBaseAdapter(
     private fun getWatchedEpisodesCount(showData: JSONObject): Int {
         if (!showData.has("season")) return 0
 
-        val seasons = showData.getJSONObject("season")
-        var watchedCount = 0
+        try {
+            if (showData.get("season") is JSONObject) {
+                val seasons = showData.getJSONObject("season")
+                var watchedCount = 0
 
-        seasons.keys().forEach { seasonNumber ->
-            val episodes = seasons.getJSONArray(seasonNumber)
-            watchedCount += episodes.length()
+                seasons.keys().forEach { seasonNumber ->
+                    val episodes = seasons.getJSONArray(seasonNumber)
+                    watchedCount += episodes.length()
+                }
+                return watchedCount
+            }
+            else {
+                val tvShowId = showData.optInt(KEY_ID)
+                val seasons = getSeasonsFromTmdbDatabase(tvShowId)
+                return seasons.sumOf { seasonNumber ->
+                    getWatchedEpisodesFromDb(tvShowId, seasonNumber).size
+                }
+            }
+        } catch (e: JSONException) {
+            Log.e("ShowBaseAdapter", "Error counting watched episodes", e)
+            return 0
         }
-
-        return watchedCount
     }
 
     private fun getTotalEpisodesFromTmdb(context: Context, movieId: Int): Int {

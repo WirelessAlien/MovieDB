@@ -777,10 +777,7 @@ class MainActivity : BaseActivity() {
             val currentFragment = getCurrentFragment()
             if (currentFragment is ListFragment) {
                 val showsFromDatabase = currentFragment.getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
-                mDatabaseSearchAdapter = ShowBaseAdapter(context,
-                    showsFromDatabase, mShowGenreList,
-                    preferences.getBoolean(BaseFragment.SHOWS_LIST_PREFERENCE, true)
-                )
+                mDatabaseSearchAdapter = ShowBaseAdapter(context, showsFromDatabase, mShowGenreList, true)
                 binding.searchResultsRecyclerView.adapter = mDatabaseSearchAdapter
             }
         }
@@ -1167,7 +1164,7 @@ class MainActivity : BaseActivity() {
             .show()
 
         job = lifecycleScope.launch {
-            val getTmdbDetails = GetTmdbDetails(this@MainActivity, tmdbApiKey ?: "")
+            val getTmdbDetails = GetTmdbDetails(this@MainActivity, tmdbApiKey)
             getTmdbDetails.fetchAndSaveTmdbDetails { showTitle, progress ->
                 lifecycleScope.launch(Dispatchers.Main) {
                     binding.progressText.text = showTitle
