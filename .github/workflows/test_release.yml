@@ -10,21 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get the source
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4 
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4 
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle' 
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Generate Release APKs
+      - name: Generate Release APKs and Mapping Files
         run: ./gradlew assemblefossRelease assemblefullRelease
 
-      - name: Sign APKs
+      - name: Sign fossRelease APK
         uses: r0adkll/sign-android-release@v1
         id: sign_foss
         with:
@@ -36,7 +37,7 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Sign APKs
+      - name: Sign fullRelease APK
         uses: r0adkll/sign-android-release@v1
         id: sign_full
         with:
@@ -52,17 +53,47 @@ jobs:
         run: |
           mv ${{ steps.sign_foss.outputs.signedReleaseFile }} app/build/outputs/apk/foss/release/showcase_foss_${{ github.run_number }}.apk
           mv ${{ steps.sign_full.outputs.signedReleaseFile }} app/build/outputs/apk/full/release/showcase_full_${{ github.run_number }}.apk
-      - name: Install curl
-        run: sudo apt-get install -y curl
 
-      - name: Upload APKs to Telegram
+      - name: Install curl
+        run: sudo apt-get update && sudo apt-get install -y curl
+
+      - name: Upload APKs and mapping.txt to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+          # Upload Foss APK
+          curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
           -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
-          -F document=@app/build/outputs/apk/foss/release/showcase_foss_${{ github.run_number }}.apk
-          curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+          -F caption="Foss Release APK Build #${{ github.run_number }}" \
+          -F document=@"app/build/outputs/apk/foss/release/showcase_foss_${{ github.run_number }}.apk"
+
+          # Upload Full APK
+          curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
           -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
-          -F document=@app/build/outputs/apk/full/release/showcase_full_${{ github.run_number }}.apk
+          -F caption="Full Release APK Build #${{ github.run_number }}" \
+          -F document=@"app/build/outputs/apk/full/release/showcase_full_${{ github.run_number }}.apk"
+
+          # Upload Foss Mapping File (if it exists)
+          FOSS_MAPPING="app/build/outputs/mapping/fossRelease/mapping.txt"
+          if [ -f "$FOSS_MAPPING" ]; then
+            echo "Uploading Foss mapping file..."
+            curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
+            -F caption="Foss Release Mapping File Build #${{ github.run_number }}" \
+            -F document=@"$FOSS_MAPPING"
+          else
+            echo "Warning: Foss mapping file not found at $FOSS_MAPPING. Ensure minifyEnabled is true for fossRelease."
+          fi
+
+          # Upload Full Mapping File (if it exists)
+          FULL_MAPPING="app/build/outputs/mapping/fullRelease/mapping.txt"
+          if [ -f "$FULL_MAPPING" ]; then
+            echo "Uploading Full mapping file..."
+            curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
+            -F caption="Full Release Mapping File Build #${{ github.run_number }}" \
+            -F document=@"$FULL_MAPPING"
+          else
+            echo "Warning: Full mapping file not found at $FULL_MAPPING. Ensure minifyEnabled is true for fullRelease."
+          fi
