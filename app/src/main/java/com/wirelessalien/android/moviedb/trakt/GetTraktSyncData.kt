@@ -23,15 +23,19 @@ package com.wirelessalien.android.moviedb.trakt
 import android.content.ContentValues
 import android.content.Context
 import android.icu.text.SimpleDateFormat
+import android.util.Log
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper.Companion.USER_LISTS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.Date
 import java.util.Locale
 
@@ -736,19 +740,30 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
     }
 
     private fun executeRequest(request: Request, onResponse: (String) -> Unit) {
-        try {
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
-                if (responseBody != null) {
-                    onResponse(responseBody)
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    if (!responseBody.isNullOrEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            onResponse(responseBody)
+                        }
+                    } else {
+                        Log.e("API", "Empty response body")
+                    }
+                } else {
+                    Log.e("API", "Request failed: ${response.code} ${response.message}")
                 }
-            } else {
-                // Handle the error
-
+            } catch (e: UnknownHostException) {
+                Log.e("API", "Network error: No internet connection", e)
+            } catch (e: SocketTimeoutException) {
+                Log.e("API", "Network error: Request timed out", e)
+            } catch (e: IOException) {
+                Log.e("API", "API request failed", e)
+            } catch (e: Exception) {
+                Log.e("API", "Unexpected error", e)
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
         }
     }
 }

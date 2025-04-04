@@ -120,7 +120,10 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.net.SocketTimeoutException
 import java.net.URL
+import java.net.URLEncoder
+import java.net.UnknownHostException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -1755,53 +1758,119 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         }
     }
 
-
     private suspend fun fetchMovieDetailsByExternalId(externalId: String, type: String): JSONObject? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
-            val url = "https://api.themoviedb.org/3/find/$externalId?external_source=$type"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("accept", "application/json")
-                .addHeader("Authorization", "Bearer $apiReadAccessToken")
-                .build()
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val responseBody = response.body!!.string()
-                    val jsonObject = JSONObject(responseBody)
-                    Log.d("DetailActivity", jsonObject.toString())
-                    val results = if (type == "imdb_id") jsonObject.getJSONArray("movie_results") else jsonObject.getJSONArray("tv_results")
-                    if (results.length() > 0) {
-                        return@withContext results.getJSONObject(0)
+            try {
+                val client = OkHttpClient()
+                val url = "https://api.themoviedb.org/3/find/$externalId?external_source=$type"
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        Log.e("NetworkError", "TMDB API request failed: ${response.code} - ${response.message}")
+                        return@withContext null
+                    }
+
+                    val responseBody = response.body?.string() ?: run {
+                        Log.e("NetworkError", "Empty response body from TMDB API")
+                        return@withContext null
+                    }
+
+                    try {
+                        val jsonObject = JSONObject(responseBody)
+                        Log.d("DetailActivity", jsonObject.toString())
+
+                        val results = if (type == "imdb_id") {
+                            jsonObject.getJSONArray("movie_results")
+                        } else {
+                            jsonObject.getJSONArray("tv_results")
+                        }
+
+                        if (results.length() > 0) {
+                            return@withContext results.getJSONObject(0)
+                        }
+
+                        return@withContext null
+                    } catch (e: JSONException) {
+                        Log.e("NetworkError", "Failed to parse TMDB API response: ${e.message}")
+                        return@withContext null
                     }
                 }
+            } catch (e: SocketTimeoutException) {
+                Log.e("NetworkError", "TMDB API request timed out: ${e.message}")
+                null
+            } catch (e: UnknownHostException) {
+                Log.e("NetworkError", "Network unavailable for TMDB API: ${e.message}")
+                null
+            } catch (e: IOException) {
+                Log.e("NetworkError", "Network IO error with TMDB API: ${e.message}")
+                null
+            } catch (e: Exception) {
+                Log.e("NetworkError", "Unexpected error with TMDB API: ${e.message}")
+                null
             }
-            return@withContext null
         }
     }
 
     private suspend fun fetchMovieDetailsByTitleAndYear(type: String, title: String, year: String): JSONObject? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
-            val url = "https://api.themoviedb.org/3/search/$type?query=$title&year=$year"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("accept", "application/json")
-                .addHeader("Authorization", "Bearer $apiReadAccessToken")
-                .build()
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val responseBody = response.body!!.string()
-                    val jsonObject = JSONObject(responseBody)
-                    val results = jsonObject.getJSONArray("results")
-                    if (results.length() > 0) {
-                        return@withContext results.getJSONObject(0)
+            try {
+                val client = OkHttpClient()
+                val url = "https://api.themoviedb.org/3/search/$type?query=$title&year=$year"
+
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        Log.e("TMDB_API", "Request failed: ${response.code} ${response.message}")
+                        return@withContext null
+                    }
+
+                    val responseBody = response.body?.string() ?: run {
+                        Log.e("TMDB_API", "Empty response body")
+                        return@withContext null
+                    }
+
+                    try {
+                        val jsonObject = JSONObject(responseBody)
+                        val results = jsonObject.getJSONArray("results")
+
+                        if (results.length() > 0) {
+                            return@withContext results.getJSONObject(0)
+                        }
+
+                        Log.d("TMDB_API", "No results found for $title ($year)")
+                        return@withContext null
+
+                    } catch (e: JSONException) {
+                        Log.e("TMDB_API", "JSON parsing error: ${e.message}")
+                        return@withContext null
                     }
                 }
+
+            } catch (e: SocketTimeoutException) {
+                Log.e("TMDB_API", "Request timed out")
+                null
+            } catch (e: UnknownHostException) {
+                Log.e("TMDB_API", "Network unavailable")
+                null
+            } catch (e: IOException) {
+                Log.e("TMDB_API", "Network error: ${e.message}")
+                null
+            } catch (e: Exception) {
+                Log.e("TMDB_API", "Unexpected error: ${e.message}")
+                null
             }
-            return@withContext null
         }
     }
 

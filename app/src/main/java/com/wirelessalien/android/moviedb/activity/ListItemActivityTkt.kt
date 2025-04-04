@@ -118,8 +118,8 @@ class ListItemActivityTkt : AppCompatActivity() {
                 val cursor = db.query(
                     TraktDatabaseHelper.TABLE_LIST_ITEM,
                     null,
-                    "${TraktDatabaseHelper.COL_LIST_ID} = ?",
-                    arrayOf(listId.toString()),
+                    "${TraktDatabaseHelper.COL_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_TYPE} != ?",
+                    arrayOf(listId.toString(), "person"),
                     null,
                     null,
                     null

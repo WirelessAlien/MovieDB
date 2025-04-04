@@ -28,6 +28,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -337,7 +338,7 @@ class AccountDataFragmentTkt : BaseFragment() {
             chipGroup.addView(chip)
         }
 
-        MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.refresh))
             .setView(dialogBinding.root)
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
@@ -347,7 +348,15 @@ class AccountDataFragmentTkt : BaseFragment() {
             .setNegativeButton(getString(R.string.cancel)) { _, _ ->
                 binding.swipeRefreshLayout.isRefreshing = false
             }
-            .show()
+            .create()
+
+        dialog.setOnDismissListener {
+            dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+
+        dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        dialog.show()
+
     }
 
     private fun refreshData(selectedOptions: Set<String>) {
@@ -364,8 +373,14 @@ class AccountDataFragmentTkt : BaseFragment() {
                 binding.swipeRefreshLayout.isRefreshing = false
                 dialog.dismiss()
             }
-            .show()
+            .create()
 
+        progressDialog.setOnDismissListener {
+            progressDialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+
+        progressDialog.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        progressDialog.show()
 
         fun updateProgressMessage(message: String) {
             lifecycleScope.launch(Dispatchers.Main) {
@@ -446,7 +461,14 @@ class AccountDataFragmentTkt : BaseFragment() {
                 job?.cancel()
                 dialog.dismiss()
             }
-            .show()
+            .create()
+
+        tmdbDialog.setOnDismissListener {
+            tmdbDialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+
+        tmdbDialog.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        tmdbDialog.show()
 
         job = lifecycleScope.launch {
             val getTmdbDetails = GetTmdbDetails(requireContext(), tmdbApiKey ?: "")
