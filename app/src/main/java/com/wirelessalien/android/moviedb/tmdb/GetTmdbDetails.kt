@@ -33,8 +33,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 class GetTmdbDetails(private val context: Context, private val tmdbApiKey: String) {
@@ -43,103 +41,86 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
     private val rateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)
 
     suspend fun fetchAndSaveTmdbDetails(updateProgress: (String, Int) -> Unit) {
-        try {
-            withContext(Dispatchers.IO) {
-                val traktDbHelper = TraktDatabaseHelper(context)
-                val traktDb = traktDbHelper.readableDatabase
+        withContext(Dispatchers.IO) {
+            val traktDbHelper = TraktDatabaseHelper(context)
+            val traktDb = traktDbHelper.readableDatabase
 
-                val tables = listOf(
-                    TraktDatabaseHelper.TABLE_COLLECTION,
-                    TraktDatabaseHelper.TABLE_WATCHLIST,
-                    TraktDatabaseHelper.TABLE_HISTORY,
-                    TraktDatabaseHelper.TABLE_FAVORITE,
-                    TraktDatabaseHelper.TABLE_RATING,
-                    TraktDatabaseHelper.TABLE_WATCHED,
-                    TraktDatabaseHelper.TABLE_LIST_ITEM,
-                    TraktDatabaseHelper.TABLE_CALENDER
+            val tables = listOf(
+                TraktDatabaseHelper.TABLE_COLLECTION,
+                TraktDatabaseHelper.TABLE_WATCHLIST,
+                TraktDatabaseHelper.TABLE_HISTORY,
+                TraktDatabaseHelper.TABLE_FAVORITE,
+                TraktDatabaseHelper.TABLE_RATING,
+                TraktDatabaseHelper.TABLE_WATCHED,
+                TraktDatabaseHelper.TABLE_LIST_ITEM,
+                TraktDatabaseHelper.TABLE_CALENDER
+            )
+            val tmdbDbHelper = TmdbDetailsDatabaseHelper(context)
+            val tmdbDb = tmdbDbHelper.readableDatabase
+
+            var totalItems = 0
+            var processedItems = 0
+
+            for (table in tables) {
+                val cursor = traktDb.query(
+                    table,
+                    arrayOf(TraktDatabaseHelper.COL_TMDB, TraktDatabaseHelper.COL_TYPE, TraktDatabaseHelper.COL_SHOW_TMDB),
+                    null, null, null, null, null
                 )
-                val tmdbDbHelper = TmdbDetailsDatabaseHelper(context)
-                val tmdbDb = tmdbDbHelper.readableDatabase
+                totalItems += cursor.count
+                cursor.close()
+            }
 
-                var totalItems = 0
-                var processedItems = 0
+            for (table in tables) {
+                val cursor = traktDb.query(
+                    table,
+                    arrayOf(TraktDatabaseHelper.COL_TMDB, TraktDatabaseHelper.COL_TYPE, TraktDatabaseHelper.COL_SHOW_TMDB),
+                    null, null, null, null, null
+                )
 
-                for (table in tables) {
-                    val cursor = traktDb.query(
-                        table,
-                        arrayOf(
-                            TraktDatabaseHelper.COL_TMDB,
-                            TraktDatabaseHelper.COL_TYPE,
-                            TraktDatabaseHelper.COL_SHOW_TMDB
-                        ),
-                        null, null, null, null, null
-                    )
-                    totalItems += cursor.count
-                    cursor.close()
-                }
+                while (cursor.moveToNext()) {
+                    val tmdbId = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TMDB))
+                    val type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
+                    val showTmdbId = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TMDB))
 
-                for (table in tables) {
-                    val cursor = traktDb.query(
-                        table,
-                        arrayOf(
-                            TraktDatabaseHelper.COL_TMDB,
-                            TraktDatabaseHelper.COL_TYPE,
-                            TraktDatabaseHelper.COL_SHOW_TMDB
-                        ),
-                        "${TraktDatabaseHelper.COL_TYPE} != ?",
-                        arrayOf("person"),
-                        null, null, null
-                    )
-
-                    while (cursor.moveToNext()) {
-                        val tmdbId =
-                            cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TMDB))
-                        val type =
-                            cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
-                        val showTmdbId =
-                            cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TMDB))
-
-                        val idToCheck =
-                            if (type == "season" || type == "episode") showTmdbId else tmdbId
-
-                        val tmdbCursor = tmdbDb.query(
-                            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
-                            arrayOf(TmdbDetailsDatabaseHelper.COL_ID),
-                            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
-                            arrayOf(idToCheck.toString()),
-                            null, null, null
-                        )
-
-                        if (!tmdbCursor.moveToFirst()) {
-                            rateLimiter.acquire()
-                            val tmdbDetails = fetchTmdbDetails(idToCheck, type)
-                            saveTmdbDetailsToDb(tmdbDetails)
-                        }
-                        tmdbCursor.close()
-
+                    if (type == "person") {
                         processedItems++
                         val progress = (processedItems * 100) / totalItems
                         updateProgress(
-                            context.getString(
-                                R.string.fetching_item_of,
-                                processedItems,
-                                totalItems
-                            ), progress
-                        )
+                            context.getString(R.string.fetching_item_of, processedItems, totalItems), progress)
+                        continue
                     }
-                    cursor.close()
+
+                    val idToCheck = if (type == "season" || type == "episode") showTmdbId else tmdbId
+
+                    val tmdbCursor = tmdbDb.query(
+                        TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                        arrayOf(TmdbDetailsDatabaseHelper.COL_ID),
+                        "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+                        arrayOf(idToCheck.toString()),
+                        null, null, null
+                    )
+
+                    if (!tmdbCursor.moveToFirst()) {
+                        try {
+                            rateLimiter.acquire()
+                            val tmdbDetails = fetchTmdbDetails(idToCheck, type)
+                            saveTmdbDetailsToDb(tmdbDetails)
+                        } catch (e: Exception) {
+                            Log.e("GetTmdbDetails", "Failed to fetch/save TMDB details for ID $idToCheck ($type): ${e.message}")
+                        }
+                    }
+                    tmdbCursor.close()
+
+                    processedItems++
+                    val progress = (processedItems * 100) / totalItems
+                    updateProgress(
+                        context.getString(R.string.fetching_item_of, processedItems, totalItems), progress)
                 }
-                traktDb.close()
-                tmdbDb.close()
+                cursor.close()
             }
-        } catch (e: UnknownHostException) {
-            Log.e("GetTmdbDetails", "Network error: ${e.message}")
-        } catch (e: SocketTimeoutException) {
-            Log.e("API", "Network error: Request timed out", e)
-        } catch (e: IOException) {
-            Log.e("API", "API request failed", e)
-        } catch (e: Exception) {
-            Log.e("GetTmdbDetails", "Unexpected error: ${e.message}")
+            traktDb.close()
+            tmdbDb.close()
         }
     }
 
@@ -153,7 +134,17 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
 
             val request = Request.Builder().url(url).build()
             val response = client.newCall(request).execute()
-            JSONObject(response.body?.string() ?: "")
+
+            if (!response.isSuccessful) {
+                throw IOException("TMDB API call failed: HTTP ${response.code}")
+            }
+
+            val responseBody = response.body?.string()
+            if (responseBody.isNullOrEmpty()) {
+                throw IOException("Empty response from TMDB API")
+            }
+
+            JSONObject(responseBody)
         }
     }
 

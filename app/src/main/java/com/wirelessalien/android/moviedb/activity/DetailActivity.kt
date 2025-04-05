@@ -122,7 +122,6 @@ import org.json.JSONObject
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.URL
-import java.net.URLEncoder
 import java.net.UnknownHostException
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -224,7 +223,6 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 supportActionBar?.title = ""
             }
         }
-
         episodeViewPager = binding.episodeViewPager
         episodePagerAdapter = EpisodePagerAdapter(this)
 
@@ -235,10 +233,6 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         context = this
         seenEpisode = 0
         movieDataObject = JSONObject()
-
-        databaseHelper = MovieDatabaseHelper(applicationContext)
-        database = databaseHelper.writableDatabase
-        databaseHelper.onCreate(database)
 
         // RecyclerView to display the cast of the show.
         binding.castRecyclerView.setHasFixedSize(true) // Improves performance (if size is static)
@@ -428,6 +422,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             e.printStackTrace()
         }
         checkNetwork()
+        databaseHelper = MovieDatabaseHelper(applicationContext)
+        database = databaseHelper.writableDatabase
+        databaseHelper.onCreate(database)
 
         // Check if the show is already in the database.
         val cursor = database.rawQuery(
@@ -2133,6 +2130,12 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 showTitle = SpannableString(movieObject.getString(title))
             }
 
+            // The rating also uses a class variable for the same reason
+            // as the image.
+            databaseHelper = MovieDatabaseHelper(applicationContext)
+            database = databaseHelper.writableDatabase
+            databaseHelper.onCreate(database)
+
             // Retrieve and present saved data of the show.
             val cursor = database.rawQuery(
                 "SELECT * FROM " +
@@ -2518,6 +2521,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             categoriesView.onItemClickListener = AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
                 // Save the category to the database
                 val showValues = ContentValues()
+                database = databaseHelper.writableDatabase
                 val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
                 cursor.moveToFirst()
 
@@ -2548,6 +2552,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     val showValues = ContentValues()
                     val timesWatched = binding.timesWatched.text.toString().toInt()
                     showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, timesWatched)
+                    database = databaseHelper.writableDatabase
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
                     database.close()
 
@@ -2563,6 +2568,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     // Save the number to the database
                     val showValues = ContentValues()
                     showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_RATING, value)
+                    database = databaseHelper.writableDatabase
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
                     database.close()
 
@@ -2581,6 +2587,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     val showValues = ContentValues()
                     val review = binding.movieReview.text.toString()
                     showValues.put(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW, review)
+                    database = databaseHelper.writableDatabase
                     database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
                     database.close()
 
@@ -2619,6 +2626,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
     }
 
     private fun updateEditShowDetails() {
+        database = databaseHelper.writableDatabase
         val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
         if (cursor.count <= 0) {
             cursor.close()
@@ -2717,6 +2725,8 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             showYearMonthPickerDialog(context) { selectedYear, selectedMonth ->
                 // Save the selected year and month to the database
                 val movieValues = ContentValues()
+                database = databaseHelper.writableDatabase
+                databaseHelper.onCreate(database)
                 val month = selectedMonth?.toString()?.padStart(2, '0') ?: "00"
                 val dateText = "00-$month-$selectedYear"
                 if (view.tag == "start_date") {
@@ -2849,6 +2859,8 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 binding.movieFinishDate.text = getString(R.string.finish_date, formattedDate)
                 finishDate = calendar.time
             }
+            database = databaseHelper.writableDatabase
+            databaseHelper.onCreate(database)
             database.update(
                 MovieDatabaseHelper.TABLE_MOVIES,
                 movieValues,

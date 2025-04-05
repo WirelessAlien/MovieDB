@@ -118,7 +118,7 @@ class ListItemActivityTkt : AppCompatActivity() {
                 val cursor = db.query(
                     TraktDatabaseHelper.TABLE_LIST_ITEM,
                     null,
-                    "${TraktDatabaseHelper.COL_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_TYPE} != ?",
+                    "${TraktDatabaseHelper.COL_LIST_ID} = ? AND ${TraktDatabaseHelper.COL_TYPE} != ?",
                     arrayOf(listId.toString(), "person"),
                     null,
                     null,
@@ -127,13 +127,17 @@ class ListItemActivityTkt : AppCompatActivity() {
 
                 if (cursor.moveToFirst()) {
                     do {
+                        val type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
+                        // Skip person type items
+                        if (type == "person") continue
+
                         val jsonObject = JSONObject().apply {
                             put("auto_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ID)))
                             put("listed_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_LISTED_AT)))
-                            put("type", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE)))
+                            put("type", type)
                             put("title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE)))
                             put("year", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_YEAR)))
-                            when (cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))) {
+                            when (type) {
                                 "movie", "show" -> {
                                     put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)))
                                 }

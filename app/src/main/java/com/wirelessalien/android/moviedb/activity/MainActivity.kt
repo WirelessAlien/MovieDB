@@ -25,11 +25,13 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
@@ -46,6 +48,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
@@ -76,7 +79,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -88,6 +90,7 @@ import com.wirelessalien.android.moviedb.data.ListData
 import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
+import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -105,6 +108,7 @@ import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
 import com.wirelessalien.android.moviedb.pagingSource.SearchPagingSource
+import com.wirelessalien.android.moviedb.service.TraktSyncService
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
@@ -148,6 +152,7 @@ class MainActivity : BaseActivity() {
     private lateinit var mShowGenreList: HashMap<String, String?>
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
     private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
+    private var traktReceiver: BroadcastReceiver? = null
 
 
     @SuppressLint("InlinedApi")
@@ -1018,6 +1023,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    @SuppressLint("InlinedApi", "UnspecifiedRegisterReceiverFlag")
     private fun showRefreshDialog(accessToken: String) {
         val options = listOf(
             getString(R.string.movie_collection),
@@ -1035,8 +1041,17 @@ class MainActivity : BaseActivity() {
 
         val selectedOptions = preferences.getStringSet("selected_options", options.toMutableSet())?.toMutableSet() ?: options.toMutableSet()
 
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_refresh_options, null)
-        val chipGroup = dialogView.findViewById<ChipGroup>(R.id.chipGroup)
+        val dialogBinding = DialogRefreshOptionsBinding.inflate(LayoutInflater.from(context))
+        val chipGroup = dialogBinding.chipGroup
+        val allSwitch = dialogBinding.allSwitch.apply {
+            isChecked = true
+        }
+
+        chipGroup.visibility = View.GONE
+
+        allSwitch.setOnCheckedChangeListener { _, isChecked ->
+            chipGroup.visibility = if (isChecked) View.GONE else View.VISIBLE
+        }
 
         options.forEach { option ->
             val chip = Chip(context).apply {
@@ -1057,15 +1072,62 @@ class MainActivity : BaseActivity() {
             chipGroup.addView(chip)
         }
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.select_options))
-            .setView(dialogView)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.refresh))
+            .setView(dialogBinding.root)
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
-                preferences.edit().putStringSet("selected_options", selectedOptions).apply()
-                refreshData(selectedOptions, accessToken)
+                if (allSwitch.isChecked) {
+                    val intent = Intent(this, TraktSyncService::class.java).apply {
+                        action = TraktSyncService.ACTION_START_SERVICE
+                        putExtra(TraktSyncService.EXTRA_ACCESS_TOKEN, accessToken)
+                        putExtra(TraktSyncService.EXTRA_CLIENT_ID, clientId)
+                        putExtra(TraktSyncService.EXTRA_TMDB_API_KEY, tmdbApiKey)
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(intent)
+                    } else {
+                        startService(intent)
+                    }
+
+                    traktReceiver = object : BroadcastReceiver() {
+                        override fun onReceive(context: Context?, intent: Intent?) {
+                            try {
+                                context?.unregisterReceiver(this)
+                            } catch (e: IllegalArgumentException) {
+                                e.printStackTrace()
+                            }
+
+                           Toast.makeText(context, getString(R.string.sync_completed), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    val filter = IntentFilter(TraktSyncService.ACTION_SERVICE_COMPLETED)
+
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            registerReceiver(traktReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+                        } else {
+                            registerReceiver(traktReceiver, filter)
+                        }
+                    } catch (e: IllegalStateException) {
+                        e.printStackTrace()
+                    }
+
+                } else {
+                    preferences.edit().putStringSet("selected_options", selectedOptions).apply()
+                    refreshData(selectedOptions, accessToken)
+                }
             }
-            .setNegativeButton(getString(R.string.cancel), null)
-            .show()
+            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
+            }
+            .create()
+
+        dialog.setOnDismissListener {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        dialog.show()
     }
 
     private fun refreshData(selectedOptions: Set<String>, accessToken: String) {

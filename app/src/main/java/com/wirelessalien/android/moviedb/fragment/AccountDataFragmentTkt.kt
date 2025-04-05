@@ -20,7 +20,13 @@
 
 package com.wirelessalien.android.moviedb.fragment
 
+import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -44,6 +50,7 @@ import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBind
 import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentAccountDataTktBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.service.TraktSyncService
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +72,8 @@ class AccountDataFragmentTkt : BaseFragment() {
     private lateinit var binding: FragmentAccountDataTktBinding
     private lateinit var activityBinding: ActivityMainBinding
     private val client = OkHttpClient()
+    private var traktReceiver: BroadcastReceiver? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -298,6 +307,7 @@ class AccountDataFragmentTkt : BaseFragment() {
         activityBinding.fab2.visibility = View.GONE
     }
 
+    @SuppressLint("InlinedApi", "UnspecifiedRegisterReceiverFlag")
     private fun showRefreshDialog() {
         val options = listOf(
             getString(R.string.movie_collection),
@@ -318,6 +328,15 @@ class AccountDataFragmentTkt : BaseFragment() {
 
         val dialogBinding = DialogRefreshOptionsBinding.inflate(LayoutInflater.from(context))
         val chipGroup = dialogBinding.chipGroup
+        val allSwitch = dialogBinding.allSwitch.apply {
+            isChecked = true
+        }
+
+        chipGroup.visibility = View.GONE
+
+        allSwitch.setOnCheckedChangeListener { _, isChecked ->
+            chipGroup.visibility = if (isChecked) View.GONE else View.VISIBLE
+        }
 
         options.forEach { option ->
             val chip = Chip(context).apply {
@@ -342,8 +361,51 @@ class AccountDataFragmentTkt : BaseFragment() {
             .setTitle(getString(R.string.refresh))
             .setView(dialogBinding.root)
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
-                sharedPreferences.edit().putStringSet("selected_options", selectedOptions).apply()
-                refreshData(selectedOptions)
+                if (allSwitch.isChecked) {
+                    binding.swipeRefreshLayout.isRefreshing = true
+                    val intent = Intent(requireContext(), TraktSyncService::class.java).apply {
+                        action = TraktSyncService.ACTION_START_SERVICE
+                        putExtra(TraktSyncService.EXTRA_ACCESS_TOKEN, accessToken)
+                        putExtra(TraktSyncService.EXTRA_CLIENT_ID, clientId)
+                        putExtra(TraktSyncService.EXTRA_TMDB_API_KEY, tmdbApiKey)
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        requireContext().startForegroundService(intent)
+                    } else {
+                        requireContext().startService(intent)
+                    }
+
+                    traktReceiver = object : BroadcastReceiver() {
+                        override fun onReceive(context: Context?, intent: Intent?) {
+                            try {
+                                context?.unregisterReceiver(this)
+                            } catch (e: IllegalArgumentException) {
+                                e.printStackTrace()
+                            }
+
+                            if (!isAdded || !isResumed) return
+
+                            binding.swipeRefreshLayout.isRefreshing = false
+                            reloadFragment()
+                        }
+                    }
+
+                    val filter = IntentFilter(TraktSyncService.ACTION_SERVICE_COMPLETED)
+
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            requireContext().registerReceiver(traktReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+                        } else {
+                            requireContext().registerReceiver(traktReceiver, filter)
+                        }
+                    } catch (e: IllegalStateException) {
+                        e.printStackTrace()
+                    }
+
+                } else {
+                    sharedPreferences.edit().putStringSet("selected_options", selectedOptions).apply()
+                    refreshData(selectedOptions)
+                }
             }
             .setNegativeButton(getString(R.string.cancel)) { _, _ ->
                 binding.swipeRefreshLayout.isRefreshing = false
@@ -351,12 +413,11 @@ class AccountDataFragmentTkt : BaseFragment() {
             .create()
 
         dialog.setOnDismissListener {
-            dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
-        dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         dialog.show()
-
     }
 
     private fun refreshData(selectedOptions: Set<String>) {
@@ -376,10 +437,10 @@ class AccountDataFragmentTkt : BaseFragment() {
             .create()
 
         progressDialog.setOnDismissListener {
-            progressDialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
-        progressDialog.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         progressDialog.show()
 
         fun updateProgressMessage(message: String) {
@@ -464,10 +525,10 @@ class AccountDataFragmentTkt : BaseFragment() {
             .create()
 
         tmdbDialog.setOnDismissListener {
-            tmdbDialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
-        tmdbDialog.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         tmdbDialog.show()
 
         job = lifecycleScope.launch {

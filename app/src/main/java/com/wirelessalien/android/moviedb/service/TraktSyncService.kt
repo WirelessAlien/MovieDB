@@ -49,6 +49,8 @@ class TraktSyncService : Service() {
         const val EXTRA_ACCESS_TOKEN = "access_token"
         const val EXTRA_CLIENT_ID = "client_id"
         const val EXTRA_TMDB_API_KEY = "tmdb_api_key"
+        const val ACTION_SERVICE_COMPLETED = "SERVICE_COMPLETED"
+
     }
 
     override fun onCreate() {
@@ -104,6 +106,8 @@ class TraktSyncService : Service() {
             }
 
             updateNotification(getString(R.string.sync_completed))
+            val intent = Intent(ACTION_SERVICE_COMPLETED)
+            sendBroadcast(intent)
             stopSelf()
         }
     }

@@ -166,6 +166,7 @@
     <string name="season_marked_watched">Season marked as watched</string>
     <string name="season_marked_unwatched">Season marked as unwatched</string>
     <string name="no_episodes_found">No episode found</string>
+    <string name="get_complete_account_data">Get complete account data</string>
 
     <string-array name="media_types">
         <item>digital</item>

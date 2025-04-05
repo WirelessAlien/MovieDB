@@ -34,8 +34,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import java.io.IOException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.Date
 import java.util.Locale
 
@@ -44,21 +42,20 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
     private val client = OkHttpClient()
     private val dbHelper = TraktDatabaseHelper(context)
 
-    fun fetchData() {
-        CoroutineScope(Dispatchers.IO).launch {
-            fetchCollectionData()
-            fetchCollectionShowData()
-            fetchWatchedDataMovie()
-            fetchWatchedDataShow()
-            fetchHistoryData()
-            fetchRatingData()
-            fetchWatchlistData()
-            fetchFavoriteData()
-            fetchUserLists()
-            fetchAllListItems()
-            fetchCalendarData()
-        }
+    suspend fun fetchData() = withContext(Dispatchers.IO) {
+        fetchCollectionData()
+        fetchCollectionShowData()
+        fetchWatchedDataMovie()
+        fetchWatchedDataShow()
+        fetchHistoryData()
+        fetchRatingData()
+        fetchWatchlistData()
+        fetchFavoriteData()
+        fetchUserLists()
+        fetchAllListItems()
+        fetchCalendarData()
     }
+
 
     fun fetchAllListItems() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -739,31 +736,28 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
             .build()
     }
 
-    private fun executeRequest(request: Request, onResponse: (String) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val responseBody = response.body?.string()
-                    if (!responseBody.isNullOrEmpty()) {
-                        withContext(Dispatchers.Main) {
-                            onResponse(responseBody)
-                        }
-                    } else {
-                        Log.e("API", "Empty response body")
-                    }
+    private fun executeRequest(
+        request: Request,
+        onSuccess: (String) -> Unit,
+    ) {
+        try {
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                val responseBody = response.body?.string()
+                if (!responseBody.isNullOrEmpty()) {
+                    onSuccess(responseBody)
                 } else {
-                    Log.e("API", "Request failed: ${response.code} ${response.message}")
+                    Log.e("TraktAPI", "Empty response body")
                 }
-            } catch (e: UnknownHostException) {
-                Log.e("API", "Network error: No internet connection", e)
-            } catch (e: SocketTimeoutException) {
-                Log.e("API", "Network error: Request timed out", e)
-            } catch (e: IOException) {
-                Log.e("API", "API request failed", e)
-            } catch (e: Exception) {
-                Log.e("API", "Unexpected error", e)
+            } else {
+                Log.e("TraktAPI", "Request failed with code: ${response.code}")
             }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Log.e("TraktAPI", "Network error: ${e.message}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("TraktAPI", "Error: ${e.message}")
         }
     }
 }
