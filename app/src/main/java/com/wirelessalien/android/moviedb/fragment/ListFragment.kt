@@ -1468,7 +1468,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             .url(url)
             .get()
             .addHeader("Content-Type", "application/json")
-            .addHeader("Authorization", "Bearer $accessToken")
             .addHeader("trakt-api-version", "2")
             .addHeader("trakt-api-key", clientId ?: "")
             .build()
