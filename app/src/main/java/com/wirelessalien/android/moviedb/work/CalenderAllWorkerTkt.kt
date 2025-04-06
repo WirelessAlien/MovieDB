@@ -68,7 +68,7 @@ class CalenderAllWorkerTkt(
 
         // Fetch shows calendar
         val showsUrl = "https://api.trakt.tv/calendars/all/shows/$today/7"
-        val showsRequest = createRequest(showsUrl)
+        val showsRequest = createRequestA(showsUrl)
         executeRequest(showsRequest) { showResponse ->
             val showsArray = JSONArray(showResponse)
             for (i in 0 until showsArray.length()) {
@@ -120,7 +120,7 @@ class CalenderAllWorkerTkt(
 
         // Fetch movies calendar
         val moviesUrl = "https://api.trakt.tv/calendars/all/movies/$today/7"
-        val moviesRequest = createRequest(moviesUrl)
+        val moviesRequest = createRequestA(moviesUrl)
         executeRequest(moviesRequest) { movieResponse ->
             val moviesArray = JSONArray(movieResponse)
             for (i in 0 until moviesArray.length()) {
@@ -227,6 +227,16 @@ class CalenderAllWorkerTkt(
             .get()
             .addHeader("Content-Type", "application/json")
             .addHeader("Authorization", "Bearer $accessToken")
+            .addHeader("trakt-api-version", "2")
+            .addHeader("trakt-api-key", clientId ?: "")
+            .build()
+    }
+
+    private fun createRequestA(url: String): Request {
+        return Request.Builder()
+            .url(url)
+            .get()
+            .addHeader("Content-Type", "application/json")
             .addHeader("trakt-api-version", "2")
             .addHeader("trakt-api-key", clientId ?: "")
             .build()
