@@ -2607,6 +2607,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_check)
             binding.editIcon.setText(R.string.done)
+            binding.fabSave.isEnabled = false
         } else {
 
             binding.categories.clearFocus()
@@ -2621,7 +2622,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_edit)
             binding.editIcon.setText(R.string.edit)
-
+            binding.fabSave.isEnabled = true
         }
     }
 
