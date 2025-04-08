@@ -35,6 +35,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
@@ -42,7 +43,6 @@ import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.TVSeasonDetailsActivity
 import com.wirelessalien.android.moviedb.adapter.EpisodeAdapter
-import com.wirelessalien.android.moviedb.data.Episode
 import com.wirelessalien.android.moviedb.databinding.ActivityTvSeasonDetailsBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentTvSeasonDetailsBinding
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
@@ -50,8 +50,6 @@ import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.TVSeasonDetails
 import com.wirelessalien.android.moviedb.trakt.TraktSync
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
@@ -112,14 +110,18 @@ class SeasonDetailsFragment : Fragment() {
                 currentTabNumber = position
                 seasonNumber = if (currentTabNumber == 0) 0 else currentTabNumber
                 loadSeasonDetails()
-                requireActivity().invalidateOptionsMenu()
+                if (isAdded) {
+                    requireActivity().invalidateOptionsMenu()
+                }
             }
         }
         activityBinding.viewPager.registerOnPageChangeCallback(pageChangeCallback)
 
         activityBinding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                requireActivity().invalidateOptionsMenu()
+                if (isAdded) {
+                    activity?.invalidateOptionsMenu()
+                }
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
@@ -357,36 +359,43 @@ class SeasonDetailsFragment : Fragment() {
     }
 
     private fun loadSeasonDetails() {
-        CoroutineScope(Dispatchers.Main).launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
+
             try {
                 val tvSeasonDetails = TVSeasonDetails(tvShowId, seasonNumber, requireContext())
-                tvSeasonDetails.fetchSeasonDetails(object : TVSeasonDetails.SeasonDetailsCallback {
-                    override fun onSeasonDetailsFetched(episodes: List<Episode>) {
-                        val adapter = EpisodeAdapter(requireContext(), episodes, seasonNumber, tvShowName, tvShowId, traktId, tmdbObject)
-                        binding.episodeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-                        binding.episodeRecyclerView.adapter = adapter
-                        binding.episodeRecyclerView.visibility = View.VISIBLE
-                        binding.defaultMessage.visibility = View.GONE
-                        binding.shimmerFrameLayout1.visibility = View.GONE
-                        binding.shimmerFrameLayout1.stopShimmer()
-                        requireActivity().invalidateOptionsMenu()
-                    }
+                val seasonDetails = tvSeasonDetails.fetchSeasonDetails()
 
-                    override fun onSeasonDetailsNotAvailable() {
-                        if (seasonNumber == 0) {
-                            binding.defaultMessage.visibility = View.VISIBLE
-                            binding.episodeRecyclerView.visibility = View.GONE
-                        }
-                        binding.shimmerFrameLayout1.visibility = View.GONE
-                        binding.shimmerFrameLayout1.stopShimmer()
+                if (seasonDetails != null) {
+                    val adapter = EpisodeAdapter(
+                        requireContext(),
+                        seasonDetails.episodes,
+                        seasonNumber,
+                        tvShowName,
+                        tvShowId,
+                        traktId,
+                        tmdbObject
+                    )
+                    binding.episodeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+                    binding.episodeRecyclerView.adapter = adapter
+                    binding.episodeRecyclerView.visibility = View.VISIBLE
+                    binding.defaultMessage.visibility = View.GONE
+                } else {
+                    if (seasonNumber == 0) {
+                        binding.defaultMessage.visibility = View.VISIBLE
+                        binding.episodeRecyclerView.visibility = View.GONE
                     }
-                })
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                binding.shimmerFrameLayout1.visibility = View.GONE
-                binding.shimmerFrameLayout1.stopShimmer()
+                if (!isAdded) return@launch
+                binding.episodeRecyclerView.visibility = View.GONE
+            } finally {
+                if (isAdded) {
+                    binding.shimmerFrameLayout1.stopShimmer()
+                    binding.shimmerFrameLayout1.visibility = View.GONE
+                }
             }
         }
     }

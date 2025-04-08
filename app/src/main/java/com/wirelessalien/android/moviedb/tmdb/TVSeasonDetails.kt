@@ -23,89 +23,109 @@ import android.content.Context
 import com.wirelessalien.android.moviedb.activity.BaseActivity.Companion.getLanguageParameter
 import com.wirelessalien.android.moviedb.data.Episode
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
 
-class TVSeasonDetails(private val tvShowId: Int, private val seasonNumber: Int, var context: Context) {
-
-    private var episodes: MutableList<Episode> = mutableListOf()
-    private var seasonName: String? = null
-    private var seasonOverview: String? = null
-    private var seasonPosterPath: String? = null
-    private var seasonVoteAverage = 0.0
+class TVSeasonDetails(
+    private val tvShowId: Int,
+    private val seasonNumber: Int,
+    private val context: Context
+) {
     private val apiKey: String? = getConfigValue(context, "api_key")
-    interface SeasonDetailsCallback {
-        fun onSeasonDetailsFetched(episodes: List<Episode>)
-        fun onSeasonDetailsNotAvailable()
-    }
-    fun fetchSeasonDetails(callback: SeasonDetailsCallback) {
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val baseUrl = "https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber?api_key=$apiKey"
-                val urlWithLanguage = baseUrl + getLanguageParameter(context)
-                var jsonResponse = fetchSeasonDetailsFromNetwork(urlWithLanguage)
 
-                // Check if overview is empty
-                if (jsonResponse!!.getString("overview").isEmpty()) {
-                    jsonResponse = fetchSeasonDetailsFromNetwork(baseUrl)
-                }
+    data class SeasonDetails(
+        val episodes: List<Episode>,
+        val seasonName: String,
+        val seasonOverview: String,
+        val seasonPosterPath: String,
+        val seasonVoteAverage: Double
+    )
 
-                if (jsonResponse == null || jsonResponse.getJSONArray("episodes").length() == 0) {
-                    callback.onSeasonDetailsNotAvailable()
-                    return@launch
-                }
+    suspend fun fetchSeasonDetails(): SeasonDetails? = coroutineScope {
+        try {
+            val baseUrl = "https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber?api_key=$apiKey"
+            val urlWithLanguage = baseUrl + getLanguageParameter(context)
 
-                seasonName = if (seasonNumber == 0) "Specials" else jsonResponse.getString("name")
-                seasonOverview = jsonResponse.getString("overview") ?: ""
-                seasonPosterPath = jsonResponse.getString("poster_path") ?: ""
-                seasonVoteAverage = jsonResponse.getDouble("vote_average")
-                val response = jsonResponse.getJSONArray("episodes") ?: JSONArray()
-                episodes = mutableListOf()
-                for (i in 0 until response.length()) {
-                    val episodeJson = response.getJSONObject(i)
-                    val id = episodeJson.getInt("id")
-                    val name = episodeJson.getString("name")
-                    val overview = episodeJson.getString("overview")
-                    val airDate = episodeJson.getString("air_date")
-                    val episodeNumber = episodeJson.getInt("episode_number")
-                    val runtime = if (episodeJson.isNull("runtime")) 0 else episodeJson.getInt("runtime")
-                    val posterPath = episodeJson.getString("still_path")
-                    val voteAverage = episodeJson.getDouble("vote_average")
-                    episodes.add(Episode(id, airDate, episodeNumber, name, overview, runtime, posterPath, voteAverage))
-                }
-                callback.onSeasonDetailsFetched(episodes)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                callback.onSeasonDetailsNotAvailable()
+            var jsonResponse = fetchSeasonDetailsFromNetwork(urlWithLanguage)
+
+            if (jsonResponse?.getString("overview").isNullOrEmpty()) {
+                jsonResponse = fetchSeasonDetailsFromNetwork(baseUrl)
             }
+
+            if (jsonResponse == null || jsonResponse.getJSONArray("episodes").length() == 0) {
+                return@coroutineScope null
+            }
+
+            return@coroutineScope processSeasonDetails(jsonResponse)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return@coroutineScope null
         }
     }
 
     private suspend fun fetchSeasonDetailsFromNetwork(urlString: String): JSONObject? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
-            val request = Request.Builder()
-                .url(urlString)
-                .get()
-                .build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                var responseBody: String? = null
-                if (response.body != null) {
-                    responseBody = response.body!!.string()
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url(urlString)
+                    .get()
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext null
+                    response.body?.use { body ->
+                        val responseBody = body.string()
+                        if (responseBody.isNotEmpty()) {
+                            return@withContext JSONObject(responseBody)
+                        }
+                    }
                 }
-                if (responseBody != null) {
-                    return@withContext JSONObject(responseBody)
-                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
             return@withContext null
         }
+    }
+
+    private fun processSeasonDetails(jsonResponse: JSONObject): SeasonDetails {
+        val seasonName = if (seasonNumber == 0) "Specials" else jsonResponse.optString("name")
+        val seasonOverview = jsonResponse.optString("overview", "")
+        val seasonPosterPath = jsonResponse.optString("poster_path", "")
+        val seasonVoteAverage = jsonResponse.optDouble("vote_average", 0.0)
+
+        val episodes = mutableListOf<Episode>()
+        val episodesArray = jsonResponse.optJSONArray("episodes") ?: JSONArray()
+
+        for (i in 0 until episodesArray.length()) {
+            val episodeJson = episodesArray.optJSONObject(i) ?: continue
+            episodes.add(createEpisodeFromJson(episodeJson))
+        }
+
+        return SeasonDetails(
+            episodes = episodes,
+            seasonName = seasonName,
+            seasonOverview = seasonOverview,
+            seasonPosterPath = seasonPosterPath,
+            seasonVoteAverage = seasonVoteAverage
+        )
+    }
+
+    private fun createEpisodeFromJson(episodeJson: JSONObject): Episode {
+        return Episode(
+            id = episodeJson.optInt("id"),
+            airDate = episodeJson.optString("air_date", ""),
+            episodeNumber = episodeJson.optInt("episode_number"),
+            name = episodeJson.optString("name", ""),
+            overview = episodeJson.optString("overview", ""),
+            runtime = episodeJson.optInt("runtime", 0),
+            posterPath = episodeJson.optString("still_path", ""),
+            voteAverage = episodeJson.optDouble("vote_average", 0.0)
+        )
     }
 }
