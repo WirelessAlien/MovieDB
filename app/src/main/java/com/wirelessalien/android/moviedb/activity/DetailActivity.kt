@@ -46,6 +46,7 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnFocusChangeListener
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -82,6 +83,7 @@ import com.squareup.picasso.Target
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
+import com.wirelessalien.android.moviedb.adapter.ReviewAdapter
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.WatchProviderAdapter
@@ -93,10 +95,12 @@ import com.wirelessalien.android.moviedb.databinding.FragmentButtonsDescriptionB
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
+import com.wirelessalien.android.moviedb.databinding.ReviewItemBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.databaseUpdate
+import com.wirelessalien.android.moviedb.fragment.ReviewFragment
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
@@ -257,6 +261,14 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             LinearLayoutManager.HORIZONTAL, false
         )
         binding.movieRecyclerView.layoutManager = movieLinearLayoutManager
+
+        // RecyclerView to display review shows to this one.
+        binding.recyclerViewReviews.setHasFixedSize(true) // Improves performance (if size is static)
+        val reviewLinearLayoutManager = LinearLayoutManager(
+            this,
+            LinearLayoutManager.HORIZONTAL, false
+        )
+        binding.recyclerViewReviews.layoutManager = reviewLinearLayoutManager
 
         val adapter = ArrayAdapter.createFromResource(this, R.array.categories, android.R.layout.simple_dropdown_item_1line)
         binding.categories.setAdapter(adapter)
@@ -1100,6 +1112,12 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(browserIntent)
             }
+        }
+
+        binding.allReviewBtn.setOnClickListener {
+            val type = if (isMovie) "movie" else "tv"
+            val reviewFragment = ReviewFragment(movieId, type)
+            reviewFragment.show(supportFragmentManager, "ReviewFragment")
         }
     }
 
@@ -3168,6 +3186,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 showTrailer(movieData)
                 showKeywords(movieData)
                 showExternalIds(movieData)
+                showReview(movieData)
                 if (movieData.has("number_of_seasons")) {
                     numSeason = movieData.getInt("number_of_seasons")
                 }
@@ -3262,6 +3281,41 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             e.printStackTrace()
         }
     }
+
+    private fun showReview(movieData: JSONObject) {
+        try {
+            val reviewsObject = movieData.getJSONObject("reviews")
+            val resultsArray = reviewsObject.getJSONArray("results")
+
+            // Extract the first three reviews
+            val reviewList = mutableListOf<JSONObject>()
+            for (i in 0 until minOf(3, resultsArray.length())) {
+                reviewList.add(resultsArray.getJSONObject(i))
+            }
+
+            // Set up the RecyclerView
+            val reviewAdapter = object : RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder>() {
+                override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReviewAdapter.ReviewViewHolder {
+                    val binding = ReviewItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                    return ReviewAdapter.ReviewViewHolder(binding)
+                }
+
+                override fun onBindViewHolder(holder: ReviewAdapter.ReviewViewHolder, position: Int) {
+                    holder.bind(reviewList[position])
+                }
+
+                override fun getItemCount(): Int = reviewList.size
+            }
+
+            binding.recyclerViewReviews.layoutManager = LinearLayoutManager(this)
+            binding.recyclerViewReviews.adapter = reviewAdapter
+
+        } catch (e: JSONException) {
+            e.printStackTrace()
+            binding.reviewRL.visibility = View.GONE
+        }
+    }
+
     private fun showTrailer(movieData: JSONObject) {
         val videos = movieData.getJSONObject("videos").getJSONArray("results")
         var trailerUrl: String? = null
@@ -3329,7 +3383,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         lifecycleScope.launch {
             try {
                 val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords" else "content_ratings,external_ids,videos,keywords"
+                val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords,reviews" else "content_ratings,external_ids,videos,keywords,reviews"
                 val baseUrl = "https://api.themoviedb.org/3/$type/$movieId?append_to_response=$additionalEndpoint"
                 val urlWithLanguage = baseUrl + getLanguageParameter(applicationContext)
 
