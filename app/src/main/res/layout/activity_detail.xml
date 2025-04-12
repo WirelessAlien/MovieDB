@@ -948,6 +948,43 @@
                 android:layout_below="@id/similarMovieTitle"
                 android:scrollbars="none" />
 
+            <RelativeLayout
+                android:id="@+id/reviewRL"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/movieRecyclerView">
+
+                <TextView
+                    android:id="@+id/reviewText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_centerVertical="true"
+                    android:text="@string/review1"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/allReviewBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="16dp"
+                    app:cornerRadius="10dp"
+                    android:contentDescription="@string/review1"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    app:icon="@drawable/ic_read_more"/>
+            </RelativeLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewReviews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/reviewRL"
+                tools:listitem="@layout/review_item" />
+
             <TextView
                 android:id="@+id/otherText"
                 android:layout_width="wrap_content"
@@ -956,7 +993,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginTop="10dp"
-                android:layout_below="@id/movieRecyclerView"
+                android:layout_below="@id/recyclerViewReviews"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
 
@@ -1029,43 +1066,6 @@
                     android:textSize="14sp" />
             </GridLayout>
 
-            <RelativeLayout
-                android:id="@+id/reviewRL"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/otherDetailsLayout">
-
-                <TextView
-                    android:id="@+id/reviewText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_centerVertical="true"
-                    android:text="@string/review1"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/allReviewBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="16dp"
-                    app:cornerRadius="10dp"
-                    android:contentDescription="@string/review1"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    app:icon="@drawable/ic_read_more"/>
-            </RelativeLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewReviews"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/reviewRL"
-                tools:listitem="@layout/review_item" />
-
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/keywordsLayout"
                 android:layout_width="match_parent"
@@ -1073,7 +1073,7 @@
                 android:paddingStart="11dp"
                 android:paddingEnd="11dp"
                 android:layout_marginBottom="20dp"
-                android:layout_below="@id/recyclerViewReviews"
+                android:layout_below="@id/otherDetailsLayout"
                 app:flexWrap="wrap"
                 app:justifyContent="flex_start"/>
         </RelativeLayout>
