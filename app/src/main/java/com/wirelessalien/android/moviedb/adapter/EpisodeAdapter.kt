@@ -178,9 +178,17 @@ class EpisodeAdapter(
                 if (defaultSharedPreferences.getBoolean("force_local_sync", false)) {
                     binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                     binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                    binding.episodeDbRating.visibility = View.VISIBLE
+                    binding.watchedDate.visibility = View.VISIBLE
+                    binding.episodeDbReviewTitle.visibility = View.VISIBLE
+                    binding.rvCardV.visibility = View.VISIBLE
                 } else {
                     binding.btnWatchedToLocalDb.visibility = View.GONE
                     binding.btnAddDetailsToLocalDb.visibility = View.GONE
+                    binding.episodeDbRating.visibility = View.GONE
+                    binding.watchedDate.visibility = View.GONE
+                    binding.episodeDbReviewTitle.visibility = View.GONE
+                    binding.rvCardV.visibility = View.GONE
                 }
 
             }
@@ -193,12 +201,22 @@ class EpisodeAdapter(
                 binding.btnAddToTraktList.visibility = View.VISIBLE
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                 binding.btnAddTraktRating.visibility = View.VISIBLE
+                binding.rating.visibility = View.GONE
                 if (defaultSharedPreferences.getBoolean("force_local_sync", false)) {
                     binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                     binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                    binding.episodeDbRating.visibility = View.VISIBLE
+                    binding.watchedDate.visibility = View.VISIBLE
+                    binding.episodeDbReviewTitle.visibility = View.VISIBLE
+                    binding.rvCardV.visibility = View.VISIBLE
+
                 } else {
                     binding.btnWatchedToLocalDb.visibility = View.GONE
                     binding.btnAddDetailsToLocalDb.visibility = View.GONE
+                    binding.episodeDbRating.visibility = View.GONE
+                    binding.watchedDate.visibility = View.GONE
+                    binding.episodeDbReviewTitle.visibility = View.GONE
+                    binding.rvCardV.visibility = View.GONE
                 }
             }
             else -> {
@@ -231,13 +249,22 @@ class EpisodeAdapter(
                         binding.btnAddToTraktWatchlist.visibility = View.GONE
                         binding.btnAddTraktRating.visibility = View.GONE
                         binding.btnAddRatingToTmdb.visibility = View.VISIBLE
+                        binding.rating.visibility = View.VISIBLE
                         binding.syncProviderBtn.text = "TMDB"
                         if (defaultSharedPreferences.getBoolean("force_local_sync", false)) {
                             binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                             binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                            binding.episodeDbRating.visibility = View.VISIBLE
+                            binding.watchedDate.visibility = View.VISIBLE
+                            binding.episodeDbReviewTitle.visibility = View.VISIBLE
+                            binding.rvCardV.visibility = View.VISIBLE
                         } else {
                             binding.btnWatchedToLocalDb.visibility = View.GONE
                             binding.btnAddDetailsToLocalDb.visibility = View.GONE
+                            binding.episodeDbRating.visibility = View.GONE
+                            binding.watchedDate.visibility = View.GONE
+                            binding.episodeDbReviewTitle.visibility = View.GONE
+                            binding.rvCardV.visibility = View.GONE
                         }
                     }
                     "trakt" -> {
@@ -246,13 +273,22 @@ class EpisodeAdapter(
                         binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                         binding.btnAddTraktRating.visibility = View.VISIBLE
                         binding.btnAddToTraktHistory.visibility = View.VISIBLE
+                        binding.rating.visibility = View.GONE
                         binding.syncProviderBtn.text = "Trakt"
                         if (defaultSharedPreferences.getBoolean("force_local_sync", false)) {
                             binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                             binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                            binding.episodeDbRating.visibility = View.VISIBLE
+                            binding.watchedDate.visibility = View.VISIBLE
+                            binding.episodeDbReviewTitle.visibility = View.VISIBLE
+                            binding.rvCardV.visibility = View.VISIBLE
                         } else {
                             binding.btnWatchedToLocalDb.visibility = View.GONE
                             binding.btnAddDetailsToLocalDb.visibility = View.GONE
+                            binding.episodeDbRating.visibility = View.GONE
+                            binding.watchedDate.visibility = View.GONE
+                            binding.episodeDbReviewTitle.visibility = View.GONE
+                            binding.rvCardV.visibility = View.GONE
                         }
                     }
                     else -> {
@@ -263,6 +299,11 @@ class EpisodeAdapter(
                         binding.btnAddToTraktHistory.visibility = View.GONE
                         binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                         binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                        binding.episodeDbRating.visibility = View.VISIBLE
+                        binding.watchedDate.visibility = View.VISIBLE
+                        binding.episodeDbReviewTitle.visibility = View.VISIBLE
+                        binding.rvCardV.visibility = View.VISIBLE
+                        binding.rating.visibility = View.GONE
                         binding.syncProviderBtn.text = "Local"
                     }
                 }
