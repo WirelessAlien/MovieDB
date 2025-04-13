@@ -575,7 +575,6 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                             binding.collapsingToolbar.setContentScrimColor(mutedColor)
                             binding.showRating.backgroundTintList = colorStateList
 
-                            binding.ratingCard.setCardBackgroundColor(Color.TRANSPARENT)
 
                             binding.btnAddToTraktWatchlist.backgroundTintList = colorStateList
                             binding.btnAddToTraktFavorite.backgroundTintList = colorStateList
@@ -2619,6 +2618,113 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 }
             }
 
+            if (!isMovie) {
+                binding.episodeSliderLayout.visibility = View.VISIBLE
+            } else {
+                binding.episodeSliderLayout.visibility = View.GONE
+            }
+
+            val totalEpisodes = getTotalEpisodesFromTmdb(context, movieId).coerceAtLeast(0)
+            val watchedEpisodesCount = getWatchedEpisodesCount(movieId).coerceAtLeast(0)
+
+            if (totalEpisodes == 0) {
+                Toast.makeText(context, context.getString(R.string.no_episodes_found), Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            binding.episodeSlider.apply {
+                valueFrom = 0f
+                valueTo = totalEpisodes.toFloat()
+                value = watchedEpisodesCount.coerceIn(valueFrom.toInt(), valueTo.toInt()).toFloat()
+                stepSize = 1f
+            }
+
+            val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .format(android.icu.util.Calendar.getInstance().time)
+
+            binding.saveBtn.isEnabled = false
+
+            binding.episodeSlider.addOnChangeListener { _, value, _ ->
+                binding.saveBtn.isEnabled = value.toInt() != getWatchedEpisodesCount(movieId)
+            }
+
+            binding.saveBtn.setOnClickListener {
+                val episodesToMark = binding.episodeSlider.value.toInt()
+                var episodesMarked = 0
+
+                val dbHelper = MovieDatabaseHelper(context)
+                val seasonsS = getSeasonsFromTmdbDatabase(movieId)
+                val markedEpisodes = mutableMapOf<Int, List<Int>>()
+
+                // First, get total marked episodes across all seasons
+                val totalMarkedEpisodes = seasonsS.sumOf { seasonNumber ->
+                    getWatchedEpisodesFromDb(movieId, seasonNumber).size
+                }
+
+                if (episodesToMark < totalMarkedEpisodes) {
+                    // Need to remove episodes
+                    for (seasonNumber in seasonsS.reversed()) {
+                        val watchedEpisodesR = getWatchedEpisodesFromDb(movieId, seasonNumber).sorted()
+                        val episodesToRemove = mutableListOf<Int>()
+
+                        for (episodeNumber in watchedEpisodesR.reversed()) {
+                            if (totalMarkedEpisodes - episodesMarked > episodesToMark) {
+                                episodesToRemove.add(episodeNumber)
+                                episodesMarked++
+                            } else {
+                                break
+                            }
+                        }
+
+                        if (episodesToRemove.isNotEmpty()) {
+                            dbHelper.removeEpisodeNumber(movieId, seasonNumber, episodesToRemove)
+                            markedEpisodes[seasonNumber] = episodesToRemove
+                        }
+                    }
+
+                    Toast.makeText(context,
+                        context.getString(R.string.marked_episodes_as_unwatched, episodesMarked), Toast.LENGTH_SHORT).show()
+                } else {
+                    // Add episodes
+                    episodesMarked = totalMarkedEpisodes
+                    for (seasonNumber in seasonsS) {
+                        val episodesInSeason = getEpisodesForSeasonFromTmdbDatabase(movieId, seasonNumber)
+                        val watchedEpisodesA = getWatchedEpisodesFromDb(movieId, seasonNumber)
+                        val markedEpisodesInSeason = mutableListOf<Int>()
+
+                        for (episodeNumber in episodesInSeason) {
+                            if (episodesMarked < episodesToMark && !watchedEpisodesA.contains(episodeNumber)) {
+                                dbHelper.addEpisodeNumber(
+                                    movieId,
+                                    seasonNumber,
+                                    listOf(episodeNumber),
+                                    currentDate
+                                )
+                                markedEpisodesInSeason.add(episodeNumber)
+                                episodesMarked++
+                            }
+                        }
+
+                        if (markedEpisodesInSeason.isNotEmpty()) {
+                            markedEpisodes[seasonNumber] = markedEpisodesInSeason
+                        }
+                    }
+
+                    // Show a toast message for added episodes
+                    val episodesAdded = episodesMarked - totalMarkedEpisodes
+                    if (episodesAdded > 0) {
+                        Toast.makeText(context,
+                            context.getString(
+                                R.string.marked_episodes_as_watched,
+                                episodesAdded
+                            ), Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                // Disable the save button after saving
+                binding.saveBtn.isEnabled = false
+            }
+
             updateEditShowDetails()
             binding.showDetails.visibility = View.GONE
             binding.editShowDetails.visibility = View.VISIBLE
@@ -2642,6 +2748,137 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             binding.editIcon.setText(R.string.edit)
             binding.fabSave.isEnabled = true
         }
+    }
+
+    private fun getEpisodesForSeasonFromTmdbDatabase(showId: Int, seasonNumber: Int): List<Int> {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            arrayOf(showId.toString()),
+            null, null, null
+        )
+        val episodes = if (cursor.moveToFirst()) {
+            parseEpisodesForSeasonTmdb(cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)), seasonNumber)
+        } else {
+            emptyList()
+        }
+        cursor.close()
+        db.close()
+        return episodes
+    }
+
+    private fun getWatchedEpisodesFromDb(showTraktId: Int, seasonNumber: Int): List<Int> {
+        val dbHelper = MovieDatabaseHelper(context)
+        return try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.query(
+                MovieDatabaseHelper.TABLE_EPISODES,
+                arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER),
+                "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ? AND ${MovieDatabaseHelper.COLUMN_SEASON_NUMBER} = ?",
+                arrayOf(showTraktId.toString(), seasonNumber.toString()),
+                null, null, null
+            )
+
+            val watchedEpisodes = mutableListOf<Int>()
+            cursor.use { c ->
+                if (c.moveToFirst()) {
+                    do {
+                        val episodeNumber = c.getInt(c.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER))
+                        watchedEpisodes.add(episodeNumber)
+                    } while (c.moveToNext())
+                }
+            }
+            watchedEpisodes
+        } catch (e: Exception) {
+            Log.e("ShowBaseAdapter", "Error getting watched episodes from db", e)
+            emptyList()
+        }
+    }
+
+    private fun getWatchedEpisodesCount(showTraktId: Int): Int {
+        val dbHelper = MovieDatabaseHelper(context)
+        return try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.query(
+                MovieDatabaseHelper.TABLE_EPISODES,
+                arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER),
+                "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                arrayOf(showTraktId.toString()),
+                null, null, null
+            )
+
+            val watchedEpisodesCount = cursor.count
+            cursor.close()
+            watchedEpisodesCount
+        } catch (e: Exception) {
+            Log.e("ShowBaseAdapter", "Error getting watched episodes count from db", e)
+            0
+        }
+    }
+
+    private fun getSeasonsFromTmdbDatabase(showId: Int): List<Int> {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            arrayOf(showId.toString()),
+            null, null, null
+        )
+        val seasons = if (cursor.moveToFirst()) {
+            parseSeasonsTmdb(cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)))
+        } else {
+            emptyList()
+        }
+        cursor.close()
+        db.close()
+        return seasons
+    }
+
+    private fun getTotalEpisodesFromTmdb(context: Context, movieId: Int): Int {
+        val tmdbDbHelper = TmdbDetailsDatabaseHelper(context)
+        val tmdbDb = tmdbDbHelper.readableDatabase
+
+        val cursor = tmdbDb.query(
+            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            arrayOf(movieId.toString()),
+            null, null, null
+        )
+
+        var totalEpisodes = 0
+        if (cursor.moveToFirst()) {
+            val seasonsEpisodeString = cursor.getString(
+                cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)
+            )
+
+            if (!seasonsEpisodeString.isNullOrEmpty()) {
+                val regex = Regex("""\d+\{(\d+(,\d+)*)\}""")
+                totalEpisodes = regex.findAll(seasonsEpisodeString).sumOf { matchResult ->
+                    matchResult.groupValues[1].split(",").size
+                }
+            }
+        }
+
+        cursor.close()
+        tmdbDb.close()
+        return totalEpisodes
+    }
+
+    private fun parseEpisodesForSeasonTmdb(seasonsString: String, seasonNumber: Int): List<Int> {
+        val regex = Regex("""$seasonNumber\{(\d+(,\d+)*)\}""")
+        val matchResult = regex.find(seasonsString) ?: return emptyList()
+        return matchResult.groupValues[1].split(",").map { it.toInt() }
+    }
+
+    private fun parseSeasonsTmdb(seasonsString: String): List<Int> {
+        val regex = Regex("""(\d+)\{.*?\}""")
+        return regex.findAll(seasonsString).map { it.groupValues[1].toInt() }.toList()
     }
 
     private fun updateEditShowDetails() {
@@ -2723,6 +2960,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
             }
         }
+        val watchedEpisode = databaseHelper.getSeenEpisodesCount(movieId)
+
+        binding.movieEpisodes.text = getString(R.string.episodes_seen, watchedEpisode, totalEpisodes)
         cursor.close()
         databaseUpdate()
     }
