@@ -1112,12 +1112,6 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 startActivity(browserIntent)
             }
         }
-
-        binding.allReviewBtn.setOnClickListener {
-            val type = if (isMovie) "movie" else "tv"
-            val reviewFragment = ReviewFragment(movieId, type)
-            reviewFragment.show(supportFragmentManager, "ReviewFragment")
-        }
     }
 
     private fun showSyncProviderActionsDialog() {
@@ -3550,9 +3544,23 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             binding.recyclerViewReviews.layoutManager = LinearLayoutManager(this)
             binding.recyclerViewReviews.adapter = reviewAdapter
 
+            // Hide "All Reviews" button if there are 3 or fewer reviews
+            if (resultsArray.length() <= 3) {
+                binding.allReviewBtn.visibility = View.GONE
+            } else {
+                binding.allReviewBtn.visibility = View.VISIBLE
+                binding.allReviewBtn.setOnClickListener {
+                    val type = if (isMovie) "movie" else "tv"
+                    val reviewFragment = ReviewFragment(movieId, type)
+                    reviewFragment.show(supportFragmentManager, "ReviewFragment")
+                }
+            }
+
         } catch (e: JSONException) {
             e.printStackTrace()
-            binding.reviewRL.visibility = View.GONE
+            binding.allReviewBtn.visibility = View.GONE
+            binding.reviewText.visibility = View.GONE
+            binding.recyclerViewReviews.visibility = View.GONE
         }
     }
 
