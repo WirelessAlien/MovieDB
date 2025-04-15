@@ -2614,23 +2614,19 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
             if (!isMovie) {
                 binding.episodeSliderLayout.visibility = View.VISIBLE
+                binding.episodeTextH.visibility = View.VISIBLE
+                // Make sure to set proper slider values
+                val totalEpisodes = getTotalEpisodesFromTmdb(context, movieId).coerceAtLeast(0)
+                val watchedEpisodesCount = getWatchedEpisodesCount(movieId).coerceAtLeast(0)
+
+                binding.episodeSlider.apply {
+                    valueFrom = 0f
+                    valueTo = totalEpisodes.toFloat()
+                    value = watchedEpisodesCount.coerceIn(valueFrom.toInt(), valueTo.toInt()).toFloat()
+                }
             } else {
                 binding.episodeSliderLayout.visibility = View.GONE
-            }
-
-            val totalEpisodes = getTotalEpisodesFromTmdb(context, movieId).coerceAtLeast(0)
-            val watchedEpisodesCount = getWatchedEpisodesCount(movieId).coerceAtLeast(0)
-
-            if (totalEpisodes == 0) {
-                Toast.makeText(context, context.getString(R.string.no_episodes_found), Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            binding.episodeSlider.apply {
-                valueFrom = 0f
-                valueTo = totalEpisodes.toFloat()
-                value = watchedEpisodesCount.coerceIn(valueFrom.toInt(), valueTo.toInt()).toFloat()
-                stepSize = 1f
+                binding.episodeTextH.visibility = View.GONE
             }
 
             val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
