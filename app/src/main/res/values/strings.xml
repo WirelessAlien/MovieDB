@@ -168,7 +168,7 @@
     <string name="no_episodes_found">No episode found</string>
     <string name="get_complete_account_data">Get complete account data</string>
     <string name="review1">Reviews</string>
-    <string name="episode_data_explanation_saved">User need to get the episode data like this only if the required data not available to show progress of \"Shows\" (specifically if the Show were added to \"Saved\" before v3.0-beta). For new version the data are automatically added.</string>
+    <string name="episode_data_explanation_saved">User need to get the episode data manually only if the required data not available to show progress of \"Shows\" (specifically if the Show were added to \"Saved\" before v3.0-beta). For new version the data are automatically added.</string>
     <string name="more">more</string>
     <string name="all_reviews">All Reviews</string>
 

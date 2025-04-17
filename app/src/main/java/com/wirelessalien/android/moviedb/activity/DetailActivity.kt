@@ -3153,11 +3153,14 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         val response = withContext(Dispatchers.IO) {
             var response: String? = null
             try {
-                val movie = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val url = URL("https://api.themoviedb.org/3/$movie/$movieId/credits" + getLanguageParameter2(applicationContext))
+                val apiUrl: URL = if (isMovie) {
+                    URL("https://api.themoviedb.org/3/movie/$movieId/credits" + getLanguageParameter2(applicationContext))
+                } else {
+                    URL("https://api.themoviedb.org/3/tv/$movieId/aggregate_credits" + getLanguageParameter2(applicationContext))
+                }
                 val client = OkHttpClient()
                 val request = Request.Builder()
-                    .url(url)
+                    .url(apiUrl)
                     .get()
                     .addHeader("Content-Type", "application/json;charset=utf-8")
                     .addHeader("Authorization", "Bearer $apiReadAccessToken")
@@ -3183,7 +3186,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             try {
                 val reader = JSONObject(response)
 
-                // Add the cast to the castView
+                // Handle cast
                 if (reader.getJSONArray("cast").length() <= 0) {
                     binding.castTitle.visibility = View.GONE
                     binding.castRecyclerView.visibility = View.GONE
@@ -3192,13 +3195,23 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     castArrayList.clear()
                     for (i in 0 until castArray.length()) {
                         val castData = castArray.getJSONObject(i)
+
+                        // For TV shows (aggregate credits), we need to get the character from the first role
+                        if (!isMovie) {
+                            val roles = castData.getJSONArray("roles")
+                            if (roles.length() > 0) {
+                                val firstRole = roles.getJSONObject(0)
+                                castData.put("character", firstRole.getString("character"))
+                            }
+                        }
+
                         castArrayList.add(castData)
                     }
                     castAdapter = CastBaseAdapter(castArrayList, applicationContext)
                     binding.castRecyclerView.adapter = castAdapter
                 }
 
-                // Add the crew to the crewView
+                // Handle crew
                 if (reader.getJSONArray("crew").length() <= 0) {
                     binding.crewTitle.visibility = View.GONE
                     binding.crewRecyclerView.visibility = View.GONE
@@ -3207,12 +3220,25 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     crewArrayList.clear()
                     for (i in 0 until crewArray.length()) {
                         val crewData = crewArray.getJSONObject(i)
+
+                        // For TV shows (aggregate credits), we need to get the job from the first job entry
+                        if (!isMovie) {
+                            val jobs = crewData.getJSONArray("jobs")
+                            if (jobs.length() > 0) {
+                                val firstJob = jobs.getJSONObject(0)
+                                crewData.put("job", firstJob.getString("job"))
+                            }
+                        }
+
                         crewData.put("character", crewData.getString("job"))
                         crewArrayList.add(crewData)
                     }
 
                     // Sort the crewArrayList to show "director" first, then "producer", then others
-                    crewArrayList.sortWith(compareBy({ it.getString("job") != "Director" }, { it.getString("job") != "Producer" }))
+                    crewArrayList.sortWith(compareBy(
+                        { it.getString("job") != "Director" },
+                        { it.getString("job") != "Producer" }
+                    ))
 
                     crewAdapter = CastBaseAdapter(crewArrayList, applicationContext)
                     binding.crewRecyclerView.adapter = crewAdapter
