@@ -2965,6 +2965,27 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         dialog.setContentView(dialogView.root)
         dialog.show()
 
+        dialogView.btnCurrentDate.setOnClickListener {
+            database = databaseHelper.writableDatabase
+            databaseHelper.onCreate(database)
+
+            val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+                .format(android.icu.util.Calendar.getInstance().time)
+
+            val movieValues = ContentValues()
+            if (view.tag == "start_date") {
+                movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
+                binding.startDateButton.text = currentDate
+                binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+            } else {
+                movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
+                binding.endDateButton.text = currentDate
+                binding.movieFinishDate.text = getString(R.string.finish_date, currentDate)
+            }
+            database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
+            dialog.dismiss()
+        }
+
         dialogView.btnFullDate.setOnClickListener {
             selectDate(view)
             dialog.dismiss()
@@ -3578,6 +3599,12 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 }
             }
 
+            if (reviewList.isEmpty()) {
+                binding.allReviewBtn.visibility = View.GONE
+                binding.reviewText.visibility = View.GONE
+                binding.recyclerViewReviews.visibility = View.GONE
+                return
+            }
         } catch (e: JSONException) {
             e.printStackTrace()
             binding.allReviewBtn.visibility = View.GONE
@@ -3677,11 +3704,14 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     traktCheckingObject = createTraktCheckinObject(movieData)
                     val imdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
                     val omdbType = if (isMovie) "movie" else "series"
-                    val omdbResponse = fetchMovieRatings(imdbId, movieTitle, movieYear, omdbType, preferences.getString(OMDB_API_KEY, "")!!)
-                    omdbResponse?.let {
-                        val ratings = parseRatings(it)
-                        withContext(Dispatchers.Main) {
-                            displayRatings(ratings)
+                    val apiKey = preferences.getString(OMDB_API_KEY, "")
+                    if (!apiKey.isNullOrEmpty()) {
+                        val omdbResponse = fetchMovieRatings(imdbId, movieTitle, movieYear, omdbType, apiKey)
+                        omdbResponse?.let { response ->
+                            val ratings = parseRatings(response)
+                            withContext(Dispatchers.Main) {
+                                displayRatings(ratings)
+                            }
                         }
                     }
                 }
@@ -3765,13 +3795,42 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
     }
 
     private fun displayRatings(ratings: Map<String, String>) {
-        val imdbRating = ratings["IMDb"] ?: "0/10"
-        val rottenTomatoesRating = ratings["Rotten Tomatoes"] ?: "0%"
-        val metacriticRating = ratings["Metacritic"] ?: "0/100"
+        val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
+
+        val imdbRating = formatImdbRating(ratings["IMDb"], numberFormat)
+        val rottenTomatoesRating = formatRottenTomatoesRating(ratings["Rotten Tomatoes"], numberFormat)
+        val metacriticRating = formatMetacriticRating(ratings["Metacritic"], numberFormat)
 
         binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
         binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
         binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+    }
+
+    private fun formatImdbRating(raw: String?, numberFormat: NumberFormat): String {
+        return try {
+            val value = raw?.substringBefore("/")?.toFloatOrNull() ?: 0f
+            "${numberFormat.format(value)}/10"
+        } catch (e: Exception) {
+            "0/10"
+        }
+    }
+
+    private fun formatRottenTomatoesRating(raw: String?, numberFormat: NumberFormat): String {
+        return try {
+            val value = raw?.substringBefore("%")?.toIntOrNull() ?: 0
+            "${numberFormat.format(value)}%"
+        } catch (e: Exception) {
+            "0%"
+        }
+    }
+
+    private fun formatMetacriticRating(raw: String?, numberFormat: NumberFormat): String {
+        return try {
+            val value = raw?.substringBefore("/")?.toIntOrNull() ?: 0
+            "${numberFormat.format(value)}/100"
+        } catch (e: Exception) {
+            "0/100"
+        }
     }
 
     private fun createTraktMediaObject(tmdbMovieData: JSONObject): JSONObject? {

@@ -72,8 +72,11 @@ class ReviewAdapter :
                 binding.textViewCreatedAt.text = dateString
             }
 
-            binding.textViewRating.text = if (rating != -1.0) "$rating/10" else "N/A"
-
+            binding.textViewRating.text = if (rating != -1.0) {
+                binding.root.context.getString(R.string.rv_rating_format, rating, 10)
+            } else {
+                binding.root.context.getString(R.string.rating_na)
+            }
             // Set content with max lines and click listener
             val content = review.optString("content")
             binding.textViewContent.text = content

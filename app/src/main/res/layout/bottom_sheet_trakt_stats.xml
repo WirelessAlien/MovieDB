@@ -59,6 +59,7 @@
         app:boxCornerRadiusBottomEnd="10dp"
         app:boxCornerRadiusTopStart="10dp"
         android:layout_marginBottom="8dp"
+        android:focusable="false"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -79,6 +80,7 @@
         app:boxCornerRadiusBottomStart="10dp"
         app:boxCornerRadiusBottomEnd="10dp"
         app:boxCornerRadiusTopStart="10dp"
+        android:focusable="false"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -99,6 +101,7 @@
         app:boxCornerRadiusBottomStart="10dp"
         app:boxCornerRadiusBottomEnd="10dp"
         app:boxCornerRadiusTopStart="10dp"
+        android:focusable="false"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -144,6 +147,7 @@
         app:boxCornerRadiusBottomStart="10dp"
         app:boxCornerRadiusBottomEnd="10dp"
         app:boxCornerRadiusTopStart="10dp"
+        android:focusable="false"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -164,6 +168,7 @@
         app:boxCornerRadiusBottomStart="10dp"
         app:boxCornerRadiusBottomEnd="10dp"
         app:boxCornerRadiusTopStart="10dp"
+        android:focusable="false"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -183,6 +188,7 @@
         app:boxCornerRadiusBottomStart="10dp"
         app:boxCornerRadiusBottomEnd="10dp"
         app:boxCornerRadiusTopStart="10dp"
+        android:focusable="false"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
         <com.google.android.material.textfield.TextInputEditText

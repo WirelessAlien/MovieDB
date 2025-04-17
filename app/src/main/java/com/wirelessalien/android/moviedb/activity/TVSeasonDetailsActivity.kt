@@ -19,6 +19,7 @@
  */
 package com.wirelessalien.android.moviedb.activity
 
+import android.icu.text.NumberFormat
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +32,7 @@ import com.wirelessalien.android.moviedb.databinding.ActivityTvSeasonDetailsBind
 import com.wirelessalien.android.moviedb.fragment.SeasonDetailsFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import org.json.JSONObject
+import java.util.Locale
 
 class TVSeasonDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTvSeasonDetailsBinding
@@ -63,7 +65,12 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         TabLayoutMediator(
             binding.tabLayout, binding.viewPager
         ) { tab: TabLayout.Tab, position: Int ->
-            tab.text = if (position == 0) getString(R.string.specials) else getString(R.string.season) + position
+            val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
+            tab.text = if (position == 0) {
+                getString(R.string.specials)
+            } else {
+                getString(R.string.season) + " " + numberFormat.format(position)
+            }
         }.attach()
     }
 

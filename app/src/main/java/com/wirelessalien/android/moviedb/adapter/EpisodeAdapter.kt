@@ -322,7 +322,7 @@ class EpisodeAdapter(
         val imageSize = if (loadHDImage) "w780" else "w500"
         val episode = episodes[position]
         holder.binding.title.text = episode.name
-        holder.binding.episodeNumber.text = "(" + episode.episodeNumber + ")"
+        holder.binding.episodeNumber.text = context.getString(R.string.episode_number_format, episode.episodeNumber)
         holder.binding.description.text = episode.overview
         try {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -511,6 +511,11 @@ class EpisodeAdapter(
                 val formatBinding = DialogDateFormatBinding.inflate(LayoutInflater.from(context))
                 formatDialog.setContentView(formatBinding.root)
                 formatDialog.show()
+
+                formatBinding.btnCurrentDate.setOnClickListener {
+                    binding.dateTextView.text = Editable.Factory.getInstance().newEditable(currentDate)
+                    formatDialog.dismiss()
+                }
 
                 formatBinding.btnYear.setOnClickListener {
                     showYearMonthPickerDialog(context) { selectedYear, selectedMonth ->

@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.content.SharedPreferences
+import android.icu.text.NumberFormat
 import android.os.Bundle
 import android.text.Editable
 import android.view.LayoutInflater
@@ -38,6 +39,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.util.Locale
 
 class TraktStatsBottomSheet : BottomSheetDialogFragment() {
 
@@ -97,17 +99,17 @@ class TraktStatsBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun displayStats(jsonObject: JSONObject) {
+        val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
         val movies = jsonObject.getJSONObject("movies")
         val shows = jsonObject.getJSONObject("shows")
         val episodes = jsonObject.getJSONObject("episodes")
 
-        binding.moviesWatched.text = Editable.Factory.getInstance().newEditable(movies.getInt("watched").toString())
-        binding.moviesCollected.text = Editable.Factory.getInstance().newEditable(movies.getInt("collected").toString())
+        binding.moviesWatched.text = Editable.Factory.getInstance().newEditable(numberFormat.format(movies.getInt("watched")))
+        binding.moviesCollected.text = Editable.Factory.getInstance().newEditable(numberFormat.format(movies.getInt("collected")))
         binding.moviesMinutes.text = Editable.Factory.getInstance().newEditable(convertMinutes(movies.getInt("minutes")))
 
-        binding.showsWatched.text = Editable.Factory.getInstance().newEditable(shows.getInt("watched").toString())
-        binding.showsCollected.text = Editable.Factory.getInstance().newEditable(shows.getInt("collected").toString())
-
+        binding.showsWatched.text = Editable.Factory.getInstance().newEditable(numberFormat.format(shows.getInt("watched")))
+        binding.showsCollected.text = Editable.Factory.getInstance().newEditable(numberFormat.format(shows.getInt("collected")))
         binding.episodesMinutes.text = Editable.Factory.getInstance().newEditable(convertMinutes(episodes.getInt("minutes")))
     }
 

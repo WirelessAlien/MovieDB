@@ -39,24 +39,24 @@
     <string name="collected">Collected</string>
     <string name="episode_title_format">%1$s (S:%2$d E:%3$d %4$s)</string>
     <string name="start_date2">Start date:</string>
-    <string name="fetching_data">Fetching data...</string>
+    <string name="fetching_data">Fetching data…</string>
     <string name="select_options">Select Options</string>
     <string name="movie_collection">Movie Collection</string>
     <string name="show_collection">Show Collection</string>
     <string name="movie_watched">Movie Watched</string>
     <string name="show_watched">Show Watched</string>
     <string name="list_items">List Items</string>
-    <string name="fetching_movie_collection">Fetching Movie Collection...</string>
-    <string name="fetching_show_collection">Fetching Show Collection...</string>
-    <string name="fetching_movie_watched">Fetching Movie Watched...</string>
-    <string name="fetching_show_watched">Fetching Show Watched...</string>
-    <string name="fetching_history">Fetching History...</string>
-    <string name="fetching_rating">Fetching Rating...</string>
-    <string name="fetching_watchlist">Fetching Watchlist...</string>
-    <string name="fetching_favorite">Fetching Favorite...</string>
-    <string name="fetching_lists">Fetching Lists...</string>
-    <string name="fetching_list_items">Fetching List Items...</string>
-    <string name="fetching_tmdb_data">Fetching TMDB data...</string>
+    <string name="fetching_movie_collection">Fetching Movie Collection…</string>
+    <string name="fetching_show_collection">Fetching Show Collection…</string>
+    <string name="fetching_movie_watched">Fetching Movie Watched…</string>
+    <string name="fetching_show_watched">Fetching Show Watched…</string>
+    <string name="fetching_history">Fetching History…</string>
+    <string name="fetching_rating">Fetching Rating…</string>
+    <string name="fetching_watchlist">Fetching Watchlist…</string>
+    <string name="fetching_favorite">Fetching Favorite…</string>
+    <string name="fetching_lists">Fetching Lists…</string>
+    <string name="fetching_list_items">Fetching List Items…</string>
+    <string name="fetching_tmdb_data">Fetching TMDB data…</string>
     <string name="episode">Episode</string>
     <string name="show">Show</string>
     <string name="season1">Season</string>
@@ -125,8 +125,8 @@
     <string name="get_tkt_data">Auto fetch \"Trakt\" data</string>
     <string name="get_tkt_data_summary">Get complete account data from \"Trakt\" automatically once a week</string>
     <string name="cancel_sync">Cancel Sync</string>
-    <string name="fetching_trakt_data">Fetching Trakt data...</string>
-    <string name="fetching_tmdb_data1">Fetching TMDB data...</string>
+    <string name="fetching_trakt_data">Fetching Trakt data…</string>
+    <string name="fetching_tmdb_data1">Fetching TMDB data…</string>
     <string name="sync_completed">Sync completed</string>
     <string name="auto_fetch">Automated data sync</string>
     <string name="quick_access">Quick Access</string>
@@ -151,7 +151,7 @@
     <string name="quick_access_desc2">Long click the \'Show\' to instantly jump to the next episode you need to watch. This is the fastest way to continue watching your favorite series.</string>
     <string name="tap_anywhere_outside_this_sheet_to_dismiss">Tap anywhere outside this sheet to dismiss.</string>
     <string name="get_tmdb_progress_data">Get Episode Data</string>
-    <string name="fetching_episode_data">Fetching episode data...</string>
+    <string name="fetching_episode_data">Fetching episode data…</string>
     <string name="fetching_show_data">Fetching… %s</string>
     <string name="fetching_item_of">Fetching item %1$d of %2$d</string>
     <string name="source_code">Source Code</string>
@@ -171,6 +171,10 @@
     <string name="episode_data_explanation_saved">User need to get the episode data manually only if the required data not available to show progress of \"Shows\" (specifically if the Show were added to \"Saved\" before v3.0-beta). For new version the data are automatically added.</string>
     <string name="more">more</string>
     <string name="all_reviews">All Reviews</string>
+    <string name="today">Today</string>
+    <string name="episode_number_format" translatable="false">(%d)</string>
+    <string name="rv_rating_format" translatable="false">%.1f/%d</string>
+    <string name="rating_na">N/A</string>
 
     <string-array name="media_types">
         <item>digital</item>

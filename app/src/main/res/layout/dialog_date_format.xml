@@ -35,11 +35,19 @@
         android:layout_marginBottom="16dp"/>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCurrentDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cornerRadius="10dp"
+        android:text="@string/today" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnYear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cornerRadius="10dp"
-        android:text="@string/remember_only_the_year"/>
+        android:text="@string/remember_only_the_year"
+        android:layout_marginTop="16dp"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnFullDate"
@@ -47,5 +55,5 @@
         android:layout_height="wrap_content"
         app:cornerRadius="10dp"
         android:text="@string/remember_the_full_date"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"/>
 </LinearLayout>
