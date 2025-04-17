@@ -251,7 +251,7 @@ class ShowBaseAdapter(
                 val saveButton = bottomSheetBinding!!.saveBtn
                 recyclerViewEpisodes.layoutManager = LinearLayoutManager(context)
 
-                val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                     .format(Calendar.getInstance().time)
 
                 val tvShowId = showData.optInt(KEY_ID)
@@ -491,7 +491,7 @@ class ShowBaseAdapter(
         bottomSheetBinding?.chipEpS?.visibility = View.VISIBLE
         bottomSheetBinding?.chipEpS?.text = "S${seasonNumber}:E${episodeNumber}"
 
-        val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
             .format(Calendar.getInstance().time)
 
         MovieDatabaseHelper(context).use { db ->

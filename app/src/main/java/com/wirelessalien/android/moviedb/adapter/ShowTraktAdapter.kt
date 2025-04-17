@@ -357,7 +357,7 @@ class ShowTraktAdapter(
                         (selectedChip?.tag as? Int)?.let { season ->
                             val currentDateTime = SimpleDateFormat(
                                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                                Locale.getDefault()
+                                Locale.ENGLISH
                             ).apply {
                                 timeZone = TimeZone.getTimeZone("UTC")
                             }.format(Date())
@@ -480,7 +480,7 @@ class ShowTraktAdapter(
                         bottomSheetBinding!!.addToWatched.setOnClickListener {
                             val currentDateTime = android.icu.text.SimpleDateFormat(
                                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                                Locale.getDefault()
+                                Locale.ENGLISH
                             ).format(
                                 Date()
                             )
@@ -515,7 +515,7 @@ class ShowTraktAdapter(
                         bottomSheetBinding!!.addToWatched.setOnClickListener {
                             val currentDateTime = android.icu.text.SimpleDateFormat(
                                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                                Locale.getDefault()
+                                Locale.ENGLISH
                             ).format(
                                 Date()
                             )
@@ -625,7 +625,7 @@ class ShowTraktAdapter(
 
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                Locale.getDefault()
+                Locale.ENGLISH
             ).format(
                 Date()
             )

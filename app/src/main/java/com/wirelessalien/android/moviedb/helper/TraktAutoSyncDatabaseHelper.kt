@@ -52,7 +52,7 @@ class TraktAutoSyncDatabaseHelper(context: Context) : SQLiteOpenHelper(context, 
         val values = ContentValues().apply {
             put(COL_MOVIE_ID, movieId)
             put(COL_IS_MOVIE, if (isMovie) 1 else 0)
-            put(COL_SYNC_DATE, SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
+            put(COL_SYNC_DATE, SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH).format(
                 Date()
             ))
             put(COL_SYNC_TYPE, syncType)

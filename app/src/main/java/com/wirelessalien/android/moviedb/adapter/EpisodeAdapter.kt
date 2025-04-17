@@ -412,8 +412,7 @@ class EpisodeAdapter(
             holder.binding.btnAddToTraktHistory.text = context.getText(R.string.history)
         }
 
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
-
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Calendar.getInstance().time)
         try {
             MovieDatabaseHelper(context).use { db ->
                 if (db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episode.episodeNumber))) {
@@ -608,7 +607,7 @@ class EpisodeAdapter(
             holder.binding.lProgressBar.visibility = View.VISIBLE
             val currentDateTime = SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                Locale.getDefault()
+                Locale.ENGLISH
             ).format(Date())
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeData = withContext(Dispatchers.IO) {
@@ -718,7 +717,7 @@ class EpisodeAdapter(
             }
         }
 
-        val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(Date())
+        val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).format(Date())
         binding.ratedDate.setText(currentDateTime)
 
         binding.btnSelectDate.setOnClickListener {
@@ -913,7 +912,7 @@ class EpisodeAdapter(
                     }
                 }
 
-                val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(Date())
+                val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).format(Date())
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
@@ -1408,7 +1407,7 @@ class EpisodeAdapter(
                 calendar.set(java.util.Calendar.MINUTE, timePicker.minute)
 
                 val sdf =
-                    java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                    java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
                 sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                 val selectedDateTime = sdf.format(calendar.time)
                 onDateSelected(selectedDateTime)

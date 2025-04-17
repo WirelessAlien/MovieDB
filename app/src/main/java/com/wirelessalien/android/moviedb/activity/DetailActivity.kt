@@ -1042,7 +1042,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         binding.btnAddToTraktWatchlist.setOnClickListener {
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                Locale.getDefault()
+                Locale.ENGLISH
             ).format(Date())
 
             if (isInWatchlist) {
@@ -1056,7 +1056,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         binding.btnAddToTraktFavorite.setOnClickListener {
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                Locale.getDefault()
+                Locale.ENGLISH
             ).format(Date())
 
             if (isInFavourite) {
@@ -1247,7 +1247,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
         val currentDateTime = android.icu.text.SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-            Locale.getDefault()
+            Locale.ENGLISH
         ).format(Date())
         dialogViewBinding.etSelectedDate.setText(currentDateTime)
 
@@ -1359,7 +1359,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         watchingNowButton.setOnClickListener {
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                Locale.getDefault()
+                Locale.ENGLISH
             ).format(Date())
             traktCheckin("/checkin", currentDateTime)
             dialog.dismiss()
@@ -1419,7 +1419,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
         val currentDateTime = android.icu.text.SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-            Locale.getDefault()
+            Locale.ENGLISH
         ).format(Date())
         ratedAt.setText(currentDateTime)
 
@@ -1473,7 +1473,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 calendar.set(Calendar.HOUR_OF_DAY, timePicker.hour)
                 calendar.set(Calendar.MINUTE, timePicker.minute)
 
-                val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
                 sdf.timeZone = TimeZone.getTimeZone("UTC")
                 val selectedDateTime = sdf.format(calendar.time)
                 onDateSelected(selectedDateTime)
@@ -2629,7 +2629,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 binding.episodeTextH.visibility = View.GONE
             }
 
-            val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                 .format(android.icu.util.Calendar.getInstance().time)
 
             binding.saveBtn.isEnabled = false

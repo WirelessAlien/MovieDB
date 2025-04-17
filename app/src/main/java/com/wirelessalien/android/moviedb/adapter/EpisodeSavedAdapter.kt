@@ -69,7 +69,7 @@ class EpisodeSavedAdapter(
         }
         updateIcon()
 
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Calendar.getInstance().time)
 
         MovieDatabaseHelper(context).use { db ->
             holder.episodeStatusButton.setOnClickListener {

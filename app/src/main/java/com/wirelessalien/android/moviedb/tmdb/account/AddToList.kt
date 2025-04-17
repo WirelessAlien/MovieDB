@@ -23,7 +23,6 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.icu.text.SimpleDateFormat
-import android.util.Log
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
@@ -100,14 +99,13 @@ class AddToList(
                 values.put(ListDatabaseHelper.COLUMN_LIST_ID, listId)
                 values.put(
                     ListDatabaseHelper.COLUMN_DATE_ADDED,
-                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                    SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(
                         Date()
                     )
                 )
                 values.put(ListDatabaseHelper.COLUMN_IS_ADDED, 1)
                 values.put(ListDatabaseHelper.COLUMN_MEDIA_TYPE, type)
                 values.put(ListDatabaseHelper.COLUMN_LIST_NAME, listName)
-                Log.d("AddToListCoroutineTMDb", "Adding media to list: $mediaId $listId")
                 db.insert(ListDatabaseHelper.TABLE_LIST_DATA, null, values)
                 db.close()
             }

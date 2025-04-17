@@ -204,7 +204,7 @@ class SeasonDetailsFragment : Fragment() {
                         val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
                         if (adapter != null) {
                             val episodes = adapter.episodes
-                            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
                             sdf.timeZone = TimeZone.getTimeZone("UTC")
                             val currentDateTime = sdf.format(Date())
 
@@ -320,7 +320,7 @@ class SeasonDetailsFragment : Fragment() {
 //                    }
                     R.id.action_watched -> {
                         val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
-                        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                             .format(Calendar.getInstance().time)
                         if (adapter != null) {
                             val episodes = adapter.episodes

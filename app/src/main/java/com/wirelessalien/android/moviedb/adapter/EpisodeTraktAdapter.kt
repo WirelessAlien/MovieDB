@@ -87,7 +87,7 @@ class EpisodeTraktAdapter(
         holder.episodeStatusButton.setImageResource(iconRes)
 
         holder.episodeStatusButton.setOnClickListener {
-            val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(
+            val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).format(
                 Date()
             )
             CoroutineScope(Dispatchers.Main).launch {
