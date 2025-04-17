@@ -268,20 +268,17 @@ class ListDataAdapterTkt(
 
     private fun addMovieToList(listId: Int, mediaObject: JSONObject) {
         val db = dbHelper.writableDatabase
-        val (tmdbId, season, episodeNumber) = getSEIdFromMediaObject(mediaObject)
+        val (_, season, episodeNumber) = getSEIdFromMediaObject(mediaObject)
         val values = ContentValues().apply {
             put(TraktDatabaseHelper.COL_LIST_ID, listId)
-            if (type == "season" || type == "episode") {
-                put(TraktDatabaseHelper.COL_SHOW_TMDB, movieId)
-            } else {
+            put(TraktDatabaseHelper.COL_TYPE, type)
+            if (type == "movie" || type == "show") {
                 put(TraktDatabaseHelper.COL_TMDB, movieId)
-            }
-            if (type == "episode" || type == "season") {
+            } else {
+                put(TraktDatabaseHelper.COL_SHOW_TMDB, movieId)
                 put(TraktDatabaseHelper.COL_SEASON, season)
                 put(TraktDatabaseHelper.COL_NUMBER, episodeNumber)
-                put(TraktDatabaseHelper.COL_TMDB, tmdbId)
             }
-            put(TraktDatabaseHelper.COL_TYPE, type)
         }
         db.insert(TraktDatabaseHelper.TABLE_LIST_ITEM, null, values)
     }

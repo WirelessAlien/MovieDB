@@ -166,6 +166,12 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
         }
 
         try {
+            db.delete(
+                TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = 0 OR ${TmdbDetailsDatabaseHelper.COL_TMDB_ID} IS NULL",
+                null
+            )
+
             val contentValues = ContentValues().apply {
                 put(TmdbDetailsDatabaseHelper.COL_TMDB_ID, details.getInt("id"))
                 put(TmdbDetailsDatabaseHelper.COL_NAME, if (type == "movie") details.optString("title", "") else details.optString("name", ""))
@@ -218,12 +224,14 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
                 }
             }
 
-            db.insertWithOnConflict(
-                TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
-                null,
-                contentValues,
-                android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
-            )
+            if (contentValues.size() > 0) {
+                db.insertWithOnConflict(
+                    TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                    null,
+                    contentValues,
+                    android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE
+                )
+            }
         } catch (e: Exception) {
             Log.e("GetTmdbDetailsSaved", "Error saving TMDB details to database: ${e.message}")
         } finally {

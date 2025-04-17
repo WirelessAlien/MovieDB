@@ -124,6 +124,12 @@ class GetTmdbDetailsSaved(private val context: Context, private val tmdbApiKey: 
         val dbHelper = TmdbDetailsDatabaseHelper(context)
         dbHelper.writableDatabase.use { db ->
             try {
+                db.delete(
+                    TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                    "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = 0 OR ${TmdbDetailsDatabaseHelper.COL_TMDB_ID} IS NULL",
+                    null
+                )
+
                 val tmdbId = details.getInt("id")
 
                 val contentValues = ContentValues().apply {
