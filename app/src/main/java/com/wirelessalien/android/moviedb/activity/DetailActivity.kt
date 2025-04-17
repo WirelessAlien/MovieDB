@@ -2495,13 +2495,13 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
     private fun formatCurrency(value: Long): String {
         return if (value >= 1000000000) {
-            String.format(Locale.US, "$%.1fB", value / 1000000000.0)
+            String.format(Locale.getDefault(), "$%.1fB", value / 1000000000.0)
         } else if (value >= 1000000) {
-            String.format(Locale.US, "$%.1fM", value / 1000000.0)
+            String.format(Locale.getDefault(), "$%.1fM", value / 1000000.0)
         } else if (value >= 1000) {
-            String.format(Locale.US, "$%.1fK", value / 1000.0)
+            String.format(Locale.getDefault(), "$%.1fK", value / 1000.0)
         } else {
-            String.format(Locale.US, "$%d", value)
+            String.format(Locale.getDefault(), "$%d", value)
         }
     }
 
@@ -3301,6 +3301,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                             if (countryData != null) {
                                 displayWatchProviders(countryData)
                             } else {
+                                binding.watchProvidersRL.visibility = View.GONE
                                 binding.watchProvidersRv.visibility = View.GONE
                                 binding.justwatchCard.visibility = View.GONE
                             }
@@ -3309,6 +3310,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    binding.watchProvidersRL.visibility = View.GONE
                     binding.watchProvidersRv.visibility = View.GONE
                     binding.justwatchCard.visibility = View.GONE
                 }
@@ -3380,10 +3382,12 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
         if (providers.isNotEmpty()) {
             adapter.updateProviders(providers)
+            binding.watchProvidersRL.visibility = View.VISIBLE
             binding.watchProvidersRv.visibility = View.VISIBLE
             binding.justwatchIv.visibility = View.VISIBLE
             binding.justwatchCard.visibility = View.VISIBLE
         } else {
+            binding.watchProvidersRL.visibility = View.GONE
             binding.watchProvidersRv.visibility = View.GONE
             binding.justwatchIv.visibility = View.GONE
         }
@@ -3809,9 +3813,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
     private fun formatImdbRating(raw: String?, numberFormat: NumberFormat): String {
         return try {
             val value = raw?.substringBefore("/")?.toFloatOrNull() ?: 0f
-            "${numberFormat.format(value)}/10"
+            "${numberFormat.format(value)}/${numberFormat.format(10)}"
         } catch (e: Exception) {
-            "0/10"
+            "${numberFormat.format(0)}/${numberFormat.format(10)}"
         }
     }
 
@@ -3820,16 +3824,16 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             val value = raw?.substringBefore("%")?.toIntOrNull() ?: 0
             "${numberFormat.format(value)}%"
         } catch (e: Exception) {
-            "0%"
+            "${numberFormat.format(0)}%"
         }
     }
 
     private fun formatMetacriticRating(raw: String?, numberFormat: NumberFormat): String {
         return try {
             val value = raw?.substringBefore("/")?.toIntOrNull() ?: 0
-            "${numberFormat.format(value)}/100"
+            "${numberFormat.format(value)}/${numberFormat.format(100)}"
         } catch (e: Exception) {
-            "0/100"
+            "${numberFormat.format(0)}/${numberFormat.format(100)}"
         }
     }
 
