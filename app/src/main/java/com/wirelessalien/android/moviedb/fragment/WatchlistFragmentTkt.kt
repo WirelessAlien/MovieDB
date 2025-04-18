@@ -126,13 +126,16 @@ class WatchlistFragmentTkt : BaseFragment() {
                             put("year", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_YEAR)))
                             when (cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))) {
                                 "movie", "show" -> {
+                                    put("sort_title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE)))
                                     put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)))
                                 }
                                 "episode" -> {
+                                    put("sort_title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE)))
                                     put("episode_trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TRAKT_ID)))
                                     put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TRAKT_ID)))
                                 }
                                 "season" -> {
+                                    put("sort_title", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE)))
                                     put("trakt_id", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TRAKT_ID)))
                                 }
                             }
@@ -201,9 +204,9 @@ class WatchlistFragmentTkt : BaseFragment() {
         val order = preferences.getString("tkt_sort_order", "asc")
 
         val comparator = when (criteria) {
-            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "name" -> compareBy<JSONObject> { it.optString("sort_title", "") }
             "date" -> compareBy { it.optString("listed_at", "") }
-            else -> compareBy { it.optString("title", "") }
+            else -> compareBy { it.optString("sort_title", "") }
         }
 
         if (order == "desc") {
