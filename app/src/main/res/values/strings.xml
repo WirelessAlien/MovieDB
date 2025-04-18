@@ -62,9 +62,9 @@
     <string name="season1">Season</string>
     <string name="hide_the_account_tab_tkt">Hide the \'Account (TRAKT)\' tab</string>
     <string name="search_people">Search People</string>
-    <string name="search_movies">Search movies...</string>
-    <string name="search_series">Search shows...</string>
-    <string name="search_saved">Search saved...</string>
+    <string name="search_movies">Search movies…</string>
+    <string name="search_series">Search shows…</string>
+    <string name="search_saved">Search saved…</string>
     <string name="error_loading_data">Failed to load data</string>
     <string name="season_p">Season %1$d</string>
     <string name="media_details_not_found">Media details not found</string>
@@ -100,7 +100,7 @@
     <string name="born_place">Born in %1$s</string>
     <string name="choose_date_type">Choose Date Type</string>
     <string name="sync_provider">Sync Provider</string>
-    <string name="text_tkt_credits">This app uses the TRAKT API but is not endorsed or certified by TRAKT</string>
+    <string name="text_tkt_credits">This app uses the Trakt API but is not endorsed or certified by Trakt</string>
     <string name="select_default_sync_provider">Select the default sync provider</string>
     <string name="sync_provider2">Sync provider</string>
     <string name="sync_provider_summary_1">Choose your preferred sync provider. You can update this selection later in the settings.</string>
@@ -116,7 +116,7 @@
     <string name="latest">Latest</string>
     <string name="watching_now">WATCHING NOW</string>
     <string name="gen_error_msg">Something went wrong</string>
-    <string name="fetching_upcoming"><![CDATA[Fething upcoming movie & shows…]]></string>
+    <string name="fetching_upcoming">Fetching upcoming movie &amp; shows…</string>
     <string name="mark_as_watched_l">Watched (Local)</string>
     <string name="mark_as_watched_t">Watched (Trakt)</string>
     <string name="mark_as_un_watched_l">Unwatched (Local)</string>
@@ -130,7 +130,7 @@
     <string name="sync_completed">Sync completed</string>
     <string name="auto_fetch">Automated data sync</string>
     <string name="quick_access">Quick Access</string>
-    <string name="trakt_login_required">Login to Trakt to enable auto-sync</string>
+    <string name="trakt_login_required">Login to Trakt to enable auto-fetch</string>
     <string name="show_more">Show More</string>
     <string name="show_less">Show Less</string>
     <string name="all">All</string>
@@ -144,7 +144,7 @@
     <string name="omdb_api_desc3">1. Go to the OMDB website: https://www.omdbapi.com/\n2. Click on \'API key\' in the navigation menu.\n3. Sign up for a free account.\n4. Once signed up, your API key will be sent to your email.</string>
     <string name="omdb_api_desc_4">You can also enter your OMDB API key later in the settings.</string>
     <string name="api_key">API Key</string>
-    <string name="dont_show_this_dialog_again">Dont show this dialog again.</string>
+    <string name="dont_show_this_dialog_again">Don\'t show this dialog again.</string>
     <string name="quick_access_with_long_click">Quick Access with Long Click</string>
     <string name="quick_access_desc1">Discover quick actions for your shows by using a long click on the \'Show\' item. This provides instant access to seasons and episodes you need to watch.</string>
     <string name="when_watching_a_show">When Watching a Show:</string>
@@ -169,7 +169,6 @@
     <string name="get_complete_account_data">Get complete account data</string>
     <string name="review1">Reviews</string>
     <string name="episode_data_explanation_saved">User need to get the episode data manually only if the required data not available to show progress of \"Shows\" (specifically if the Show were added to \"Saved\" before v3.0-beta). For new version the data are automatically added.</string>
-    <string name="more">more</string>
     <string name="all_reviews">All Reviews</string>
     <string name="today">Today</string>
     <string name="episode_number_format" translatable="false">(%d)</string>
