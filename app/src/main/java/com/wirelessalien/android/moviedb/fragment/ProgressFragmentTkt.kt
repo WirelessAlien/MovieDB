@@ -205,9 +205,9 @@ class ProgressFragmentTkt : BaseFragment() {
         val order = preferences.getString("tkt_sort_order", "asc")
 
         val comparator = when (criteria) {
-            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "name" -> compareBy<JSONObject> { it.optString("name", "") }
             "date" -> compareBy { it.optString("last_watched_at", "") }
-            else -> compareBy { it.optString("title", "") }
+            else -> compareBy { it.optString("name", "") }
         }
 
         if (order == "desc") {

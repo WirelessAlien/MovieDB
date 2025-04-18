@@ -216,9 +216,9 @@ class ListItemActivityTkt : AppCompatActivity() {
         val order = preferences.getString("tkt_sort_order", "asc")
 
         val comparator = when (criteria) {
-            "name" -> compareBy<JSONObject> { it.optString("title", "") }
+            "name" -> compareBy<JSONObject> { it.optString("name", "") }
             "date" -> compareBy { it.optString("listed_at", "") }
-            else -> compareBy { it.optString("title", "") }
+            else -> compareBy { it.optString("name", "") }
         }
 
         if (order == "desc") {
