@@ -37,13 +37,19 @@ It allows you to filter shows based on genre, release dates, and more. Detailed 
 
 See the [open issues](https://github.com/WirelessAlien/MovieDB/issues) for a full list of proposed features (and known issues).
 
-## Download
+## Installation
 
+You can download and install ShowCase from the following sources:
+
+[<img src="https://github.com/WirelessAlien/ZipXtract/assets/121420261/3857dcf6-8560-4b1a-bfcd-0e12afa18b95"
+    alt="Get it on GitHub"
+    height="80">](https://github.com/WirelessAlien/MovieDB/releases/latest)
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.wirelessalien.android.moviedb/)
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/com.wirelessalien.android.moviedb/)
 
-Or download the latest APK from the [Releases Section](https://github.com/WirelessAlien/MovieDB/releases/latest).
+> [!NOTE]
+>The Showcase Plus version includes feature of locale database backup to Google Drive, learn more - [here](https://github.com/WirelessAlien/MovieDB/wiki/App-Version). This version is not available in F-Droid, so get it from the the [Releases Section](https://github.com/WirelessAlien/MovieDB/releases/latest)
 
 ## Screenshots
 
