@@ -210,9 +210,9 @@ class RatingFragmentTkt : BaseFragment() {
         val order = preferences.getString("tkt_sort_order", "asc")
 
         val comparator = when (criteria) {
-            "name" -> compareBy<JSONObject> { it.optString("name", "") }
+            "name" -> compareBy<JSONObject> { it.optString("title", "") }
             "date" -> compareBy { it.optString("rated_at", "") }
-            else -> compareBy { it.optString("name", "") }
+            else -> compareBy { it.optString("title", "") }
         }
 
         if (order == "desc") {
