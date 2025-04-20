@@ -193,7 +193,7 @@
     <string name="title_show_recommendations">பரிந்துரைகளைக் காட்டு</string>
     <string name="title_show_save_dialog">சேமி உரையாடலைக் காட்டு</string>
     <string name="title_persistent_filtering">தொடர்ச்சியான வடிகட்டி</string>
-    <string name="title_shows_in_grid">ஒரு கட்டத்தில் காட்சிகள் காட்சிகள்</string>
+    <string name="title_shows_in_grid">ஒரு கட்டத்தில் காட்டும்</string>
     <string name="title_grid_size">கட்டம் அளவு</string>
     <string name="title_data_usage">தரவு பயன்பாடு</string>
     <string name="title_hide_saved_tab">\'சேமித்த\' தாவலை மறைக்கவும்</string>
@@ -224,7 +224,7 @@
     <string name="load_hd_image_summary">திரைப்பட சுவரொட்டிகள், எபிசோட் படங்கள், நடிகர்கள் படங்கள் 780+ தெளிவுத்திறனுடன் ஏற்றப்படும்.</string>
     <string name="runtime_minutes">%1$d நிமிடங்கள்</string>
     <string name="rated">மதிப்பிடப்பட்டது</string>
-    <string name="movie">படம்</string>
+    <string name="movie">திரைப்படம்</string>
     <string name="tv_show">தொலைக்காட்சி நிகழ்ச்சி</string>
     <string name="type">வகை</string>
     <string name="share">பகிர்வு காட்சி பெட்டி</string>
