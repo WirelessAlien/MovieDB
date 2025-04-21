@@ -227,19 +227,22 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     }
 
     private fun cancelAllNotifications() {
-        // Cancel all pending alarms
         val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(requireContext(), NotificationReceiver::class.java)
-
-        // Clear all notification entries from SharedPreferences
         val preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val editor = preferences.edit()
 
-        // Find and remove all notification keys
+        val notificationPrefixes = listOf(
+            "notification_",
+            "movie_",
+            "episode_",
+            "calendar_movie_",
+            "calendar_episode_"
+        )
+
         preferences.all.keys
-            .filter { it.startsWith("notification_") }
+            .filter { key -> notificationPrefixes.any { prefix -> key.startsWith(prefix) } }
             .forEach { key ->
-                // Cancel the specific alarm
                 val pendingIntent = PendingIntent.getBroadcast(
                     requireContext(),
                     key.hashCode(),
@@ -247,8 +250,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 alarmManager.cancel(pendingIntent)
-
-                // Remove from preferences
                 editor.remove(key)
             }
 

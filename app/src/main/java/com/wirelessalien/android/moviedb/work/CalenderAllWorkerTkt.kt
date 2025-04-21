@@ -214,7 +214,7 @@ class CalenderAllWorkerTkt(
                     put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
                     put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
                     put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").optString("imdb"))
-                    put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").optInt("tmdb"))
+                    put(TraktDatabaseHelper.COL_SHOW_TMDB, movie.getJSONObject("ids").optInt("tmdb"))
                 }
                 dbHelper.insertCalendarData(values)
             }

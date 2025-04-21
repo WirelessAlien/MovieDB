@@ -28,12 +28,12 @@ import androidx.work.WorkerParameters
 class DailyWorkerTkt(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
     override fun doWork(): Result {
         val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val shouldNotify = preferences.getBoolean("key_get_notified_for_saved", false)
+        val tktNotify = preferences.getBoolean("key_hide_account_tab", false)
 
-        if (shouldNotify) {
-            ReleaseReminderWorker.scheduleWork(applicationContext)
-        } else {
+        if (tktNotify) {
             ReleaseReminderWorker.scheduleWorkwithoutReleaseReminder(applicationContext)
+        } else {
+            ReleaseReminderWorker.scheduleWork(applicationContext)
         }
 
         return Result.success()

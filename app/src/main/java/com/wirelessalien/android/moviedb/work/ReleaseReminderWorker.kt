@@ -106,33 +106,69 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
         val episodeQuery = """
-            SELECT * FROM ${EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS}
-            WHERE ${EpisodeReminderDatabaseHelper.COLUMN_DATE} IS NOT NULL
-        """.trimIndent()
+        SELECT * FROM ${EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS}
+        WHERE ${EpisodeReminderDatabaseHelper.COLUMN_DATE} IS NOT NULL
+    """.trimIndent()
 
         episodeDb.readableDatabase.rawQuery(episodeQuery, null).use { cursor ->
             while (cursor.moveToNext()) {
-                val showTraktId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SHOW_TRAKT_ID))
                 val movieId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
+                val showTraktId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SHOW_TRAKT_ID))
                 val seasonNumber = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SEASON))
                 val episodeNumber = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
                 val dateStr = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))
+                val type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
 
-                val shouldSchedule = when {
-                    showTraktId != null && checkTraktCalendarExists(tktDb, showTraktId) -> true
-                    movieId != null && checkMovieExists(movieDb, movieId) -> true
-                    else -> false
-                }
+                if (dateStr == null) continue
 
-                if (shouldSchedule && dateStr != null) {
-                    val notificationKey = "notification_${showTraktId ?: movieId}_${seasonNumber ?: 0}_${episodeNumber ?: 0}_$dateStr"
+                val calendarExists = showTraktId?.let { checkTraktCalendarExists(tktDb, it) } ?: false
+                val movieExists = movieId?.let { checkMovieExists(movieDb, it) } ?: false
+
+                if (calendarExists || movieExists) {
+                    val notificationKey = buildNotificationKey(type, movieId, seasonNumber, episodeNumber, dateStr)
                     if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
                         scheduleNotification(cursor, dateStr, notificationKey)
                     }
                 }
             }
         }
+
+        val calendarQuery = """
+        SELECT * FROM ${TraktDatabaseHelper.TABLE_CALENDER}
+        WHERE ${TraktDatabaseHelper.COL_AIR_DATE} IS NOT NULL
+    """.trimIndent()
+
+        tktDb.readableDatabase.rawQuery(calendarQuery, null).use { cursor ->
+            while (cursor.moveToNext()) {
+                val tmdbId = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TMDB))
+                val dateStr = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_AIR_DATE))
+                val season = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SEASON))
+                val episode = cursor.getIntOrNull(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
+                val type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
+
+                if (dateStr == null || tmdbId == null) continue
+
+                val notificationKey = if (type == "movie") {
+                    "calendar_movie_${tmdbId}_$dateStr"
+                } else {
+                    "calendar_episode_${tmdbId}_${season ?: 0}_${episode ?: 0}_$dateStr"
+                }
+
+                if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
+                    scheduleNotification(cursor, dateStr, notificationKey)
+                }
+            }
+        }
     }
+
+    private fun buildNotificationKey(type: String?, movieId: Int?, season: Int?, episode: Int?, dateStr: String): String {
+        return if (type == "movie") {
+            "movie_${movieId ?: 0}_$dateStr"
+        } else {
+            "episode_${movieId ?: 0}_${season ?: 0}_${episode ?: 0}_$dateStr"
+        }
+    }
+
 
     private fun checkTraktCalendarExists(tktDb: TraktDatabaseHelper, traktId: Int): Boolean {
         return tktDb.readableDatabase.rawQuery(
