@@ -652,7 +652,7 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         val today = sdf.format(Date())
 
         // Fetch shows calendar
-        val showsUrl = "https://api.trakt.tv/calendars/my/shows/$today/7"
+        val showsUrl = "https://api.trakt.tv/calendars/my/shows/$today/30"
         val showsRequest = createRequest(showsUrl)
         executeRequest(showsRequest) { showResponse ->
             val db = dbHelper.writableDatabase
@@ -690,7 +690,7 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
         }
 
         // Fetch movies calendar
-        val moviesUrl = "https://api.trakt.tv/calendars/my/movies/$today/7"
+        val moviesUrl = "https://api.trakt.tv/calendars/my/movies/$today/30"
         val moviesRequest = createRequest(moviesUrl)
         executeRequest(moviesRequest) { movieResponse ->
             val db = dbHelper.writableDatabase
@@ -710,7 +710,7 @@ class GetTraktSyncData(context: Context, private val accessToken: String?, priva
                     put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, movie.getJSONObject("ids").getInt("trakt"))
                     put(TraktDatabaseHelper.COL_SLUG, movie.getJSONObject("ids").getString("slug"))
                     put(TraktDatabaseHelper.COL_IMDB, movie.getJSONObject("ids").optString("imdb"))
-                    put(TraktDatabaseHelper.COL_TMDB, movie.getJSONObject("ids").optInt("tmdb"))
+                    put(TraktDatabaseHelper.COL_SHOW_TMDB, movie.getJSONObject("ids").optInt("tmdb"))
                 }
                 dbHelper.insertCalendarData(values)
             }
