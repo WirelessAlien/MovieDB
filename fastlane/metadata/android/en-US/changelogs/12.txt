@@ -1,0 +1,9 @@
+Add Trakt support #61
+Add OMDB rating (need user's api id) #73
+Add #71 (the director will always show at first)
+Add better show progress and upcoming episode data #62 #78
+Fix movie/show scroll issue (in all places)
+Add accurate notification
+Fix #63 #69 #75 #91
+Fix TMDB rating not set when show exists in local db by @desoter in #80
+Many more small changes...

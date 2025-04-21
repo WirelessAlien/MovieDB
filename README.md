@@ -17,7 +17,7 @@ ShowCase (formerly Movie DB) is a fully open-source android application for expl
 
 ## About The Project
 
-It offers synchronization with your TMDB account. Once logged in, you can sync your favorites, watchlist, rated movies, and more. It also integrates with a local database to keep track of your shows. You can assign various statuses to each title—such as ‘planned’, ‘watched’, or ‘dropped’—rate them, and note the dates you commenced and concluded each show.
+It offers synchronization with your TMDB and Trakt account. Once logged in, you can sync your favorites, watchlist, rated movies, and more. It also integrates with a local database to keep track of your shows. You can assign various statuses to each title—such as ‘planned’, ‘watched’, or ‘dropped’—rate them, and note the dates you commenced and concluded each show.
 
 It allows you to filter shows based on genre, release dates, and more. Detailed information on each show, including the cast, crew, and recommendations for similar titles, is also available. 
 
@@ -25,7 +25,10 @@ It allows you to filter shows based on genre, release dates, and more. Detailed 
 
 - [x] Synchronization with TMDB
 - [x] Add favorite, watchlist, rate with TMDB
-- [x] Create List (Public/private)
+- [x] Create List (Public/private) - TMDB
+- [x] Synchronization with Trakt
+- [x] Add favorite, watchlist, collection, rate with Trakt
+- [x] External ratings (like IMDb) for movie/show 
 - [x] Offline support (Local database to keep track of your shows)
 - [x] Import/Export database
 - [x] Support for Material You 
@@ -34,13 +37,19 @@ It allows you to filter shows based on genre, release dates, and more. Detailed 
 
 See the [open issues](https://github.com/WirelessAlien/MovieDB/issues) for a full list of proposed features (and known issues).
 
-## Download
+## Installation
 
+You can download and install ShowCase from the following sources:
+
+[<img src="https://github.com/WirelessAlien/ZipXtract/assets/121420261/3857dcf6-8560-4b1a-bfcd-0e12afa18b95"
+    alt="Get it on GitHub"
+    height="80">](https://github.com/WirelessAlien/MovieDB/releases/latest)
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.wirelessalien.android.moviedb/)
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/com.wirelessalien.android.moviedb/)
 
-Or download the latest APK from the [Releases Section](https://github.com/WirelessAlien/MovieDB/releases/latest).
+> [!NOTE]
+>The Showcase Plus version includes feature of locale database backup to Google Drive, learn more - [here](https://github.com/WirelessAlien/MovieDB/wiki/App-Version). This version is not available in F-Droid, so get it from the the [Releases Section](https://github.com/WirelessAlien/MovieDB/releases/latest)
 
 ## Screenshots
 
