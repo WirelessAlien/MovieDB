@@ -125,9 +125,9 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 val movieExists = movieId?.let { checkMovieExists(movieDb, it) } ?: false
 
                 if (calendarExists || movieExists) {
-                    val notificationKey = buildNotificationKey(type, movieId, seasonNumber, episodeNumber, dateStr)
+                    val notificationKey = buildNotificationKey(type, movieId ?: 0, seasonNumber, episodeNumber, dateStr)
                     if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
-                        scheduleNotification(cursor, dateStr, notificationKey)
+                        scheduleNotification(cursor, dateStr, notificationKey, "episode_reminder")
                     }
                 }
             }
@@ -148,24 +148,19 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
                 if (dateStr == null || tmdbId == null) continue
 
-                val notificationKey = if (type == "movie") {
-                    "calendar_movie_${tmdbId}_$dateStr"
-                } else {
-                    "calendar_episode_${tmdbId}_${season ?: 0}_${episode ?: 0}_$dateStr"
-                }
-
+                val notificationKey = buildNotificationKey(type, tmdbId, season, episode, dateStr)
                 if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
-                    scheduleNotification(cursor, dateStr, notificationKey)
+                    scheduleNotification(cursor, dateStr, notificationKey, "trakt_calendar")
                 }
             }
         }
     }
 
-    private fun buildNotificationKey(type: String?, movieId: Int?, season: Int?, episode: Int?, dateStr: String): String {
+    private fun buildNotificationKey(type: String, id: Int, season: Int?, episode: Int?, dateStr: String): String {
         return if (type == "movie") {
-            "movie_${movieId ?: 0}_$dateStr"
+            "notification_movie_${id}_$dateStr"
         } else {
-            "episode_${movieId ?: 0}_${season ?: 0}_${episode ?: 0}_$dateStr"
+            "notification_episode_${id}_${season ?: 0}_${episode ?: 0}_$dateStr"
         }
     }
 
@@ -184,8 +179,9 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
         ).use { it.count > 0 }
     }
 
-    private fun scheduleNotification(cursor: Cursor, dateStr: String, notificationKey: String) {
-        try {
+    private fun scheduleNotification(cursor: Cursor, dateStr: String, notificationKey: String, source: String) {
+
+    try {
             val alarmTime = parseDate(dateStr) ?: return
 
             // Skip scheduling if the alarm time is in the past
@@ -193,12 +189,24 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 return
             }
 
-            val title = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME))
-            val episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
-            val episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
-            val type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+        val title: String
+        val episodeName: String
+        val episodeNumber: String?
+        val type: String
 
-            val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (source == "episode_reminder") {
+            title = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME))
+            episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
+            episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
+            type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+        } else {
+            title = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE))
+            episodeName = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_EPISODE_TITLE))
+            episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
+            type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
+        }
+
+        val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(applicationContext, NotificationReceiver::class.java).apply {
                 putExtra("title", title)
                 putExtra("episodeName", episodeName)
@@ -258,18 +266,18 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 .enqueue()
         }
 
-        fun scheduleWorkwithoutReleaseReminder(context: Context) {
-            val calendarWorkRequest = OneTimeWorkRequest.Builder(
-                CalenderAllWorkerTkt::class.java
-            ).build()
-
-            WorkManager.getInstance(context)
-                .beginUniqueWork(
-                    "CalendarAndReminderWork",
-                    ExistingWorkPolicy.REPLACE,
-                    calendarWorkRequest
-                )
-                .enqueue()
-        }
+//        fun scheduleWorkwithoutReleaseReminder(context: Context) {
+//            val calendarWorkRequest = OneTimeWorkRequest.Builder(
+//                CalenderAllWorkerTkt::class.java
+//            ).build()
+//
+//            WorkManager.getInstance(context)
+//                .beginUniqueWork(
+//                    "CalendarAndReminderWork",
+//                    ExistingWorkPolicy.REPLACE,
+//                    calendarWorkRequest
+//                )
+//                .enqueue()
+//        }
     }
 }

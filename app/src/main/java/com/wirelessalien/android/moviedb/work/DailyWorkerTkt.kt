@@ -21,20 +21,13 @@
 package com.wirelessalien.android.moviedb.work
 
 import android.content.Context
-import androidx.preference.PreferenceManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 
 class DailyWorkerTkt(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
     override fun doWork(): Result {
-        val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val tktNotify = preferences.getBoolean("key_hide_account_tab", false)
 
-        if (tktNotify) {
-            ReleaseReminderWorker.scheduleWorkwithoutReleaseReminder(applicationContext)
-        } else {
-            ReleaseReminderWorker.scheduleWork(applicationContext)
-        }
+        ReleaseReminderWorker.scheduleWork(applicationContext)
 
         return Result.success()
     }

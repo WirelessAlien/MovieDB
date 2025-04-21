@@ -133,12 +133,7 @@ class CalanderFragmentTkt : BaseFragment() {
                         }
 
                         // Fetch additional details from TMDB table
-                        val tmdbId =
-                            if (jsonObject.getString("type") == "season" || jsonObject.getString("type") == "episode") {
-                                cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TMDB))
-                            } else {
-                                cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TMDB))
-                            }
+                        val tmdbId = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TMDB))
 
                         val tmdbType =
                             if (jsonObject.getString("type") == "season" || jsonObject.getString("type") == "episode") {
