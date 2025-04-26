@@ -1,0 +1,42 @@
+name: Build Debug APK
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the source
+        uses: actions/checkout@v4 
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4 
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle' 
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Generate Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Install curl
+        run: sudo apt-get update && sudo apt-get install -y curl
+
+      - name: Upload Debug APK to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$DEBUG_APK" ]; then
+            echo "Uploading Debug APK..."
+            curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
+            -F caption="Debug APK Build #${{ github.run_number }}" \
+            -F document=@"$DEBUG_APK"
+          else
+            echo "Error: Debug APK not found at $DEBUG_APK. Ensure the build step completed successfully."
+          fi
