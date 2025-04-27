@@ -24,7 +24,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
 class EpisodeReminderDatabaseHelper(context: Context?) :
-    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION), AutoCloseable {
     override fun onCreate(database: SQLiteDatabase) {
         database.execSQL(DATABASE_CREATE)
     }
@@ -82,6 +82,10 @@ class EpisodeReminderDatabaseHelper(context: Context?) :
         }
         cursor.close()
         return showName
+    }
+
+    override fun close() {
+        super.close()
     }
 
     companion object {

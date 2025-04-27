@@ -48,7 +48,7 @@ import java.util.Date
 import java.util.Locale
 
 class PeopleDatabaseHelper(context: Context?) :
-    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION), AutoCloseable {
     override fun onCreate(db: SQLiteDatabase) {
         val CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY, " +
@@ -414,6 +414,10 @@ class PeopleDatabaseHelper(context: Context?) :
             arrayOf(name, birthday, deathday, biography, placeOfBirth, popularity.toString(), profilePath, imdbId, homepage, id.toString())
         )
         db.close()
+    }
+
+    override fun close() {
+        super.close()
     }
 
     companion object {

@@ -59,7 +59,7 @@ import java.util.Locale
 /**
  * This class provides some (basic) database functionality.
  */
-class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databaseFileName, null, DATABASE_VERSION) {
+class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databaseFileName, null, DATABASE_VERSION), AutoCloseable {
 
     /**
      * Converts the show table in the database to a JSON string.
@@ -853,5 +853,9 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
 
             return csvBuilder.toString()
         }
+    }
+
+    override fun close() {
+        super.close()
     }
 }

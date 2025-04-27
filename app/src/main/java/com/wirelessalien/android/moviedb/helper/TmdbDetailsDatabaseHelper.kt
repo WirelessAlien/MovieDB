@@ -25,7 +25,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class TmdbDetailsDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class TmdbDetailsDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION), AutoCloseable {
 
     companion object {
         private const val DATABASE_NAME = "tmdbDetails.db"
@@ -85,5 +85,9 @@ class TmdbDetailsDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DA
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TMDB_DETAILS")
         onCreate(db)
+    }
+
+    override fun close() {
+        super.close()
     }
 }

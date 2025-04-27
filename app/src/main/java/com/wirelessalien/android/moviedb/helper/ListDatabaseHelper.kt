@@ -25,7 +25,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
 class ListDatabaseHelper(context: Context?) :
-    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION), AutoCloseable {
     override fun onCreate(db: SQLiteDatabase) {
         val CREATE_LIST_DATA_TABLE = ("CREATE TABLE " + TABLE_LIST_DATA + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -100,6 +100,10 @@ class ListDatabaseHelper(context: Context?) :
         db.delete(TABLE_LIST_DATA, null, null)
         db.delete(TABLE_LISTS, null, null)
         db.close()
+    }
+
+    override fun close() {
+        super.close()
     }
 
     companion object {

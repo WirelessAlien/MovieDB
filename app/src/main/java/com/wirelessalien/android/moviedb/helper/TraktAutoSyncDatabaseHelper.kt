@@ -28,7 +28,7 @@ import android.icu.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class TraktAutoSyncDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class TraktAutoSyncDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION), AutoCloseable {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""
@@ -72,6 +72,10 @@ class TraktAutoSyncDatabaseHelper(context: Context) : SQLiteOpenHelper(context, 
         ).use { cursor ->
             cursor.count > 0
         }
+    }
+
+    override fun close() {
+        super.close()
     }
 
     companion object {

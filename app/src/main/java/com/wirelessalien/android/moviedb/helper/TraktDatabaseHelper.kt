@@ -26,7 +26,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.wirelessalien.android.moviedb.data.CollectionDetails
 
-class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION), AutoCloseable {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(CREATE_COLLECTION_TABLE)
@@ -1207,5 +1207,9 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         }
         cursor.close()
         return collectionDetails
+    }
+
+    override fun close() {
+        super.close()
     }
 }
