@@ -426,11 +426,14 @@ class EpisodeAdapter(
                         db.removeEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber))
 
                         holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility_off)
+                        holder.binding.watchedDate.text = context.getString(R.string.watched_on_not_set)
                     } else {
                         // If the episode is not in the database, add it
                         db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episode.episodeNumber), currentDate)
 
                         holder.binding.btnWatchedToLocalDb.icon = AppCompatResources.getDrawable(context, R.drawable.ic_visibility)
+                        val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault()).format(Calendar.getInstance().time)
+                        holder.binding.watchedDate.text = context.getString(R.string.watched_on) + " " + formattedDate
                     }
                 }
             }
