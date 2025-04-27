@@ -44,6 +44,9 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
@@ -61,7 +64,10 @@ import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsServiceConnection
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
@@ -1112,6 +1118,32 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 startActivity(browserIntent)
             }
         }
+
+        addMenuProvider()
+    }
+
+    private fun addMenuProvider() {
+        val menuHost: MenuHost = this
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_link, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                val id = menuItem.itemId
+
+                if (id == R.id.action_link)
+                    if (isMovie) {
+                        val url = "https://www.themoviedb.org/movie/$movieId"
+                        launchUrl(this@DetailActivity, url)
+                    } else {
+                        val url = "https://www.themoviedb.org/tv/$movieId"
+                        launchUrl(this@DetailActivity, url)
+                    }
+                return false
+            }
+
+        }, this, Lifecycle.State.RESUMED)
     }
 
     private fun showSyncProviderActionsDialog() {
