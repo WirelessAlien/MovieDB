@@ -32,13 +32,13 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityTktExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
-import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,14 +86,9 @@ class ExportTktDbActivity : AppCompatActivity() {
 
         binding.infoText.text = getString(R.string.tkt_export_info)
 
-        val exportDirectory = DirectoryHelper.getExportDirectory(context)
         val exportDirectoryUri = preferences.getString("db_export_directory", null)
 
-        if (exportDirectory != null && exportDirectoryUri != null) {
-            binding.selectedDirectoryText.text = getString(R.string.directory_path, Uri.parse(exportDirectoryUri).path)
-        } else if (exportDirectory != null) {
-            binding.selectedDirectoryText.text = getString(R.string.directory_path, exportDirectory.absolutePath)
-        } else if (exportDirectoryUri != null) {
+        if (exportDirectoryUri != null) {
             binding.selectedDirectoryText.text = getString(R.string.directory_path, Uri.parse(exportDirectoryUri).path)
         }
 
@@ -112,6 +107,17 @@ class ExportTktDbActivity : AppCompatActivity() {
 
         binding.editIcon.setOnClickListener {
             openExportDirectoryLauncher.launch(null)
+        }
+
+        binding.importTmdb.setOnClickListener {
+            val url = "https://www.themoviedb.org/settings/import-list"
+            try {
+                val customTabsIntent = CustomTabsIntent.Builder().build()
+                customTabsIntent.launchUrl(this, Uri.parse(url))
+            } catch (e: Exception) {
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(browserIntent)
+            }
         }
     }
 

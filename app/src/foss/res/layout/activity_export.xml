@@ -91,7 +91,7 @@
                 android:id="@+id/export_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:text="@string/export" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
@@ -105,7 +105,7 @@
                 android:id="@+id/backupBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:layout_marginTop="10dp"
                 android:text="@string/auto_backup_directory_selection"/>
 

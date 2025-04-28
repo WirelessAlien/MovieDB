@@ -86,7 +86,7 @@
                 android:id="@+id/export_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:text="@string/export" />
 
             <TextView
@@ -109,7 +109,7 @@
                 android:id="@+id/backupBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:layout_marginTop="10dp"
                 android:text="@string/auto_backup_directory_selection"/>
 
@@ -154,14 +154,14 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="@string/authorize_google_drive"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:layout_marginTop="10dp"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/googleDriveButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:layout_marginTop="10dp"
                 android:text="@string/backup_to_google_drive" />
 

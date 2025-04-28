@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:text="@string/pick_file" />
 
             <com.google.android.material.button.MaterialButton
@@ -72,15 +72,16 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:text="@string/import_movie_database"/>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/import_people_db_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
-                app:cornerRadius="5dp"
+                app:cornerRadius="10dp"
                 android:text="@string/import_people_database"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
