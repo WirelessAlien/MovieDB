@@ -20,12 +20,14 @@
 
 package com.wirelessalien.android.moviedb.fragment
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -36,6 +38,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -44,6 +47,8 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.ExportActivity
+import com.wirelessalien.android.moviedb.activity.ExportTktDbActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
@@ -138,6 +143,28 @@ class AccountDataFragmentTkt : BaseFragment() {
                     }
                     R.id.sort_date_desc -> {
                         saveSortPreference("date", "desc")
+                        true
+                    }
+                    R.id.action_export_tkt_data -> {
+                        // Handle export action
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                            if (ActivityCompat.checkSelfPermission(
+                                    requireContext(),
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                ActivityCompat.requestPermissions(
+                                    requireActivity(),
+                                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 333
+                                )
+                            } else {
+                                val intent = Intent(requireContext().applicationContext, ExportTktDbActivity::class.java)
+                                startActivity(intent)
+                            }
+                        } else {
+                            val intent = Intent(requireContext().applicationContext, ExportTktDbActivity::class.java)
+                            startActivity(intent)
+                        }
                         true
                     }
                     else -> false

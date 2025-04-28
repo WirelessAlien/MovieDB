@@ -80,6 +80,13 @@
                    android:src="@drawable/ic_edit"/>
            </RelativeLayout>
 
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/exportProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone"/>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/export_button"
                 android:layout_width="match_parent"

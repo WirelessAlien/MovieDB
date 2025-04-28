@@ -130,6 +130,10 @@
             android:theme="@style/AppTheme">
         </activity>
 
+        <activity android:name=".activity.ExportTktDbActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
         <receiver
             android:name="NotificationReceiver"
             android:exported="false" />

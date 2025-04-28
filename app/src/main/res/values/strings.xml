@@ -174,6 +174,13 @@
     <string name="episode_number_format" translatable="false">(%d)</string>
     <string name="rv_rating_format" translatable="false">%.1f/%d</string>
     <string name="rating_na">N/A</string>
+    <string name="export_directory_not_selected">Export dir not selected</string>
+    <string name="export_in_progress">Export in progress</string>
+    <string name="export_completed">Export completed</string>
+    <string name="export_success">All data exported successfully</string>
+    <string name="export_partial_success">%1$d out of %2$d files exported successfully</string>
+    <string name="export_failed">Export failed</string>
+    <string name="tkt_export_info">Exported CSVs are formatted for TMDB compatibility. Import them via TMDB\'s Import/Export tool in account settings.</string>
 
     <string-array name="media_types">
         <item>digital</item>

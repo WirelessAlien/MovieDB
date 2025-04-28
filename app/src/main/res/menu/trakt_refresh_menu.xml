@@ -32,4 +32,9 @@
         android:icon="@drawable/ic_chart"
         android:title="@string/stats"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_export_tkt_data"
+        android:title="@string/export"
+        app:showAsAction="ifRoom" />
 </menu>
