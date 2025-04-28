@@ -36,7 +36,7 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding
+import com.wirelessalien.android.moviedb.databinding.ActivityTktExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
@@ -50,7 +50,7 @@ import java.util.Locale
 class ExportTktDbActivity : AppCompatActivity() {
 
     private lateinit var context: Context
-    private lateinit var binding: ActivityExportBinding
+    private lateinit var binding: ActivityTktExportBinding
     private var exportDirectoryUri: Uri? = null
     private lateinit var preferences: SharedPreferences
 
@@ -65,7 +65,7 @@ class ExportTktDbActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityExportBinding.inflate(layoutInflater)
+        binding = ActivityTktExportBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
