@@ -22,9 +22,11 @@ package com.wirelessalien.android.moviedb.helper
 import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
@@ -99,74 +101,141 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         return episodesSet
     }
 
-    private suspend fun getJSONExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
-        val selectQuery = "SELECT * FROM $TABLE_MOVIES"
-        val cursor = database.rawQuery(selectQuery, null)
+    suspend fun getJSONExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
+        val moviesArray = JSONArray()
 
-        // Convert the database to JSON
-        val databaseSet = JSONArray()
-        cursor.moveToFirst()
-        while (!cursor.isAfterLast) {
-            val totalColumn = cursor.columnCount
-            val rowObject = JSONObject()
-            for (i in 0 until totalColumn) {
-                if (cursor.getColumnName(i) != null) {
-                    try {
-                        if (cursor.getString(i) != null) {
-                            rowObject.put(cursor.getColumnName(i), cursor.getString(i))
-                        } else {
-                            rowObject.put(cursor.getColumnName(i), "")
-                        }
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
+        // Get all movies
+        val moviesCsr = database.query(
+            TABLE_MOVIES,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+
+        moviesCsr.use { moviesCursor ->
+            while (moviesCursor.moveToNext()) {
+                val movieObject = JSONObject()
+
+                // Add movie data
+                for (i in 0 until moviesCursor.columnCount) {
+                    val columnName = moviesCursor.getColumnName(i)
+                    when (moviesCursor.getType(i)) {
+                        Cursor.FIELD_TYPE_NULL -> movieObject.put(columnName, JSONObject.NULL)
+                        Cursor.FIELD_TYPE_INTEGER -> movieObject.put(columnName, moviesCursor.getLong(i))
+                        Cursor.FIELD_TYPE_FLOAT -> movieObject.put(columnName, moviesCursor.getDouble(i))
+                        Cursor.FIELD_TYPE_STRING -> movieObject.put(columnName, moviesCursor.getString(i))
+                        Cursor.FIELD_TYPE_BLOB -> movieObject.put(columnName, Base64.encodeToString(moviesCursor.getBlob(i), Base64.DEFAULT))
                     }
                 }
-            }
 
-            // Add episodes for this movie
-            val movieId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MOVIES_ID))
-            try {
-                rowObject.put("episodes", getEpisodesForMovie(movieId, database))
-            } catch (e: JSONException) {
-                e.printStackTrace()
+                // Get episodes for this movie
+                val movieId = moviesCursor.getLong(moviesCursor.getColumnIndexOrThrow(COLUMN_MOVIES_ID))
+                movieObject.put("episodes", getEpisodesForMovie(movieId, database))
+
+                moviesArray.put(movieObject)
             }
-            databaseSet.put(rowObject)
-            cursor.moveToNext()
         }
-        cursor.close()
 
-        // Convert databaseSet to string and put in file
-        databaseSet.toString()
+        moviesArray.toString(4)
     }
 
-    private suspend fun getCSVExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
-        val selectQuery = """
-        SELECT m.*, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER, e.$COLUMN_EPISODE_RATING,
-               e.$COLUMN_EPISODE_WATCH_DATE, e.$COLUMN_EPISODE_REVIEW
+    private fun getEpisodesForMovie(movieId: Long, database: SQLiteDatabase): JSONArray {
+        val episodesArray = JSONArray()
+
+        val episodesCsr = database.query(
+            TABLE_EPISODES,
+            null,
+            "$COLUMN_MOVIES_ID = ?",
+            arrayOf(movieId.toString()),
+            null,
+            null,
+            "$COLUMN_SEASON_NUMBER ASC, $COLUMN_EPISODE_NUMBER ASC"
+        )
+
+        episodesCsr.use { episodesCursor ->
+            while (episodesCursor.moveToNext()) {
+                val episodeObject = JSONObject()
+
+                for (i in 0 until episodesCursor.columnCount) {
+                    val columnName = episodesCursor.getColumnName(i)
+                    when (episodesCursor.getType(i)) {
+                        Cursor.FIELD_TYPE_NULL -> episodeObject.put(columnName, JSONObject.NULL)
+                        Cursor.FIELD_TYPE_INTEGER -> episodeObject.put(columnName, episodesCursor.getLong(i))
+                        Cursor.FIELD_TYPE_FLOAT -> episodeObject.put(columnName, episodesCursor.getDouble(i))
+                        Cursor.FIELD_TYPE_STRING -> episodeObject.put(columnName, episodesCursor.getString(i))
+                        Cursor.FIELD_TYPE_BLOB -> episodeObject.put(columnName, Base64.encodeToString(episodesCursor.getBlob(i), Base64.DEFAULT))
+                    }
+                }
+
+                episodesArray.put(episodeObject)
+            }
+        }
+
+        return episodesArray
+    }
+
+    suspend fun getCSVExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
+        val csvBuilder = StringBuilder()
+
+        // Get all movies with their episodes
+        val query = """
+        SELECT 
+            m.$COLUMN_MOVIES_ID as tmdb_id,
+            m.$COLUMN_TITLE as title,
+            m.$COLUMN_SUMMARY as summary,
+            m.$COLUMN_RATING as tmdb_rating,
+            m.$COLUMN_IMAGE as image,
+            m.$COLUMN_ICON as icon,
+            m.$COLUMN_GENRES as genres,
+            m.$COLUMN_GENRES_IDS as genres_ids,
+            m.$COLUMN_PERSONAL_RATING as rating,
+            m.$COLUMN_RELEASE_DATE as release_date,
+            m.$COLUMN_PERSONAL_START_DATE as start_date,
+            m.$COLUMN_PERSONAL_FINISH_DATE as finish_date,
+            m.$COLUMN_MOVIE_REVIEW as movie_review,
+            e.$COLUMN_SEASON_NUMBER as season,
+            e.$COLUMN_EPISODE_NUMBER as episode,
+            e.$COLUMN_EPISODE_RATING as episode_rating,
+            e.$COLUMN_EPISODE_WATCH_DATE as episode_watch_date,
+            e.$COLUMN_EPISODE_REVIEW as episode_review
         FROM $TABLE_MOVIES m
         LEFT JOIN $TABLE_EPISODES e ON m.$COLUMN_MOVIES_ID = e.$COLUMN_MOVIES_ID
+        ORDER BY m.$COLUMN_TITLE, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER
     """
-        val cursor = database.rawQuery(selectQuery, null)
 
-        val csvBuilder = StringBuilder()
-        val columnNames = cursor.columnNames
+        val csr = database.rawQuery(query, null)
 
-        // Add column headers
-        csvBuilder.append(columnNames.joinToString(",") { "\"$it\"" }).append("\n")
+        csr.use { cursor ->
+            val headers = cursor.columnNames
+            csvBuilder.append(headers.joinToString(",")).append("\n")
 
-        // Add rows
-        cursor.moveToFirst()
-        while (!cursor.isAfterLast) {
-            val rowValues = mutableListOf<String>()
-            for (i in columnNames.indices) {
-                val value = cursor.getString(i) ?: "null"
-                val escapedValue = value.replace("\"", "\"\"")
-                rowValues.add("\"$escapedValue\"")
+            // Write data rows
+            while (cursor.moveToNext()) {
+                val row = (0 until cursor.columnCount).joinToString(",") { colIndex ->
+                    val value = when (cursor.getType(colIndex)) {
+                        Cursor.FIELD_TYPE_NULL -> ""
+                        Cursor.FIELD_TYPE_INTEGER -> cursor.getLong(colIndex).toString()
+                        Cursor.FIELD_TYPE_FLOAT -> "%.1f".format(cursor.getDouble(colIndex))
+                        Cursor.FIELD_TYPE_STRING -> {
+                            val str = cursor.getString(colIndex)
+                            if (str.contains(",") || str.contains("\"") || str.contains("\n")) {
+                                // Escape quotes and wrap in quotes
+                                "\"${str.replace("\"", "\"\"")}\""
+                            } else {
+                                str
+                            }
+                        }
+
+                        else -> ""
+                    }
+                    value
+                }
+                csvBuilder.append(row).append("\n")
             }
-            csvBuilder.append(rowValues.joinToString(",")).append("\n")
-            cursor.moveToNext()
         }
-        cursor.close()
 
         csvBuilder.toString()
     }
@@ -801,58 +870,6 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         private const val DATABASE_FILE_NAME = "movies"
         private const val DATABASE_FILE_EXT = ".db"
         private const val DATABASE_VERSION = 15
-
-
-        fun jSONExport(db: SQLiteDatabase): String {
-            val json = JSONObject()
-            val tables = arrayOf(TABLE_MOVIES, TABLE_EPISODES)
-            for (table in tables) {
-                val cursor = db.query(table, null, null, null, null, null, null)
-                val tableJson = JSONObject()
-                if (cursor.moveToFirst()) {
-                    do {
-                        val rowJson = JSONObject()
-                        for (i in 0 until cursor.columnCount) {
-                            rowJson.put(cursor.getColumnName(i), cursor.getString(i))
-                        }
-                        tableJson.put(cursor.position.toString(), rowJson)
-                    } while (cursor.moveToNext())
-                }
-                cursor.close()
-                json.put(table, tableJson)
-            }
-            return json.toString()
-        }
-
-        fun cSVExport(database: SQLiteDatabase): String {
-            val selectQuery = """
-        SELECT m.*, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER, e.$COLUMN_EPISODE_RATING,
-               e.$COLUMN_EPISODE_WATCH_DATE, e.$COLUMN_EPISODE_REVIEW
-        FROM $TABLE_MOVIES m
-        LEFT JOIN $TABLE_EPISODES e ON m.$COLUMN_MOVIES_ID = e.$COLUMN_MOVIES_ID
-    """
-            val cursor = database.rawQuery(selectQuery, null)
-
-            val csvBuilder = StringBuilder()
-            val columnNames = cursor.columnNames
-
-            csvBuilder.append(columnNames.joinToString(",") { "\"$it\"" }).append("\n")
-
-            cursor.moveToFirst()
-            while (!cursor.isAfterLast) {
-                val rowValues = mutableListOf<String>()
-                for (i in columnNames.indices) {
-                    val value = cursor.getString(i) ?: "null"
-                    val escapedValue = value.replace("\"", "\"\"")
-                    rowValues.add("\"$escapedValue\"")
-                }
-                csvBuilder.append(rowValues.joinToString(",")).append("\n")
-                cursor.moveToNext()
-            }
-            cursor.close()
-
-            return csvBuilder.toString()
-        }
     }
 
     override fun close() {

@@ -332,13 +332,15 @@ class ExportActivity : AppCompatActivity() {
                 contentResolver.openOutputStream(uri)?.use { outputStream ->
                     if (isJson) {
                         val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val db = databaseHelper.readableDatabase
-                        val json = MovieDatabaseHelper.jSONExport(db)
+                        val json = databaseHelper.readableDatabase.use { db ->
+                            databaseHelper.getJSONExportString(db)
+                        }
                         outputStream.write(json.toByteArray())
                     } else if (isCsv) {
                         val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val db = databaseHelper.readableDatabase
-                        val csv = MovieDatabaseHelper.cSVExport(db)
+                        val csv = databaseHelper.readableDatabase.use { db ->
+                            databaseHelper.getCSVExportString(db)
+                        }
                         outputStream.write(csv.toByteArray())
                     } else {
                         val dynamicPath = context.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
