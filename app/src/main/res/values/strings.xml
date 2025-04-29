@@ -182,6 +182,9 @@
     <string name="export_failed">Export failed</string>
     <string name="tkt_export_info">Exported CSVs are formatted for TMDB compatibility. Import them via TMDB\'s Import/Export tool in account settings.</string>
     <string name="import_tmdb">Import to TMDB</string>
+    <string name="all_previous_episodes_already_watched">All previous episodes are already watched</string>
+    <string name="no_previous_episodes_in_season">No previous episodes in this season</string>
+    <string name="mark_all_previous_episodes_as_watched">Mark all previous episodes as watched</string>
 
     <string-array name="media_types">
         <item>digital</item>
