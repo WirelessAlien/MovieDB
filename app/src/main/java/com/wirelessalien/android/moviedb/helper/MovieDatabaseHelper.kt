@@ -196,6 +196,8 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
             m.$COLUMN_PERSONAL_START_DATE as start_date,
             m.$COLUMN_PERSONAL_FINISH_DATE as finish_date,
             m.$COLUMN_MOVIE_REVIEW as movie_review,
+            m.$COLUMN_MOVIE as is_movie,
+            m.$COLUMN_CATEGORIES as categories,
             e.$COLUMN_SEASON_NUMBER as season,
             e.$COLUMN_EPISODE_NUMBER as episode,
             e.$COLUMN_EPISODE_RATING as episode_rating,
@@ -482,9 +484,9 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val downloadPath = context.cacheDir.path
         val directory = File(downloadPath)
         val files = directory.listFiles { pathname: File ->
-            // Only show database
+            // Only show database and csv
             val name = pathname.name
-            name.endsWith(".db")
+            name.endsWith(".db") || name.endsWith(".csv")
         }
         val fileAdapter = ArrayAdapter<String>(context, android.R.layout.select_dialog_singlechoice)
         for (file in files) {
@@ -520,6 +522,23 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                             e.printStackTrace()
                         }
                     }
+                } else if (fileAdapter.getItem(which)!!.endsWith(".csv")) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val csvFile = File(path, fileAdapter.getItem(which)!!)
+                            val database = context.openOrCreateDatabase(databaseFileName, Context.MODE_PRIVATE, null)
+                            importCSVToDatabase(database, csvFile)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, R.string.database_import_successful, Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, R.string.database_not_found, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        listener.onAdapterDataChangedListener()
+                    }
                 }
             } catch (npe: NullPointerException) {
                 npe.printStackTrace()
@@ -530,26 +549,90 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         fileDialog.show()
     }
 
-    fun importCSVToDatabase(database: SQLiteDatabase, csvFile: File) {
+    private fun importCSVToDatabase(database: SQLiteDatabase, csvFile: File) {
         try {
             val bufferedReader = BufferedReader(FileReader(csvFile))
-            var line: String? = bufferedReader.readLine() // Read header line
-            val columns = line?.split(",")?.map { it.trim('"') } ?: return
+            var line: String? = bufferedReader.readLine()
+            val csvColumns = line?.split(",")?.map { it.trim('"') } ?: return
+
 
             database.beginTransaction()
             try {
                 while (bufferedReader.readLine().also { line = it } != null) {
-                    val values = line?.split(",")?.map { it.trim('"') } ?: continue
-                    val contentValues = ContentValues()
+                    val values = line?.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex())?.map {
+                        it.trim('"').replace("\"\"", "\"")
+                    } ?: continue
 
-                    for (i in columns.indices) {
-                        contentValues.put(columns[i], values[i])
+                    if (values.size != csvColumns.size) continue
+
+                    val movieValues = ContentValues().apply {
+                        // Required fields with defaults
+                        put(COLUMN_MOVIES_ID, values.getOrNull(csvColumns.indexOf("tmdb_id"))?.toLongOrNull() ?: 0L)
+                        put(COLUMN_RATING, values.getOrNull(csvColumns.indexOf("tmdb_rating"))?.toDoubleOrNull() ?: 0.0)
+                        put(COLUMN_IMAGE, values.getOrNull(csvColumns.indexOf("image")) ?: "")
+                        put(COLUMN_ICON, values.getOrNull(csvColumns.indexOf("icon")) ?: "")
+                        put(COLUMN_TITLE, values.getOrNull(csvColumns.indexOf("title")) ?: "")
+                        put(COLUMN_SUMMARY, values.getOrNull(csvColumns.indexOf("summary")) ?: "")
+                        put(COLUMN_GENRES, values.getOrNull(csvColumns.indexOf("genres")) ?: "")
+                        put(COLUMN_GENRES_IDS, values.getOrNull(csvColumns.indexOf("genres_ids")) ?: "")
+                        put(COLUMN_CATEGORIES, values.getOrNull(csvColumns.indexOf("categories"))?.toIntOrNull() ?: 0)
+                        put(COLUMN_MOVIE, values.getOrNull(csvColumns.indexOf("isMovie"))?.toIntOrNull() ?: 1)
+
+                        // Optional fields
+                        values.getOrNull(csvColumns.indexOf("rating"))?.toDoubleOrNull()?.let {
+                            put(COLUMN_PERSONAL_RATING, it)
+                        }
+                        values.getOrNull(csvColumns.indexOf("release_date"))?.let {
+                            put(COLUMN_RELEASE_DATE, it)
+                        }
+                        values.getOrNull(csvColumns.indexOf("start_date"))?.let {
+                            put(COLUMN_PERSONAL_START_DATE, it)
+                        }
+                        values.getOrNull(csvColumns.indexOf("finish_date"))?.let {
+                            put(COLUMN_PERSONAL_FINISH_DATE, it)
+                        }
+                        values.getOrNull(csvColumns.indexOf("movie_review"))?.let {
+                            put(COLUMN_MOVIE_REVIEW, it)
+                        }
                     }
 
-                    if (columns.contains("episode_number")) {
-                        database.insert("episodes", null, contentValues)
-                    } else {
-                        database.insert("movies", null, contentValues)
+                    val episodeValues = ContentValues().apply {
+                        // Required fields with defaults
+                        put(COLUMN_MOVIES_ID, movieValues.getAsLong(COLUMN_MOVIES_ID) ?: 0L)
+                        put(COLUMN_SEASON_NUMBER, values.getOrNull(csvColumns.indexOf("season"))?.toIntOrNull() ?: 1)
+                        put(COLUMN_EPISODE_NUMBER, values.getOrNull(csvColumns.indexOf("episode"))?.toIntOrNull() ?: 1)
+
+                        // Optional fields
+                        values.getOrNull(csvColumns.indexOf("episode_rating"))?.toDoubleOrNull()?.let {
+                            put(COLUMN_EPISODE_RATING, it)
+                        }
+                        values.getOrNull(csvColumns.indexOf("episode_watch_date"))?.let {
+                            put(COLUMN_EPISODE_WATCH_DATE, it)
+                        }
+                        values.getOrNull(csvColumns.indexOf("episode_review"))?.let {
+                            put(COLUMN_EPISODE_REVIEW, it)
+                        }
+                    }
+
+                    // Insert movie data
+                    val movieId = movieValues.getAsLong(COLUMN_MOVIES_ID)
+                    if (movieId != null && movieId != 0L) {
+                        database.insertWithOnConflict(
+                            TABLE_MOVIES,
+                            null,
+                            movieValues,
+                            SQLiteDatabase.CONFLICT_REPLACE
+                        )
+
+                        if (episodeValues.getAsInteger(COLUMN_SEASON_NUMBER) != null &&
+                            episodeValues.getAsInteger(COLUMN_EPISODE_NUMBER) != null) {
+                            database.insertWithOnConflict(
+                                TABLE_EPISODES,
+                                null,
+                                episodeValues,
+                                SQLiteDatabase.CONFLICT_REPLACE
+                            )
+                        }
                     }
                 }
                 database.setTransactionSuccessful()
@@ -557,8 +640,9 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 database.endTransaction()
             }
             bufferedReader.close()
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             e.printStackTrace()
+            throw e
         }
     }
 
