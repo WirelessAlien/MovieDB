@@ -185,6 +185,9 @@
     <string name="all_previous_episodes_already_watched">All previous episodes are already watched</string>
     <string name="no_previous_episodes_in_season">No previous episodes in this season</string>
     <string name="mark_all_previous_episodes_as_watched">Mark all previous episodes as watched</string>
+    <string name="watched_now">Watched now</string>
+    <string name="watched_at_release">Watched at release</string>
+    <string name="select_date">Select date</string>
 
     <string-array name="media_types">
         <item>digital</item>

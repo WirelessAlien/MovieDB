@@ -113,19 +113,28 @@
         android:layout_marginTop="10dp"/>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnWatchedNow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cornerRadius="10dp"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:text="@string/watched_now"
+        android:layout_marginTop="10dp"/>
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnWatchedAtRelease"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
-        android:text="Watched at release"
+        android:text="@string/watched_at_release"
         android:layout_marginTop="10dp"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSelectDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select date"
+        android:text="@string/select_date"
         app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_marginTop="10dp"/>
@@ -144,7 +153,7 @@
             android:id="@+id/etSelectedDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Date"/>
+            android:hint="@string/dates"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
@@ -154,6 +163,6 @@
         app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:visibility="gone"
-        android:text="Save"
+        android:text="@string/save"
         android:layout_margin="16dp"/>
 </LinearLayout>

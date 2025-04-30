@@ -1049,7 +1049,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                 Locale.ENGLISH
-            ).format(Date())
+            ).apply {
+                timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+            }.format(Date())
 
             if (isInWatchlist) {
                 syncTraktData("sync/watchlist/remove", 0, "", null, null, null, null, null, null, null)
@@ -1063,7 +1065,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                 Locale.ENGLISH
-            ).format(Date())
+            ).apply {
+                timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+            }.format(Date())
 
             if (isInFavourite) {
                 syncTraktData("sync/favorites/remove", 0, "", null, null, null, null, null, null, null)
@@ -1280,7 +1284,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         val currentDateTime = android.icu.text.SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
             Locale.ENGLISH
-        ).format(Date())
+        ).apply {
+            timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+        }.format(Date())
         dialogViewBinding.etSelectedDate.setText(currentDateTime)
 
         dialogViewBinding.btnSelectDate.setOnClickListener {
@@ -1322,6 +1328,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
         val movieTitle = dialogViewBinding.tvTitle
         val watchingNowButton = dialogViewBinding.btnWatchingNow
+        val watchedNowButton = dialogViewBinding.btnWatchedNow
         val watchedAtReleaseButton = dialogViewBinding.btnWatchedAtRelease
         val selectDateButton = dialogViewBinding.btnSelectDate
         val selectedDateEditText = dialogViewBinding.etSelectedDate
@@ -1392,13 +1399,26 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                 Locale.ENGLISH
-            ).format(Date())
+            ).apply {
+                timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+            }.format(Date())
             traktCheckin("/checkin", currentDateTime)
             dialog.dismiss()
         }
 
         watchedAtReleaseButton.setOnClickListener {
             updateMediaObjectWithWatchedAt("released")
+            dialog.dismiss()
+        }
+
+        watchedNowButton.setOnClickListener {
+            val currentDateTime = android.icu.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.ENGLISH
+            ).apply {
+                timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+            }.format(Date())
+            updateMediaObjectWithWatchedAt(currentDateTime)
             dialog.dismiss()
         }
 
@@ -1452,7 +1472,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         val currentDateTime = android.icu.text.SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
             Locale.ENGLISH
-        ).format(Date())
+        ).apply {
+            timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+        }.format(Date())
         ratedAt.setText(currentDateTime)
 
         selectDateButton.setOnClickListener {

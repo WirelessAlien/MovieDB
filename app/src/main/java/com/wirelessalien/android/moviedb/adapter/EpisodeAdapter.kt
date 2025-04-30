@@ -28,6 +28,7 @@ import android.icu.text.DateFormat
 import android.icu.text.DateFormatSymbols
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
+import android.icu.util.TimeZone
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
@@ -618,7 +619,9 @@ class EpisodeAdapter(
             val currentDateTime = SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                 Locale.ENGLISH
-            ).format(Date())
+            ).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date())
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeData = withContext(Dispatchers.IO) {
                     fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
@@ -916,7 +919,12 @@ class EpisodeAdapter(
             }
         }
 
-        val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).format(Date())
+        val currentDateTime = SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            Locale.ENGLISH
+        ).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.format(Date())
         binding.ratedDate.setText(currentDateTime)
 
         binding.btnSelectDate.setOnClickListener {
@@ -1111,11 +1119,57 @@ class EpisodeAdapter(
                     }
                 }
 
-                val currentDateTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).format(Date())
+                val currentDateTime = SimpleDateFormat(
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                    Locale.ENGLISH
+                ).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }.format(Date())
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
                     traktSync("checkin", episode, 0, holder, currentDateTime, null, null, null, null, null, null)
+                }
+                binding.progressIndicator.visibility = View.GONE
+                dialog.dismiss()
+            }
+        }
+
+        binding.btnWatchedNow.setOnClickListener {
+            binding.progressIndicator.visibility = View.VISIBLE
+            val currentDateTime = SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.ENGLISH
+            ).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date())
+            CoroutineScope(Dispatchers.Main).launch {
+                val episodeObject = withContext(Dispatchers.IO) {
+                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                    if (episodeData != null) {
+                        val episodeIds = JSONObject().apply {
+                            put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
+                            put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
+                            put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
+                            put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+                        }
+
+                        val episodeDetails = JSONObject().apply {
+                            put("watched_at", currentDateTime)
+                            put("ids", episodeIds)
+                        }
+
+                        JSONObject().apply {
+                            put("episodes", JSONArray().put(episodeDetails))
+                        }
+                    } else {
+                        null
+                    }
+                }
+
+                if (episodeObject != null) {
+                    mediaObject = episodeObject
+                    traktSync("sync/history", episode, 0, holder, currentDateTime, null, null, null, null, null, null)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
