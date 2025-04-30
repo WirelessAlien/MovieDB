@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="recommendations_title">Ieteikumi</string>
-    <string name="sort_by">Kārtot pēc</string>
+    <string name="sort_by">Kārtot</string>
     <string name="no_permission_dialog_ok">Labi</string>
     <string name="no_permission_dialog_cancel">Atcelt</string>
     <string name="rating">"Vērtējums: "</string>
@@ -12,4 +12,34 @@
     <string name="movie_added">Filma pievienota</string>
     <string name="cast_title">Lomās</string>
     <string name="default_sort">Noklusējuma</string>
+    <string name="best_rated">Visaugstāk novērtētie</string>
+    <string name="alphabetic_order">Alfabētiskā secībā</string>
+    <string name="categories">Kategorijas</string>
+    <string name="plan_to_watch">Plānoju skatīties</string>
+    <string name="watching">Skatos</string>
+    <string name="watched">Noskatīts</string>
+    <string name="dates">Datumi</string>
+    <string name="between_two_dates">Starp diviem datumiem</string>
+    <string name="action_settings">Iestatījumi</string>
+    <string name="no_internet_connection">Nav interneta savienojuma</string>
+    <string name="title_movies">Filmas</string>
+    <string name="title_account">Konts</string>
+    <string name="person_image_description">Personas attēls</string>
+    <string name="lists">Saraksti</string>
+    <string name="delete">Dzēst</string>
+    <string name="description">Apraksts</string>
+    <string name="list_name">Saraksta nosaukums</string>
+    <string name="create_list">Izveidot sarakstu</string>
+    <string name="create_new_list">Izveidot jaunu sarakstu</string>
+    <string name="enter_list_name">Ievadiet saraksta nosaukumu</string>
+    <string name="rating1">Vērtējums</string>
+    <string name="specials">Īpašās</string>
+    <string name="refresh">Atsvaidzināt</string>
+    <string name="error_rating_exceeds_limit">Lūdzu, ievadiet vērtību diapazonā no 0.0 līdz 10.0</string>
+    <string name="backup_frequency">Rezerves kopijas izveides biežums</string>
+    <string name="backup_fequency_error_text">Rezerves kopijas izveides biežums nedrīkst būt mazāks par 15 minūtēm</string>
+    <string name="in_the_theater_right_now">Kinoteātros</string>
+    <string name="collapse_icon_description">Sakļauj vai izvērš skatu</string>
+    <string name="notification">Paziņojums</string>
+    <string name="no_specials_available">Nav pieejamas īpašās</string>
 </resources>
