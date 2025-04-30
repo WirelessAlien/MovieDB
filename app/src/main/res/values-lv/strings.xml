@@ -1,2 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="recommendations_title">Ieteikumi</string>
+    <string name="sort_by">Kārtot pēc</string>
+    <string name="no_permission_dialog_ok">Labi</string>
+    <string name="no_permission_dialog_cancel">Atcelt</string>
+    <string name="rating">"Vērtējums: "</string>
+    <string name="place_of_birth">Dzimšanas vieta: %1$s</string>
+    <string name="birthday">Dzimšanas diena: %1$s</string>
+    <string name="show_category">"Kategorija: "</string>
+    <string name="most_popular">Populārākie</string>
+    <string name="movie_added">Filma pievienota</string>
+    <string name="cast_title">Lomās</string>
+    <string name="default_sort">Noklusējuma</string>
+</resources>
