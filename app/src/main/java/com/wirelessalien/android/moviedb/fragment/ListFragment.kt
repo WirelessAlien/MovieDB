@@ -432,7 +432,22 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         }
                     }
                 }
+
+                binding.chipWatching.isChecked -> {
+                    // Refresh Watching shows
+                    val shows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
+                    }
+                    val watchingShows = ArrayList<JSONObject>()
+                    for (show in shows) {
+                        if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                            watchingShows.add(show)
+                        }
+                    }
+                    mShowAdapter.updateData(watchingShows)
+                }
             }
+
             binding.swipeRefreshLayout.isRefreshing = false
         }
     }
@@ -454,6 +469,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             // Hide the FAB if the "Upcoming" chip is checked
             activityBinding.fab.visibility = View.GONE
             activityBinding.fab2.visibility = View.GONE
+        } else if (binding.chipWatching.isChecked) {
+            activityBinding.fab.visibility = View.VISIBLE
+            activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+            activityBinding.fab.setOnClickListener {
+                val upNextFragment = UpNextFragment()
+                upNextFragment.show(parentFragmentManager, "UpNextFragment")
+            }
         } else {
             // Otherwise, show and configure the FAB (your original logic)
             activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
@@ -745,11 +767,23 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private fun setupMediaTypeChips() {
         binding.chipAll.isChecked = true
         binding.chipUpcoming.isChecked = false
+        binding.chipWatching.isChecked = false
 
         binding.chipAll.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, binding.chipUpcoming) {
+            handleChipChange(isChecked, listOf(binding.chipUpcoming, binding.chipWatching)) {
                 activityBinding.fab.visibility = View.VISIBLE
                 activityBinding.fab2.visibility = View.VISIBLE
+                activityBinding.fab.setOnClickListener {
+                    val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
+                    intent.putExtra("categories", true)
+                    intent.putExtra("most_popular", false)
+                    intent.putExtra("dates", false)
+                    intent.putExtra("keywords", false)
+                    intent.putExtra("startDate", true)
+                    intent.putExtra("finishDate", true)
+                    intent.putExtra("account", false)
+                    filterActivityResultLauncher.launch(intent)
+                }
                 mShowAdapter.updateData(mShowArrayList)
 
                 if (!mSearchView) {
@@ -762,20 +796,40 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
 
         binding.chipUpcoming.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, binding.chipAll) {
+            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipWatching)) {
                 activityBinding.fab.visibility = View.GONE
                 activityBinding.fab2.visibility = View.GONE
                 mShowAdapter.updateData(mUpcomingArrayList)
             }
         }
+
+        binding.chipWatching.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming)) {
+                activityBinding.fab.visibility = View.VISIBLE
+                activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+                activityBinding.fab2.visibility = View.GONE
+                activityBinding.fab.setOnClickListener {
+                    val upNextFragment = UpNextFragment()
+                    upNextFragment.show(parentFragmentManager, "UpNextFragment")
+                }
+
+                val watchingShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                        watchingShows.add(show)
+                    }
+                }
+                mShowAdapter.updateData(watchingShows)
+            }
+        }
     }
 
-    private fun handleChipChange(isChecked: Boolean, otherChip: Chip, action: () -> Unit) {
+    private fun handleChipChange(isChecked: Boolean, otherChips: List<Chip>, action: () -> Unit) {
         if (isChecked) {
-            otherChip.isChecked = false
+            otherChips.forEach { it.isChecked = false }
             action()
-        } else if (!otherChip.isChecked) {
-            otherChip.isChecked = true
+        } else if (otherChips.none { it.isChecked }) {
+            otherChips.firstOrNull()?.isChecked = true
         }
     }
 

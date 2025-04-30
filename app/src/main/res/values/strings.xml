@@ -189,6 +189,9 @@
     <string name="watched_at_release">Watched at release</string>
     <string name="select_date">Select date</string>
     <string name="database_not_imported">Database could not be imported</string>
+    <string name="no_up_next_episodes">No upcoming episodes to watch</string>
+    <string name="episode_format" translatable="false">S%1$d E%2$d: %3$s</string>
+    <string name="up_next">Up Next</string>
 
     <string-array name="media_types">
         <item>digital</item>
