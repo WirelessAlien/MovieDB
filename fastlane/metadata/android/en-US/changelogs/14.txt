@@ -1,0 +1,8 @@
+Add feature to mark all previous episode as watched (long click on Mark as watched button) #82
+Add link to TMDB page #95
+Add a Watching chip in Saved tab
+Add a Up next dialog for faster navigation of next episode
+Improve json and csv export format
+Add csv import (local database)
+Add Trakt data export (as csv)
+Fix crash under android 9 #96

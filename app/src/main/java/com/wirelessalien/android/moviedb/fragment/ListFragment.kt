@@ -773,6 +773,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             handleChipChange(isChecked, listOf(binding.chipUpcoming, binding.chipWatching)) {
                 activityBinding.fab.visibility = View.VISIBLE
                 activityBinding.fab2.visibility = View.VISIBLE
+                activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
                 activityBinding.fab.setOnClickListener {
                     val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
                     intent.putExtra("categories", true)
