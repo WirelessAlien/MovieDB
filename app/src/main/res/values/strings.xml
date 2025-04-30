@@ -177,8 +177,8 @@
     <string name="export_directory_not_selected">Export directory not selected</string>
     <string name="export_in_progress">Export in progress</string>
     <string name="export_completed">Export completed</string>
-    <string name="export_success">All data exported successfully</string>
-    <string name="export_partial_success">%1$d out of %2$d files exported successfully</string>
+    <string name="export_success">All data exported</string>
+    <string name="export_partial_success">%1$d out of %2$d files exported</string>
     <string name="export_failed">Export failed</string>
     <string name="tkt_export_info">Exported CSVs are formatted for TMDB compatibility. Import them via TMDB\'s Import/Export tool in account settings.</string>
     <string name="import_tmdb">Import to TMDB</string>
@@ -188,6 +188,7 @@
     <string name="watched_now">Watched now</string>
     <string name="watched_at_release">Watched at release</string>
     <string name="select_date">Select date</string>
+    <string name="database_not_imported">Database could not be imported</string>
 
     <string-array name="media_types">
         <item>digital</item>

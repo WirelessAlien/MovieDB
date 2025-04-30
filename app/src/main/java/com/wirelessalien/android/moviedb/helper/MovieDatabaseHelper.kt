@@ -502,7 +502,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
             try {
                 val exportDBPath = fileAdapter.getItem(which)
                 if (exportDBPath == null) {
-                    throw NullPointerException()
+                    Toast.makeText(context, context.resources.getString(R.string.file_not_found_exception), Toast.LENGTH_SHORT).show()
                 } else if (fileAdapter.getItem(which)!!.endsWith(".db")) {
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
@@ -534,7 +534,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                         } catch (e: Exception) {
                             e.printStackTrace()
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, R.string.database_not_found, Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, R.string.database_not_imported, Toast.LENGTH_SHORT).show()
                             }
                         }
                         listener.onAdapterDataChangedListener()
