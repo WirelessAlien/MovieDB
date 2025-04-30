@@ -42,4 +42,7 @@
     <string name="collapse_icon_description">Sakļauj vai izvērš skatu</string>
     <string name="notification">Paziņojums</string>
     <string name="no_specials_available">Nav pieejamas īpašās</string>
+    <string name="import_cancel">Atcelt</string>
+    <string name="cancel">Atcelt</string>
+    <string name="ok">Labi</string>
 </resources>
