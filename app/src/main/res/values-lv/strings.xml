@@ -95,4 +95,5 @@
     <string name="remember_only_the_year">Neatceros precīzu datumu</string>
     <string name="copy_text">Kopēt</string>
     <string name="auto_backup_directory_selection">Atlasiet mapi, kur tiks glabāti automātiski izveidotie dublējumi</string>
+    <string name="donate">Ziedot</string>
 </resources>
