@@ -96,4 +96,8 @@
     <string name="copy_text">Kopēt</string>
     <string name="auto_backup_directory_selection">Atlasiet mapi, kur tiks glabāti automātiski izveidotie dublējumi</string>
     <string name="donate">Ziedot</string>
+    <string name="image">Attēls</string>
+    <string name="about_movie_db">Par</string>
+    <string name="where_to_watch">Kur skatīties?</string>
+    <string name="cast_movie_title">Daļa no aktieru sastāva</string>
 </resources>
