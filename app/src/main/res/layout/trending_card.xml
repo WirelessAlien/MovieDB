@@ -25,77 +25,73 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginStart="5dp"
     android:layout_marginEnd="5dp"
+    android:foreground="?attr/selectableItemBackground"
     app:shapeAppearance="?attr/shapeAppearanceCornerMedium">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardView"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/Widget.Material3.CardView.Elevated"
-        android:elevation="5dp"
-        app:cardCornerRadius="10dp">
+        android:layout_height="wrap_content">
 
-        <RelativeLayout
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardView2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.CardView.Elevated"
+            app:cardCornerRadius="5dp">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardView2"
+            <com.wirelessalien.android.moviedb.view.WideRatioImageView
+                android:id="@+id/movieImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/movie_image_description"
+                android:background="@android:color/transparent"
+                android:scaleType="fitXY"/>
+
+            <RelativeLayout
+                android:id="@+id/movieInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="5dp">
+                android:layout_gravity="bottom">
 
-                <com.wirelessalien.android.moviedb.view.WideRatioImageView
-                    android:id="@+id/movieImage"
+                <TextView
+                    android:id="@+id/trendingText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/movie_image_description"
-                    android:scaleType="fitXY" />
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:text="@string/trending"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"/>
 
-                <RelativeLayout
-                    android:id="@+id/movieInfo"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/movieTitle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom">
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_below="@id/trendingText"
+                    android:maxLines="1"
+                    android:text="Title"
+                    android:ellipsize="marquee"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/trendingText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_marginEnd="10dp"
-                        android:text="@string/trending"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:layout_gravity="bottom"
-                        android:textAllCaps="true"/>
-                    <TextView
-                        android:id="@+id/movieTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_marginEnd="10dp"
-                        android:layout_below="@id/trendingText"
-                        android:maxLines="1"
-                        android:text="Title"
-                        android:ellipsize="marquee"
-                        android:textSize="25sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:id="@+id/date"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:maxLines="1"
-                        android:text="03/06/2006"
-                        android:layout_below="@id/movieTitle"
-                        android:ellipsize="marquee"
-                        android:alpha="0.8"
-                        android:layout_marginBottom="5dp"
-                        android:textStyle="bold" />
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </RelativeLayout>
-    </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:maxLines="1"
+                    android:text="03/06/2006"
+                    android:layout_below="@id/movieTitle"
+                    android:ellipsize="marquee"
+                    android:alpha="0.8"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="5dp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </RelativeLayout>
 </com.google.android.material.carousel.MaskableFrameLayout>
 
