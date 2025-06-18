@@ -118,6 +118,13 @@
             android:max="9"
             app:showSeekBarValue="true"
             app:seekBarIncrement="1"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            app:key="prefs_show_next_episode_to_watch"
+            app:title="Show next episode to watch"
+            app:summary="Display the next episode to watch in the details view instead of the latest aired."
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/title_data_usage"

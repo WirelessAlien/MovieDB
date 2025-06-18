@@ -67,6 +67,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
+import androidx.core.view.children
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
@@ -102,6 +103,7 @@ import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.ReviewItemBinding
+import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
@@ -146,7 +148,7 @@ import kotlin.math.round
  * This class provides all the details about the shows.
  * It also manages personal show data.
  */
-class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedListener {
+class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedListener, LastEpisodeFragment.OnUpcomingEpisodeClickListener {
     private var apiKey: String? = null
     private var tktaccessToken: String? = null
     private var apiReadAccessToken: String? = null
@@ -202,6 +204,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
     private lateinit var binding: ActivityDetailBinding
 
     private lateinit var preferences: SharedPreferences
+    private var showNextEpisodePref: Boolean = false
 
     // Indicate whether network items have loaded.
     private var mMovieDetailsLoaded = false
@@ -215,6 +218,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         )
         WindowCompat.setDecorFitsSystemWindows(window, false)
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        showNextEpisodePref = preferences.getBoolean(PREFS_SHOW_NEXT_EPISODE, false)
         apiKey = getConfigValue(applicationContext, "api_key")
         apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
         tktApiKey = getConfigValue(applicationContext, "client_id")
@@ -940,6 +944,11 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     )
                     addMovieToDatabase(showValues)
                     addItemtoTmdb()
+                    if (showNextEpisodePref && !isMovie && added) {
+                        lifecycleScope.launch {
+                            updateEpisodeFragments()
+                        }
+                    }
                     binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                     binding.editIcon.visibility = View.VISIBLE
                 }
@@ -1031,6 +1040,12 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             binding.btnAddToTraktHistory.icon = ContextCompat.getDrawable(context, R.drawable.ic_history)
             binding.btnAddToTraktHistory.text = getString(R.string.history)
 
+        }
+
+        if (showNextEpisodePref && !isMovie) {
+            lifecycleScope.launch {
+                updateEpisodeFragments()
+            }
         }
 
         binding.editIcon.setOnClickListener {
@@ -1993,17 +2008,113 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
     private suspend fun updateEpisodeFragments() {
         withContext(Dispatchers.Main) {
             if (!isMovie) {
-                // Clear the adapter's fragments before adding new ones or it duplicates them.
                 episodePagerAdapter.clearFragments()
-                val lastEpisodeLocal = lastEpisode
-                if (lastEpisodeLocal is JSONObject) {
-                    episodePagerAdapter.addFragment(newInstance(lastEpisodeLocal, "Latest Episode"), 0)
-                }
-                val nextEpisodeLocal = nextEpisode
-                if (nextEpisodeLocal is JSONObject) {
-                    episodePagerAdapter.addFragment(newInstance(nextEpisodeLocal, "Next Episode"), 1)
+                if (showNextEpisodePref && added) {
+                    val actualNextEpisode = determineActualNextEpisodeToWatch()
+                    if (actualNextEpisode != null) {
+                        episodePagerAdapter.addFragment(newInstance(actualNextEpisode, "Up Next"), 0)
+                    } else {
+                        // Optionally, display a message like "All episodes watched"
+                        // For now, just clear and show nothing or keep latest if available
+                        val lastEpisodeLocal = lastEpisode
+                        if (lastEpisodeLocal is JSONObject) {
+                            episodePagerAdapter.addFragment(newInstance(lastEpisodeLocal, "Latest Episode"), 0)
+                        }
+                    }
+                } else {
+                    val lastEpisodeLocal = lastEpisode
+                    if (lastEpisodeLocal is JSONObject) {
+                        episodePagerAdapter.addFragment(newInstance(lastEpisodeLocal, "Latest Episode"), 0)
+                    }
+                    val nextEpisodeLocal = nextEpisode
+                    if (nextEpisodeLocal is JSONObject) {
+                        episodePagerAdapter.addFragment(newInstance(nextEpisodeLocal, "Next Episode"), 1)
+                    }
                 }
                 episodeViewPager.adapter = episodePagerAdapter
+            }
+        }
+    }
+
+    private suspend fun determineActualNextEpisodeToWatch(): JSONObject? {
+        if (!added) return null
+
+        val lastWatched = databaseHelper.getLastWatchedEpisode(movieId)
+
+        if (lastWatched == null) {
+            val seasons = TmdbDetailsDatabaseHelper(this).use { it.getSeasonsForShow(movieId) }
+            if (seasons.contains(1)) {
+                val s1e1Details = getSpecificEpisodeDetails(movieId, 1, 1)
+                if (s1e1Details != null) return s1e1Details
+            }
+            val firstSeason = seasons.minOrNull()
+            if (firstSeason != null) {
+                val firstEpDetails = getSpecificEpisodeDetails(movieId, firstSeason, 1)
+                if (firstEpDetails != null) return firstEpDetails
+            }
+            if (nextEpisode != null) return nextEpisode
+            return null
+
+        } else {
+            val lastWatchedSeason = lastWatched.getInt(MovieDatabaseHelper.COLUMN_SEASON_NUMBER)
+            val lastWatchedEpisodeNum = lastWatched.getInt(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER)
+
+            val tmdbHelper = TmdbDetailsDatabaseHelper(this)
+            val episodesInLastSeason = tmdbHelper.use { it.getEpisodesForSeason(movieId, lastWatchedSeason) }
+
+            if (episodesInLastSeason.isNotEmpty() && lastWatchedEpisodeNum >= episodesInLastSeason.last()) {
+                // Last episode of the season, try next season's first episode
+                val nextSeasonNumber = lastWatchedSeason + 1
+                val allSeasons = tmdbHelper.use { it.getSeasonsForShow(movieId) }
+                return if (allSeasons.contains(nextSeasonNumber)) {
+                    getSpecificEpisodeDetails(movieId, nextSeasonNumber, 1)
+                } else {
+                    null
+                }
+            } else if (episodesInLastSeason.isNotEmpty()) {
+                return getSpecificEpisodeDetails(movieId, lastWatchedSeason, lastWatchedEpisodeNum + 1)
+            } else {
+                val nextSeasonNumber = lastWatchedSeason + 1
+                val allSeasons = tmdbHelper.use { it.getSeasonsForShow(movieId) }
+                if (allSeasons.contains(nextSeasonNumber)) {
+                    return getSpecificEpisodeDetails(movieId, nextSeasonNumber, 1)
+                }
+                return null
+            }
+        }
+    }
+
+    private suspend fun getSpecificEpisodeDetails(showId: Int, seasonNumber: Int, episodeNumber: Int): JSONObject? {
+        if (apiKey.isNullOrEmpty()) {
+            Log.e("DetailActivity", "API key is missing for getSpecificEpisodeDetails")
+            return null
+        }
+
+        val client = OkHttpClient()
+        val url = "https://api.themoviedb.org/3/tv/$showId/season/$seasonNumber/episode/$episodeNumber?api_key=$apiKey&append_to_response=external_ids"
+
+        val request = Request.Builder().url(url).build()
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        val episodeJson = JSONObject(responseBody)
+                        episodeJson.put("show_id", showId)
+                        episodeJson
+                    } else {
+                        Log.e("DetailActivity", "Empty response body for episode details: S$seasonNumber E$episodeNumber")
+                        null
+                    }
+                } else {
+                    Log.e("DetailActivity", "API call failed for episode S$seasonNumber E$episodeNumber: ${response.code} ${response.message}")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e("DetailActivity", "Exception fetching episode S$seasonNumber E$episodeNumber: ", e)
+                null
             }
         }
     }
@@ -2791,6 +2902,11 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             binding.editIcon.icon = ContextCompat.getDrawable(this, R.drawable.ic_edit)
             binding.editIcon.setText(R.string.edit)
             binding.fabSave.isEnabled = true
+            if (showNextEpisodePref && !isMovie && added) {
+                lifecycleScope.launch {
+                    updateEpisodeFragments()
+                }
+            }
         }
     }
 
@@ -3954,6 +4070,241 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
     override fun onListCreated() {
     }
 
+    override fun onUpcomingEpisodeClicked(showId: Int, seasonNumber: Int, episodeNumber: Int, episodeName: String?) {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val bottomSheetBinding = com.wirelessalien.android.moviedb.databinding.BottomSheetSeasonEpisodeBinding.inflate(layoutInflater)
+        bottomSheetDialog.setContentView(bottomSheetBinding.root)
+
+        bottomSheetBinding.episodeTitle.visibility = View.VISIBLE
+        bottomSheetBinding.episodeSliderLayout.visibility = View.VISIBLE
+        val chipGroupSeasons = bottomSheetBinding.chipGroupSeasons
+        val recyclerViewEpisodes = bottomSheetBinding.recyclerViewEpisodes
+        val episodeSlider = bottomSheetBinding.episodeSlider
+        val saveButton = bottomSheetBinding.saveBtn
+        recyclerViewEpisodes.layoutManager = LinearLayoutManager(this)
+
+        val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+            .format(android.icu.util.Calendar.getInstance().time)
+
+        val totalEpisodes = TmdbDetailsDatabaseHelper(this).use { it.getTotalEpisodesForShow(showId) }
+        val watchedEpisodesCount = databaseHelper.getSeenEpisodesCount(showId)
+
+        if (totalEpisodes == 0) {
+            Toast.makeText(this, getString(R.string.show_not_in_database), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        episodeSlider.apply {
+            valueFrom = 0f
+            valueTo = totalEpisodes.toFloat()
+            value = watchedEpisodesCount.coerceIn(valueFrom.toInt(), valueTo.toInt()).toFloat()
+            stepSize = 1f
+        }
+
+        val seasons = TmdbDetailsDatabaseHelper(this).use { it.getSeasonsForShow(showId) }
+
+        val maxVisibleChips = 5
+        var isExpanded = false
+        val showMoreChip = Chip(this).apply {
+            text = getString(R.string.show_more)
+            isCheckable = false
+            visibility = if (seasons.size > maxVisibleChips) View.VISIBLE else View.GONE
+        }
+
+        fun updateChipsVisibility() {
+            chipGroupSeasons.children.forEachIndexed { index, view ->
+                if (view != showMoreChip) {
+                    view.visibility = if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
+                }
+            }
+        }
+
+        chipGroupSeasons.removeAllViews() // Clear any previous chips
+        seasons.forEach { sNum ->
+            val chip = Chip(this).apply {
+                text = getString(R.string.season_p, sNum)
+                isCheckable = true
+                setOnClickListener {
+                    val episodes = TmdbDetailsDatabaseHelper(this@DetailActivity).use { it.getEpisodesForSeason(showId, sNum) }
+                    val watchedEpisodes = databaseHelper.getWatchedEpisodesForSeason(showId, sNum)
+
+                    val episodeAdapter = com.wirelessalien.android.moviedb.adapter.EpisodeSavedAdapter(
+                        episodes,
+                        watchedEpisodes.toMutableList(),
+                        showId,
+                        sNum,
+                        this@DetailActivity,
+                        object : com.wirelessalien.android.moviedb.adapter.EpisodeSavedAdapter.EpisodeClickListener {
+                            override fun onEpisodeClick(tvShowId: Int, seasonNumber: Int, episodeNumber: Int) {
+                                showInitialEpisodeInBottomSheet(bottomSheetBinding, tvShowId, seasonNumber, episodeNumber)
+                            }
+                            override fun onEpisodeWatchedStatusChanged(tvShowId: Int, seasonNumber: Int, episodeNumber: Int, isWatched: Boolean) {
+                                val currentAdapter = bottomSheetBinding.recyclerViewEpisodes.adapter as? com.wirelessalien.android.moviedb.adapter.EpisodeSavedAdapter
+                                currentAdapter?.updateEpisodeWatched(episodeNumber, isWatched)
+                                lifecycleScope.launch { updateEpisodeFragments() }
+                            }
+                        }
+                    )
+                    recyclerViewEpisodes.adapter = episodeAdapter
+                }
+            }
+            chipGroupSeasons.addView(chip)
+        }
+
+        if (seasons.size > maxVisibleChips) {
+            chipGroupSeasons.addView(showMoreChip)
+            showMoreChip.setOnClickListener {
+                isExpanded = !isExpanded
+                showMoreChip.text = getString(if (isExpanded) R.string.show_less else R.string.show_more)
+                updateChipsVisibility()
+            }
+            updateChipsVisibility()
+        }
+
+        showInitialEpisodeInBottomSheet(bottomSheetBinding, showId, seasonNumber, episodeNumber)
+        chipGroupSeasons.children.filterIsInstance<Chip>().find {
+            it.text == getString(R.string.season_p, seasonNumber)
+        }?.performClick()
+
+
+        saveButton.isEnabled = false
+        episodeSlider.addOnChangeListener { _, value, _ ->
+            saveButton.isEnabled = value.toInt() != databaseHelper.getSeenEpisodesCount(showId)
+        }
+
+        saveButton.setOnClickListener {
+            val episodesToMark = episodeSlider.value.toInt()
+            val currentTotalWatched = databaseHelper.getSeenEpisodesCount(showId)
+            var markedCountChange = 0
+
+            if (episodesToMark < currentTotalWatched) {
+                var episodesToUnmark = currentTotalWatched - episodesToMark
+                for (sNum in seasons.reversed()) {
+                    if (episodesToUnmark == 0) break
+                    val watchedInSeason = databaseHelper.getWatchedEpisodesForSeason(showId, sNum).sortedDescending()
+                    val toRemoveThisSeason = mutableListOf<Int>()
+                    for (epNum in watchedInSeason) {
+                        if (episodesToUnmark == 0) break
+                        toRemoveThisSeason.add(epNum)
+                        episodesToUnmark--
+                    }
+                    if (toRemoveThisSeason.isNotEmpty()) {
+                        databaseHelper.removeEpisodeNumber(showId, sNum, toRemoveThisSeason)
+                        markedCountChange += toRemoveThisSeason.size
+                    }
+                }
+                Toast.makeText(this, getString(R.string.marked_episodes_as_unwatched, markedCountChange), Toast.LENGTH_SHORT).show()
+
+            } else {
+                var episodesToAdd = episodesToMark - currentTotalWatched
+                for (sNum in seasons) {
+                    if (episodesToAdd == 0) break
+                    val allInSeason = TmdbDetailsDatabaseHelper(this@DetailActivity).use { it.getEpisodesForSeason(showId, sNum) }
+                    val watchedInSeason = databaseHelper.getWatchedEpisodesForSeason(showId, sNum)
+                    val toAddThisSeason = mutableListOf<Int>()
+                    for (epNum in allInSeason) {
+                        if (episodesToAdd == 0) break
+                        if (!watchedInSeason.contains(epNum)) {
+                            toAddThisSeason.add(epNum)
+                            episodesToAdd--
+                        }
+                    }
+                    if (toAddThisSeason.isNotEmpty()) {
+                        databaseHelper.addEpisodeNumber(showId, sNum, toAddThisSeason, currentDate)
+                        markedCountChange += toAddThisSeason.size
+                    }
+                }
+                if (markedCountChange > 0) {
+                    Toast.makeText(this, getString(R.string.marked_episodes_as_watched, markedCountChange), Toast.LENGTH_SHORT).show()
+                }
+            }
+            saveButton.isEnabled = false
+            lifecycleScope.launch {
+                updateMovieEpisodes()
+                updateEpisodeFragments()
+            }
+            val currentChip = chipGroupSeasons.children.filterIsInstance<Chip>().find { it.isChecked }
+            currentChip?.performClick()
+        }
+
+        bottomSheetDialog.show()
+    }
+
+    private fun showInitialEpisodeInBottomSheet(binding: com.wirelessalien.android.moviedb.databinding.BottomSheetSeasonEpisodeBinding, showId: Int, seasonNumber: Int, episodeNumber: Int) {
+        binding.linearLayout.visibility = View.VISIBLE
+        binding.addToWatched.visibility = View.VISIBLE
+        binding.chipEpS.visibility = View.VISIBLE
+        binding.chipEpS.text = "S${seasonNumber}:E${episodeNumber}"
+
+        val currentDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+            .format(android.icu.util.Calendar.getInstance().time)
+
+        val isEpWatched = databaseHelper.isEpisodeInDatabase(showId, seasonNumber, listOf(episodeNumber))
+        binding.addToWatched.icon = androidx.appcompat.content.res.AppCompatResources.getDrawable(this,
+            if (isEpWatched) R.drawable.ic_visibility else R.drawable.ic_visibility_off
+        )
+
+        binding.addToWatched.setOnClickListener {
+            val currentlyWatched = databaseHelper.isEpisodeInDatabase(showId, seasonNumber, listOf(episodeNumber))
+            val newWatchedStatus = !currentlyWatched
+
+            if (currentlyWatched) {
+                databaseHelper.removeEpisodeNumber(showId, seasonNumber, listOf(episodeNumber))
+            } else {
+                databaseHelper.addEpisodeNumber(showId, seasonNumber, listOf(episodeNumber), currentDate)
+            }
+            binding.addToWatched.icon = androidx.appcompat.content.res.AppCompatResources.getDrawable(this,
+                if (newWatchedStatus) R.drawable.ic_visibility else R.drawable.ic_visibility_off
+            )
+
+            val adapter = binding.recyclerViewEpisodes.adapter as? com.wirelessalien.android.moviedb.adapter.EpisodeSavedAdapter
+            adapter?.updateEpisodeWatched(episodeNumber, newWatchedStatus)
+
+            lifecycleScope.launch {
+                updateMovieEpisodes()
+                updateEpisodeFragments()
+            }
+        }
+
+        lifecycleScope.launch {
+            val episodeDetails = getSpecificEpisodeDetails(showId, seasonNumber, episodeNumber)
+            if (episodeDetails != null) {
+                binding.episodeName.text = episodeDetails.optString("name", "N/A")
+                binding.episodeOverview.text = episodeDetails.optString("overview", "No overview available.")
+                val airDateStr = episodeDetails.optString("air_date")
+                if (airDateStr.isNotEmpty()){
+                    try {
+                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val parsedDate = sdf.parse(airDateStr)
+                        binding.episodeAirDate.text = parsedDate?.let { DateFormat.getDateInstance(DateFormat.DEFAULT).format(it) } ?: airDateStr
+                    } catch (e: ParseException) {
+                        binding.episodeAirDate.text = airDateStr
+                    }
+                } else {
+                    binding.episodeAirDate.text = "N/A"
+                }
+
+                val stillPath = episodeDetails.optString("still_path")
+                if (stillPath != "null" && stillPath.isNotEmpty()) {
+                    val loadHDImage = preferences.getBoolean("key_hq_images", false)
+                    val imageSize = if (loadHDImage) "w780" else "w500"
+                    Picasso.get().load("https://image.tmdb.org/t/p/$imageSize$stillPath").into(binding.imageView)
+                    binding.imageView.visibility = View.VISIBLE
+                } else {
+                    binding.imageView.visibility = View.GONE
+                }
+                binding.episodeName.visibility = if(binding.episodeName.text.isNotEmpty()) View.VISIBLE else View.GONE
+                binding.episodeOverview.visibility = if(binding.episodeOverview.text.isNotEmpty()) View.VISIBLE else View.GONE
+                binding.episodeAirDate.visibility = if(binding.episodeAirDate.text.isNotEmpty()) View.VISIBLE else View.GONE
+            } else {
+                binding.episodeName.visibility = View.GONE
+                binding.episodeOverview.visibility = View.GONE
+                binding.episodeAirDate.visibility = View.GONE
+                binding.imageView.visibility = View.GONE
+            }
+        }
+    }
+
     companion object {
         private const val CAST_VIEW_PREFERENCE = "key_show_cast"
         private const val CREW_VIEW_PREFERENCE = "key_show_crew"
@@ -3963,6 +4314,7 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         private const val DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity"
         private const val HD_IMAGE_SIZE = "key_hq_images"
         private const val SEARCH_ENGINE_PREFERENCE = "key_search_engine"
+        private const val PREFS_SHOW_NEXT_EPISODE = "prefs_show_next_episode_to_watch"
 
         /**
          * Returns the category number when supplied with

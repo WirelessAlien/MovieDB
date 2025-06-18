@@ -90,4 +90,76 @@ class TmdbDetailsDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DA
     override fun close() {
         super.close()
     }
+
+    private fun parseSeasonsEpisodeString(seasonsEpisodeStr: String?): Map<Int, List<Int>> {
+        if (seasonsEpisodeStr.isNullOrEmpty()) return emptyMap()
+        val seasonMap = mutableMapOf<Int, List<Int>>()
+        val seasonParts = seasonsEpisodeStr.split("},")
+        for (part in seasonParts) {
+            val aPart = if (!part.endsWith("}")) "$part}" else part
+            val seasonMatch = Regex("(\\d+)\\{([^}]+)\\}").find(aPart)
+            if (seasonMatch != null) {
+                val seasonNum = seasonMatch.groupValues[1].toIntOrNull()
+                val episodesStr = seasonMatch.groupValues[2]
+                if (seasonNum != null && seasonNum != 0) { // Typically ignore season 0 (specials)
+                    val episodeNumbers = episodesStr.split(",")
+                        .mapNotNull { it.toIntOrNull() }
+                        .sorted()
+                    seasonMap[seasonNum] = episodeNumbers
+                }
+            }
+        }
+        return seasonMap
+    }
+
+    fun getSeasonsForShow(showId: Int): List<Int> {
+        val db = readableDatabase
+        var seasonsEpisodeStr: String? = null
+        val cursor = db.query(
+            TABLE_TMDB_DETAILS,
+            arrayOf(SEASONS_EPISODE_SHOW_TMDB),
+            "$COL_TMDB_ID = ?",
+            arrayOf(showId.toString()),
+            null, null, null, "1"
+        )
+        if (cursor.moveToFirst()) {
+            seasonsEpisodeStr = cursor.getString(cursor.getColumnIndexOrThrow(SEASONS_EPISODE_SHOW_TMDB))
+        }
+        cursor.close()
+        return parseSeasonsEpisodeString(seasonsEpisodeStr).keys.sorted()
+    }
+
+    fun getEpisodesForSeason(showId: Int, seasonNumber: Int): List<Int> {
+        val db = readableDatabase
+        var seasonsEpisodeStr: String? = null
+        val cursor = db.query(
+            TABLE_TMDB_DETAILS,
+            arrayOf(SEASONS_EPISODE_SHOW_TMDB),
+            "$COL_TMDB_ID = ?",
+            arrayOf(showId.toString()),
+            null, null, null, "1"
+        )
+        if (cursor.moveToFirst()) {
+            seasonsEpisodeStr = cursor.getString(cursor.getColumnIndexOrThrow(SEASONS_EPISODE_SHOW_TMDB))
+        }
+        cursor.close()
+        return parseSeasonsEpisodeString(seasonsEpisodeStr)[seasonNumber] ?: emptyList()
+    }
+
+    fun getTotalEpisodesForShow(showId: Int): Int {
+        val db = readableDatabase
+        var seasonsEpisodeStr: String? = null
+        val cursor = db.query(
+            TABLE_TMDB_DETAILS,
+            arrayOf(SEASONS_EPISODE_SHOW_TMDB),
+            "$COL_TMDB_ID = ?",
+            arrayOf(showId.toString()),
+            null, null, null, "1"
+        )
+        if (cursor.moveToFirst()) {
+            seasonsEpisodeStr = cursor.getString(cursor.getColumnIndexOrThrow(SEASONS_EPISODE_SHOW_TMDB))
+        }
+        cursor.close()
+        return parseSeasonsEpisodeString(seasonsEpisodeStr).values.sumOf { it.size }
+    }
 }

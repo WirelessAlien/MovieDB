@@ -76,49 +76,30 @@
 
             <RelativeLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp">
 
                 <TextView
                     android:id="@+id/episodeAirDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
-                    android:text="2021-09-01" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/episodeRateIcon"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/episodeAirDate"
-                    android:clickable="false"
-                    app:icon="@drawable/ic_star" />
-
-                <TextView
-                    android:id="@+id/ratingAverage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toEndOf="@id/episodeRateIcon"
-                    android:text="7.6"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/episodeRecencyIcon"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/ratingAverage"
-                    android:clickable="false"
-                    app:icon="@drawable/ic_timer" />
+                    android:text="2021-09-01"
+                    android:drawablePadding="5dp"
+                    android:gravity="center_vertical"
+                    app:drawableStartCompat="@drawable/ic_event" />
 
                 <TextView
                     android:id="@+id/episodeRecencyText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
-                    android:layout_toEndOf="@id/episodeRecencyIcon"
-                    android:text="@string/latest" />
+                    android:layout_marginStart="10dp"
+                    android:drawablePadding="5dp"
+                    android:gravity="center_vertical"
+                    android:layout_toEndOf="@id/episodeAirDate"
+                    android:text="@string/latest"
+                    app:drawableStartCompat="@drawable/ic_release_alert" />
             </RelativeLayout>
 
             <TextView

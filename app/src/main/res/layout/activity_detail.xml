@@ -824,39 +824,39 @@
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
             </com.google.android.flexbox.FlexboxLayout>
 
-           <RelativeLayout
-               android:id="@+id/watchProvidersRL"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:layout_margin="16dp"
-               android:layout_below="@id/ratingScrollView">
+            <RelativeLayout
+                android:id="@+id/watchProvidersRL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_below="@id/ratingScrollView">
 
-               <androidx.recyclerview.widget.RecyclerView
-                   android:id="@+id/watchProvidersRv"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:layout_toEndOf="@+id/justwatchCard"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/watchProvidersRv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/justwatchCard"/>
 
-              <com.google.android.material.card.MaterialCardView
-                  android:id="@+id/justwatchCard"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_marginEnd="10dp"
-                  android:layout_centerVertical="true"
-                  android:layout_alignParentStart="true"
-                  android:visibility="gone"
-                  app:cardCornerRadius="8dp">
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/justwatchCard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentStart="true"
+                    android:visibility="gone"
+                    app:cardCornerRadius="8dp">
 
-                   <ImageView
-                       android:id="@+id/justwatchIv"
-                       android:layout_width="wrap_content"
-                       android:layout_height="wrap_content"
-                       android:scaleType="fitXY"
-                       android:layout_margin="10dp"
-                       android:src="@drawable/ic_justwatch"
-                       android:visibility="gone"/>
-              </com.google.android.material.card.MaterialCardView>
-           </RelativeLayout>
+                    <ImageView
+                        android:id="@+id/justwatchIv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitXY"
+                        android:layout_margin="10dp"
+                        android:src="@drawable/ic_justwatch"
+                        android:visibility="gone"/>
+                </com.google.android.material.card.MaterialCardView>
+            </RelativeLayout>
 
             <RelativeLayout
                 android:id="@+id/episodeRL"
@@ -1114,17 +1114,17 @@
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
-<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
-<!--        android:id="@+id/fabSave"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_margin="16dp"-->
-<!--        android:visibility="gone"-->
-<!--        app:layout_anchor="@id/movieImage"-->
-<!--        app:layout_anchorGravity="bottom|end"-->
-<!--        android:contentDescription="@string/save_to_database"-->
-<!--        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"-->
-<!--        android:src="@drawable/ic_star_border" />-->
+    <!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+    <!--        android:id="@+id/fabSave"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_margin="16dp"-->
+    <!--        android:visibility="gone"-->
+    <!--        app:layout_anchor="@id/movieImage"-->
+    <!--        app:layout_anchorGravity="bottom|end"-->
+    <!--        android:contentDescription="@string/save_to_database"-->
+    <!--        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"-->
+    <!--        android:src="@drawable/ic_star_border" />-->
 
     <com.google.android.material.button.MaterialSplitButton
         android:id="@+id/splitBtn"

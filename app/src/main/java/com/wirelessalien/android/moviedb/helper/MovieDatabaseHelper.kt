@@ -959,4 +959,46 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
     override fun close() {
         super.close()
     }
+
+    fun getLastWatchedEpisode(movieId: Int): JSONObject? {
+        val db = this.readableDatabase
+        val cursor = db.query(
+            TABLE_EPISODES,
+            arrayOf(COLUMN_SEASON_NUMBER, COLUMN_EPISODE_NUMBER),
+            "$COLUMN_MOVIES_ID = ?",
+            arrayOf(movieId.toString()),
+            null,
+            null,
+            "$COLUMN_SEASON_NUMBER DESC, $COLUMN_EPISODE_NUMBER DESC",
+            "1"
+        )
+        var lastWatched: JSONObject? = null
+        if (cursor.moveToFirst()) {
+            lastWatched = JSONObject()
+            lastWatched.put(COLUMN_SEASON_NUMBER, cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEASON_NUMBER)))
+            lastWatched.put(COLUMN_EPISODE_NUMBER, cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_EPISODE_NUMBER)))
+        }
+        cursor.close()
+        return lastWatched
+    }
+
+    fun getWatchedEpisodesForSeason(movieId: Int, seasonNumber: Int): List<Int> {
+        val db = this.readableDatabase
+        val episodes = mutableListOf<Int>()
+        val cursor = db.query(
+            TABLE_EPISODES,
+            arrayOf(COLUMN_EPISODE_NUMBER),
+            "$COLUMN_MOVIES_ID = ? AND $COLUMN_SEASON_NUMBER = ?",
+            arrayOf(movieId.toString(), seasonNumber.toString()),
+            null,
+            null,
+            "$COLUMN_EPISODE_NUMBER ASC"
+        )
+        cursor.use { c ->
+            while (c.moveToNext()) {
+                episodes.add(c.getInt(c.getColumnIndexOrThrow(COLUMN_EPISODE_NUMBER)))
+            }
+        }
+        return episodes
+    }
 }

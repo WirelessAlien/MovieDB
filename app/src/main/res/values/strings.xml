@@ -191,7 +191,17 @@
     <string name="database_not_imported">Database could not be imported</string>
     <string name="no_up_next_episodes">No upcoming episodes to watch</string>
     <string name="episode_format" translatable="false">S%1$d E%2$d: %3$s</string>
+    <string name="preference_show_next_episode_title">Show next episode to watch</string>
+    <string name="preference_show_next_episode_summary">In show details, display the next episode to watch instead of the latest or last aired episode.</string>
+    <string name="next_episode_upcoming_label">Upcoming</string>
+    <string name="next_episode_s_e_format">S%1$d E%2$d</string>
+    <string name="next_episode_not_in_db_message">Add this show to your collection to see the next episode.</string>
+    <string name="next_episode_s01e01_default">S1 E1</string>
+    <string name="all_episodes_watched_message">You\'re all caught up!</string>
     <string name="up_next">Up Next</string>
+    <string name="no_seasons_found">No seasons found for this show.</string>
+    <string name="show_not_in_database">Please \"Save\" the show to edit watch status of episodes</string>
+
 
     <string-array name="media_types">
         <item>digital</item>

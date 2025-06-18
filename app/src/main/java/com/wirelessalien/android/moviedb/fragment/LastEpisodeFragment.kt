@@ -19,10 +19,12 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
+import android.content.Context
 import android.graphics.Color
 import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,6 +45,24 @@ class LastEpisodeFragment : Fragment() {
     private var seasonNumber = 0
     private var episodeNumber = 0
     private var episodeName: String? = null
+
+    interface OnUpcomingEpisodeClickListener {
+        fun onUpcomingEpisodeClicked(showId: Int, seasonNumber: Int, episodeNumber: Int, episodeName: String?)
+    }
+    private var upcomingEpisodeClickListener: OnUpcomingEpisodeClickListener? = null
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is OnUpcomingEpisodeClickListener) {
+            upcomingEpisodeClickListener = context
+        }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        upcomingEpisodeClickListener = null
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -61,7 +81,7 @@ class LastEpisodeFragment : Fragment() {
 //        binding.episodeRateBtn.isEnabled = sessionId != null && accountId != null
         if (arguments != null) {
             try {
-                val episodeDetails = JSONObject(requireArguments().getString(ARG_EPISODE_DETAILS))
+                val episodeDetails = JSONObject(requireArguments().getString(ARG_EPISODE_DETAILS).toString())
                 movieId = episodeDetails.getInt("show_id")
                 seasonNumber = episodeDetails.getInt("season_number")
                 episodeNumber = episodeDetails.getInt("episode_number")
@@ -71,11 +91,11 @@ class LastEpisodeFragment : Fragment() {
                 binding.seasonNo.text = getString(R.string.season_number, seasonNumber)
                 binding.episodeNo.text = getString(R.string.episode_number, episodeNumber)
                 binding.episodeName.text = episodeName
-                binding.ratingAverage.text = String.format(
-                    Locale.getDefault(),
-                    "%.2f/%s",
-                    episodeDetails.getDouble("vote_average"),
-                    String.format(Locale.getDefault(), "%d", 10))
+//                binding.ratingAverage.text = String.format(
+//                    Locale.getDefault(),
+//                    "%.2f/%s",
+//                    episodeDetails.getDouble("vote_average"),
+//                    String.format(Locale.getDefault(), "%d", 10))
 
                 val overview = episodeDetails.getString("overview")
                 if (overview.isEmpty()) {
@@ -150,6 +170,22 @@ class LastEpisodeFragment : Fragment() {
                 e.printStackTrace()
             } catch (e: ParseException) {
                 e.printStackTrace()
+            }
+        }
+
+        binding.lastEpisodeCard.setOnClickListener {
+            if (upcomingEpisodeClickListener != null) {
+                val episodeDetailsJson = JSONObject(requireArguments().getString(ARG_EPISODE_DETAILS).toString())
+                val currentShowId = episodeDetailsJson.optInt("show_id", -1)
+                val currentSeasonNumber = episodeDetailsJson.optInt("season_number", -1)
+                val currentEpisodeNumber = episodeDetailsJson.optInt("episode_number", -1)
+                val currentEpisodeName = episodeDetailsJson.optString("name")
+
+                if (currentShowId != -1 && currentSeasonNumber != -1 && currentEpisodeNumber != -1) {
+                    upcomingEpisodeClickListener?.onUpcomingEpisodeClicked(currentShowId, currentSeasonNumber, currentEpisodeNumber, currentEpisodeName)
+                } else {
+                    Log.e("LastEpisodeFragment", "Episode details missing for click.")
+                }
             }
         }
         return view
