@@ -467,12 +467,6 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             }
         }
 
-        if (showNextEpisodePref && !isMovie) {
-            lifecycleScope.launch {
-                updateEpisodeFragments()
-            }
-        }
-
         binding.shimmerFrameLayout1.visibility = View.VISIBLE
         binding.shimmerFrameLayout1.startShimmer()
 
