@@ -820,6 +820,7 @@ class ShowBaseAdapter(
         const val KEY_NAME = "name"
         const val KEY_DESCRIPTION = "overview"
         const val KEY_RATING = "vote_average"
+        const val KEY_HAS_PERSONAL_RATING = "has_personal_rating"
         const val KEY_DATE_MOVIE = "release_date"
         const val KEY_DATE_SERIES = "first_air_date"
         const val KEY_GENRES = "genre_ids"

@@ -873,11 +873,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    private fun getMovieRating(cursor: Cursor): Int {
-        return if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))) {
-            cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
+    private fun getMovieRating(cursor: Cursor): Double {
+        val personalRatingColIdx = cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)
+        return if (!cursor.isNull(personalRatingColIdx)) {
+            cursor.getDouble(personalRatingColIdx)
         } else {
-            cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RATING))
+            cursor.getDouble(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RATING))
         }
     }
 
@@ -925,22 +926,21 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         ) {
             when (sortPreference) {
                 "best_rated" -> {
+                    val comparator = compareByDescending<JSONObject> {
+                        it.optBoolean(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING)
+                    }.thenByDescending {
+                        if (it.optBoolean(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING)) {
+                            it.optDouble(ShowBaseAdapter.KEY_RATING, -1.0)
+                        } else {
+                            Double.NEGATIVE_INFINITY
+                        }
+                    }.thenBy {
+                        it.optString(ShowBaseAdapter.KEY_TITLE)
+                    }
                     if (mSearchView) {
-                        mSearchShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            firstObject
-                                .optInt(ShowBaseAdapter.KEY_RATING).compareTo(
-                                    secondObject
-                                        .optInt(ShowBaseAdapter.KEY_RATING)
-                                ) * -1
-                        }
+                        mSearchShowArrayList.sortWith(comparator)
                     } else {
-                        mShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            firstObject
-                                .optInt(ShowBaseAdapter.KEY_RATING).compareTo(
-                                    secondObject
-                                        .optInt(ShowBaseAdapter.KEY_RATING)
-                                ) * -1
-                        }
+                        mShowArrayList.sortWith(comparator)
                     }
                 }
 
@@ -1300,12 +1300,18 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 val showObject = JSONObject().apply {
                     try {
                         put(ShowBaseAdapter.KEY_ID, movieId)
-                        if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))) {
+                        val personalRatingColumnIndex = cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)
+                        val generalRatingColumnIndex = cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RATING)
+
+                        if (!cursor.isNull(personalRatingColumnIndex)) {
                             put(ShowBaseAdapter.KEY_RATING,
-                                cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)))
+                                cursor.getDouble(personalRatingColumnIndex))
+                            put(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING, true)
                         } else {
+                            // Even if no personal rating, store the general rating for other sort types or display
                             put(ShowBaseAdapter.KEY_RATING,
-                                cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RATING)))
+                                cursor.getDouble(generalRatingColumnIndex))
+                            put(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING, false)
                         }
                         put(ShowBaseAdapter.KEY_IMAGE,
                             cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_IMAGE)))
