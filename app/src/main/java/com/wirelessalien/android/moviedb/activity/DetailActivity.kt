@@ -830,10 +830,59 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         binding.fab.setOnClickListener(object : View.OnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
             override fun onClick(view: View) {
-                val tmdbLink = "https://www.themoviedb.org/$typeCheck/$movieId"
+                val title = movieTitle ?: ""
+                val overview = binding.movieDescription.text.toString()
+                val tmdbId = movieId
+                val metacriticRating = binding.metacriticRatingChip.text.toString().replace(getString(R.string.metacritic, ""), "")
+                val rottenTomatoRating = binding.rottenTomatoesRatingChip.text.toString().replace(getString(R.string.r_tomatoes, ""), "")
+                val tmdbLink = "https://www.themoviedb.org/$typeCheck/$tmdbId"
+
+                var userRatingString = getString(R.string.rating_na)
+                var reviewString = getString(R.string.rating_na)
+                var timesWatchedString = getString(R.string.rating_na)
+                val cursorr = database.rawQuery(
+                    "SELECT * FROM " +
+                            MovieDatabaseHelper.TABLE_MOVIES +
+                            " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
+                            "=" + movieId + " LIMIT 1", null
+                )
+                cursorr.use {
+                    if (it.moveToFirst()) {
+                        val personalRating = it.getFloat(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
+                        if (personalRating > 0) {
+                            val localizedTen = String.format(Locale.getDefault(), "%d", 10)
+                            userRatingString = getString(R.string.rating_format, personalRating, localizedTen)
+                        }
+                        reviewString = it.getString(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) ?: ""
+                        val timesWatched = it.getInt(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                        timesWatchedString = if (timesWatched > 0) timesWatched.toString() else "0"
+                    }
+                }
+
+                val shareText = """
+                    *${title}*
+
+                    *Overview:*
+                    $overview
+
+                    *TMDB Link:*
+                    $tmdbLink
+
+                    *Ratings:*
+                    - TMDB: ${binding.rating.text}
+                    - IMDb: ${binding.imdbRatingChip.text.toString().replace("IMDb ", "")}
+                    - Metacritic: $metacriticRating
+                    - Rotten Tomatoes: $rottenTomatoRating
+
+                    - My Review: $reviewString
+                    - I watched: $timesWatchedString times
+                    - My $userRatingString
+
+                """.trimIndent()
+
                 val shareIntent = Intent(Intent.ACTION_SEND)
-                shareIntent.setType("text/plain")
-                shareIntent.putExtra(Intent.EXTRA_TEXT, tmdbLink)
+                shareIntent.type = "text/plain"
+                shareIntent.putExtra(Intent.EXTRA_TEXT, shareText)
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.share_link_using)))
             }
         })
