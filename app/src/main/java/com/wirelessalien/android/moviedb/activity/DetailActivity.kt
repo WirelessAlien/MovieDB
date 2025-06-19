@@ -467,6 +467,12 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             }
         }
 
+        if (showNextEpisodePref && !isMovie) {
+            lifecycleScope.launch {
+                updateEpisodeFragments()
+            }
+        }
+
         binding.shimmerFrameLayout1.visibility = View.VISIBLE
         binding.shimmerFrameLayout1.startShimmer()
 
@@ -2041,20 +2047,20 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
         val lastWatched = databaseHelper.getLastWatchedEpisode(movieId)
 
-        if (lastWatched == null) {
-            val seasons = TmdbDetailsDatabaseHelper(this).use { it.getSeasonsForShow(movieId) }
-            if (seasons.contains(1)) {
-                val s1e1Details = getSpecificEpisodeDetails(movieId, 1, 1)
-                if (s1e1Details != null) return s1e1Details
-            }
-            val firstSeason = seasons.minOrNull()
-            if (firstSeason != null) {
-                val firstEpDetails = getSpecificEpisodeDetails(movieId, firstSeason, 1)
-                if (firstEpDetails != null) return firstEpDetails
-            }
-            if (nextEpisode != null) return nextEpisode
-            return null
+        var calculatedNextSeasonVar: Int? = null
+        var calculatedNextEpisodeNumVar: Int? = null
 
+        if (lastWatched == null) {
+            val seasonsFromCache = TmdbDetailsDatabaseHelper(this).use { it.getSeasonsForShow(movieId) }
+            if (seasonsFromCache.contains(1)) {
+                calculatedNextSeasonVar = 1
+                calculatedNextEpisodeNumVar = 1
+            } else {
+                seasonsFromCache.minOrNull()?.let { firstSeason ->
+                    calculatedNextSeasonVar = firstSeason
+                    calculatedNextEpisodeNumVar = 1
+                }
+            }
         } else {
             val lastWatchedSeason = lastWatched.getInt(MovieDatabaseHelper.COLUMN_SEASON_NUMBER)
             val lastWatchedEpisodeNum = lastWatched.getInt(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER)
@@ -2063,25 +2069,54 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
             val episodesInLastSeason = tmdbHelper.use { it.getEpisodesForSeason(movieId, lastWatchedSeason) }
 
             if (episodesInLastSeason.isNotEmpty() && lastWatchedEpisodeNum >= episodesInLastSeason.last()) {
-                // Last episode of the season, try next season's first episode
-                val nextSeasonNumber = lastWatchedSeason + 1
-                val allSeasons = tmdbHelper.use { it.getSeasonsForShow(movieId) }
-                return if (allSeasons.contains(nextSeasonNumber)) {
-                    getSpecificEpisodeDetails(movieId, nextSeasonNumber, 1)
+                val nextSeasonNumberCandidate = lastWatchedSeason + 1
+                val allSeasonsFromCache = tmdbHelper.use { it.getSeasonsForShow(movieId) }
+                if (allSeasonsFromCache.contains(nextSeasonNumberCandidate)) {
+                    calculatedNextSeasonVar = nextSeasonNumberCandidate
+                    calculatedNextEpisodeNumVar = 1
                 } else {
-                    null
+                    return null
                 }
             } else if (episodesInLastSeason.isNotEmpty()) {
-                return getSpecificEpisodeDetails(movieId, lastWatchedSeason, lastWatchedEpisodeNum + 1)
+                calculatedNextSeasonVar = lastWatchedSeason
+                calculatedNextEpisodeNumVar = lastWatchedEpisodeNum + 1
             } else {
-                val nextSeasonNumber = lastWatchedSeason + 1
-                val allSeasons = tmdbHelper.use { it.getSeasonsForShow(movieId) }
-                if (allSeasons.contains(nextSeasonNumber)) {
-                    return getSpecificEpisodeDetails(movieId, nextSeasonNumber, 1)
+                val nextSeasonNumberCandidate = lastWatchedSeason + 1
+                val allSeasonsFromCache = tmdbHelper.use { it.getSeasonsForShow(movieId) }
+                if (allSeasonsFromCache.contains(nextSeasonNumberCandidate)) {
+                    calculatedNextSeasonVar = nextSeasonNumberCandidate
+                    calculatedNextEpisodeNumVar = 1
+                } else {
+                    return null
                 }
-                return null
             }
         }
+
+        val currentCalculatedSeason = calculatedNextSeasonVar
+        val currentCalculatedEpisodeNum = calculatedNextEpisodeNumVar
+
+        if (currentCalculatedSeason != null && currentCalculatedEpisodeNum != null) {
+            val specificEpisodeDetails = getSpecificEpisodeDetails(movieId, currentCalculatedSeason, currentCalculatedEpisodeNum)
+            return if (specificEpisodeDetails != null) {
+                specificEpisodeDetails
+            } else {
+                Log.w("DetailActivity", "Failed to fetch specific details for S${currentCalculatedSeason}E${currentCalculatedEpisodeNum}. Using default data.")
+                JSONObject().apply {
+                    put("season_number", currentCalculatedSeason)
+                    put("episode_number", currentCalculatedEpisodeNum)
+                    put("name", "Episode $currentCalculatedEpisodeNum")
+                    put("air_date", "Not found")
+                    put("overview", "Overview could not be loaded")
+                }
+            }
+        } else if (nextEpisode != null) {
+            if (!nextEpisode!!.has("show_id")) {
+                nextEpisode!!.put("show_id", movieId)
+            }
+            return nextEpisode
+        }
+
+        return null
     }
 
     private suspend fun getSpecificEpisodeDetails(showId: Int, seasonNumber: Int, episodeNumber: Int): JSONObject? {
