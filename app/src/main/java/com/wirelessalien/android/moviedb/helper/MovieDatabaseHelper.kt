@@ -918,6 +918,64 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         return count
     }
 
+
+    /**
+     * * Checks if a movie/show exists and returns its internal row ID.
+     * * @param tmdbId The TMDB ID of the movie/show.
+     * * @param isMovie True if it's a movie, false if it's a TV show.
+     * * @return The internal database row ID (long) if found, otherwise null.
+     */
+    fun getMovieRowId(tmdbId: Long, isMovie: Boolean): Long? {
+        val db = this.readableDatabase
+        var rowId: Long? = null
+        val selection = "$COLUMN_MOVIES_ID = ? AND $COLUMN_MOVIE = ?"
+        val selectionArgs = arrayOf(tmdbId.toString(), if (isMovie) "1" else "0")
+        val cursor = db.query(
+            TABLE_MOVIES,
+            arrayOf(COLUMN_ID),
+            selection,
+            selectionArgs,
+            null,
+            null,
+            null,
+            "1"
+        )
+        if (cursor.moveToFirst()) {
+            rowId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID))
+        }
+        cursor.close()
+        return rowId
+    }
+
+    /**
+     * Checks if an episode exists and returns its internal row ID.
+     * @param tmdbId The TMDB ID of the parent movie/show.
+     * @param seasonNumber The season number.
+     * @param episodeNumber The episode number.
+     * @return The internal database row ID (long) if found, otherwise null.
+     */
+    fun getEpisodeRowId(tmdbId: Long, seasonNumber: Int, episodeNumber: Int): Long? {
+        val db = this.readableDatabase
+        var rowId: Long? = null
+        val selection = "$COLUMN_MOVIES_ID = ? AND $COLUMN_SEASON_NUMBER = ? AND $COLUMN_EPISODE_NUMBER = ?"
+        val selectionArgs = arrayOf(tmdbId.toString(), seasonNumber.toString(), episodeNumber.toString())
+        val cursor = db.query(
+            TABLE_EPISODES,
+            arrayOf(COLUMN_ID),
+            selection,
+            selectionArgs,
+            null,
+            null,
+            null,
+            "1"
+        )
+        if (cursor.moveToFirst()) {
+            rowId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID))
+        }
+        cursor.close()
+        return rowId
+    }
+
     companion object {
         const val TABLE_MOVIES = "movies"
         const val TABLE_EPISODES = "episodes"

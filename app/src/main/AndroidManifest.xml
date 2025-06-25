@@ -134,6 +134,17 @@
             android:theme="@style/AppTheme">
         </activity>
 
+        <activity
+            android:name=".activity.CsvImportActivity"
+            android:label="Import CSV"
+            android:parentActivityName=".activity.MainActivity"
+            android:theme="@style/AppTheme" />
+
+        <service
+            android:name=".service.ImportService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <receiver
             android:name="NotificationReceiver"
             android:exported="false" />
