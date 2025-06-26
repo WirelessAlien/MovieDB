@@ -56,6 +56,7 @@ import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.CsvImportActivity
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.activity.ExportActivity
 import com.wirelessalien.android.moviedb.activity.FilterActivity
@@ -243,6 +244,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                             val intent = Intent(requireContext().applicationContext, ImportActivity::class.java)
                             startActivity(intent)
                         }
+                        true
+                    }
+                    R.id.action_external_import -> {
+                        val intent = Intent(requireContext().applicationContext, CsvImportActivity::class.java)
+                        startActivity(intent)
                         true
                     }
                     R.id.action_auto_sync -> {

@@ -25,13 +25,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Spinner
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityCsvImportBinding
 import com.wirelessalien.android.moviedb.databinding.ItemCsvHeaderMappingBinding
 import com.wirelessalien.android.moviedb.helper.CsvParserUtil
@@ -43,7 +43,7 @@ class CsvImportActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCsvImportBinding
     private var selectedFileUri: Uri? = null
     private val csvHeaders = mutableListOf<String>()
-    private val mappingSpinners = mutableListOf<Spinner>()
+    private val mappingAutoCompleteTextViews = mutableListOf<AutoCompleteTextView>()
 
     private val databaseFields = linkedMapOf(
         "Do Not Import" to "DO_NOT_IMPORT",
@@ -85,8 +85,8 @@ class CsvImportActivity : AppCompatActivity() {
         binding = ActivityCsvImportBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        title = "Import CSV Data"
 
         binding.buttonSelectCsv.setOnClickListener {
             openFilePicker()
@@ -95,14 +95,30 @@ class CsvImportActivity : AppCompatActivity() {
         binding.buttonStartImport.setOnClickListener {
             startImportProcess()
         }
+
+        binding.editTextDifferentiator.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                if (selectedFileUri != null) {
+                    loadCsvHeaders(selectedFileUri!!)
+                }
+                true
+            } else {
+                false
+            }
+        }
+
+        binding.editTextDifferentiator.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                if (selectedFileUri != null) {
+                    loadCsvHeaders(selectedFileUri!!)
+                }
+            }
+        }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressedDispatcher.onBackPressed()
+        return true
     }
 
     private fun openFilePicker() {
@@ -113,19 +129,21 @@ class CsvImportActivity : AppCompatActivity() {
         try {
             filePickerLauncher.launch(intent)
         } catch (e: Exception) {
-            Toast.makeText(this, "No app found to pick files.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.no_app_found_to_pick_files), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun loadCsvHeaders(uri: Uri) {
         csvHeaders.clear()
-        mappingSpinners.clear()
+        mappingAutoCompleteTextViews.clear()
         binding.linearLayoutHeaderMappings.removeAllViews()
 
-        val headers = CsvParserUtil.readCsvHeaders(this, uri)
+        val delimiter = getDelimiterFromInput()
+
+        val headers = CsvParserUtil.readCsvHeaders(this, uri, delimiter)
         if (headers.isNullOrEmpty()) {
-            Toast.makeText(this, "Could not read headers from CSV.", Toast.LENGTH_SHORT).show()
-            binding.textViewNoHeadersMessage.text = "Could not read headers or CSV is empty."
+            Toast.makeText(this, getString(R.string.could_not_read_headers_2), Toast.LENGTH_LONG).show()
+            binding.textViewNoHeadersMessage.text = getString(R.string.could_not_read_headers)
             binding.textViewNoHeadersMessage.visibility = View.VISIBLE
             binding.buttonStartImport.isEnabled = false
             return
@@ -136,19 +154,24 @@ class CsvImportActivity : AppCompatActivity() {
     }
 
     private fun populateHeaderMappingUI(csvHeaders: List<String>) {
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, databaseFields.keys.toList())
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val dbFieldKeys = databaseFields.keys.toList()
+        val autoCompleteAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, dbFieldKeys)
 
         csvHeaders.forEach { header ->
             val mappingViewBinding = ItemCsvHeaderMappingBinding.inflate(LayoutInflater.from(this), binding.linearLayoutHeaderMappings, false)
 
-            mappingViewBinding.textViewCsvHeader.text = header
-            mappingViewBinding.spinnerDbField.adapter = spinnerAdapter
+            val textInputLayout = mappingViewBinding.textInputLayoutDbField
+            val autoCompleteTextView = mappingViewBinding.autoCompleteDbField
+
+            textInputLayout.hint = header
+            autoCompleteTextView.setAdapter(autoCompleteAdapter)
 
             val bestMatchIndex = findBestMatchForHeader(header)
-            mappingViewBinding.spinnerDbField.setSelection(bestMatchIndex)
+            if (bestMatchIndex < dbFieldKeys.size) {
+                autoCompleteTextView.setText(dbFieldKeys[bestMatchIndex], false)
+            }
 
-            mappingSpinners.add(mappingViewBinding.spinnerDbField)
+            mappingAutoCompleteTextViews.add(autoCompleteTextView)
             binding.linearLayoutHeaderMappings.addView(mappingViewBinding.root)
         }
     }
@@ -177,10 +200,23 @@ class CsvImportActivity : AppCompatActivity() {
         return bestMatchIndex
     }
 
+    private fun getDelimiterFromInput(): Char {
+        val delimiterText = binding.editTextDifferentiator.text.toString()
+        return if (delimiterText.length == 1) {
+            delimiterText[0]
+        } else {
+            if (delimiterText.isNotEmpty()) {
+                Toast.makeText(this, getString(R.string.delimiter_format), Toast.LENGTH_SHORT).show()
+            }
+            ',' // Default delimiter
+        }
+    }
+
 
     private fun startImportProcess() {
         if (selectedFileUri == null) {
-            Toast.makeText(this, "Please select a CSV file first.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this,
+                getString(R.string.please_select_a_csv_file_first), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -189,7 +225,7 @@ class CsvImportActivity : AppCompatActivity() {
         var hasTitleMapping = false
 
         csvHeaders.forEachIndexed { index, csvHeader ->
-            val selectedDbFieldKey = mappingSpinners[index].selectedItem as String
+            val selectedDbFieldKey = mappingAutoCompleteTextViews[index].text.toString()
             val dbColumnConstant = databaseFields[selectedDbFieldKey]
 
             if (dbColumnConstant != null && dbColumnConstant != "DO_NOT_IMPORT") {
@@ -200,23 +236,28 @@ class CsvImportActivity : AppCompatActivity() {
         }
 
         if (headerMapping.isEmpty()) {
-            Toast.makeText(this, "Please map at least one CSV column.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this,
+                getString(R.string.please_map_at_least_one_csv_column), Toast.LENGTH_SHORT).show()
             return
         }
 
         if (!hasTmdbIdMapping && !hasTitleMapping) {
-            Toast.makeText(this, "Warning: It's highly recommended to map a column to 'TMDB ID' or 'Title' for effective import.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this,
+                getString(R.string.tmdb_id_or_title_required_import), Toast.LENGTH_LONG).show()
         }
 
+
+        val delimiter = getDelimiterFromInput()
 
         val intent = Intent(this, ImportService::class.java).apply {
             action = ImportService.ACTION_START_IMPORT
             putExtra(ImportService.EXTRA_FILE_URI, selectedFileUri)
             putExtra(ImportService.EXTRA_HEADER_MAPPING, headerMapping)
+            putExtra(ImportService.EXTRA_DELIMITER, delimiter)
         }
         startService(intent)
 
-        Toast.makeText(this, "Import process started...", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.import_process_started), Toast.LENGTH_LONG).show()
         finish()
     }
 }

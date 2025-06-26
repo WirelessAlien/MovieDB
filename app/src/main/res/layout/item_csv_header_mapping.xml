@@ -21,22 +21,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:paddingVertical="8dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:paddingTop="16dp"
+    android:baselineAligned="false">
 
-    <TextView
-        android:id="@+id/textViewCsvHeader"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayoutDbField"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="CSV Header Example"
-        android:textAppearance="?attr/textAppearanceBodyMedium"/>
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
+        android:layout_weight="1">
 
-    <Spinner
-        android:id="@+id/spinnerDbField"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="8dp"/>
+        <AutoCompleteTextView
+            android:id="@+id/autoCompleteDbField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
 </LinearLayout>

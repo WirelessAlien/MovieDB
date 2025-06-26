@@ -45,56 +45,78 @@
         android:padding="16dp"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonSelectCsv"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cornerRadius="10dp"
-        android:text="Select CSV File"
-        app:icon="@drawable/ic_file_present" />
-
-    <TextView
-        android:id="@+id/textViewSelectedFileName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="No file selected"
-        android:textAppearance="?attr/textAppearanceListItemSecondary" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Map CSV Columns to Database Fields:"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:layout_marginBottom="8dp"/>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <LinearLayout
-            android:id="@+id/linearLayoutHeaderMappings"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSelectCsv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/textViewNoHeadersMessage"
+            app:cornerRadius="10dp"
+            android:text="@string/select_csv_file"
+            app:icon="@drawable/ic_file_present" />
+
+        <TextView
+            android:id="@+id/textViewSelectedFileName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="No file selected"
+            android:textAppearance="?attr/textAppearanceListItemSecondary" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutDifferentiator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:boxCornerRadiusTopStart="10dp"
+            app:boxCornerRadiusTopEnd="10dp"
+            app:boxCornerRadiusBottomEnd="10dp"
+            app:boxCornerRadiusBottomStart="10dp"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+            android:hint="@string/enter_differentiator_symbol">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextDifferentiator"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Select a CSV file to see headers."
-                android:gravity="center"
-                android:layout_marginTop="20dp"/>
-        </LinearLayout>
-    </ScrollView>
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/map_csv_columns_to_database_fields"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginBottom="8dp"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:scrollbars="none"
+            android:scrollIndicators="none"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/linearLayoutHeaderMappings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textViewNoHeadersMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/select_a_csv_file_to_see_headers"
+                    android:gravity="center"
+                    android:layout_marginTop="20dp"/>
+            </LinearLayout>
+        </ScrollView>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonStartImport"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Start Import"
+        android:text="@string/start_import"
         app:cornerRadius="10dp"
         android:enabled="false"
         app:icon="@drawable/ic_import_db"/>

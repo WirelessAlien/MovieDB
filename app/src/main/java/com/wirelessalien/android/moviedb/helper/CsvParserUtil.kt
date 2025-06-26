@@ -29,11 +29,12 @@ import java.io.InputStreamReader
 
 object CsvParserUtil {
 
-    fun readCsvHeaders(context: Context, fileUri: Uri): List<String>? {
+    fun readCsvHeaders(context: Context, fileUri: Uri, delimiter: Char = ','): List<String>? {
         return try {
             context.contentResolver.openInputStream(fileUri)?.use { inputStream ->
                 InputStreamReader(inputStream).use { reader ->
-                    val csvReader = CSVReaderBuilder(reader).build()
+                    val csvParser = CSVParserBuilder().withSeparator(delimiter).build()
+                    val csvReader = CSVReaderBuilder(reader).withCSVParser(csvParser).build()
                     val headers = csvReader.readNext()
                     csvReader.close()
                     headers?.toList()
@@ -51,12 +52,13 @@ object CsvParserUtil {
         fileUri: Uri,
         headerMapping: Map<String, String>,
         defaultValues: Map<String, Any?>,
+        delimiter: Char,
         onRowProcessed: (Map<String, String?>) -> Unit
     ): Boolean {
         try {
             context.contentResolver.openInputStream(fileUri)?.use { inputStream ->
                 InputStreamReader(inputStream).use { reader ->
-                    val csvParser = CSVParserBuilder().withSeparator(',').withQuoteChar('"').build()
+                    val csvParser = CSVParserBuilder().withSeparator(delimiter).withQuoteChar('"').build()
                     val csvReader = CSVReaderHeaderAwareBuilder(reader)
                         .withCSVParser(csvParser)
                         .build()

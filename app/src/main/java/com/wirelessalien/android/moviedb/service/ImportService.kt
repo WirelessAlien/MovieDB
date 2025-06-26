@@ -20,7 +20,6 @@
 
 package com.wirelessalien.android.moviedb.service
 
-// Using ConfigHelper for API key
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -66,6 +65,7 @@ class ImportService : Service() {
         const val ACTION_START_IMPORT = "com.wirelessalien.android.moviedb.service.action.START_IMPORT"
         const val EXTRA_FILE_URI = "com.wirelessalien.android.moviedb.service.extra.FILE_URI"
         const val EXTRA_HEADER_MAPPING = "com.wirelessalien.android.moviedb.service.extra.HEADER_MAPPING"
+        const val EXTRA_DELIMITER = "com.wirelessalien.android.moviedb.service.extra.DELIMITER"
         private const val NOTIFICATION_CHANNEL_ID = "ImportServiceChannel"
         private const val NOTIFICATION_ID = 101
         private const val TAG = "ImportService"
@@ -85,11 +85,12 @@ class ImportService : Service() {
             val fileUri = intent.getParcelableExtra<Uri>(EXTRA_FILE_URI)
             @Suppress("UNCHECKED_CAST")
             val headerMapping = intent.getSerializableExtra(EXTRA_HEADER_MAPPING) as? HashMap<String, String>
+            val delimiter = intent.getCharExtra(EXTRA_DELIMITER, ',') // Get delimiter, default to ','
 
             if (fileUri != null && headerMapping != null) {
-                startForeground(NOTIFICATION_ID, createNotification("Starting import...", 0, 0))
+                startForeground(NOTIFICATION_ID, createNotification(getString(R.string.starting_import), 0, 0))
                 serviceScope.launch {
-                    processImport(fileUri, headerMapping)
+                    processImport(fileUri, headerMapping, delimiter)
                 }
             } else {
                 Log.e(TAG, "File URI or header mapping missing. Stopping service.")
@@ -140,7 +141,7 @@ class ImportService : Service() {
     }
 
 
-    private suspend fun processImport(fileUri: Uri, headerMapping: Map<String, String>) {
+    private suspend fun processImport(fileUri: Uri, headerMapping: Map<String, String>, delimiter: Char) {
         var processedRows = 0
         var totalRowsEstimate = 0
 
@@ -166,11 +167,12 @@ class ImportService : Service() {
             applicationContext,
             fileUri,
             headerMapping,
-            defaultValues
+            defaultValues,
+            delimiter
         ) { mappedRow ->
             processedRows++
             Log.d(TAG, "Processing CSV row $processedRows: $mappedRow")
-            updateNotification("Importing...", processedRows, totalRowsEstimate)
+            updateNotification(getString(R.string.importing), processedRows, totalRowsEstimate)
 
             try {
                 val contentValues = ContentValues()
@@ -365,10 +367,10 @@ class ImportService : Service() {
         }
 
         if (success) {
-            updateNotification("Import complete!", processedRows, if(totalRowsEstimate < processedRows) processedRows else totalRowsEstimate , true)
+            updateNotification(getString(R.string.import_complete), processedRows, if(totalRowsEstimate < processedRows) processedRows else totalRowsEstimate , true)
             Log.i(TAG, "Import completed. Processed $processedRows rows.")
         } else {
-            updateNotification("Import failed or finished with errors.", processedRows, totalRowsEstimate, true, true)
+            updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, true, true)
             Log.e(TAG, "Import failed or finished with errors.")
         }
         // Delay stopping foreground and service to allow user to see final notification
@@ -386,7 +388,7 @@ class ImportService : Service() {
                 "Import Service Channel",
                 NotificationManager.IMPORTANCE_LOW
             )
-            channel.description = "Channel for CSV Import Service notifications"
+            channel.description = getString(R.string.csv_import_service_notifications)
             notificationManager.createNotificationChannel(channel)
         }
     }
@@ -397,9 +399,9 @@ class ImportService : Service() {
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val title = when {
-            isError -> "Import Error"
-            isFinished -> "Import Finished"
-            else -> "Importing CSV Data"
+            isError -> getString(R.string.import_error)
+            isFinished -> getString(R.string.import_complete)
+            else -> getString(R.string.importing_csv_data)
         }
 
         val builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)

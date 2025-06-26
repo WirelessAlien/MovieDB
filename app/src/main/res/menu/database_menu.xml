@@ -33,4 +33,10 @@
         android:orderInCategory="2"
         android:title="@string/action_import"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_external_import"
+        android:orderInCategory="3"
+        android:title="External Import"
+        app:showAsAction="never" />
 </menu>
