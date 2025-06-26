@@ -50,6 +50,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -511,6 +512,8 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                             context,
                             R.drawable.ic_thumb_up
                         )
+                        binding.ratingBtnTmdb.text = ratingValue.toString()
+                        binding.ratingBtnTmdb.setPadding(0, 0, 5, 0)
                     } else {
                         binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
                             context,

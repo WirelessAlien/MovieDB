@@ -201,6 +201,30 @@
     <string name="up_next">Up Next</string>
     <string name="no_seasons_found">No seasons found for this show.</string>
     <string name="show_not_in_database">Please \"Save\" the show to edit watch status of episodes</string>
+    <string name="number">%d</string>
+    <string name="no_app_found_to_pick_files">No app found to pick files.</string>
+    <string name="could_not_read_headers">Could not read headers. Check delimiter or ensure CSV is not empty.</string>
+    <string name="could_not_read_headers_2">Could not read headers from CSV. Check delimiter or file format.</string>
+    <string name="delimiter_format">Delimiter must be a single character. Defaulting to \',\'</string>
+    <string name="please_select_a_csv_file_first">Please select a CSV file first.</string>
+    <string name="please_map_at_least_one_csv_column">Please map at least one CSV column.</string>
+    <string name="tmdb_id_or_title_required_import">Warning: It\'s highly recommended to map a column to \'TMDB ID\' or \'Title\' for effective import.</string>
+    <string name="import_process_started">Import process started...</string>
+    <string name="starting_import">Starting import...</string>
+    <string name="importing">Importing...</string>
+    <string name="import_complete">Import complete!</string>
+    <string name="import_failed_or_finished_with_errors">Import failed or finished with errors.</string>
+    <string name="csv_import_service_notifications">CSV Import Service notifications</string>
+    <string name="import_error">Import Error</string>
+    <string name="importing_csv_data">Importing CSV Data</string>
+    <string name="import_finished">Import Finished</string>
+    <string name="confirm_deletion">Confirm Deletion</string>
+    <string name="confirm_delete_message">Are you sure you want to delete this item?</string>
+    <string name="start_import">Start Import</string>
+    <string name="select_a_csv_file_to_see_headers">Select a CSV file to see headers.</string>
+    <string name="map_csv_columns_to_database_fields">Map CSV Columns to Database Fields:</string>
+    <string name="enter_differentiator_symbol">Enter differentiator symbol</string>
+    <string name="select_csv_file">Select CSV File</string>
 
 
     <string-array name="media_types">

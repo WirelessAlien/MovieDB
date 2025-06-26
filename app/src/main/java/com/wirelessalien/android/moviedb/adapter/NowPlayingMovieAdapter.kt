@@ -25,12 +25,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.databinding.HomeCardOneBinding
+import com.wirelessalien.android.moviedb.fragment.ShowDetailsBottomSheet
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
@@ -87,6 +89,16 @@ class NowPlayingMovieAdapter(private val mShowArrayList: ArrayList<JSONObject>?)
                 intent.putExtra("isMovie", false)
             }
             view.context.startActivity(intent)
+        }
+
+        holder.binding.root.setOnLongClickListener { view: View ->
+            val isMovie = !showData.has(KEY_NAME) // If KEY_NAME exists, it's a TV show
+            val bottomSheet = ShowDetailsBottomSheet.newInstance(showData.toString(), isMovie)
+            val activity = view.context as? FragmentActivity
+            activity?.supportFragmentManager?.let { fragmentManager ->
+                bottomSheet.show(fragmentManager, ShowDetailsBottomSheet.TAG)
+            }
+            true
         }
     }
 

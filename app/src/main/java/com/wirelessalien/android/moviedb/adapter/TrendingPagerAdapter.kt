@@ -32,6 +32,7 @@ import android.icu.text.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.palette.graphics.Palette
@@ -44,6 +45,7 @@ import com.squareup.picasso.Target
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.databinding.TrendingCardBinding
+import com.wirelessalien.android.moviedb.fragment.ShowDetailsBottomSheet
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.ParseException
@@ -137,6 +139,17 @@ class TrendingPagerAdapter(private val mShowArrayList: ArrayList<JSONObject>?) :
             }
             view.context.startActivity(intent)
         }
+
+        holder.binding.root.setOnLongClickListener { view: View ->
+            val isMovie = !showData.has(KEY_NAME) // If KEY_NAME exists, it's a TV show
+            val bottomSheet = ShowDetailsBottomSheet.newInstance(showData.toString(), isMovie)
+            val activity = view.context as? FragmentActivity
+            activity?.supportFragmentManager?.let { fragmentManager ->
+                bottomSheet.show(fragmentManager, ShowDetailsBottomSheet.TAG)
+            }
+            true
+        }
+
         holder.binding.root.setOnMaskChangedListener { maskRect: RectF ->
             holder.binding.movieTitle.translationX = maskRect.left
             holder.binding.date.translationX = maskRect.left

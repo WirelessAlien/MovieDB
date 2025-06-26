@@ -29,6 +29,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.paging.PagingDataAdapter
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DiffUtil
@@ -38,6 +39,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.databinding.ShowCardBinding
 import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
+import com.wirelessalien.android.moviedb.fragment.ShowDetailsBottomSheet
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteFromList
 import kotlinx.coroutines.CoroutineScope
@@ -169,6 +171,16 @@ class ShowPagingAdapter(
                 intent.putExtra("isMovie", false)
             }
             view.context.startActivity(intent)
+        }
+
+        holder.itemView.setOnLongClickListener { view: View ->
+            val isMovie = !showData.has(KEY_NAME)
+            val bottomSheet = ShowDetailsBottomSheet.newInstance(showData.toString(), isMovie)
+            val activity = view.context as? FragmentActivity
+            activity?.supportFragmentManager?.let { fragmentManager ->
+                bottomSheet.show(fragmentManager, ShowDetailsBottomSheet.TAG)
+            }
+            true
         }
 
         if (showDeleteButton) {
