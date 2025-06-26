@@ -230,6 +230,14 @@
     <string name="tv_show">TV Show</string>
     <string name="select_a_default_item_type">Please select a default item type (Movie/Show).</string>
     <string name="these_actions_cannot_be_modified_tooltip">These actions cannot be modified here, the details screen need to be opened to change them.</string>
+    <string name="csv_import_explanation">
+        How to import:\n
+        1. Select your CSV file.\n
+        2. If your CSV uses a delimiter other than a comma (,), enter it in the \'differentiator symbol\' field (e.g., ; or |). Press Enter or tap outside the field to apply.\n
+        3. Map the columns from your CSV (left) to the app\'s database fields (right). \'TMDB ID\' or \'Title\' is highly recommended for matching.\n
+        4. If your CSV doesn\'t have a column specifying if an item is a Movie or TV Show, select a default type below the mappings.\n
+        5. Click \'Start Import\'. The import will run in the background.
+    </string>
 
     <string-array name="media_types">
         <item>digital</item>

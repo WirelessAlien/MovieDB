@@ -45,13 +45,29 @@
         android:padding="16dp"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonSelectCsv"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cornerRadius="10dp"
-            android:text="@string/select_csv_file"
-            app:icon="@drawable/ic_file_present" />
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonSelectCsv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cornerRadius="10dp"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/buttonInfo"
+                android:text="@string/select_csv_file"
+                app:icon="@drawable/ic_file_present" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cornerRadius="10dp"
+                android:layout_alignParentEnd="true"
+                style="@style/Widget.Material3.Button.IconButton"
+                app:icon="@drawable/ic_info" />
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/textViewSelectedFileName"
@@ -149,5 +165,14 @@
             app:cornerRadius="10dp"
             android:enabled="false"
             app:icon="@drawable/ic_import_db"/>
+
+        <TextView
+            android:id="@+id/textViewImportExplanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/csv_import_explanation"
+            android:textAppearance="?attr/textAppearanceBody2" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

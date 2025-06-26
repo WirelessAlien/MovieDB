@@ -31,6 +31,7 @@ import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityCsvImportBinding
 import com.wirelessalien.android.moviedb.databinding.ItemCsvHeaderMappingBinding
@@ -142,6 +143,13 @@ class CsvImportActivity : AppCompatActivity() {
                     loadCsvHeaders(selectedFileUri!!)
                 }
             }
+        }
+
+        binding.buttonInfo.setOnClickListener {
+            val bottomSheetDialog = BottomSheetDialog(this)
+            val view = layoutInflater.inflate(R.layout.bottom_sheet_import_info, null)
+            bottomSheetDialog.setContentView(view)
+            bottomSheetDialog.show()
         }
     }
 
