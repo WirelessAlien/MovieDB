@@ -225,7 +225,11 @@
     <string name="map_csv_columns_to_database_fields">Map CSV Columns to Database Fields:</string>
     <string name="enter_differentiator_symbol">Enter differentiator symbol</string>
     <string name="select_csv_file">Select CSV File</string>
-
+    <string name="default_import_type_label">Default type for entries:</string>
+    <string name="movie">Movie</string>
+    <string name="tv_show">TV Show</string>
+    <string name="select_a_default_item_type">Please select a default item type (Movie/Show).</string>
+    <string name="these_actions_cannot_be_modified_tooltip">These actions cannot be modified here, the details screen need to be opened to change them.</string>
 
     <string-array name="media_types">
         <item>digital</item>

@@ -66,6 +66,7 @@ class ImportService : Service() {
         const val EXTRA_FILE_URI = "com.wirelessalien.android.moviedb.service.extra.FILE_URI"
         const val EXTRA_HEADER_MAPPING = "com.wirelessalien.android.moviedb.service.extra.HEADER_MAPPING"
         const val EXTRA_DELIMITER = "com.wirelessalien.android.moviedb.service.extra.DELIMITER"
+        const val EXTRA_DEFAULT_IS_MOVIE_TYPE = "com.wirelessalien.android.moviedb.service.extra.DEFAULT_IS_MOVIE_TYPE"
         private const val NOTIFICATION_CHANNEL_ID = "ImportServiceChannel"
         private const val NOTIFICATION_ID = 101
         private const val TAG = "ImportService"
@@ -86,11 +87,14 @@ class ImportService : Service() {
             @Suppress("UNCHECKED_CAST")
             val headerMapping = intent.getSerializableExtra(EXTRA_HEADER_MAPPING) as? HashMap<String, String>
             val delimiter = intent.getCharExtra(EXTRA_DELIMITER, ',') // Get delimiter, default to ','
+            // Get the default movie type, allow it to be not present (e.g. -1 if not sent)
+            val defaultIsMovieType = intent.getIntExtra(EXTRA_DEFAULT_IS_MOVIE_TYPE, -1)
+
 
             if (fileUri != null && headerMapping != null) {
                 startForeground(NOTIFICATION_ID, createNotification(getString(R.string.starting_import), 0, 0))
                 serviceScope.launch {
-                    processImport(fileUri, headerMapping, delimiter)
+                    processImport(fileUri, headerMapping, delimiter, if (defaultIsMovieType == -1) null else defaultIsMovieType)
                 }
             } else {
                 Log.e(TAG, "File URI or header mapping missing. Stopping service.")
@@ -141,7 +145,7 @@ class ImportService : Service() {
     }
 
 
-    private suspend fun processImport(fileUri: Uri, headerMapping: Map<String, String>, delimiter: Char) {
+    private suspend fun processImport(fileUri: Uri, headerMapping: Map<String, String>, delimiter: Char, defaultIsMovieType: Int?) {
         var processedRows = 0
         var totalRowsEstimate = 0
 
@@ -155,13 +159,15 @@ class ImportService : Service() {
         val defaultValues = mapOf(
             MovieDatabaseHelper.COLUMN_IMAGE to "",
             MovieDatabaseHelper.COLUMN_ICON to "",
-            MovieDatabaseHelper.COLUMN_SUMMARY to "N/A",
-            MovieDatabaseHelper.COLUMN_GENRES to "N/A",
+            MovieDatabaseHelper.COLUMN_SUMMARY to "",
+            MovieDatabaseHelper.COLUMN_GENRES to "",
             MovieDatabaseHelper.COLUMN_GENRES_IDS to "[]",
             MovieDatabaseHelper.COLUMN_RATING to 0.0,
-            MovieDatabaseHelper.COLUMN_MOVIE to 1,
-            MovieDatabaseHelper.COLUMN_CATEGORIES to MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH
+            MovieDatabaseHelper.COLUMN_CATEGORIES to MovieDatabaseHelper.CATEGORY_WATCHED
         )
+
+        // Determine the fallback value for is_movie if not provided by CSV and no specific default is passed
+        val ultimateFallbackIsMovie = defaultIsMovieType ?: 1 // Default to Movie (1) if no specific default passed
 
         val success = CsvParserUtil.processCsvWithMapping(
             applicationContext,
@@ -189,17 +195,31 @@ class ImportService : Service() {
                             MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
                             MovieDatabaseHelper.COLUMN_EPISODE_RATING -> contentValues.put(dbColumn, value.toDoubleOrNull())
                             MovieDatabaseHelper.COLUMN_CATEGORIES,
-                            MovieDatabaseHelper.COLUMN_MOVIE,
                             MovieDatabaseHelper.COLUMN_SEASON_NUMBER,
                             MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
                             MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED -> contentValues.put(dbColumn, value.toIntOrNull())
+                            MovieDatabaseHelper.COLUMN_MOVIE -> contentValues.put(dbColumn, value.toIntOrNull())
                             else -> contentValues.put(dbColumn, value)
                         }
                     }
                 }
 
+                // Determine isMovie status:
+                // 1. From CSV if mapped and valid.
+                // 2. From defaultIsMovieType if provided by activity.
+                // 3. Fallback to ultimateFallbackIsMovie (typically 1 for Movie).
+                val isMovieValueFromCsv = mappedRow[MovieDatabaseHelper.COLUMN_MOVIE]?.toIntOrNull()
+                val currentIsMovie: Int
+                if (isMovieValueFromCsv != null) {
+                    currentIsMovie = isMovieValueFromCsv
+                    contentValues.put(MovieDatabaseHelper.COLUMN_MOVIE, currentIsMovie)
+                } else {
+                    currentIsMovie = defaultIsMovieType ?: ultimateFallbackIsMovie
+                    contentValues.put(MovieDatabaseHelper.COLUMN_MOVIE, currentIsMovie)
+                }
+                val isMovieForTmdbFetch = currentIsMovie == 1
+
                 val tmdbIdFromCsv = contentValues.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID)
-                val isMovieFromCsv = contentValues.getAsInteger(MovieDatabaseHelper.COLUMN_MOVIE) == 1
                 var titleFromCsv = contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE)
 
                 if (tmdbApiKey != null && tmdbIdFromCsv != null && tmdbIdFromCsv != 0L) {
@@ -214,12 +234,12 @@ class ImportService : Service() {
 
                     if (needsTitle || needsSummary || needsRating || needsReleaseDate || needsPoster || needsBackdrop || needsGenres) {
                         serviceScope.launch {
-                            val tmdbJson = fetchTmdbData(tmdbIdFromCsv.toInt(), isMovieFromCsv)
+                            val tmdbJson = fetchTmdbData(tmdbIdFromCsv.toInt(), isMovieForTmdbFetch)
 
                             if (tmdbJson != null) {
                                 Log.d(TAG, "Successfully fetched TMDB data for ID $tmdbIdFromCsv: $tmdbJson")
                                 if (needsTitle) {
-                                    val fetchedTitle = if (isMovieFromCsv) tmdbJson.optString("title") else tmdbJson.optString("name")
+                                    val fetchedTitle = if (isMovieForTmdbFetch) tmdbJson.optString("title") else tmdbJson.optString("name")
                                     if (!fetchedTitle.isNullOrBlank()) {
                                         contentValues.put(MovieDatabaseHelper.COLUMN_TITLE, fetchedTitle)
                                     }
@@ -232,7 +252,7 @@ class ImportService : Service() {
                                 }
                                 if (needsReleaseDate) {
                                     val date =
-                                        if (isMovieFromCsv) tmdbJson.optString("release_date") else tmdbJson.optString("first_air_date")
+                                        if (isMovieForTmdbFetch) tmdbJson.optString("release_date") else tmdbJson.optString("first_air_date")
                                     if (!date.isNullOrBlank()) contentValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, date)
                                 }
                                 if (needsPoster && !tmdbJson.optString("poster_path").isNullOrBlank()
@@ -318,7 +338,7 @@ class ImportService : Service() {
                         if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_IMAGE).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_IMAGE, "")
                         if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_ICON).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_ICON, "")
                         if (movieCV.getAsDouble(MovieDatabaseHelper.COLUMN_RATING) == null) movieCV.put(MovieDatabaseHelper.COLUMN_RATING, 0.0)
-                        if (movieCV.getAsInteger(MovieDatabaseHelper.COLUMN_MOVIE) == null) movieCV.put(MovieDatabaseHelper.COLUMN_MOVIE, if(isMovieFromCsv) 1 else 0) // isMovieFromCsv here is key
+                        if (movieCV.getAsInteger(MovieDatabaseHelper.COLUMN_MOVIE) == null) movieCV.put(MovieDatabaseHelper.COLUMN_MOVIE, currentIsMovie)
                         if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_GENRES).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_GENRES, "N/A")
                         if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_GENRES_IDS).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, "[]")
 

@@ -76,7 +76,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:tooltipText="@string/these_actions_cannot_be_modified_tooltip">
+
         <ImageView
             android:id="@+id/bottom_sheet_tmdb_watchlist_icon"
             android:layout_width="wrap_content"
@@ -122,7 +124,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:tooltipText="@string/these_actions_cannot_be_modified_tooltip">
 
         <ImageView
             android:id="@+id/bottom_sheet_trakt_watched_icon"

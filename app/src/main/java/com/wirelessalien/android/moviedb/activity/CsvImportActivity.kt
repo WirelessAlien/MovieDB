@@ -80,6 +80,26 @@ class CsvImportActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateDefaultTypeRadioGroupVisibility() {
+        var isMovieColumnMapped = false
+        mappingAutoCompleteTextViews.forEach { autoCompleteTextView ->
+            val selectedDbFieldKey = autoCompleteTextView.text.toString()
+            val dbColumnConstant = databaseFields[selectedDbFieldKey]
+            if (dbColumnConstant == MovieDatabaseHelper.COLUMN_MOVIE && dbColumnConstant != "DO_NOT_IMPORT") {
+                isMovieColumnMapped = true
+            }
+        }
+
+        if (isMovieColumnMapped) {
+            binding.radioGroupDefaultType.visibility = View.GONE
+        } else {
+            binding.radioGroupDefaultType.visibility = View.VISIBLE
+            if (binding.radioGroupDefaultType.checkedRadioButtonId == -1) {
+                binding.radioButtonMovie.isChecked = true
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCsvImportBinding.inflate(layoutInflater)
@@ -95,6 +115,15 @@ class CsvImportActivity : AppCompatActivity() {
         binding.buttonStartImport.setOnClickListener {
             startImportProcess()
         }
+
+        binding.editTextDifferentiator.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                if (selectedFileUri != null) {
+                    loadCsvHeaders(selectedFileUri!!)
+                }
+            }
+        }
+
 
         binding.editTextDifferentiator.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
@@ -151,6 +180,7 @@ class CsvImportActivity : AppCompatActivity() {
 
         csvHeaders.addAll(headers)
         populateHeaderMappingUI(headers)
+        updateDefaultTypeRadioGroupVisibility()
     }
 
     private fun populateHeaderMappingUI(csvHeaders: List<String>) {
@@ -173,6 +203,10 @@ class CsvImportActivity : AppCompatActivity() {
 
             mappingAutoCompleteTextViews.add(autoCompleteTextView)
             binding.linearLayoutHeaderMappings.addView(mappingViewBinding.root)
+
+            autoCompleteTextView.setOnItemClickListener { _, _, _, _ ->
+                updateDefaultTypeRadioGroupVisibility()
+            }
         }
     }
 
@@ -220,9 +254,15 @@ class CsvImportActivity : AppCompatActivity() {
             return
         }
 
+        if (binding.radioGroupDefaultType.visibility == View.VISIBLE && binding.radioGroupDefaultType.checkedRadioButtonId == -1) {
+            Toast.makeText(this, getString(R.string.select_a_default_item_type), Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val headerMapping = HashMap<String, String>()
         var hasTmdbIdMapping = false
         var hasTitleMapping = false
+        var isMovieColumnExplicitlyMapped = false
 
         csvHeaders.forEachIndexed { index, csvHeader ->
             val selectedDbFieldKey = mappingAutoCompleteTextViews[index].text.toString()
@@ -232,6 +272,7 @@ class CsvImportActivity : AppCompatActivity() {
                 headerMapping[csvHeader] = dbColumnConstant
                 if (dbColumnConstant == MovieDatabaseHelper.COLUMN_MOVIES_ID) hasTmdbIdMapping = true
                 if (dbColumnConstant == MovieDatabaseHelper.COLUMN_TITLE) hasTitleMapping = true
+                if (dbColumnConstant == MovieDatabaseHelper.COLUMN_MOVIE) isMovieColumnExplicitlyMapped = true
             }
         }
 
@@ -242,10 +283,8 @@ class CsvImportActivity : AppCompatActivity() {
         }
 
         if (!hasTmdbIdMapping && !hasTitleMapping) {
-            Toast.makeText(this,
-                getString(R.string.tmdb_id_or_title_required_import), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.tmdb_id_or_title_required_import), Toast.LENGTH_LONG).show()
         }
-
 
         val delimiter = getDelimiterFromInput()
 
@@ -254,6 +293,14 @@ class CsvImportActivity : AppCompatActivity() {
             putExtra(ImportService.EXTRA_FILE_URI, selectedFileUri)
             putExtra(ImportService.EXTRA_HEADER_MAPPING, headerMapping)
             putExtra(ImportService.EXTRA_DELIMITER, delimiter)
+
+            if (!isMovieColumnExplicitlyMapped && binding.radioGroupDefaultType.visibility == View.VISIBLE) {
+                val selectedTypeId = binding.radioGroupDefaultType.checkedRadioButtonId
+                if (selectedTypeId != -1) {
+                    val defaultIsMovie = if (selectedTypeId == binding.radioButtonMovie.id) 1 else 0
+                    putExtra(ImportService.EXTRA_DEFAULT_IS_MOVIE_TYPE, defaultIsMovie)
+                }
+            }
         }
         startService(intent)
 

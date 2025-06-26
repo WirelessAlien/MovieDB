@@ -111,14 +111,43 @@
             </LinearLayout>
         </ScrollView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonStartImport"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/start_import"
-        app:cornerRadius="10dp"
-        android:enabled="false"
-        app:icon="@drawable/ic_import_db"/>
+        <RadioGroup
+            android:id="@+id/radioGroupDefaultType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/default_import_type_label"
+                android:layout_marginEnd="8dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radioButtonMovie"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/movie"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radioButtonShow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tv_show"/>
+        </RadioGroup>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonStartImport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/start_import"
+            app:cornerRadius="10dp"
+            android:enabled="false"
+            app:icon="@drawable/ic_import_db"/>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
