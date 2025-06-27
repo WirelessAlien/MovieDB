@@ -278,7 +278,6 @@ class CsvImportActivity : AppCompatActivity() {
             if (dbColumnConstant != null && dbColumnConstant != "DO_NOT_IMPORT") {
                 headerMapping[csvHeader] = dbColumnConstant
                 if (dbColumnConstant == MovieDatabaseHelper.COLUMN_MOVIES_ID) hasTmdbIdMapping = true
-                if (dbColumnConstant == MovieDatabaseHelper.COLUMN_TITLE) hasTitleMapping = true
                 if (dbColumnConstant == MovieDatabaseHelper.COLUMN_MOVIE) isMovieColumnExplicitlyMapped = true
             }
         }
