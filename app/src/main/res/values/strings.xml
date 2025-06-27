@@ -208,7 +208,7 @@
     <string name="delimiter_format">Delimiter must be a single character. Defaulting to \',\'</string>
     <string name="please_select_a_csv_file_first">Please select a CSV file first.</string>
     <string name="please_map_at_least_one_csv_column">Please map at least one CSV column.</string>
-    <string name="tmdb_id_or_title_required_import">Warning: It\'s highly recommended to map a column to \'TMDB ID\' or \'Title\' for effective import.</string>
+    <string name="tmdb_id_or_title_required_import">Warning: It\'s required to map a column to \'TMDB ID\' for effective import.</string>
     <string name="import_process_started">Import process started...</string>
     <string name="starting_import">Starting import...</string>
     <string name="importing">Importing...</string>
@@ -233,11 +233,12 @@
     <string name="csv_import_explanation">
         How to import:\n
         1. Select your CSV file.\n
-        2. If your CSV uses a delimiter other than a comma (,), enter it in the \'differentiator symbol\' field (e.g., ; or |). Press Enter or tap outside the field to apply.\n
-        3. Map the columns from your CSV (left) to the app\'s database fields (right). \'TMDB ID\' or \'Title\' is highly recommended for matching.\n
-        4. If your CSV doesn\'t have a column specifying if an item is a Movie or TV Show, select a default type below the mappings.\n
+        2. If your CSV uses a delimiter other than a comma (,), enter it in the \'differentiator symbol\' field (e.g., ; or |). Press Enter to apply.\n
+        3. Map the columns from your CSV to the app\'s database fields. \'TMDB ID\' is required for matching.\n
+        4. If your CSV doesn\'t have a column specifying if an item is a Movie or TV Show, select a default type below the mappings (It is required).\n
         5. Click \'Start Import\'. The import will run in the background.
     </string>
+    <string name="csv_import">CSV Import</string>
 
     <string-array name="media_types">
         <item>digital</item>

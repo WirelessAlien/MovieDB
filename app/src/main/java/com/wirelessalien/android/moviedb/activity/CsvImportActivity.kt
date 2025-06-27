@@ -269,7 +269,6 @@ class CsvImportActivity : AppCompatActivity() {
 
         val headerMapping = HashMap<String, String>()
         var hasTmdbIdMapping = false
-        var hasTitleMapping = false
         var isMovieColumnExplicitlyMapped = false
 
         csvHeaders.forEachIndexed { index, csvHeader ->
@@ -290,8 +289,9 @@ class CsvImportActivity : AppCompatActivity() {
             return
         }
 
-        if (!hasTmdbIdMapping && !hasTitleMapping) {
+        if (!hasTmdbIdMapping) {
             Toast.makeText(this, getString(R.string.tmdb_id_or_title_required_import), Toast.LENGTH_LONG).show()
+            return
         }
 
         val delimiter = getDelimiterFromInput()

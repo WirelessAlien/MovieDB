@@ -37,6 +37,6 @@
     <item
         android:id="@+id/action_external_import"
         android:orderInCategory="3"
-        android:title="External Import"
+        android:title="@string/csv_import"
         app:showAsAction="never" />
 </menu>
