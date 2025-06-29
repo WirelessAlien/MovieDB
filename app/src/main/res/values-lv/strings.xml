@@ -100,4 +100,7 @@
     <string name="about_movie_db">Par</string>
     <string name="where_to_watch">Kur skatīties?</string>
     <string name="cast_movie_title">Daļa no aktieru sastāva</string>
+    <string name="rate_movie">Vērtēt</string>
+    <string name="account_data_tab_title">Konts</string>
+    <string name="save">Saglabāt</string>
 </resources>
