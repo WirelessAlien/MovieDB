@@ -95,6 +95,14 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
         setupDetailsButton()
         loadProviderSpecificData()
         removeFromDbLocal()
+
+        binding.bottomSheetTmdbActions.setOnClickListener {
+            Toast.makeText(requireContext(), getString(R.string.these_actions_cannot_be_modified_tooltip), Toast.LENGTH_SHORT).show()
+        }
+
+        binding.bottomSheetTraktActions.setOnClickListener {
+            Toast.makeText(requireContext(), getString(R.string.these_actions_cannot_be_modified_tooltip), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun removeFromDbLocal() {

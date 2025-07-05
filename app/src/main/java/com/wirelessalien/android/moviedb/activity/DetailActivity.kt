@@ -513,7 +513,9 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                             R.drawable.ic_thumb_up
                         )
                         binding.ratingBtnTmdb.text = ratingValue.toString()
-                        binding.ratingBtnTmdb.setPadding(0, 0, 5, 0)
+                        binding.ratingBtnTmdb.iconPadding = TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP, 5f, resources.displayMetrics
+                        ).toInt()
                     } else {
                         binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
                             context,
@@ -982,6 +984,11 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                                 if (!isMovie) {
                                     updateEpisodeFragments()
                                 }
+                            }
+                        }
+                        if (showNextEpisodePref && !isMovie && added) {
+                            lifecycleScope.launch {
+                                updateEpisodeFragments()
                             }
                         }
                         binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
