@@ -239,6 +239,9 @@
         5. Click \'Start Import\'. The import will run in the background.
     </string>
     <string name="csv_import">CSV Import</string>
+    <string name="schedule_update">Schedule update</string>
+    <string name="schedule_monthly_update">Schedule Monthly Update</string>
+    <string name="enable_update">Enable update</string>
 
     <string-array name="media_types">
         <item>digital</item>

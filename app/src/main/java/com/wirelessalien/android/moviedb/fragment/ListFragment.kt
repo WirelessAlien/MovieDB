@@ -44,9 +44,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -66,6 +71,7 @@ import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogEpisodeDataExpBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
+import com.wirelessalien.android.moviedb.databinding.DialogSwitchBinding
 import com.wirelessalien.android.moviedb.databinding.DialogTraktSyncMinimalBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentSavedBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentSavedSetupBinding
@@ -76,6 +82,7 @@ import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetailsSaved
 import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
+import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.TktAutoSyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -93,6 +100,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 /**
  *
@@ -363,14 +371,73 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             .setTitle(getString(R.string.get_tmdb_progress_data))
             .setView(binding.root)
             .setCancelable(false)
-            .setPositiveButton(getString(R.string.ok)) {dialog, _ ->
+            .setPositiveButton(getString(R.string.ok)) { dialog, _ ->
                 showTmdbDetailsDialog()
                 dialog.dismiss()
             }
             .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                 dialog.dismiss()
             }
+            .setNeutralButton(getString(R.string.schedule_update)) { dialog, _ ->
+                showScheduleUpdateDialog()
+                dialog.dismiss()
+            }
             .show()
+    }
+
+    private fun showScheduleUpdateDialog() {
+        val binding = DialogSwitchBinding.inflate(LayoutInflater.from(context))
+        val workManager = WorkManager.getInstance(requireContext())
+        val switchState = MutableLiveData(false)
+
+        // Check if the worker is running
+        workManager.getWorkInfosForUniqueWorkLiveData("monthlyTvShowUpdateWorker")
+            .observe(viewLifecycleOwner) { workInfoList ->
+                val isRunning = workInfoList?.any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING } == true
+                switchState.value = isRunning
+            }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.schedule_monthly_update))
+            .setView(binding.root)
+            .setPositiveButton(getString(R.string.ok)) { dialog, _ ->
+                if (switchState.value == true) {
+                    scheduleMonthlyTvShowUpdate()
+                } else {
+                    workManager.cancelUniqueWork("monthlyTvShowUpdateWorker")
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+
+        binding.switchEnableUpdate.apply {
+            switchState.observe(viewLifecycleOwner) { isChecked = it }
+            setOnCheckedChangeListener { _, isChecked ->
+                switchState.value = isChecked
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun scheduleMonthlyTvShowUpdate() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val monthlyWorkRequest =
+            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, TimeUnit.DAYS)
+                .setConstraints(constraints)
+                .build()
+
+        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+            "monthlyTvShowUpdateWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            monthlyWorkRequest
+        )
     }
 
     private fun showTmdbDetailsDialog() {
