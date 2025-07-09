@@ -91,7 +91,7 @@ class GetTmdbTvDetailsWorker(appContext: Context, workerParams: WorkerParameters
 
     private suspend fun fetchTmdbShowDetails(tmdbId: Int): JSONObject {
         return withContext(Dispatchers.IO) {
-            val url = "https://api.themoviedb.org/3/tv/$tmdbId?api_key=$tmdbApiKey&append_to_response=season_details"
+            val url = "https://api.themoviedb.org/3/tv/$tmdbId?api_key=$tmdbApiKey"
             val request = Request.Builder().url(url).build()
 
             try {
