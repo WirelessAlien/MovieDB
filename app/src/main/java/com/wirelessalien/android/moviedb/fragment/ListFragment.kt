@@ -286,7 +286,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
 
         val shows = withContext(Dispatchers.IO) {
-            getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
+            getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", null)
         }
         val upcomingContent = withContext(Dispatchers.IO) {
             loadUpcomingContent()
@@ -508,14 +508,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                 binding.chipWatching.isChecked -> {
                     // Refresh Watching shows
-                    val shows = withContext(Dispatchers.IO) {
-                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
-                    }
-                    val watchingShows = ArrayList<JSONObject>()
-                    for (show in shows) {
-                        if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHING) {
-                            watchingShows.add(show)
-                        }
+                    val watchingShows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_WATCHING)
                     }
                     mShowAdapter.updateData(watchingShows)
                 }
@@ -812,7 +806,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             try {
                 // Perform the database operation in the IO dispatcher
                 val showsDeferred = async(Dispatchers.IO) {
-                    getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC")
+                    getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", null)
                 }
                 val showArrayList = showsDeferred.await()
 
@@ -1304,10 +1298,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      *
      * @param searchQuery the text (if any) that the title should contain.
      * @param order       the order of the shows.
+     * @param categoryFilter an optional category ID to filter by.
      * @return an ArrayList filled with the shows from the database
-     * (optionally filtered and sorted on the given query and order).
+     * (optionally filtered and sorted on the given query, order, and category).
      */
-    fun getShowsFromDatabase(searchQuery: String?, order: String?): ArrayList<JSONObject> {
+    fun getShowsFromDatabase(searchQuery: String?, order: String?, categoryFilter: Int? = null): ArrayList<JSONObject> {
         // Add the order that the output should be sorted on.
         // When no order is specified leave the string empty.
         val dbOrder: String = if (order != null) {
@@ -1318,7 +1313,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
 
         // Base query with LEFT JOIN to include episode data
-        val baseQuery = """
+        var baseQuery = """
         SELECT m.*, e.${MovieDatabaseHelper.COLUMN_SEASON_NUMBER}, 
                e.${MovieDatabaseHelper.COLUMN_EPISODE_NUMBER},
                e.${MovieDatabaseHelper.COLUMN_EPISODE_RATING},
@@ -1329,16 +1324,25 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         ON m.${MovieDatabaseHelper.COLUMN_MOVIES_ID} = e.${MovieDatabaseHelper.COLUMN_MOVIES_ID}
     """
 
-        // Search for shows that fulfill the searchQuery and fit in the list
-        val cursor: Cursor = if (searchQuery != null && searchQuery != "") {
-            mDatabase.rawQuery("""
-            $baseQuery
-            WHERE m.${MovieDatabaseHelper.COLUMN_TITLE} LIKE ? 
-            $dbOrder
-        """, arrayOf("%$searchQuery%"))
-        } else {
-            mDatabase.rawQuery("$baseQuery $dbOrder", null)
+        val selectionArgs = mutableListOf<String>()
+        val conditions = mutableListOf<String>()
+
+        if (!searchQuery.isNullOrEmpty()) {
+            conditions.add("m.${MovieDatabaseHelper.COLUMN_TITLE} LIKE ?")
+            selectionArgs.add("%$searchQuery%")
         }
+
+        if (categoryFilter != null) {
+            conditions.add("m.${MovieDatabaseHelper.COLUMN_CATEGORIES} = ?")
+            selectionArgs.add(categoryFilter.toString())
+        }
+
+        if (conditions.isNotEmpty()) {
+            baseQuery += " WHERE " + conditions.joinToString(separator = " AND ")
+        }
+
+        // Search for shows that fulfill the searchQuery and fit in the list
+        val cursor: Cursor = mDatabase.rawQuery("$baseQuery $dbOrder", selectionArgs.toTypedArray())
 
         return convertDatabaseListToArrayList(cursor)
     }
@@ -1678,7 +1682,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             CoroutineScope(Dispatchers.Main).launch {
                 // Database operations on IO dispatcher
                 val shows = withContext(Dispatchers.IO) {
-                    getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
+                    getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC", null)
                 }
 
                 // UI updates on Main dispatcher

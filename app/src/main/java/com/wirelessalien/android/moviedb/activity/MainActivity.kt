@@ -781,7 +781,7 @@ class MainActivity : BaseActivity() {
         if (query.isNotEmpty()) {
             val currentFragment = getCurrentFragment()
             if (currentFragment is ListFragment) {
-                val showsFromDatabase = currentFragment.getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC")
+                val showsFromDatabase = currentFragment.getShowsFromDatabase(query, MovieDatabaseHelper.COLUMN_ID + " DESC", null)
                 mDatabaseSearchAdapter = ShowBaseAdapter(context, showsFromDatabase, mShowGenreList, true)
                 binding.searchResultsRecyclerView.adapter = mDatabaseSearchAdapter
             }
@@ -1097,7 +1097,7 @@ class MainActivity : BaseActivity() {
                                 e.printStackTrace()
                             }
 
-                           Toast.makeText(context, getString(R.string.sync_completed), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, getString(R.string.sync_completed), Toast.LENGTH_SHORT).show()
                         }
                     }
 

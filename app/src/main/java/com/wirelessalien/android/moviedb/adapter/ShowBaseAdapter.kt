@@ -148,7 +148,11 @@ class ShowBaseAdapter(
 
                     holder.watchedProgressView?.visibility = View.VISIBLE
                     holder.showRating?.visibility = View.GONE
-                    holder.watchedProgressView?.progress = (watchedEpisodes.toFloat() / totalEpisodes.toFloat() * 100).toInt()
+                    if (totalEpisodes > 0) {
+                        holder.watchedProgressView?.progress = (watchedEpisodes.toFloat() / totalEpisodes.toFloat() * 100).toInt()
+                    } else {
+                        holder.watchedProgressView?.progress = 0
+                    }
                 } else {
                     val categoryText = when (category) {
                         0 -> "Plan to watch"
@@ -734,27 +738,33 @@ class ShowBaseAdapter(
     }
 
     private fun getWatchedEpisodesCount(showData: JSONObject): Int {
-        if (!showData.has("season")) return 0
-
         try {
-            if (showData.get("season") is JSONObject) {
-                val seasons = showData.getJSONObject("season")
-                var watchedCount = 0
+            val tvShowId = showData.optInt(KEY_ID)
+            val allSeasonsFromTmdb = getSeasonsFromTmdbDatabase(tvShowId)
 
-                seasons.keys().forEach { seasonNumber ->
-                    val episodes = seasons.getJSONArray(seasonNumber)
-                    watchedCount += episodes.length()
+            if (allSeasonsFromTmdb.isEmpty()) {
+                if (showData.has("season") && showData.get("season") is JSONObject) {
+                    val seasonsObject = showData.getJSONObject("season")
+                    val watchedCount = 0
+                    seasonsObject.keys().forEach { _ ->
+                        val tvShowIdFromData = showData.optInt(KEY_ID)
+                        val seasonsFromData = mutableListOf<Int>()
+                        seasonsObject.keys().forEach { seasonKeyStr ->
+                            seasonKeyStr.toIntOrNull()?.let { seasonsFromData.add(it) }
+                        }
+                        return seasonsFromData.sumOf { seasonNumber ->
+                            getWatchedEpisodesFromDb(tvShowIdFromData, seasonNumber).size
+                        }
+                    }
+                    return watchedCount
                 }
-                return watchedCount
+                return 0
             }
-            else {
-                val tvShowId = showData.optInt(KEY_ID)
-                val seasons = getSeasonsFromTmdbDatabase(tvShowId)
-                return seasons.sumOf { seasonNumber ->
-                    getWatchedEpisodesFromDb(tvShowId, seasonNumber).size
-                }
+
+            return allSeasonsFromTmdb.sumOf { seasonNumber ->
+                getWatchedEpisodesFromDb(tvShowId, seasonNumber).size
             }
-        } catch (e: JSONException) {
+        } catch (e: Exception) {
             Log.e("ShowBaseAdapter", "Error counting watched episodes", e)
             return 0
         }
