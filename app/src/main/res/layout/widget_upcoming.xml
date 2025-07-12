@@ -21,7 +21,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/widget_background"
     android:padding="8dp">
 
@@ -45,7 +44,7 @@
             android:layout_toEndOf="@id/widget_header_button"
             android:text="@string/upcoming"
             android:textStyle="bold"
-            android:textColor="@color/md_theme_inverseSurface"
+            android:textColor="?attr/colorSurfaceInverse"
             android:textSize="20sp" />
     </RelativeLayout>
 
@@ -60,7 +59,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:textColor="@color/md_theme_inverseSurface"
+        android:textColor="?attr/colorSurfaceInverse"
         android:text="@string/no_upcoming_shows"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="gone" />

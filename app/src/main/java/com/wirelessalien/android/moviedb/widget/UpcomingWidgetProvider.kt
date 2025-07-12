@@ -28,6 +28,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import java.util.Calendar
 
 class UpcomingWidgetProvider : AppWidgetProvider() {
@@ -59,6 +60,16 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
 
         val intent = Intent(context, UpcomingWidgetService::class.java)
         views.setRemoteAdapter(R.id.widget_list_view, intent)
+
+        val appIntent = Intent(context, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            appIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        views.setOnClickPendingIntent(R.id.widget_headerRL, pendingIntent)
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }

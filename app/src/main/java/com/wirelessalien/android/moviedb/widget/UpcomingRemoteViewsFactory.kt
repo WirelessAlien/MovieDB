@@ -25,6 +25,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.util.Log
+import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import androidx.preference.PreferenceManager
@@ -111,10 +112,19 @@ class UpcomingRemoteViewsFactory(
         val title = item.optString("title", item.optString("name", context.getString(R.string.unknown_title)))
         val releaseDateString = item.optString(ListFragment.UPCOMING_DATE)
         val releaseTime = item.optString(ListFragment.UPCOMING_TIME)
+        val isMovie = item.optInt(ListFragment.IS_MOVIE, 1) == 1
 
         views.setTextViewText(R.id.widget_item_title, title)
         views.setTextViewText(R.id.widget_item_release_date, formatReleaseDate(releaseDateString))
         views.setTextViewText(R.id.widget_item_release_time, formatReleaseTime(releaseTime))
+
+        if (!isMovie) {
+            val seasonEpisodeInfo = item.optString("seasonEpisode", "")
+            views.setTextViewText(R.id.widget_item_season_episode, seasonEpisodeInfo)
+            views.setViewVisibility(R.id.widget_item_season_episode, View.VISIBLE)
+        } else {
+            views.setViewVisibility(R.id.widget_item_season_episode, View.GONE)
+        }
 
         return views
     }
@@ -235,23 +245,28 @@ class UpcomingRemoteViewsFactory(
             jsonObject.put(ListFragment.UPCOMING_DATE, airDate.substringBefore("T"))
             jsonObject.put(ListFragment.UPCOMING_TIME, airDate)
 
-            val finalTitle: String?
+            val title: String?
+            val seasonEpisodeInfo: String?
             if (isMovie) {
-                finalTitle = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE))
-                jsonObject.put("title", finalTitle)
+                title = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE))
+                jsonObject.put("title", title)
                 jsonObject.put(ListFragment.IS_MOVIE, 1) // Movie
             } else {
                 val showTitle = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE))
                 val episodeTitle = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_EPISODE_TITLE))
                 val seasonNum = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SEASON))
                 val episodeNum = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
-                finalTitle = "$showTitle - S${String.format("%02d", seasonNum)}E$episodeNum: $episodeTitle"
-                jsonObject.put("name", finalTitle)
+
+                title = showTitle
+                seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum: $episodeTitle"
+
+                jsonObject.put("title", title)
+                jsonObject.put("seasonEpisode", seasonEpisodeInfo)
                 jsonObject.put(ListFragment.IS_MOVIE, 0) // TV Show
             }
 
-            if (finalTitle.isNullOrEmpty()) {
-                Log.w(TAG, "Final title from Trakt Calendar DB is null or empty for item ID $tmdbId. Skipping.")
+            if (title.isNullOrEmpty()) {
+                Log.w(TAG, "Title from Trakt Calendar DB is null or empty for item ID $tmdbId. Skipping.")
                 return null
             }
             return jsonObject
@@ -270,25 +285,28 @@ class UpcomingRemoteViewsFactory(
             val type = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
             val reminderName = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME)) // Episode name or original title from reminder
 
-            val finalTitle: String?
+            val title: String?
+            val seasonEpisodeInfo: String?
             if (ListFragment.EPISODE == type) {
                 val showTitle = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME)) ?: reminderName // Fallback to reminderName if showTitle is null
                 val seasonNum = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SEASON))
-                val episodeNum = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
-                finalTitle = if (!reminderName.isNullOrEmpty()) {
-                    "$showTitle - S${String.format("%02d", seasonNum)}E$episodeNum: $reminderName"
-                } else {
-                    "$showTitle - S${String.format("%02d", seasonNum)}E$episodeNum"
-                }
-                jsonObject.put("name", finalTitle)
+                val episodeNum = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER)) ?: "0"
+                val episodeName = if (!reminderName.isNullOrEmpty()) ": $reminderName" else ""
+
+                title = showTitle
+                seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum$episodeName"
+
+                jsonObject.put("title", title)
+                jsonObject.put("seasonEpisode", seasonEpisodeInfo)
                 jsonObject.put(ListFragment.IS_MOVIE, 0)
             } else { // Movie
-                finalTitle = reminderName
-                jsonObject.put("title", finalTitle)
+                title = reminderName
+
+                jsonObject.put("title", title)
                 jsonObject.put(ListFragment.IS_MOVIE, 1)
             }
 
-            if (finalTitle.isNullOrEmpty() || finalTitle == context.getString(R.string.unknown_title)) {
+            if (title.isNullOrEmpty() || title == context.getString(R.string.unknown_title)) {
                 Log.w(TAG, "Minimal item title is null, empty or unknown for reminder ID $tmdbId. Skipping.")
                 return null
             }
@@ -359,7 +377,7 @@ class UpcomingRemoteViewsFactory(
                 else -> {
                     try {
                         val releaseDateF = dateFormat.parse(dateString)
-                        val defaultDateFormat = java.text.DateFormat.getDateInstance(java.text.DateFormat.DEFAULT)
+                        val defaultDateFormat = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
                         defaultDateFormat.format(releaseDateF?: "")
                     } catch (e: Exception) {
                         Log.e(TAG, "Error formatting date: $dateString", e)
