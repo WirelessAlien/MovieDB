@@ -24,6 +24,16 @@
     android:orientation="vertical"
     android:padding="8dp">
 
+    <TextView
+        android:id="@+id/widget_item_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Item Title"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/md_theme_inverseSurface"
+        android:textStyle="bold" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -48,12 +58,4 @@
             android:textColor="@color/md_theme_inverseSurface"
             android:textAppearance="?android:attr/textAppearanceListItemSmall" />
     </RelativeLayout>
-
-    <TextView
-        android:id="@+id/widget_item_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Item Title"
-        android:textAppearance="?android:attr/textAppearanceListItem"
-        android:textColor="@color/md_theme_inverseSurface" />
 </LinearLayout>

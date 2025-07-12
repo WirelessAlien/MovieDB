@@ -21,24 +21,39 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/widget_background"
     android:padding="8dp">
 
-    <TextView
-        android:id="@+id/widget_header"
+    <RelativeLayout
+        android:id="@+id/widget_headerRL"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:paddingBottom="8dp"
-        android:text="@string/upcoming"
-        android:textColor="@color/md_theme_inverseSurface"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/widget_header_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:src="@drawable/ic_app_icon"/>
+
+        <TextView
+            android:id="@+id/widget_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/widget_header_button"
+            android:text="@string/upcoming"
+            android:textStyle="bold"
+            android:textColor="@color/md_theme_inverseSurface"
+            android:textSize="20sp" />
+    </RelativeLayout>
 
     <ListView
         android:id="@+id/widget_list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/widget_header" />
+        android:layout_below="@id/widget_headerRL" />
 
     <TextView
         android:id="@+id/widget_empty_view"

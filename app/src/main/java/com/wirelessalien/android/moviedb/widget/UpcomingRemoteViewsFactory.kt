@@ -121,7 +121,7 @@ class UpcomingRemoteViewsFactory(
 
     override fun getLoadingView(): RemoteViews {
         return RemoteViews(context.packageName, R.layout.widget_item_upcoming).apply {
-            setTextViewText(R.id.widget_item_title, context.getString(R.string.loading_data)) // Added loading_data string
+            setTextViewText(R.id.widget_item_title, context.getString(R.string.loading_data))
         }
     }
 
