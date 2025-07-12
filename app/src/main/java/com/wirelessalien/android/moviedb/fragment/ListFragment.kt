@@ -1709,6 +1709,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         const val IS_MOVIE = "is_movie"
         const val IS_UPCOMING = "is_upcoming"
         const val UPCOMING_DATE = "upcoming_date"
+        const val UPCOMING_TIME = "upcoming_time"
         const val UPCOMING_TYPE = "upcoming_type"
         const val UPCOMING_EPISODE_NAME = "upcoming_episode_name"
         const val UPCOMING_EPISODE_NUMBER = "number"

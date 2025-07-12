@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 class UpcomingRemoteViewsFactory(
     private val context: Context,
@@ -109,9 +110,11 @@ class UpcomingRemoteViewsFactory(
         val views = RemoteViews(context.packageName, R.layout.widget_item_upcoming)
         val title = item.optString("title", item.optString("name", context.getString(R.string.unknown_title)))
         val releaseDateString = item.optString(ListFragment.UPCOMING_DATE)
+        val releaseTime = item.optString(ListFragment.UPCOMING_TIME)
 
         views.setTextViewText(R.id.widget_item_title, title)
         views.setTextViewText(R.id.widget_item_release_date, formatReleaseDate(releaseDateString))
+        views.setTextViewText(R.id.widget_item_release_time, formatReleaseTime(releaseTime))
 
         return views
     }
@@ -230,6 +233,7 @@ class UpcomingRemoteViewsFactory(
 
             val airDate = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_AIR_DATE))
             jsonObject.put(ListFragment.UPCOMING_DATE, airDate.substringBefore("T"))
+            jsonObject.put(ListFragment.UPCOMING_TIME, airDate)
 
             val finalTitle: String?
             if (isMovie) {
@@ -290,6 +294,7 @@ class UpcomingRemoteViewsFactory(
             }
 
             jsonObject.put(ListFragment.UPCOMING_DATE, epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE)))
+            jsonObject.put(ListFragment.UPCOMING_TIME, epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE)))
             return jsonObject
         } catch (e: Exception) {
             Log.e(TAG, "Error creating minimal upcoming item from reminder DB", e)
@@ -311,7 +316,9 @@ class UpcomingRemoteViewsFactory(
             jsonObject.put("id", tmdbId)
             val isMovie = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
             jsonObject.put(ListFragment.IS_MOVIE, if (isMovie) 1 else 0)
-            jsonObject.put(ListFragment.UPCOMING_DATE, epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE)))
+            val releaseDate = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))
+            jsonObject.put(ListFragment.UPCOMING_DATE, releaseDate)
+            jsonObject.put(ListFragment.UPCOMING_TIME, releaseDate)
 
             var finalTitle = itemTitleFromDb
             if (!isMovie) {
@@ -340,25 +347,53 @@ class UpcomingRemoteViewsFactory(
 
     private fun formatReleaseDate(dateString: String?): String {
         if (dateString.isNullOrEmpty()) {
-            return context.getString(R.string.later)
+            return context.getString(R.string.upcoming)
         }
         return try {
-            val releaseDate = dateFormat.parse(dateString) ?: return context.getString(R.string.later)
+            val releaseDate = dateFormat.parse(dateString) ?: return context.getString(R.string.upcoming)
             val releaseCalendar = Calendar.getInstance().apply { time = releaseDate }
 
             when {
                 isSameDay(releaseCalendar, todayCalendar) -> context.getString(R.string.today)
                 isSameDay(releaseCalendar, tomorrowCalendar) -> context.getString(R.string.tomorrow)
-                else -> context.getString(R.string.later)
+                else -> {
+                    try {
+                        val releaseDateF = dateFormat.parse(dateString)
+                        val defaultDateFormat = java.text.DateFormat.getDateInstance(java.text.DateFormat.DEFAULT)
+                        defaultDateFormat.format(releaseDateF?: "")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error formatting date: $dateString", e)
+                        dateString
+                    }
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error formatting date: $dateString", e)
-            context.getString(R.string.later)
+            context.getString(R.string.upcoming)
         }
     }
 
     private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
         return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                 cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+    }
+
+    private fun formatReleaseTime(timeString: String?): String {
+        if (timeString.isNullOrEmpty()) {
+            return ""
+        }
+        return try {
+            val fullDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).apply {
+                timeZone = TimeZone.getTimeZone("UTC") // Parse as UTC
+            }
+            val date = fullDateFormat.parse(timeString)
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+                timeZone = TimeZone.getDefault() // Format in local time zone
+            }
+            timeFormat.format(date?: "")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error formatting time: $timeString", e)
+            ""
+        }
     }
 }

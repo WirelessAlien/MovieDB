@@ -18,33 +18,35 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@drawable/widget_background"
     android:padding="8dp">
 
     <TextView
         android:id="@+id/widget_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/upcoming"
-        android:textAppearance="?android:attr/textAppearanceLarge"
         android:gravity="center"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="8dp"
+        android:text="@string/upcoming"
+        android:textColor="@color/md_theme_inverseSurface"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <ListView
         android:id="@+id/widget_list_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="wrap_content"
+        android:layout_below="@id/widget_header" />
 
     <TextView
         android:id="@+id/widget_empty_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
+        android:textColor="@color/md_theme_inverseSurface"
         android:text="@string/no_upcoming_shows"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="gone" />
-</LinearLayout>
+</RelativeLayout>
