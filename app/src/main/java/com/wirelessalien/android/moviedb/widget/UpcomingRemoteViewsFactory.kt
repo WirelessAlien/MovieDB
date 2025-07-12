@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.widget
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.util.Log
@@ -40,6 +41,7 @@ import java.util.Locale
 
 class UpcomingRemoteViewsFactory(
     private val context: Context,
+    private val intent: Intent
 ) : RemoteViewsService.RemoteViewsFactory {
 
     private var upcomingItems = mutableListOf<JSONObject>()
