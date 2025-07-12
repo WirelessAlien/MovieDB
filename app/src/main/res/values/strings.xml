@@ -135,6 +135,7 @@
     <string name="show_less">Show Less</string>
     <string name="all">All</string>
     <string name="no_upcoming_content">No upcoming content found</string>
+    <string name="no_upcoming_shows">No upcoming shows or movies to display.</string>
     <string name="upcoming_text">Upcoming on %1$s, Season %2$s, Episode %3$s</string>
     <string name="sync_provider_caution">\u26a0 If multiple provider is enabled, it may not be easier to differentiate between the input methods of all provider, so use with caution.</string>
     <string name="trakt_login_required_1">Log In - Trakt</string>
@@ -171,6 +172,8 @@
     <string name="episode_data_explanation_saved">User need to get the episode data manually only if the required data not available to show progress of \"Shows\" (specifically if the Show were added to \"Saved\" before v3.0-beta). For new version the data are automatically added.</string>
     <string name="all_reviews">All Reviews</string>
     <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="later">Later</string>
     <string name="episode_number_format" translatable="false">(%d)</string>
     <string name="rv_rating_format" translatable="false">%.1f/%d</string>
     <string name="rating_na">N/A</string>
@@ -242,6 +245,9 @@
     <string name="schedule_update">Schedule update</string>
     <string name="schedule_monthly_update">Schedule Monthly Update</string>
     <string name="enable_update">Enable update</string>
+    <string name="upcoming_widget_description">Shows upcoming Movies and TV show episodes.</string>
+    <string name="loading_data">Loading data…</string>
+    <string name="unknown_title">Unknown Title</string>
 
     <string-array name="media_types">
         <item>digital</item>
