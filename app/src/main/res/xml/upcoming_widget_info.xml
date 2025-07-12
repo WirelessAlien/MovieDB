@@ -19,7 +19,7 @@
   -->
 
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="250dp"
+    android:minWidth="125dp"
     android:minHeight="110dp"
     android:updatePeriodMillis="0"
     android:previewImage="@mipmap/ic_launcher"
