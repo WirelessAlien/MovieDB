@@ -120,6 +120,15 @@ class GetTmdbTvDetailsWorker(appContext: Context, workerParams: WorkerParameters
 
         try {
             val tmdbId = details.getInt("id")
+            val type = "show" 
+
+            // First, delete any existing entry for this TMDB ID and type
+            val selection = "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ? AND ${TmdbDetailsDatabaseHelper.COL_TYPE} = ?"
+            val selectionArgs = arrayOf(tmdbId.toString(), type)
+            val deletedRows = db.delete(TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS, selection, selectionArgs)
+            if (deletedRows > 0) {
+                Log.i("GetTmdbTvDetailsWorker", "Deleted $deletedRows existing rows for TV ID $tmdbId before update.")
+            }
 
             val contentValues = ContentValues().apply {
                 put(TmdbDetailsDatabaseHelper.COL_TMDB_ID, tmdbId)
