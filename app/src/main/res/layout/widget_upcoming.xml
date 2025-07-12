@@ -44,7 +44,7 @@
             android:layout_toEndOf="@id/widget_header_button"
             android:text="@string/upcoming"
             android:textStyle="bold"
-            android:textColor="?attr/colorSurfaceInverse"
+            android:textColor="@color/md_theme_inverseSurface"
             android:textSize="20sp" />
     </RelativeLayout>
 
@@ -59,7 +59,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:textColor="?attr/colorSurfaceInverse"
+        android:textColor="@color/md_theme_inverseSurface"
         android:text="@string/no_upcoming_shows"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="gone" />

@@ -31,7 +31,7 @@
         android:ellipsize="end"
         android:text="Item Title"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="?attr/colorSurfaceInverse"
+        android:textColor="@color/md_theme_inverseSurface"
         android:textStyle="bold" />
 
     <TextView
@@ -42,7 +42,7 @@
         android:maxLines="1"
         android:text="Season 1, Episode 1: Episode Name"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="?attr/colorSurfaceInverse"
+        android:textColor="@color/md_theme_inverseSurface"
         android:visibility="gone" />
 
     <RelativeLayout
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:text="Date"
             android:layout_toStartOf="@id/widget_item_release_time"
-            android:textColor="?attr/colorSurfaceInverse"
+            android:textColor="@color/md_theme_inverseSurface"
             android:textAppearance="?android:attr/textAppearanceListItemSmall" />
 
         <TextView
@@ -65,7 +65,7 @@
             android:layout_marginStart="5dp"
             android:layout_alignParentEnd="true"
             android:text="Time"
-            android:textColor="?attr/colorSurfaceInverse"
+            android:textColor="@color/md_theme_inverseSurface"
             android:textAppearance="?android:attr/textAppearanceListItemSmall" />
     </RelativeLayout>
 </LinearLayout>
