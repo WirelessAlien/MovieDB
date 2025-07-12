@@ -115,8 +115,10 @@ class UpcomingRemoteViewsFactory(
         val isMovie = item.optInt(ListFragment.IS_MOVIE, 1) == 1
 
         views.setTextViewText(R.id.widget_item_title, title)
-        views.setTextViewText(R.id.widget_item_release_date, formatReleaseDate(releaseDateString))
-        views.setTextViewText(R.id.widget_item_release_time, formatReleaseTime(releaseTime))
+        val formattedDate = formatReleaseDate(releaseDateString)
+        val formattedTime = formatReleaseTime(releaseTime)
+        views.setTextViewText(R.id.widget_item_release_date, "$formattedDate, $formattedTime")
+        views.setViewVisibility(R.id.widget_item_release_time, View.GONE)
 
         if (!isMovie) {
             val seasonEpisodeInfo = item.optString("seasonEpisode", "")
@@ -246,7 +248,6 @@ class UpcomingRemoteViewsFactory(
             jsonObject.put(ListFragment.UPCOMING_TIME, airDate)
 
             val title: String?
-            val seasonEpisodeInfo: String?
             if (isMovie) {
                 title = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TITLE))
                 jsonObject.put("title", title)
@@ -258,9 +259,9 @@ class UpcomingRemoteViewsFactory(
                 val episodeNum = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
 
                 title = showTitle
-                seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum: $episodeTitle"
+                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum: $episodeTitle"
 
-                jsonObject.put("title", title)
+                jsonObject.put("name", title)
                 jsonObject.put("seasonEpisode", seasonEpisodeInfo)
                 jsonObject.put(ListFragment.IS_MOVIE, 0) // TV Show
             }
@@ -286,7 +287,6 @@ class UpcomingRemoteViewsFactory(
             val reminderName = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME)) // Episode name or original title from reminder
 
             val title: String?
-            val seasonEpisodeInfo: String?
             if (ListFragment.EPISODE == type) {
                 val showTitle = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME)) ?: reminderName // Fallback to reminderName if showTitle is null
                 val seasonNum = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SEASON))
@@ -294,9 +294,9 @@ class UpcomingRemoteViewsFactory(
                 val episodeName = if (!reminderName.isNullOrEmpty()) ": $reminderName" else ""
 
                 title = showTitle
-                seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum$episodeName"
+                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum$episodeName"
 
-                jsonObject.put("title", title)
+                jsonObject.put("name", title)
                 jsonObject.put("seasonEpisode", seasonEpisodeInfo)
                 jsonObject.put(ListFragment.IS_MOVIE, 0)
             } else { // Movie
@@ -338,21 +338,18 @@ class UpcomingRemoteViewsFactory(
             jsonObject.put(ListFragment.UPCOMING_DATE, releaseDate)
             jsonObject.put(ListFragment.UPCOMING_TIME, releaseDate)
 
-            var finalTitle = itemTitleFromDb
             if (!isMovie) {
                 val episodeName = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
                 val seasonNum = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SEASON))
                 val episodeNum = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
-                // Only append episode details if episodeName is not empty, otherwise show name is enough
-                if (!episodeName.isNullOrEmpty()) {
-                    finalTitle = "$itemTitleFromDb - S${String.format("%02d", seasonNum)}E$episodeNum: $episodeName"
-                }
-                jsonObject.put("name", finalTitle)
+                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum: $episodeName"
+                jsonObject.put("name", itemTitleFromDb)
+                jsonObject.put("seasonEpisode", seasonEpisodeInfo)
             } else {
-                jsonObject.put("title", finalTitle)
+                jsonObject.put("title", itemTitleFromDb)
             }
             // Ensure there's a valid title field
-            if (finalTitle.isEmpty() || finalTitle == context.getString(R.string.unknown_title)) {
+            if (itemTitleFromDb.isEmpty() || itemTitleFromDb == context.getString(R.string.unknown_title)) {
                 Log.w(TAG, "Final title is null, empty, or unknown for item ID $tmdbId. Skipping.")
                 return null
             }
@@ -375,14 +372,8 @@ class UpcomingRemoteViewsFactory(
                 isSameDay(releaseCalendar, todayCalendar) -> context.getString(R.string.today)
                 isSameDay(releaseCalendar, tomorrowCalendar) -> context.getString(R.string.tomorrow)
                 else -> {
-                    try {
-                        val releaseDateF = dateFormat.parse(dateString)
-                        val defaultDateFormat = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
-                        defaultDateFormat.format(releaseDateF?: "")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error formatting date: $dateString", e)
-                        dateString
-                    }
+                    val monthDayFormat = SimpleDateFormat("MMMM d", Locale.getDefault())
+                    monthDayFormat.format(releaseDate)
                 }
             }
         } catch (e: Exception) {
