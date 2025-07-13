@@ -32,11 +32,8 @@ import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 class NotificationAdapter(
-    private var notifications: MutableList<NotificationItem>,
-    private val upcomingNotifications: MutableList<NotificationItem>
+    private val notifications: MutableList<NotificationItem>
 ) : RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
-
-    private var upcomingShown = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = NotificationItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -66,14 +63,6 @@ class NotificationAdapter(
     fun removeItem(position: Int) {
         notifications.removeAt(position)
         notifyItemRemoved(position)
-    }
-
-    fun showUpcoming() {
-        if (!upcomingShown) {
-            notifications.addAll(upcomingNotifications)
-            notifyItemRangeInserted(notifications.size - upcomingNotifications.size, upcomingNotifications.size)
-            upcomingShown = true
-        }
     }
 
     fun formatDateToRelative(dateString: String): String {

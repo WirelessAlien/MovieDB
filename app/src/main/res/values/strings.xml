@@ -250,7 +250,7 @@
     <string name="unknown_title">Unknown Title</string>
     <string name="notifications">Notifications</string>
     <string name="no_notifications">No notifications</string>
-    <string name="cannot_delete_upcoming_notifications">Upcoming notifications cannot be removed.</string>
+    <string name="cannot_delete_upcoming_notifications">Cannot delete upcoming notifications</string>
 
     <string-array name="media_types">
         <item>digital</item>
