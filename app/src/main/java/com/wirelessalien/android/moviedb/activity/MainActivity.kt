@@ -298,9 +298,11 @@ class MainActivity : BaseActivity() {
                 val currentFragment = supportFragmentManager.findFragmentById(R.id.container)
                 val searchMenuItem = menu.findItem(R.id.action_search)
                 val accountSwapItem = menu.findItem(R.id.account_swap)
-                searchMenuItem.isVisible =
-                    !(currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt)
+                val notificationItem = menu.findItem(R.id.action_notifications)
+
+                searchMenuItem.isVisible = !(currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt)
                 accountSwapItem.isVisible = currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt
+                notificationItem.isVisible = !(currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt || currentFragment is ShowFragment || currentFragment is ListFragment)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

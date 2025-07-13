@@ -25,47 +25,103 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.NotificationAdapter
+import com.wirelessalien.android.moviedb.databinding.FragmentNotificationBottomSheetBinding
 import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 class NotificationBottomSheet : BottomSheetDialogFragment() {
 
-    private lateinit var recyclerView: RecyclerView
+    private var _binding: FragmentNotificationBottomSheetBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var adapter: NotificationAdapter
     private lateinit var dbHelper: NotificationDatabaseHelper
+
+    override fun onStart() {
+        super.onStart()
+        val bottomSheet = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        bottomSheet?.let {
+            val behavior = BottomSheetBehavior.from(it)
+            behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_notification_bottom_sheet, container, false)
-        recyclerView = view.findViewById(R.id.notification_recycler_view)
-        return view
+    ): View {
+        _binding = FragmentNotificationBottomSheetBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dbHelper = NotificationDatabaseHelper(requireContext())
         val notifications = dbHelper.getAllNotifications().toMutableList()
-        adapter = NotificationAdapter(notifications) { notification ->
-            dbHelper.deleteNotification(notification.id)
+
+        if (notifications.isEmpty()) {
+            binding.notificationRecyclerView.visibility = View.GONE
+            binding.emptyView.visibility = View.VISIBLE
+        } else {
+            binding.notificationRecyclerView.visibility = View.VISIBLE
+            binding.emptyView.visibility = View.GONE
         }
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        recyclerView.adapter = adapter
+
+        adapter = NotificationAdapter(notifications)
+        binding.notificationRecyclerView.layoutManager = LinearLayoutManager(context)
+        binding.notificationRecyclerView.adapter = adapter
+
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.bindingAdapterPosition
+                val notification = adapter.getNotificationAt(position)
+                val notificationDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(notification.date)
+                val today = Calendar.getInstance().time
+
+                if (notificationDate != null && notificationDate.after(today)) {
+                    Toast.makeText(context,
+                        getString(R.string.cannot_delete_upcoming_notifications), Toast.LENGTH_SHORT).show()
+                    adapter.notifyItemChanged(position)
+                } else {
+                    dbHelper.deleteNotification(notification.id)
+                    adapter.removeItem(position)
+                }
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(binding.notificationRecyclerView)
 
         // Scroll to today's notification
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val position = notifications.indexOfFirst { it.date.startsWith(today) }
         if (position != -1) {
-            recyclerView.scrollToPosition(position)
+            binding.notificationRecyclerView.scrollToPosition(position)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
 
