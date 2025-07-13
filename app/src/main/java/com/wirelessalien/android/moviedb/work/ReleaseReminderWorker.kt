@@ -35,8 +35,11 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.wirelessalien.android.moviedb.NotificationReceiver
+import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.data.NotificationItem
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import java.util.Date
 import java.util.Locale
@@ -180,8 +183,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
     }
 
     private fun scheduleNotification(cursor: Cursor, dateStr: String, notificationKey: String, source: String) {
-
-    try {
+        try {
             val alarmTime = parseDate(dateStr) ?: return
 
             // Skip scheduling if the alarm time is in the past
@@ -189,24 +191,37 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 return
             }
 
-        val title: String
-        val episodeName: String
-        val episodeNumber: String?
-        val type: String
+            val title: String
+            val message: String
+            val episodeName: String
+            val episodeNumber: String?
+            val type: String
 
-        if (source == "episode_reminder") {
-            title = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME))
-            episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
-            episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
-            type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
-        } else {
-            title = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE))
-            episodeName = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_EPISODE_TITLE))
-            episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
-            type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
-        }
+            if (source == "episode_reminder") {
+                title = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_TV_SHOW_NAME))
+                episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
+                episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
+                type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+                message = applicationContext.getString(R.string.episode_airing_today, episodeNumber, episodeName)
+            } else {
+                title = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE))
+                episodeName = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_EPISODE_TITLE))
+                episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
+                type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
+                message = applicationContext.getString(R.string.movie_released_today, title)
+            }
 
-        val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val dbHelper = NotificationDatabaseHelper(applicationContext)
+            val notificationItem = NotificationItem(
+                id = 0,
+                uniqueId = notificationKey,
+                title = title,
+                message = message,
+                date = dateStr
+            )
+            dbHelper.addNotification(notificationItem)
+
+            val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(applicationContext, NotificationReceiver::class.java).apply {
                 putExtra("title", title)
                 putExtra("episodeName", episodeName)

@@ -248,6 +248,7 @@
     <string name="upcoming_widget_description">Shows upcoming Movies and TV show episodes.</string>
     <string name="loading_data">Loading data…</string>
     <string name="unknown_title">Unknown Title</string>
+    <string name="notifications">Notifications</string>
 
     <string-array name="media_types">
         <item>digital</item>
