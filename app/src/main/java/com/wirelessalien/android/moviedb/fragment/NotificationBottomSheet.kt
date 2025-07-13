@@ -69,6 +69,10 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         dbHelper = NotificationDatabaseHelper(requireContext())
         val notifications = dbHelper.getAllNotifications().toMutableList()
+        val (todayOrPastNotifications, upcomingNotifications) = notifications.partition {
+            val notificationDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(it.date)
+            notificationDate != null && !notificationDate.after(Calendar.getInstance().time)
+        }
 
         if (notifications.isEmpty()) {
             binding.notificationRecyclerView.visibility = View.GONE
@@ -78,7 +82,7 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
             binding.emptyView.visibility = View.GONE
         }
 
-        adapter = NotificationAdapter(notifications)
+        adapter = NotificationAdapter(todayOrPastNotifications.toMutableList(), upcomingNotifications.toMutableList())
         binding.notificationRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.notificationRecyclerView.adapter = adapter
 
@@ -113,10 +117,21 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
 
         // Scroll to today's notification
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val position = notifications.indexOfFirst { it.date.startsWith(today) }
+        val position = todayOrPastNotifications.indexOfFirst { it.date.startsWith(today) }
         if (position != -1) {
             binding.notificationRecyclerView.scrollToPosition(position)
         }
+
+        binding.notificationRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+                if (lastVisibleItemPosition == adapter.itemCount - 1) {
+                    adapter.showUpcoming()
+                }
+            }
+        })
     }
 
     override fun onDestroyView() {

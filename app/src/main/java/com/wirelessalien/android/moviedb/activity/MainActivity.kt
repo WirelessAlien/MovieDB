@@ -300,9 +300,17 @@ class MainActivity : BaseActivity() {
                 val accountSwapItem = menu.findItem(R.id.account_swap)
                 val notificationItem = menu.findItem(R.id.action_notifications)
 
-                searchMenuItem.isVisible = !(currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt)
-                accountSwapItem.isVisible = currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt
-                notificationItem.isVisible = !(currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt || currentFragment is ShowFragment || currentFragment is ListFragment)
+                notificationItem.isVisible = currentFragment !is ShowFragment &&
+                        currentFragment !is ListFragment &&
+                        currentFragment !is AccountDataFragment &&
+                        currentFragment !is AccountDataFragmentTkt
+
+                searchMenuItem.isVisible = currentFragment !is HomeFragment &&
+                        currentFragment !is AccountDataFragment &&
+                        currentFragment !is AccountDataFragmentTkt
+
+                accountSwapItem.isVisible = currentFragment is AccountDataFragment ||
+                        currentFragment is AccountDataFragmentTkt
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
