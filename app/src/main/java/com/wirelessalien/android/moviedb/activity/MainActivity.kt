@@ -297,11 +297,9 @@ class MainActivity : BaseActivity() {
                 val currentFragment = supportFragmentManager.findFragmentById(R.id.container)
                 val searchMenuItem = menu.findItem(R.id.action_search)
                 val accountSwapItem = menu.findItem(R.id.account_swap)
-                val notificationItem = menu.findItem(R.id.action_notifications)
 
                 searchMenuItem.isVisible = currentFragment !is HomeFragment
                 accountSwapItem.isVisible = currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt
-                notificationItem.isVisible = currentFragment is HomeFragment
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -348,11 +346,6 @@ class MainActivity : BaseActivity() {
                     return true
                 }
 
-                if (id == R.id.action_notifications) {
-                    val notificationFragment = NotificationBottomSheet()
-                    notificationFragment.show(supportFragmentManager, "notification")
-                    return true
-                }
                 return false
             }
         }, this, Lifecycle.State.RESUMED)
