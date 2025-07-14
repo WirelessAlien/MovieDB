@@ -2067,32 +2067,32 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
         withContext(Dispatchers.Main) {
             if (!isMovie) {
                 episodePagerAdapter.clearFragments()
-
-                val actualNextEpisode = if (showNextEpisodePref && added) {
-                    determineActualNextEpisodeToWatch()
-                } else {
-                    null
-                }
-
-                if (actualNextEpisode != null) {
-                    episodePagerAdapter.addFragment(newInstance(actualNextEpisode, "Up Next"), 0)
+                if (showNextEpisodePref && added) {
+                    val actualNextEpisode = determineActualNextEpisodeToWatch()
+                    if (actualNextEpisode != null) {
+                        episodePagerAdapter.addFragment(newInstance(actualNextEpisode, "Up Next"), 0)
+                    } else {
+                        // Optionally, display a message like "All episodes watched"
+                        // For now, just clear and show nothing or keep latest if available
+                        val lastEpisodeLocal = lastEpisode
+                        if (lastEpisodeLocal is JSONObject) {
+                            episodePagerAdapter.addFragment(newInstance(lastEpisodeLocal, "Latest Episode"), 0)
+                        }
+                    }
                 } else {
                     val lastEpisodeLocal = lastEpisode
                     if (lastEpisodeLocal is JSONObject) {
                         episodePagerAdapter.addFragment(newInstance(lastEpisodeLocal, "Latest Episode"), 0)
                     }
+                    val nextEpisodeLocal = nextEpisode
+                    if (nextEpisodeLocal is JSONObject) {
+                        episodePagerAdapter.addFragment(newInstance(nextEpisodeLocal, "Next Episode"), 1)
+                    }
                 }
-
-                val nextEpisodeLocal = nextEpisode
-                if (nextEpisodeLocal is JSONObject && actualNextEpisode == null) {
-                    episodePagerAdapter.addFragment(newInstance(nextEpisodeLocal, "Next Episode"), 1)
-                }
-
                 episodeViewPager.adapter = episodePagerAdapter
             }
         }
     }
-
     private suspend fun determineActualNextEpisodeToWatch(): JSONObject? {
         if (!added) return null
 

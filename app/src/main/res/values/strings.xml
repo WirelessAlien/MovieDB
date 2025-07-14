@@ -251,6 +251,10 @@
     <string name="notifications">Notifications</string>
     <string name="no_notifications">No notifications</string>
     <string name="cannot_delete_upcoming_notifications">Uppcoming notifications cannot be removed</string>
+    <string name="date_added_descending">Date Added (Descending)</string>
+    <string name="date_added_ascending">Date Added (Ascending)</string>
+    <string name="name_descending">Name (Descending)</string>
+    <string name="name_ascending">Name (Ascending)</string>
 
     <string-array name="media_types">
         <item>digital</item>

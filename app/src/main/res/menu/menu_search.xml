@@ -1,4 +1,4 @@
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
@@ -24,14 +24,8 @@
     tools:context="com.wirelessalien.android.moviedb.activity.MainActivity">
 
     <item
-        android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:icon="@drawable/ic_settings"
-        app:showAsAction="never"/>
-
-    <item
-        android:id="@+id/action_login"
-        android:icon="@drawable/ic_account_border"
-        android:title="@string/action_account"
-        app:showAsAction="never" />
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/hint_search"
+        app:showAsAction="always" />
 </menu>

@@ -202,12 +202,19 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_search, menu)
                 menuInflater.inflate(R.menu.database_menu, menu)
                 menuInflater.inflate(R.menu.tkt_auto_sync_menu, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
+
+                    R.id.action_search -> {
+                        activityBinding.searchView.show()
+                        true
+                    }
+
                     R.id.action_export -> {
                         // Handle export action
                         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -231,6 +238,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         }
                         true
                     }
+
                     R.id.action_import -> {
                         // Handle import action
                         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -254,15 +262,18 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         }
                         true
                     }
+
                     R.id.action_external_import -> {
                         val intent = Intent(requireContext().applicationContext, CsvImportActivity::class.java)
                         startActivity(intent)
                         true
                     }
+
                     R.id.action_auto_sync -> {
                         showTraktSyncDialog()
                         true
                     }
+
                     R.id.action_fetch_tmdb_data -> {
                         showTmdbDetailsExplanationDialog()
                         true

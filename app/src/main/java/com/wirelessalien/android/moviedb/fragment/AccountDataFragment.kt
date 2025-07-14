@@ -22,8 +22,12 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.tabs.TabLayout
@@ -54,6 +58,29 @@ class AccountDataFragment : BaseFragment() {
 
         setupTabs()
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.account_swap_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.account_swap -> {
+                        val accountDataFragmentTkt = AccountDataFragmentTkt()
+                        requireActivity().supportFragmentManager.beginTransaction()
+                            .replace(R.id.container, accountDataFragmentTkt).commit()
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner)
     }
 
     override fun onResume() {

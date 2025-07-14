@@ -47,7 +47,6 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.activity.ExportActivity
 import com.wirelessalien.android.moviedb.activity.ExportTktDbActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
@@ -99,79 +98,6 @@ class AccountDataFragmentTkt : BaseFragment() {
 
         setupTabs()
 
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.trakt_refresh_menu, menu)
-                menuInflater.inflate(R.menu.tkt_sort_menu, menu)
-
-                val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
-                if (currentFragment is CalanderFragmentTkt) {
-                    menu.findItem(R.id.sort)?.isVisible = false
-                }
-            }
-
-            override fun onPrepareMenu(menu: Menu) {
-                super.onPrepareMenu(menu)
-                val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
-                if (currentFragment is CalanderFragmentTkt) {
-                    menu.findItem(R.id.sort)?.isVisible = false
-                }
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_refresh -> {
-                        showRefreshDialog()
-                        true
-                    }
-                    R.id.action_stats -> {
-                        val traktStatsBottomSheet = TraktStatsBottomSheet()
-                        traktStatsBottomSheet.show(parentFragmentManager, traktStatsBottomSheet.tag)
-                        true
-                    }
-                    R.id.sort_name_asc -> {
-                        saveSortPreference("name", "asc")
-                        true
-                    }
-                    R.id.sort_name_desc -> {
-                        saveSortPreference("name", "desc")
-                        true
-                    }
-                    R.id.sort_date_asc -> {
-                        saveSortPreference("date", "asc")
-                        true
-                    }
-                    R.id.sort_date_desc -> {
-                        saveSortPreference("date", "desc")
-                        true
-                    }
-                    R.id.action_export_tkt_data -> {
-                        // Handle export action
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                            if (ActivityCompat.checkSelfPermission(
-                                    requireContext(),
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                                ) != PackageManager.PERMISSION_GRANTED
-                            ) {
-                                ActivityCompat.requestPermissions(
-                                    requireActivity(),
-                                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 333
-                                )
-                            } else {
-                                val intent = Intent(requireContext().applicationContext, ExportTktDbActivity::class.java)
-                                startActivity(intent)
-                            }
-                        } else {
-                            val intent = Intent(requireContext().applicationContext, ExportTktDbActivity::class.java)
-                            startActivity(intent)
-                        }
-                        true
-                    }
-                    else -> false
-                }
-            }
-        }, viewLifecycleOwner)
-
         binding.swipeRefreshLayout.setOnRefreshListener {
             refreshCurrentFragmentData()
         }
@@ -193,6 +119,91 @@ class AccountDataFragmentTkt : BaseFragment() {
         }
 
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.account_swap_menu, menu)
+                menuInflater.inflate(R.menu.trakt_refresh_menu, menu)
+                menuInflater.inflate(R.menu.tkt_sort_menu, menu)
+
+                val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
+                if (currentFragment is CalanderFragmentTkt) {
+                    menu.findItem(R.id.sort)?.isVisible = false
+                }
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
+                super.onPrepareMenu(menu)
+                val currentFragment = childFragmentManager.findFragmentById(R.id.fragment_container)
+                if (currentFragment is CalanderFragmentTkt) {
+                    menu.findItem(R.id.sort)?.isVisible = false
+                }
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.account_swap -> {
+                        val accountDataFragment = AccountDataFragment()
+                        requireActivity().supportFragmentManager.beginTransaction()
+                            .replace(R.id.container, accountDataFragment).commit()
+                        true
+                    }
+
+                    R.id.action_refresh -> {
+                        showRefreshDialog()
+                        true
+                    }
+
+                    R.id.action_stats -> {
+                        val traktStatsBottomSheet = TraktStatsBottomSheet()
+                        traktStatsBottomSheet.show(parentFragmentManager, traktStatsBottomSheet.tag)
+                        true
+                    }
+
+                    R.id.sort_name_asc -> {
+                        saveSortPreference("name", "asc")
+                        true
+                    }
+
+                    R.id.sort_name_desc -> {
+                        saveSortPreference("name", "desc")
+                        true
+                    }
+
+                    R.id.sort_date_asc -> {
+                        saveSortPreference("date", "asc")
+                        true
+                    }
+
+                    R.id.sort_date_desc -> {
+                        saveSortPreference("date", "desc")
+                        true
+                    }
+
+                    R.id.action_export_tkt_data -> {
+                        // Handle export action
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                                ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 333)
+                            } else {
+                                val intent = Intent(requireContext().applicationContext, ExportTktDbActivity::class.java)
+                                startActivity(intent)
+                            }
+                        } else {
+                            val intent = Intent(requireContext().applicationContext, ExportTktDbActivity::class.java)
+                            startActivity(intent)
+                        }
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner)
     }
 
     private fun saveSortPreference(criteria: String, order: String) {

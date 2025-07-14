@@ -26,5 +26,4 @@
         android:title="@string/links"
         android:icon="@drawable/ic_link"
         app:showAsAction="ifRoom" />
-
 </menu>

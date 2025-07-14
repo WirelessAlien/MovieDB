@@ -25,16 +25,16 @@
         <menu>
             <item
                 android:id="@+id/sort_name_asc"
-                android:title="Name (Ascending)" />
+                android:title="@string/name_ascending" />
             <item
                 android:id="@+id/sort_name_desc"
-                android:title="Name (Descending)" />
+                android:title="@string/name_descending" />
             <item
                 android:id="@+id/sort_date_asc"
-                android:title="Date Added (Ascending)" />
+                android:title="@string/date_added_ascending" />
             <item
                 android:id="@+id/sort_date_desc"
-                android:title="Date Added (Descending)" />
+                android:title="@string/date_added_descending" />
         </menu>
     </item>
 </menu>
