@@ -65,10 +65,10 @@ class NotificationAdapter(
         notifyItemRemoved(position)
     }
 
-    fun showUpcomingNotifications(upcomingNotifications: MutableList<NotificationItem>) {
-        notifications.clear()
+    fun showUpcomingNotifications(upcomingNotifications: List<NotificationItem>) {
+        val currentSize = notifications.size
         notifications.addAll(upcomingNotifications)
-        notifyDataSetChanged()
+        notifyItemRangeInserted(currentSize, upcomingNotifications.size)
     }
 
     fun formatDateToRelative(dateString: String): String {

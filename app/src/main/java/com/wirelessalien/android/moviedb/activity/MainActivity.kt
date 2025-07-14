@@ -291,7 +291,6 @@ class MainActivity : BaseActivity() {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_main, menu)
                 menuInflater.inflate(R.menu.account_swap_menu, menu)
-                menuInflater.inflate(R.menu.menu_notification_main, menu)
             }
 
             override fun onPrepareMenu(menu: Menu) {

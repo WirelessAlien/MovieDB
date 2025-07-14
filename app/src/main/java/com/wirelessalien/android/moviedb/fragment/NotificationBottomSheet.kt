@@ -69,12 +69,12 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         dbHelper = NotificationDatabaseHelper(requireContext())
         val allNotifications = dbHelper.getAllNotifications().toMutableList()
-        val (past, upcoming) = allNotifications.partition {
+        val (pastAndPresent, upcoming) = allNotifications.partition {
             val notificationDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(it.date)
-            notificationDate?.before(Date()) ?: false
+            notificationDate?.before(Date()) ?: true
         }
 
-        val notifications = past.toMutableList()
+        val notifications = pastAndPresent.toMutableList()
 
         if (notifications.isEmpty()) {
             binding.notificationRecyclerView.visibility = View.GONE
@@ -124,8 +124,13 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
             binding.notificationRecyclerView.scrollToPosition(position)
         }
 
-        binding.showUpcomingButton.setOnClickListener {
-            adapter.showUpcomingNotifications(upcoming.toMutableList())
+        if (upcoming.isNotEmpty()) {
+            binding.showUpcomingButton.visibility = View.VISIBLE
+            binding.showUpcomingButton.setOnClickListener {
+                adapter.showUpcomingNotifications(upcoming.toMutableList())
+                binding.showUpcomingButton.visibility = View.GONE
+            }
+        } else {
             binding.showUpcomingButton.visibility = View.GONE
         }
     }
