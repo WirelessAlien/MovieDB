@@ -117,16 +117,11 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(binding.notificationRecyclerView)
 
-        // Scroll to today's notification
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val position = notifications.indexOfFirst { it.date.startsWith(today) }
-        if (position != -1) {
-            binding.notificationRecyclerView.scrollToPosition(position)
-        }
-
         if (upcoming.isNotEmpty()) {
             binding.showUpcomingButton.visibility = View.VISIBLE
             binding.showUpcomingButton.setOnClickListener {
+                binding.notificationRecyclerView.visibility = View.VISIBLE
+                binding.emptyView.visibility = View.GONE
                 adapter.showUpcomingNotifications(upcoming.toMutableList())
                 binding.showUpcomingButton.visibility = View.GONE
             }

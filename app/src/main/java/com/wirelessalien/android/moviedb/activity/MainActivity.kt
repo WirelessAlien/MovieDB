@@ -99,7 +99,6 @@ import com.wirelessalien.android.moviedb.fragment.ListFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newSavedInstance
 import com.wirelessalien.android.moviedb.fragment.LoginFragment
 import com.wirelessalien.android.moviedb.fragment.LoginFragmentTkt
-import com.wirelessalien.android.moviedb.fragment.NotificationBottomSheet
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.SyncProviderBottomSheet
@@ -298,7 +297,7 @@ class MainActivity : BaseActivity() {
                 val searchMenuItem = menu.findItem(R.id.action_search)
                 val accountSwapItem = menu.findItem(R.id.account_swap)
 
-                searchMenuItem.isVisible = currentFragment !is HomeFragment
+                searchMenuItem.isVisible = currentFragment !is HomeFragment || currentFragment !is AccountDataFragment || currentFragment !is AccountDataFragmentTkt
                 accountSwapItem.isVisible = currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt
             }
 
