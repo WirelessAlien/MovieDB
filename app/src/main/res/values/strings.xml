@@ -242,7 +242,7 @@
         5. Click \'Start Import\'. The import will run in the background.
     </string>
     <string name="csv_import">CSV Import</string>
-    <string name="schedule_update">Schedule update</string>
+    <string name="schedule_update">Schedule Update</string>
     <string name="schedule_monthly_update">Schedule Monthly Update</string>
     <string name="enable_update">Enable update</string>
     <string name="upcoming_widget_description">Shows upcoming Movies and TV show episodes.</string>
@@ -250,7 +250,7 @@
     <string name="unknown_title">Unknown Title</string>
     <string name="notifications">Notifications</string>
     <string name="no_notifications">No notifications</string>
-    <string name="cannot_delete_upcoming_notifications">Uppcoming notifications cannot be removed</string>
+    <string name="cannot_delete_upcoming_notifications">Upcoming notifications cannot be removed</string>
     <string name="date_added_descending">Date Added (Descending)</string>
     <string name="date_added_ascending">Date Added (Ascending)</string>
     <string name="name_descending">Name (Descending)</string>

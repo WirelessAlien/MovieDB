@@ -208,9 +208,12 @@ class MainActivity : BaseActivity() {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
         setSupportActionBar(binding.toolbar)
 
-//        binding.toolbar.setNavigationOnClickListener {
-//
-//        }
+        binding.toolbar.setNavigationOnClickListener {
+            val dialog = BottomSheetDialog(this)
+            val bottomSheetBinding = FragmentAboutBinding.inflate(layoutInflater)
+            dialog.setContentView(bottomSheetBinding.root)
+            dialog.show()
+        }
 
         binding.appBar.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)
 
@@ -1217,13 +1220,8 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val dialog = BottomSheetDialog(this)
-        val binding = FragmentAboutBinding.inflate(layoutInflater)
-        dialog.setContentView(binding.root)
-        dialog.show()
-        return true
+        return false
     }
-
 
     override fun onDestroy() {
         super.onDestroy()

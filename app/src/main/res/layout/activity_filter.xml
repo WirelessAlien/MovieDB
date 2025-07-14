@@ -31,13 +31,13 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dip">
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/sortText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="5dip"
+            android:layout_margin="5dp"
             android:text="@string/sort_by"
             android:textStyle="bold" />
 
@@ -87,7 +87,6 @@
                 android:tag="finish_date_order"
                 android:text="@string/end_date"
                 android:visibility="gone"/>
-
         </RadioGroup>
 
         <View
@@ -95,8 +94,8 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_below="@id/sortSelection"
-            android:layout_marginBottom="10dip"
-            android:layout_marginTop="10dip"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:background="?android:attr/listDivider" />
 
         <LinearLayout
@@ -110,7 +109,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dip"
+                android:layout_margin="5dp"
                 android:text="@string/categories"
                 android:textStyle="bold" />
 
@@ -121,13 +120,6 @@
                 android:orientation="vertical">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/watchingCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="watching"
-                    android:text="@string/watching" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/plannedToWatchCheckBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -135,11 +127,11 @@
                     android:text="@string/plan_to_watch" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/watchedCheckBox"
+                    android:id="@+id/watchingCheckBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:tag="watched"
-                    android:text="@string/watched" />
+                    android:tag="watching"
+                    android:text="@string/watching" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/onHoldCheckBox"
@@ -154,19 +146,27 @@
                     android:layout_height="wrap_content"
                     android:tag="dropped"
                     android:text="@string/dropped" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/watchedCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="watched"
+                    android:text="@string/watched" />
             </LinearLayout>
 
             <View
                 android:id="@+id/categoryViewSeparator"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginBottom="10dip"
-                android:layout_marginTop="10dip"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
                 android:background="?android:attr/listDivider" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dip"
+                android:layout_margin="5dp"
                 android:text="@string/type"
                 android:textStyle="bold" />
 
@@ -174,6 +174,7 @@
                 android:id="@+id/mediaCheckBoxesLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
+
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/movieCheckBox"
                     android:layout_width="wrap_content"
@@ -192,8 +193,8 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginBottom="10dip"
-                android:layout_marginTop="10dip"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
                 android:background="?android:attr/listDivider" />
         </LinearLayout>
 
@@ -207,7 +208,7 @@
                 android:id="@+id/dateText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dip"
+                android:layout_margin="5dp"
                 android:text="@string/dates"
                 android:textStyle="bold" />
 
@@ -233,7 +234,6 @@
                     android:onClick="checkBoxSelected"
                     android:tag="between_dates"
                     android:text="@string/between_two_dates" />
-
             </RelativeLayout>
 
             <TableLayout
@@ -241,8 +241,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/dateLayout"
-                android:layout_marginLeft="30dip"
-                android:layout_marginStart="30dip"
+                android:layout_marginStart="30dp"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -266,7 +265,6 @@
                         app:cornerRadius="5dp"
                         android:onClick="selectDate"
                         android:tag="start_date" />
-
                 </TableRow>
 
                 <TableRow
@@ -289,19 +287,16 @@
                         app:cornerRadius="5dp"
                         android:onClick="selectDate"
                         android:tag="end_date" />
-
                 </TableRow>
-
             </TableLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_below="@id/dateDetailsLayout"
-                android:layout_marginBottom="10dip"
-                android:layout_marginTop="10dip"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
                 android:background="?android:attr/listDivider" />
-
         </RelativeLayout>
 
         <TextView
@@ -309,7 +304,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/dateViewLayout"
-            android:layout_margin="5dip"
+            android:layout_margin="5dp"
             android:text="@string/genres"
             android:textStyle="bold" />
 
@@ -319,7 +314,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/genresText"
             android:orientation="horizontal">
-
         </com.google.android.material.chip.ChipGroup>
 
         <View
@@ -327,8 +321,8 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_below="@id/genreButtons"
-            android:layout_marginBottom="10dip"
-            android:layout_marginTop="10dip"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:background="?android:attr/listDivider" />
 
         <RelativeLayout
@@ -343,7 +337,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dip"
+                android:layout_margin="5dp"
                 android:text="@string/advanced"
                 android:textStyle="bold" />
 
@@ -352,13 +346,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:contentDescription="@string/collapse_icon_description"
-                android:paddingEnd="10dip"
-                android:paddingRight="10dip"
+                android:paddingEnd="10dp"
                 android:src="@drawable/ic_keyboard_arrow_down"
                 tools:ignore="RtlSymmetry" />
-
         </RelativeLayout>
 
         <RelativeLayout
@@ -373,7 +364,7 @@
                 android:id="@+id/keywordText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dip"
+                android:layout_margin="5dp"
                 android:text="@string/keyword_text" />
 
             <com.google.android.material.textfield.TextInputEditText
@@ -381,7 +372,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/keywordText"
-                android:layout_margin="10dip"
+                android:layout_margin="10dp"
                 android:hint="@string/with_keywords_hint"
                 android:inputType="text" />
 
@@ -390,10 +381,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/withKeywords"
-                android:layout_margin="10dip"
+                android:layout_margin="10dp"
                 android:hint="@string/without_keywords_hint"
                 android:inputType="text" />
-
         </RelativeLayout>
     </RelativeLayout>
 </ScrollView>
