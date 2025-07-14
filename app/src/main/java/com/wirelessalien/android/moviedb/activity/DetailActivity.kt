@@ -969,10 +969,19 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                     val categoriesDialog = MaterialAlertDialogBuilder(this)
                     categoriesDialog.setTitle(getString(R.string.category_picker))
                     categoriesDialog.setItems(R.array.categories) { _: DialogInterface?, which: Int ->
+                        val category = getCategoryNumber(which)
                         showValues.put(
                             MovieDatabaseHelper.COLUMN_CATEGORIES,
-                            getCategoryNumber(which)
+                            category
                         )
+
+                        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
+                        if (category == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
+                        } else if (category == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
+                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
+                        }
 
                         // Add the show to the database
                         addMovieToDatabase(showValues)
@@ -1001,6 +1010,8 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                         MovieDatabaseHelper.COLUMN_CATEGORIES,
                         MovieDatabaseHelper.CATEGORY_WATCHING
                     )
+                    val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
                     addMovieToDatabase(showValues)
                     addItemtoTmdb()
                     if (showNextEpisodePref && !isMovie && added) {
