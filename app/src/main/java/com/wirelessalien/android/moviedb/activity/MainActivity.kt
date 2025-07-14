@@ -296,8 +296,8 @@ class MainActivity : BaseActivity() {
                 val currentFragment = supportFragmentManager.findFragmentById(R.id.container)
                 val searchMenuItem = menu.findItem(R.id.action_search)
                 val accountSwapItem = menu.findItem(R.id.account_swap)
-
-                searchMenuItem.isVisible = currentFragment !is HomeFragment || currentFragment !is AccountDataFragment || currentFragment !is AccountDataFragmentTkt
+                searchMenuItem.isVisible =
+                    !(currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt)
                 accountSwapItem.isVisible = currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt
             }
 
