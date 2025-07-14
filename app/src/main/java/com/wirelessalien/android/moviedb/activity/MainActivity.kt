@@ -78,6 +78,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -91,6 +92,7 @@ import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
 import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
+import com.wirelessalien.android.moviedb.databinding.FragmentAboutBinding
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -1213,6 +1215,15 @@ class MainActivity : BaseActivity() {
             baseFragment.doNetworkWork()
         }
     }
+
+    override fun onSupportNavigateUp(): Boolean {
+        val dialog = BottomSheetDialog(this)
+        val binding = FragmentAboutBinding.inflate(layoutInflater)
+        dialog.setContentView(binding.root)
+        dialog.show()
+        return true
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()

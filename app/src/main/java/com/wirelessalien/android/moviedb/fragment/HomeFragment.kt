@@ -34,6 +34,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.CarouselSnapHelper
 import com.google.android.material.transition.platform.MaterialSharedAxis
@@ -46,6 +48,7 @@ import com.wirelessalien.android.moviedb.adapter.TrendingPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentHomeBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -135,8 +138,15 @@ class HomeFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         requireActivity().addMenuProvider(object : MenuProvider {
+            @com.google.android.material.badge.ExperimentalBadgeUtils
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_notification, menu)
+                if (hasNotifications()) {
+                    menu.findItem(R.id.action_notifications)
+                    val badge = BadgeDrawable.create(requireContext())
+                    badge.isVisible = true
+                    BadgeUtils.attachBadgeDrawable(badge, activityBinding.toolbar, R.id.action_notifications)
+                }
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -144,12 +154,28 @@ class HomeFragment : BaseFragment() {
                     R.id.action_notifications -> {
                         val notificationFragment = NotificationBottomSheet()
                         notificationFragment.show(childFragmentManager, "notification")
+                        notificationFragment.dialog?.setOnDismissListener {
+                            requireActivity().invalidateOptionsMenu()
+                        }
                         true
                     }
                     else -> false
                 }
             }
         }, viewLifecycleOwner)
+    }
+
+    private fun hasNotifications(): Boolean {
+        val dbHelper = NotificationDatabaseHelper(requireContext())
+        val allNotifications = dbHelper.getAllNotifications()
+        val (pastAndPresent, _) = allNotifications.partition {
+            val notificationDate = SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.getDefault()
+            ).parse(it.date)
+            notificationDate?.before(Date()) ?: true
+        }
+        return pastAndPresent.isNotEmpty()
     }
 
     private fun showTrendingList() {
@@ -165,6 +191,7 @@ class HomeFragment : BaseFragment() {
         super.onResume()
         activityBinding.fab.visibility = View.GONE
         activityBinding.fab2.visibility = View.GONE
+        requireActivity().invalidateOptionsMenu()
     }
 
     private fun createShowList() {

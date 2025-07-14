@@ -48,6 +48,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.shape.MaterialShapeDrawable
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.PersonPagingAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityPersonBinding
@@ -77,6 +78,7 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
         setContentView(binding.root)
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         apiReadAccessToken = ConfigHelper.getConfigValue(applicationContext, "api_read_access_token")
+        binding.appBar.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)
         setSupportActionBar(binding.toolbar)
         binding.toolbar.title = getString(R.string.title_people)
 
