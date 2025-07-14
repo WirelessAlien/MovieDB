@@ -2787,6 +2787,27 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
                 cursor.moveToFirst()
 
+                val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
+                val category = getCategoryNumber(position)
+
+                if (category == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                    if (cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) == null) {
+                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
+                        binding.startDateButton.text = currentDate
+                        binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+                    }
+                } else if (category == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                    val startDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                    if (startDate == null) {
+                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
+                        binding.startDateButton.text = currentDate
+                        binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+                    }
+                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
+                    binding.endDateButton.text = currentDate
+                    binding.movieFinishDate.text = getString(R.string.finish_date, currentDate)
+                }
+
                 // Check if the show is already watched and if the user changed the category.
                 if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) != getCategoryNumber(position)) {
 

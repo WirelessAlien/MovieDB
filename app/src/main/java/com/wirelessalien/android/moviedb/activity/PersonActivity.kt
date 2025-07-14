@@ -210,6 +210,11 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 val id = menuItem.itemId
 
+                if (id == R.id.action_external_import) {
+                    val intent = Intent(applicationContext, CsvImportActivity::class.java)
+                    startActivity(intent)
+                }
+
                 if (id == R.id.action_export)
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                         if (ActivityCompat.checkSelfPermission(
