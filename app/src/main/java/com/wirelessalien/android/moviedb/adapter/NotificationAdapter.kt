@@ -83,25 +83,29 @@ class NotificationAdapter(
         val diffInMillis = notificationDate.timeInMillis - now.timeInMillis
         val daysDiff = TimeUnit.MILLISECONDS.toDays(diffInMillis)
 
-        return when {
-            isSameDay(now, notificationDate) -> "Today"
-            isTomorrow(now, notificationDate) -> "Tomorrow"
-            daysDiff in 2..6 -> "In $daysDiff days"
-            daysDiff in 7..13 -> "In a week"
-            daysDiff in 14..30 -> "In ${daysDiff / 7} weeks"
-            daysDiff > 30 -> "In a month"
-            else -> {
-                val pastDiffInMillis = now.timeInMillis - notificationDate.timeInMillis
-                val pastDaysDiff = TimeUnit.MILLISECONDS.toDays(pastDiffInMillis)
-                when {
-                    pastDaysDiff == 0L -> "Today"
-                    pastDaysDiff == 1L -> "Yesterday"
-                    pastDaysDiff in 2..6 -> "$pastDaysDiff days ago"
-                    pastDaysDiff in 7..13 -> "A week ago"
-                    pastDaysDiff in 14..30 -> "${pastDaysDiff / 7} weeks ago"
-                    pastDaysDiff > 30 -> "${pastDaysDiff / 30} months ago"
-                    else -> "$pastDaysDiff days ago"
-                }
+        return if (diffInMillis > 0) {
+            // Upcoming dates
+            when {
+                isSameDay(now, notificationDate) -> "Today"
+                isTomorrow(now, notificationDate) -> "Tomorrow"
+                daysDiff in 2..6 -> "In $daysDiff days"
+                daysDiff in 7..13 -> "In a week"
+                daysDiff in 14..30 -> "In ${daysDiff / 7} weeks"
+                daysDiff > 30 -> "In a month"
+                else -> "In the future"
+            }
+        } else {
+            // Past dates
+            val pastDiffInMillis = -diffInMillis
+            val pastDaysDiff = TimeUnit.MILLISECONDS.toDays(pastDiffInMillis)
+            when {
+                pastDaysDiff == 0L -> "Today"
+                pastDaysDiff == 1L -> "Yesterday"
+                pastDaysDiff in 2..6 -> "$pastDaysDiff days ago"
+                pastDaysDiff in 7..13 -> "A week ago"
+                pastDaysDiff in 14..30 -> "${pastDaysDiff / 7} weeks ago"
+                pastDaysDiff > 30 -> "${pastDaysDiff / 30} months ago"
+                else -> "In the past"
             }
         }
     }

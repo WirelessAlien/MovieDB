@@ -232,6 +232,12 @@ class UpcomingRemoteViewsFactory(
 
     private fun createUpcomingItemFromTraktCalendarCursor(cursor: Cursor): JSONObject? {
         try {
+            val airDateStr = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_AIR_DATE))
+            val airDate1 = dateFormat.parse(airDateStr.substringBefore("T"))
+            if (airDate1 != null && airDate1.before(todayCalendar.time)) {
+                return null
+            }
+
             val jsonObject = JSONObject()
             val type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
             val isMovie = type == "movie"
@@ -279,6 +285,12 @@ class UpcomingRemoteViewsFactory(
 
     private fun createMinimalUpcomingItem(epCursor: Cursor): JSONObject? {
         try {
+            val releaseDateStr = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))
+            val releaseDate = dateFormat.parse(releaseDateStr)
+            if (releaseDate != null && releaseDate.before(todayCalendar.time)) {
+                return null
+            }
+
             val jsonObject = JSONObject()
             val tmdbId = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
             jsonObject.put("id", tmdbId)
@@ -323,6 +335,12 @@ class UpcomingRemoteViewsFactory(
 
     private fun createUpcomingItemDetails(movieCursor: Cursor, epCursor: Cursor): JSONObject? {
         try {
+            val releaseDateStr = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))
+            val releaseDate1 = dateFormat.parse(releaseDateStr)
+            if (releaseDate1 != null && releaseDate1.before(todayCalendar.time)) {
+                return null
+            }
+
             val itemTitleFromDb = movieCursor.getString(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
             if (itemTitleFromDb.isNullOrEmpty()) {
                 Log.w(TAG, "Movie title from DB is null or empty, skipping item.")

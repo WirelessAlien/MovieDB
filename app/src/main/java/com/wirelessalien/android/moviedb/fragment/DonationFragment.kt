@@ -50,6 +50,12 @@ class DonationFragment : DialogFragment() {
             startActivity(intent)
         }
 
+        binding.paypalBtn.setOnClickListener {
+            val url = "https://paypal.me/WirelessAlien"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
+        }
+
         binding.btcId.setOnClickListener {
 
             val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

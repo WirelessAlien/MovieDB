@@ -93,6 +93,7 @@ import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
 import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentAboutBinding
+import com.wirelessalien.android.moviedb.fragment.AboutBottomSheet
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
@@ -209,10 +210,8 @@ class MainActivity : BaseActivity() {
         setSupportActionBar(binding.toolbar)
 
         binding.toolbar.setNavigationOnClickListener {
-            val dialog = BottomSheetDialog(this)
-            val bottomSheetBinding = FragmentAboutBinding.inflate(layoutInflater)
-            dialog.setContentView(bottomSheetBinding.root)
-            dialog.show()
+            val aboutBottomSheet = AboutBottomSheet()
+            aboutBottomSheet.show(supportFragmentManager, "aboutBottomSheet")
         }
 
         binding.appBar.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)

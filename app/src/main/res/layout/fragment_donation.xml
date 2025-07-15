@@ -26,7 +26,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="16dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -38,6 +39,7 @@
             android:layout_height="wrap_content"
             android:textSize="20sp"
             android:textStyle="bold"
+            android:layout_marginBottom="10dp"
             android:text="@string/donate"/>
 
         <com.google.android.material.button.MaterialButton
@@ -45,29 +47,38 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_liberapay"
-            app:cornerRadius="5dp"
+            app:cornerRadius="10dp"
             android:text="Librapay" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/paypalBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_paypal"
+            app:cornerRadius="10dp"
+            android:text="PayPal" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/githubSBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_github"
-            app:cornerRadius="5dp"
+            app:cornerRadius="10dp"
             android:text="Github Sponsor" />
-
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="BTC"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="10dp"
             android:textSize="18sp"
             android:textStyle="bold"/>
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            app:cardCornerRadius="5dp">
+            app:cardCornerRadius="10dp">
 
             <TextView
                 android:id="@+id/btcId"
