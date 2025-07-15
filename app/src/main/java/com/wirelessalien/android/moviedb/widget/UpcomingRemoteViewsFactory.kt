@@ -347,10 +347,16 @@ class UpcomingRemoteViewsFactory(
                 return null
             }
 
+            val isMovieDb = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
+            val upcomingType = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+
+            if (isMovieDb && upcomingType == ListFragment.EPISODE) {
+                return null
+            }
+
             val jsonObject = JSONObject()
             val tmdbId = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
             jsonObject.put("id", tmdbId)
-            val upcomingType = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
             val isMovie = if (upcomingType == ListFragment.EPISODE) 0 else 1
             jsonObject.put(ListFragment.IS_MOVIE, isMovie)
             val releaseDate = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))

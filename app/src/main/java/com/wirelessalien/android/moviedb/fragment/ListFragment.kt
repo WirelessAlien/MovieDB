@@ -363,8 +363,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                             null
                         ).use { movieCursor ->
                             if (movieCursor.moveToFirst()) {
-                                createMovieDetails(movieCursor, epCursor)?.let {
-                                    upcomingContent.add(it)
+                                val isMovie = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
+                                val upcomingType = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+
+                                if (isMovie && upcomingType == EPISODE) {
+                                    // Skip this entry
+                                } else {
+                                    createMovieDetails(movieCursor, epCursor)?.let {
+                                        upcomingContent.add(it)
+                                    }
                                 }
                             }
                         }
