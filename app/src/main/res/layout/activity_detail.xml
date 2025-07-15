@@ -863,7 +863,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
                 android:layout_below="@id/watchProvidersRL"
                 android:text="@string/latest"
                 android:textStyle="bold"
@@ -873,6 +872,7 @@
                 android:id="@+id/episodeViewPager"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:layout_below="@+id/episodeText"/>
 
             <com.google.android.material.button.MaterialButton
