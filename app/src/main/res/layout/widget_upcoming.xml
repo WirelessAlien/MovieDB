@@ -52,6 +52,8 @@
         android:id="@+id/widget_list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:scrollIndicators="none"
         android:layout_below="@id/widget_headerRL" />
 
     <TextView

@@ -930,8 +930,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     MovieDatabaseHelper.COLUMN_SUMMARY)))
                 put(ShowBaseAdapter.KEY_GENRES, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
                     MovieDatabaseHelper.COLUMN_GENRES_IDS)))
-                put(IS_MOVIE, movieCursor.getString(movieCursor.getColumnIndexOrThrow(
-                    MovieDatabaseHelper.COLUMN_MOVIE)))
+
+                val upcomingType = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+                if (upcomingType == EPISODE) {
+                    put(IS_MOVIE, 0)
+                } else {
+                    put(IS_MOVIE, 1)
+                }
 
                 // Add upcoming specific data
                 put(IS_UPCOMING, true)

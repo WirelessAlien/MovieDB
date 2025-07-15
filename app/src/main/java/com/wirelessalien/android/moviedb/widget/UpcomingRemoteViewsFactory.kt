@@ -350,13 +350,14 @@ class UpcomingRemoteViewsFactory(
             val jsonObject = JSONObject()
             val tmdbId = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
             jsonObject.put("id", tmdbId)
-            val isMovie = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
-            jsonObject.put(ListFragment.IS_MOVIE, if (isMovie) 1 else 0)
+            val upcomingType = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+            val isMovie = if (upcomingType == ListFragment.EPISODE) 0 else 1
+            jsonObject.put(ListFragment.IS_MOVIE, isMovie)
             val releaseDate = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_DATE))
             jsonObject.put(ListFragment.UPCOMING_DATE, releaseDate)
             jsonObject.put(ListFragment.UPCOMING_TIME, releaseDate)
 
-            if (!isMovie) {
+            if (isMovie == 0) {
                 val episodeName = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
                 val seasonNum = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SEASON))
                 val episodeNum = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
