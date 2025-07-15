@@ -24,6 +24,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
@@ -40,6 +41,16 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == Intent.ACTION_CONFIGURATION_CHANGED || intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val componentName = ComponentName(context, UpcomingWidgetProvider::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+            onUpdate(context, appWidgetManager, appWidgetIds)
         }
     }
 
@@ -83,7 +94,7 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
 
         // Get all widget IDs for this provider
         val appWidgetManager = AppWidgetManager.getInstance(context)
-        val componentName = android.content.ComponentName(context, UpcomingWidgetProvider::class.java)
+        val componentName = ComponentName(context, UpcomingWidgetProvider::class.java)
         val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
 

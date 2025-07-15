@@ -217,6 +217,12 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
                     startActivity(intent)
                 }
 
+                if (id == R.id.action_settings) {
+                    val intent = Intent(applicationContext, SettingsActivity::class.java)
+                    startActivity(intent)
+                    return true
+                }
+
                 if (id == R.id.action_export)
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                         if (ActivityCompat.checkSelfPermission(

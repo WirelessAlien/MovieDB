@@ -74,7 +74,15 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
             notificationDate?.before(Date()) ?: true
         }
 
-        val notifications = pastAndPresent.toMutableList()
+        val sortedPastAndPresent = pastAndPresent.sortedByDescending {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(it.date)
+        }
+
+        val sortedUpcoming = upcoming.sortedBy {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(it.date)
+        }
+
+        val notifications = sortedPastAndPresent.toMutableList()
 
         if (notifications.isEmpty()) {
             binding.notificationRecyclerView.visibility = View.GONE
@@ -117,12 +125,12 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(binding.notificationRecyclerView)
 
-        if (upcoming.isNotEmpty()) {
+        if (sortedUpcoming.isNotEmpty()) {
             binding.showUpcomingButton.visibility = View.VISIBLE
             binding.showUpcomingButton.setOnClickListener {
                 binding.notificationRecyclerView.visibility = View.VISIBLE
                 binding.emptyView.visibility = View.GONE
-                adapter.showUpcomingNotifications(upcoming.toMutableList())
+                adapter.showUpcomingNotifications(sortedUpcoming.toMutableList())
                 binding.showUpcomingButton.visibility = View.GONE
             }
         } else {
