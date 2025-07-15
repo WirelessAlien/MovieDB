@@ -42,6 +42,8 @@
         android:layout_marginStart="12dp"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintEnd_toStartOf="@+id/textViewRating"
         app:layout_constraintStart_toEndOf="@+id/imageViewAvatar"
         app:layout_constraintTop_toTopOf="@+id/imageViewAvatar"
