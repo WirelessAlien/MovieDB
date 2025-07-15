@@ -22,8 +22,9 @@
     android:minWidth="125dp"
     android:minHeight="110dp"
     android:updatePeriodMillis="0"
-    android:previewImage="@mipmap/ic_launcher"
+    android:previewImage="@drawable/upcoming_widget"
     android:initialLayout="@layout/widget_upcoming"
+    android:previewLayout="@layout/widget_upcoming"
     android:description="@string/upcoming_widget_description"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen">
