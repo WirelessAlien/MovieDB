@@ -858,50 +858,40 @@
                 </com.google.android.material.card.MaterialCardView>
             </RelativeLayout>
 
-            <RelativeLayout
-                android:id="@+id/episodeRL"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/episodeText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/watchProvidersRL">
-
-                <TextView
-                    android:id="@+id/episodeText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_centerVertical="true"
-                    android:text="@string/episodes"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/allEpisodeBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="16dp"
-                    app:cornerRadius="10dp"
-                    android:contentDescription="@string/seasons"
-                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    app:icon="@drawable/ic_read_more"/>
-            </RelativeLayout>
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_below="@id/watchProvidersRL"
+                android:text="@string/latest"
+                android:textStyle="bold"
+                android:textSize="18sp"/>
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/episodeViewPager"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/episodeRL"/>
+                android:layout_below="@+id/episodeText"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/allEpisodeBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cornerRadius="10dp"
+                android:layout_below="@id/episodeViewPager"
+                android:contentDescription="@string/seasons"
+                android:text="@string/show_more"/>
 
             <TextView
                 android:id="@+id/castTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/episodeViewPager"
+                android:layout_below="@id/allEpisodeBtn"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:layout_marginTop="5dp"
                 android:text="@string/cast_title"
                 android:textStyle="bold"
                 android:textSize="18sp" />
