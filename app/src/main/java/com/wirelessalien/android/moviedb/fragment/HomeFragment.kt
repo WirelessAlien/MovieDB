@@ -138,19 +138,8 @@ class HomeFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         menuProvider = object : MenuProvider {
-            @com.google.android.material.badge.ExperimentalBadgeUtils
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_notification, menu)
-                if (hasNotifications()) {
-                    val menuItem = menu.findItem(R.id.action_notifications)
-                    val badge = BadgeDrawable.create(requireContext())
-                    badge.isVisible = true
-                    BadgeUtils.attachBadgeDrawable(
-                        badge,
-                        activityBinding.toolbar,
-                        menuItem.itemId
-                    )
-                }
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -158,9 +147,6 @@ class HomeFragment : BaseFragment() {
                     R.id.action_notifications -> {
                         val notificationFragment = NotificationBottomSheet()
                         notificationFragment.show(childFragmentManager, "notification")
-                        notificationFragment.dialog?.setOnDismissListener {
-                            requireActivity().invalidateOptionsMenu()
-                        }
                         true
                     }
 
@@ -171,23 +157,18 @@ class HomeFragment : BaseFragment() {
         requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner)
     }
 
-    override fun onPause() {
-        super.onPause()
-        requireActivity().removeMenuProvider(menuProvider)
-    }
-
-    private fun hasNotifications(): Boolean {
-        val dbHelper = NotificationDatabaseHelper(requireContext())
-        val allNotifications = dbHelper.getAllNotifications()
-        val (pastAndPresent, _) = allNotifications.partition {
-            val notificationDate = SimpleDateFormat(
-                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                Locale.getDefault()
-            ).parse(it.date)
-            notificationDate?.before(Date()) ?: true
-        }
-        return pastAndPresent.isNotEmpty()
-    }
+//    private fun hasNotifications(): Boolean {
+//        val dbHelper = NotificationDatabaseHelper(requireContext())
+//        val allNotifications = dbHelper.getAllNotifications()
+//        val (pastAndPresent, _) = allNotifications.partition {
+//            val notificationDate = SimpleDateFormat(
+//                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+//                Locale.getDefault()
+//            ).parse(it.date)
+//            notificationDate?.before(Date()) ?: true
+//        }
+//        return pastAndPresent.isNotEmpty()
+//    }
 
     private fun showTrendingList() {
         val layoutManager = CarouselLayoutManager()
