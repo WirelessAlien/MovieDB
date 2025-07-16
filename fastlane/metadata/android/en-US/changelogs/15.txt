@@ -1,0 +1,7 @@
+Add #90 (if show is saved, next episode to watch will show)
+Add #97 (if new episodes released watched show will be automatically converted to watching)
+Fix #98 (fix white border on trending media)
+Add a general CSV import function that can be used to import data from other app
+Add a dialog to add episodes to watched quickly (click on latest episode in Details page)
+Add quick access dialog to view media state (Saved/Watchlist/Favourite) from media list (long click on media)
+Add notification history
