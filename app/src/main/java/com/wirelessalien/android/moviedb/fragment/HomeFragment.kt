@@ -171,8 +171,8 @@ class HomeFragment : BaseFragment() {
         requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onPause() {
+        super.onPause()
         requireActivity().removeMenuProvider(menuProvider)
     }
 

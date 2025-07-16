@@ -81,6 +81,7 @@ class UpNextAdapter(
         val showName: String,
         val seasonNumber: Int,
         val episodeNumber: Int,
-        val episodeTitle: String
+        val episodeTitle: String,
+        val lastWatchedDate: String?
     )
 }

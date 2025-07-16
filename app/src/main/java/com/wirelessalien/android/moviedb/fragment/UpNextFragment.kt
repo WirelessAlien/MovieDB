@@ -84,6 +84,8 @@ class UpNextFragment : BottomSheetDialogFragment() {
                 }
             }
 
+            upNextEpisodes.sortBy { it.lastWatchedDate }
+
             withContext(Dispatchers.Main) {
                 if (upNextEpisodes.isEmpty()) {
                     binding.emptyState.visibility = View.VISIBLE
@@ -117,6 +119,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
                     val showTitle = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_TITLE))
 
                     val watchedEpisodes = getWatchedEpisodesForShow(db, showId)
+                    val lastWatchedDate = getLastWatchedDateForShow(db, showId)
 
                     val watchedEpisodesAsStringKeys = watchedEpisodes.mapKeys { it.key.toString() }
 
@@ -124,6 +127,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
                         put(ShowBaseAdapter.KEY_ID, showId)
                         put(ShowBaseAdapter.KEY_TITLE, showTitle)
                         put("watched_episodes", JSONObject(watchedEpisodesAsStringKeys))
+                        put("last_watched_date", lastWatchedDate)
                     })
                 } while (cursor.moveToNext())
             }
@@ -165,6 +169,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
     private fun getNextEpisode(show: JSONObject): UpNextAdapter.UpNextItem? {
         val showId = show.optInt(ShowBaseAdapter.KEY_ID)
         val showName = show.optString(ShowBaseAdapter.KEY_TITLE)
+        val lastWatchedDate = show.optString("last_watched_date")
         val watchedEpisodes = show.optJSONObject("watched_episodes")?.let {
             parseWatchedEpisodes(it)
         } ?: emptyMap()
@@ -183,7 +188,8 @@ class UpNextFragment : BottomSheetDialogFragment() {
                         showName,
                         season,
                         episode,
-                        "Episode $episode"
+                        "Episode $episode",
+                        lastWatchedDate
                     )
                 }
             }
@@ -240,8 +246,29 @@ class UpNextFragment : BottomSheetDialogFragment() {
         }
     }
 
+    private fun getLastWatchedDateForShow(db: SQLiteDatabase, showId: Int): String? {
+        var lastWatchedDate: String? = null
+        val cursor = db.query(
+            MovieDatabaseHelper.TABLE_EPISODES,
+            arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE),
+            "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+            arrayOf(showId.toString()),
+            null,
+            null,
+            "${MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE} DESC",
+            "1"
+        )
+
+        if (cursor.moveToFirst()) {
+            lastWatchedDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE))
+        }
+        cursor.close()
+        return lastWatchedDate
+    }
+
     private fun getNextEpisodeAfter(showId: Int, seasonNumber: Int, episodeNumber: Int): UpNextAdapter.UpNextItem? {
         val showName = getShowName(showId) ?: return null
+        val lastWatchedDate = dbHelper.readableDatabase.use { getLastWatchedDateForShow(it, showId) }
 
         val episodes = getEpisodesForSeasonFromTmdbDatabase(showId, seasonNumber).sorted()
         val nextEpisodeInSeason = episodes.find { it > episodeNumber }
@@ -252,7 +279,8 @@ class UpNextFragment : BottomSheetDialogFragment() {
                 showName,
                 seasonNumber,
                 nextEpisodeInSeason,
-                "Episode $nextEpisodeInSeason"
+                "Episode $nextEpisodeInSeason",
+                lastWatchedDate
             )
         }
 
@@ -267,7 +295,8 @@ class UpNextFragment : BottomSheetDialogFragment() {
                     showName,
                     nextSeason,
                     nextEpisodeInNextSeason,
-                    "Episode $nextEpisodeInNextSeason"
+                    "Episode $nextEpisodeInNextSeason",
+                    lastWatchedDate
                 )
             }
         }
