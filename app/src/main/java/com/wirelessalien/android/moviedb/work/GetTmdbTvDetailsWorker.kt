@@ -25,6 +25,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import androidx.work.CoroutineWorker
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -51,6 +53,8 @@ class GetTmdbTvDetailsWorker(appContext: Context, workerParams: WorkerParameters
         return withContext(Dispatchers.IO) {
             try {
                 fetchAndUpdateTmdbTvDetails()
+                val updateTvShowStatusWorkRequest = OneTimeWorkRequestBuilder<UpdateTvShowStatusWorker>().build()
+                WorkManager.getInstance(applicationContext).enqueue(updateTvShowStatusWorkRequest)
                 Result.success()
             } catch (e: Exception) {
                 Log.e("GetTmdbTvDetailsWorker", "Error in doWork: ${e.message}", e)
@@ -177,7 +181,6 @@ class GetTmdbTvDetailsWorker(appContext: Context, workerParams: WorkerParameters
         }
         return buildSeasonsString(seasonsArray)
     }
-
 
     private fun buildSeasonsString(seasons: JSONArray?): String {
         if (seasons == null) return ""

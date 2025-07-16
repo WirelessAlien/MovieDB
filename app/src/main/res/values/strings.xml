@@ -255,6 +255,8 @@
     <string name="date_added_ascending">Date Added (Ascending)</string>
     <string name="name_descending">Name (Descending)</string>
     <string name="name_ascending">Name (Ascending)</string>
+    <string name="get_episode_data_auto">Auto fetch episode data</string>
+    <string name="get_episode_data_auto_summary">Get updated data (like newly added episodes) of shows automatically</string>
 
     <string-array name="media_types">
         <item>digital</item>

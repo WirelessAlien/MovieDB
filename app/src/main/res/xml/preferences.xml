@@ -76,6 +76,13 @@
             android:title="@string/get_tkt_data"
             android:summary="@string/get_tkt_data_summary"
             app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="key_auto_update_episode_data"
+            android:title="@string/get_episode_data_auto"
+            android:summary="@string/get_episode_data_auto_summary"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/notification"
