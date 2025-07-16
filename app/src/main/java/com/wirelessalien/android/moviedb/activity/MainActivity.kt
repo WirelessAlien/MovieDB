@@ -77,8 +77,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -92,7 +92,6 @@ import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
 import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
-import com.wirelessalien.android.moviedb.databinding.FragmentAboutBinding
 import com.wirelessalien.android.moviedb.fragment.AboutBottomSheet
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
@@ -118,6 +117,7 @@ import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
 import com.wirelessalien.android.moviedb.tmdb.account.GetAllListData
 import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
+import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.TktTokenRefreshWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -382,6 +382,10 @@ class MainActivity : BaseActivity() {
             }
         }
 
+        if (preferences.getBoolean("key_auto_update_episode_data", true)) {
+            scheduleMonthlyTvShowUpdate()
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val permissions = arrayOf(
                 Manifest.permission.POST_NOTIFICATIONS,
@@ -548,6 +552,23 @@ class MainActivity : BaseActivity() {
         if (!dialogShown) {
             showSyncProviderDialog()
         }
+    }
+
+    private fun scheduleMonthlyTvShowUpdate() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val monthlyWorkRequest =
+            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, TimeUnit.DAYS)
+                .setConstraints(constraints)
+                .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "monthlyTvShowUpdateWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            monthlyWorkRequest
+        )
     }
 
     private fun clearSearchData() {
