@@ -148,6 +148,7 @@ class ShowFragment : BaseFragment() {
         activityBinding.fab.setOnClickListener {
             filterRequestLauncher.launch(Intent())
         }
+        requireActivity().invalidateOptionsMenu()
     }
 
     private var filterRequestContract: ActivityResultContract<Intent, Boolean> =

@@ -87,6 +87,8 @@ class AccountDataFragment : BaseFragment() {
         super.onResume()
         activityBinding.fab.isEnabled = !(sessionId == null || accountId == null)
         activityBinding.fab2.visibility = View.GONE
+
+        requireActivity().invalidateOptionsMenu()
     }
 
     private fun setupTabs() {

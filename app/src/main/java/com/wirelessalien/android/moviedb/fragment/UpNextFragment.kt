@@ -84,7 +84,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
                 }
             }
 
-            upNextEpisodes.sortBy { it.lastWatchedDate }
+            upNextEpisodes.sortByDescending { it.lastWatchedDate }
 
             withContext(Dispatchers.Main) {
                 if (upNextEpisodes.isEmpty()) {

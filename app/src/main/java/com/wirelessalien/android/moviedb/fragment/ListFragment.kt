@@ -540,6 +540,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     override fun onResume() {
         super.onResume()
 
+        requireActivity().invalidateOptionsMenu()
+
         if (mDatabaseUpdate) {
             // The database is updated, load the changes into the array list.
             updateShowViewAdapter()
