@@ -29,6 +29,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.FragmentTransaction
@@ -74,9 +75,9 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             // Show the fragment fullscreen.
             val transaction = fragmentManager.beginTransaction()
             transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-               transaction.add(android.R.id.content, newFragment)
-                   .addToBackStack(null)
-                   .commit()
+            transaction.add(android.R.id.content, newFragment)
+                .addToBackStack(null)
+                .commit()
             true
         }
 
@@ -230,6 +231,56 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         }
 
         findPreference<SwitchPreferenceCompat>("key_auto_update_episode_data")?.let { preference ->
+            preference.setOnPreferenceChangeListener { _, newValue ->
+                if (newValue as Boolean) {
+                    // Schedule the worker if enabled
+                    val connectivityManager =
+                        requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val network = connectivityManager.activeNetwork
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+                    if (networkCapabilities != null && networkCapabilities.hasCapability(
+                            NetworkCapabilities.NET_CAPABILITY_INTERNET
+                        )
+                    ) {
+                        val constraints = Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+
+                        val monthlyWorkRequest =
+                            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(
+                                30,
+                                TimeUnit.DAYS
+                            )
+                                .setConstraints(constraints)
+                                .build()
+
+                        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+                            "monthlyTvShowUpdateWorker",
+                            ExistingPeriodicWorkPolicy.KEEP,
+                            monthlyWorkRequest
+                        )
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.no_internet_connection),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        preference.isChecked = false
+                        return@setOnPreferenceChangeListener false
+                    }
+                } else {
+                    // Cancel the worker if disabled
+                    WorkManager.getInstance(requireContext())
+                        .cancelUniqueWork("monthlyTvShowUpdateWorker")
+                }
+                true
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        findPreference<SwitchPreferenceCompat>("key_auto_update_episode_data")?.let { preference ->
             val workManager = WorkManager.getInstance(requireContext())
             val switchState = MutableLiveData(false)
 
@@ -245,39 +296,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             // Observe LiveData and update switch state
             switchState.observe(viewLifecycleOwner) { isRunning ->
                 preference.isChecked = isRunning
-            }
-
-            // Handle switch state changes
-            preference.setOnPreferenceChangeListener { _, newValue ->
-                if (newValue as Boolean) {
-                    // Schedule the worker if enabled
-                    val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                    val network = connectivityManager.activeNetwork
-                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-                    if (networkCapabilities != null && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
-                        val constraints = Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-
-                        val monthlyWorkRequest = PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, TimeUnit.DAYS)
-                            .setConstraints(constraints)
-                            .build()
-
-                        workManager.enqueueUniquePeriodicWork(
-                            "monthlyTvShowUpdateWorker",
-                            ExistingPeriodicWorkPolicy.KEEP,
-                            monthlyWorkRequest
-                        )
-                    } else {
-                        Toast.makeText(requireContext(), getString(R.string.no_internet_connection), Toast.LENGTH_SHORT).show()
-                        preference.isChecked = false
-                        return@setOnPreferenceChangeListener false
-                    }
-                } else {
-                    // Cancel the worker if disabled
-                    workManager.cancelUniqueWork("monthlyTvShowUpdateWorker")
-                }
-                true
             }
         }
     }
