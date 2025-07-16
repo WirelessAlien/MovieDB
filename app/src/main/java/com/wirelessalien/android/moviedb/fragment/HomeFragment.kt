@@ -77,6 +77,7 @@ class HomeFragment : BaseFragment() {
     private lateinit var mUpcomingTVAdapter: NowPlayingMovieAdapter
     private lateinit var binding: FragmentHomeBinding
     private lateinit var activityBinding: ActivityMainBinding
+    private lateinit var menuProvider: MenuProvider
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -136,8 +137,7 @@ class HomeFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        requireActivity().addMenuProvider(object : MenuProvider {
+        menuProvider = object : MenuProvider {
             @com.google.android.material.badge.ExperimentalBadgeUtils
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_notification, menu)
@@ -145,7 +145,11 @@ class HomeFragment : BaseFragment() {
                     menu.findItem(R.id.action_notifications)
                     val badge = BadgeDrawable.create(requireContext())
                     badge.isVisible = true
-                    BadgeUtils.attachBadgeDrawable(badge, activityBinding.toolbar, R.id.action_notifications)
+                    BadgeUtils.attachBadgeDrawable(
+                        badge,
+                        activityBinding.toolbar,
+                        R.id.action_notifications
+                    )
                 }
             }
 
@@ -159,10 +163,17 @@ class HomeFragment : BaseFragment() {
                         }
                         true
                     }
+
                     else -> false
                 }
             }
-        }, viewLifecycleOwner)
+        }
+        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        requireActivity().removeMenuProvider(menuProvider)
     }
 
     private fun hasNotifications(): Boolean {
