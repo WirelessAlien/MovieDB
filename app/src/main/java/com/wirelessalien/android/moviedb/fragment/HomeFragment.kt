@@ -142,13 +142,13 @@ class HomeFragment : BaseFragment() {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_notification, menu)
                 if (hasNotifications()) {
-                    menu.findItem(R.id.action_notifications)
+                    val menuItem = menu.findItem(R.id.action_notifications)
                     val badge = BadgeDrawable.create(requireContext())
                     badge.isVisible = true
                     BadgeUtils.attachBadgeDrawable(
                         badge,
                         activityBinding.toolbar,
-                        R.id.action_notifications
+                        menuItem.itemId
                     )
                 }
             }
