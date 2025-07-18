@@ -257,6 +257,7 @@
     <string name="name_ascending">Name (Ascending)</string>
     <string name="get_episode_data_auto">Auto fetch episode data</string>
     <string name="get_episode_data_auto_summary">Get updated data (like newly added episodes) of shows automatically</string>
+    <string name="no_valid_tmdb_link_found">No valid TMDB or IMDb link found</string>
 
     <string-array name="media_types">
         <item>digital</item>
