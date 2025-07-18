@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.activity
 
 import android.content.Intent
+import android.icu.text.DateFormat
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -43,6 +44,8 @@ import org.json.JSONObject
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.regex.Pattern
 
 class DeepLinkActivity : AppCompatActivity() {
@@ -262,9 +265,13 @@ class DeepLinkActivity : AppCompatActivity() {
         val releaseDate = if (isMovie) movieObject.optString("release_date") else movieObject.optString("first_air_date")
         val rating = movieObject.optDouble("vote_average").toFloat()
 
+        val apiDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val parsedDate = apiDateFormat.parse(releaseDate)
+        val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault()).format(parsedDate)
+
         binding.title.text = title
         binding.description.text = description
-        binding.date.text = releaseDate
+        binding.date.text = formattedDate
         binding.rating.rating = rating / 2
 
         Picasso.get().load("https://image.tmdb.org/t/p/w500$posterPath").into(binding.image)

@@ -23,9 +23,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="165dp"
-            android:gravity="center_horizontal"
-            android:padding="5dp">
+            android:layout_height="150dp"
+            android:gravity="center_horizontal">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="100dp"
@@ -56,7 +55,6 @@
                         android:visibility="gone"
                         android:textColor="@android:color/white"
                         android:textSize="14sp" />
-
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -89,25 +87,14 @@
                     android:layout_below="@id/title"
                     android:layout_marginBottom="5dp"
                     android:ellipsize="end"
-                    android:maxLines="3" />
-
-                <TextView
-                    android:id="@+id/genre"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignWithParentIfMissing="true"
-                    android:layout_below="@id/description"
-                    android:layout_marginBottom="5dp"
-                    android:ellipsize="end"
-                    android:maxLines="1" />
+                    android:maxLines="4" />
 
                 <RatingBar
                     android:id="@+id/rating"
                     style="?android:attr/ratingBarStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/genre"
+                    android:layout_below="@id/description"
                     android:layout_marginBottom="5dp"
                     android:numStars="5"
                     android:rating="3.5" />
@@ -128,8 +115,9 @@
             android:id="@+id/open_details_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             card_view:cornerRadius="10dp"
-            android:text="@string/show_more" />
+            android:text="@string/more_dt" />
 
         <LinearLayout
             android:layout_width="match_parent"
