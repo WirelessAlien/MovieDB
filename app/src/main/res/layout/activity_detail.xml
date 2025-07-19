@@ -732,13 +732,53 @@
                     android:contentDescription="@string/add_rating" />
             </RelativeLayout>
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/collection_layout"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="10dp"
+                android:visibility="gone"
+                android:layout_below="@id/linearLayout2"
+                app:cardElevation="4dp">
+
+                <ImageView
+                    android:id="@+id/collection_poster"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:scaleType="centerCrop" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/collection_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_above="@id/collection_details_button"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/collection_details_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:cornerRadius="10dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_alignParentBottom="true"
+                        android:text="@string/view_collection"/>
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <TextView
                 android:id="@+id/overviewTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/linearLayout2"
+                android:layout_below="@id/collection_layout"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:text="@string/overview"
                 android:textSize="18sp"

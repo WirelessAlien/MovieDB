@@ -3766,6 +3766,17 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
                 if (movieData.has("seasons")) {
                     seasons = movieData.getJSONArray("seasons")
                 }
+                if (movieData.has("belongs_to_collection") && !movieData.isNull("belongs_to_collection")) {
+                    val collectionObject = movieData.getJSONObject("belongs_to_collection")
+                    binding.collectionLayout.visibility = View.VISIBLE
+                    binding.collectionName.text = collectionObject.getString("name")
+                    Picasso.get().load("https://image.tmdb.org/t/p/w500" + collectionObject.getString("poster_path")).into(binding.collectionPoster)
+                    binding.collectionDetailsButton.setOnClickListener {
+                        val collectionId = collectionObject.getInt("id")
+                        val bottomSheet = com.wirelessalien.android.moviedb.fragment.CollectionBottomSheetFragment.newInstance(collectionId)
+                        bottomSheet.show(supportFragmentManager, com.wirelessalien.android.moviedb.fragment.CollectionBottomSheetFragment.TAG)
+                    }
+                }
                 if (movieData.has("last_episode_to_air")) {
                     lastEpisode = movieData.getJSONObject("last_episode_to_air")
                 }

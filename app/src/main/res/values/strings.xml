@@ -259,6 +259,8 @@
     <string name="get_episode_data_auto_summary">Get updated data (like newly added episodes) of shows automatically</string>
     <string name="no_valid_tmdb_link_found">No valid TMDB or IMDb link found</string>
     <string name="more_dt">More Details</string>
+    <string name="view_collection">View Collection</string>
+    <string name="failed_to_fetch_collection_details">Failed to fetch collection details: %1$s</string>
 
     <string-array name="media_types">
         <item>digital</item>
