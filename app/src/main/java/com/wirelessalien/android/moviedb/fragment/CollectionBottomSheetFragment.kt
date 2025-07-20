@@ -100,7 +100,8 @@ class CollectionBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun fetchCollectionDetails() {
-        binding.collectionProgressIndicator.visibility = View.VISIBLE
+        binding.shimmerFrameLayout1.startShimmer()
+        binding.shimmerFrameLayout1.visibility = View.VISIBLE
 
         val client = OkHttpClient()
         val request = Request.Builder()
@@ -111,14 +112,16 @@ class CollectionBottomSheetFragment : BottomSheetDialogFragment() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 activity?.runOnUiThread {
-                    binding.collectionProgressIndicator.visibility = View.GONE
+                    binding.shimmerFrameLayout1.stopShimmer()
+                    binding.shimmerFrameLayout1.visibility = View.GONE
                     Toast.makeText(requireContext(), getString(R.string.failed_to_fetch_collection_details, e.message), Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 activity?.runOnUiThread {
-                    binding.collectionProgressIndicator.visibility = View.GONE
+                    binding.shimmerFrameLayout1.stopShimmer()
+                    binding.shimmerFrameLayout1.visibility = View.GONE
                     if (response.isSuccessful) {
                         val responseData = response.body?.string()
                         val jsonObject = JSONObject(responseData.toString())

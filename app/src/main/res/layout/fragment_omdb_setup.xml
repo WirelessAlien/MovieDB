@@ -64,6 +64,10 @@
         android:id="@+id/api_key_input_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        app:boxCornerRadiusTopStart="10dp"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
         android:hint="@string/api_key">
 
