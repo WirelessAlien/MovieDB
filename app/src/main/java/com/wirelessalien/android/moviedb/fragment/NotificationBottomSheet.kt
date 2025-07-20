@@ -34,6 +34,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.NotificationAdapter
 import com.wirelessalien.android.moviedb.databinding.FragmentNotificationBottomSheetBinding
+import com.wirelessalien.android.moviedb.helper.NotificationDateUtil
 import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -70,16 +71,16 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
         dbHelper = NotificationDatabaseHelper(requireContext())
         val allNotifications = dbHelper.getAllNotifications().toMutableList()
         val (pastAndPresent, upcoming) = allNotifications.partition {
-            val notificationDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(it.date)
+            val notificationDate = NotificationDateUtil.parseDate(it.date)
             notificationDate?.before(Date()) ?: true
         }
 
         val sortedPastAndPresent = pastAndPresent.sortedByDescending {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(it.date)
+            NotificationDateUtil.parseDate(it.date)
         }
 
         val sortedUpcoming = upcoming.sortedBy {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(it.date)
+            NotificationDateUtil.parseDate(it.date)
         }
 
         val notifications = sortedPastAndPresent.toMutableList()
@@ -108,7 +109,7 @@ class NotificationBottomSheet : BottomSheetDialogFragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
                 val notification = adapter.getNotificationAt(position)
-                val notificationDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(notification.date)
+                val notificationDate = NotificationDateUtil.parseDate(notification.date)
                 val today = Calendar.getInstance().time
 
                 if (notificationDate != null && notificationDate.after(today)) {

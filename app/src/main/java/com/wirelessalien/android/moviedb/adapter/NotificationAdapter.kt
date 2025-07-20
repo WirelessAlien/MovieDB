@@ -25,6 +25,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.data.NotificationItem
 import com.wirelessalien.android.moviedb.databinding.NotificationItemBinding
+import com.wirelessalien.android.moviedb.helper.NotificationDateUtil
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -72,9 +73,7 @@ class NotificationAdapter(
     }
 
     fun formatDateToRelative(dateString: String): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val date = dateFormat.parse(dateString) ?: return "Invalid date"
+        val date = NotificationDateUtil.parseDate(dateString) ?: return "Invalid date"
 
         val now = Calendar.getInstance()
         val notificationDate = Calendar.getInstance()

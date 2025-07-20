@@ -66,4 +66,5 @@
     <color name="md_theme_surfaceContainer">#1D2024</color>
     <color name="md_theme_surfaceContainerHigh">#272A2F</color>
     <color name="md_theme_surfaceContainerHighest">#32353A</color>
+    <color name="collection_poster_foreground">#B3000000</color>
 </resources>

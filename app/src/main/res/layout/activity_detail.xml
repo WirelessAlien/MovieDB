@@ -746,7 +746,8 @@
                     android:id="@+id/collection_poster"
                     android:layout_width="match_parent"
                     android:layout_height="120dp"
-                    android:scaleType="centerCrop" />
+                    android:scaleType="centerCrop"
+                    android:foreground="@color/collection_poster_foreground" />
 
                 <RelativeLayout
                     android:layout_width="match_parent"
