@@ -131,7 +131,11 @@ class DeepLinkActivity : AppCompatActivity() {
                 fetchImdbDetails(imdbId!!)
             }
         } else {
-            Toast.makeText(this, getString(R.string.no_valid_tmdb_link_found), Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, ExternalSearchActivity::class.java)
+            intent.action = Intent.ACTION_SEND
+            intent.putExtra(Intent.EXTRA_TEXT, sharedText)
+            intent.type = "text/plain"
+            startActivity(intent)
             finish()
         }
     }

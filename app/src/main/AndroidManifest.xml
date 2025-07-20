@@ -119,6 +119,14 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activity.ExternalSearchActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".activity.DetailActivity"
             android:theme="@style/AppTheme">
         </activity>

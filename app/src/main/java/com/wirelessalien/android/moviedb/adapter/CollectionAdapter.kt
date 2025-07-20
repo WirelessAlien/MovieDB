@@ -30,6 +30,9 @@ import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.databinding.ShowCardBinding
 import com.wirelessalien.android.moviedb.databinding.ShowGridCardBinding
 import org.json.JSONObject
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class CollectionAdapter(
     private val context: Context,
@@ -62,8 +65,18 @@ class CollectionAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val movie = movies[position]
+        val apiDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val defaultDateFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+
         if (holder is GridViewHolder) {
             holder.binding.title.text = movie.optString("title")
+            val releaseDate = movie.optString("release_date")
+            holder.binding.date.text = try {
+                val parsedDate = apiDateFormat.parse(releaseDate)
+                defaultDateFormat.format(parsedDate?: "")
+            } catch (e: Exception) {
+                releaseDate
+            }
             Picasso.get()
                 .load("https://image.tmdb.org/t/p/w500${movie.optString("poster_path")}")
                 .into(holder.binding.image)
@@ -93,6 +106,13 @@ class CollectionAdapter(
                 }
             }
             holder.binding.genre.text = if (genreNames.isNotEmpty()) genreNames.substring(2) else ""
+            val releaseDate = movie.optString("release_date")
+            holder.binding.date.text = try {
+                val parsedDate = apiDateFormat.parse(releaseDate)
+                defaultDateFormat.format(parsedDate ?: "")
+            } catch (e: Exception) {
+                releaseDate
+            }
             Picasso.get()
                 .load("https://image.tmdb.org/t/p/w500${movie.optString("poster_path")}")
                 .into(holder.binding.image)
