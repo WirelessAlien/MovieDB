@@ -18,12 +18,23 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".activity.ExternalSearchActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmerFrameLayout1"
@@ -31,7 +42,6 @@
         android:layout_height="match_parent"
         android:minHeight="100dp"
         android:layout_marginTop="30dp"
-        android:layout_centerInParent="true"
         app:shimmer_duration="700">
 
         <LinearLayout
@@ -47,5 +57,7 @@
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="11dp"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
         android:visibility="gone" />
-</RelativeLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

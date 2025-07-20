@@ -21,18 +21,21 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.MenuItem
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityListItemBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
-import com.wirelessalien.android.moviedb.pagingSource.MyListDetailsPagingSource
+import com.wirelessalien.android.moviedb.pagingSource.TmdbListDetailsPagingSource
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -78,7 +81,7 @@ class ListItemActivityTmdb : AppCompatActivity() {
 
     private fun loadListDetails() {
         val accessToken = preferences.getString("access_token", "") ?: ""
-        val pagingSource = MyListDetailsPagingSource(listId, accessToken, this)
+        val pagingSource = TmdbListDetailsPagingSource(listId, accessToken, this)
 
         val pager = Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false),
@@ -88,6 +91,31 @@ class ListItemActivityTmdb : AppCompatActivity() {
         lifecycleScope.launch {
             pager.flow.collectLatest { pagingData ->
                 adapter.submitData(pagingData)
+            }
+        }
+
+        adapter.addLoadStateListener { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.recyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.recyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.recyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    val errorMessage = (loadState.source.refresh as LoadState.Error).error.message
+                    Toast.makeText(this, getString(R.string.error_loading_data) + ": " + errorMessage, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

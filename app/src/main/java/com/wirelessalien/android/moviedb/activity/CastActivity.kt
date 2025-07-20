@@ -632,8 +632,6 @@ class CastActivity : BaseActivity() {
         }
     }
 
-
-
     companion object {
         const val SHOWS_LIST_PREFERENCE = "key_show_shows_grid"
         const val GRID_SIZE_PREFERENCE = "key_grid_size_number"

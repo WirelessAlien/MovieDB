@@ -17,18 +17,21 @@
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    android:id="@+id/cardView"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    card_view:cardCornerRadius="10dp"
+    style="@style/Widget.Material3.CardView.Elevated"
+    card_view:cardUseCompatPadding="true">
+
 
     <LinearLayout
         android:id="@+id/details_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="5dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -121,4 +124,4 @@
             </RelativeLayout>
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

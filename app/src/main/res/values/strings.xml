@@ -261,6 +261,8 @@
     <string name="more_dt">More Details</string>
     <string name="view_collection">View Collection</string>
     <string name="failed_to_fetch_collection_details">Failed to fetch collection details: %1$s</string>
+    <string name="search_title_ext">Search in ShowCase</string>
+
 
     <string-array name="media_types">
         <item>digital</item>

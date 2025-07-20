@@ -191,11 +191,9 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
                     binding.searchResultsRecyclerView.visibility = View.VISIBLE
                     binding.shimmerFrameLayout.visibility = View.GONE
                     binding.shimmerFrameLayout.stopShimmer()
-                    Toast.makeText(
-                        this,
-                        getString(R.string.error_loading_data),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    val errorMessage = (loadState.source.refresh as LoadState.Error).error.message
+                    Toast.makeText(this, getString(R.string.error_loading_data) + ": " + errorMessage, Toast.LENGTH_SHORT).show()
                 }
             }
         }

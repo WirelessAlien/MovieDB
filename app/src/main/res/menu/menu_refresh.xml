@@ -18,6 +18,12 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<searchable xmlns:android="http://schemas.android.com/apk/res/android"
-    android:label="@string/app_name"
-    android:hint="@string/search_movie_show" />
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_refresh"
+        android:icon="@drawable/ic_refresh"
+        android:title="@string/refresh"
+        app:showAsAction="ifRoom" />
+</menu>
