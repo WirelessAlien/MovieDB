@@ -76,6 +76,13 @@ class ExternalSearchActivity : AppCompatActivity() {
                 query?.let { search(it) }
                 true
             }
+
+            R.id.action_open_app -> {
+                val intent = Intent(this, MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                startActivity(intent)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

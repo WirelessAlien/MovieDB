@@ -360,4 +360,6 @@
     <string name="runtime">Runtime</string>
     <string name="popularity">Popularity</string>
     <string name="language">Language</string>
+    <string name="search_title_ext">Search in ShowCase Plus</string>
+
 </resources>

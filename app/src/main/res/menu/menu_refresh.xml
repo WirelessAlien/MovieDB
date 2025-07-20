@@ -26,4 +26,10 @@
         android:icon="@drawable/ic_refresh"
         android:title="@string/refresh"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_open_app"
+        android:icon="@drawable/ic_read_more"
+        android:title="@string/open_app"
+        app:showAsAction="never" />
 </menu>

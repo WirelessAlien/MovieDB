@@ -20,4 +20,5 @@
 
 <resources>
     <string name="app_name" translatable="false">ShowCase Debug</string>
+    <string name="search_title_ext">Search in ShowCase Debug</string>
 </resources>
