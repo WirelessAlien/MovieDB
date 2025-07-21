@@ -46,7 +46,7 @@ class UpdateList(
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-        accessToken = preferences.getString("api_read_access_token", "")
+        accessToken = preferences.getString("access_token", "")
     }
 
     suspend fun updateList() {

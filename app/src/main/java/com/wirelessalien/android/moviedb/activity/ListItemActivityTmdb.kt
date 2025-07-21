@@ -163,7 +163,7 @@ class ListItemActivityTmdb : AppCompatActivity() {
 
     private fun clearList() {
         lifecycleScope.launch {
-            val accessToken = preferences.getString("api_read_access_token", "") ?: ""
+            val accessToken = preferences.getString("access_token", "") ?: ""
             val client = OkHttpClient()
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/4/list/$listId/clear")

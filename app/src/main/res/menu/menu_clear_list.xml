@@ -24,5 +24,5 @@
         android:id="@+id/action_clear_all"
         android:title="@string/clear_all_items"
         android:icon="@drawable/ic_close"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 </menu>

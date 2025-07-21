@@ -79,8 +79,8 @@ class ListAdapterTmdb(
             } else {
                 binding.description.text = listDataTmdb.description
             }
-            binding.itemCount.text = itemView.context.getString(R.string.items_count, listDataTmdb.itemCount)
-            binding.averageRating.rating = listDataTmdb.averageRating.toFloat()
+            binding.itemCount.text = listDataTmdb.itemCount.toString()
+            binding.averageRating.rating = listDataTmdb.averageRating.toFloat() / 2
             binding.publicStatus.setImageResource(
                 if (listDataTmdb.public) R.drawable.ic_lock_open else R.drawable.ic_lock
             )

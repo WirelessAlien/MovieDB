@@ -28,7 +28,10 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="5dp"
         style="@style/Widget.Material3.CardView.Elevated"
         app:cardCornerRadius="10dp">
 
@@ -42,6 +45,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="@string/list_name"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -63,7 +68,7 @@
                     style="?android:attr/ratingBarStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="10dp"
+                    android:layout_margin="10dp"
                     android:numStars="5"
                     android:rating="3.5" />
 
@@ -94,7 +99,7 @@
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingBottom="10dp"
-                android:layout_gravity="bottom|end"
+                android:layout_gravity="bottom|start"
                 android:text="Updated: " />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
