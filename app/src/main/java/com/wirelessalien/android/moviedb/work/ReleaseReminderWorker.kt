@@ -202,13 +202,22 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 episodeName = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
                 episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
                 type = cursor.getString(cursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
-                message = applicationContext.getString(R.string.episode_airing_today, episodeNumber, episodeName)
+                message = if (type == "movie") {
+                    applicationContext.getString(R.string.movie_released_today, title)
+                } else {
+                    applicationContext.getString(R.string.episode_airing_today, episodeNumber, episodeName)
+                }
             } else {
                 title = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SHOW_TITLE))
                 episodeName = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_EPISODE_TITLE))
                 episodeNumber = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
                 type = cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_TYPE))
-                message = applicationContext.getString(R.string.movie_released_today, title)
+                message = if (type == "movie") {
+                    applicationContext.getString(R.string.movie_released_today, title)
+                } else {
+                    applicationContext.getString(R.string.episode_airing_today, episodeNumber, episodeName)
+                }
+
             }
 
             val dbHelper = NotificationDatabaseHelper(applicationContext)
