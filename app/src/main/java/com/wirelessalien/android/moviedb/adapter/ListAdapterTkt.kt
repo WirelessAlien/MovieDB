@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ListItemActivityTkt
-import com.wirelessalien.android.moviedb.databinding.ListListItemBinding
+import com.wirelessalien.android.moviedb.databinding.ListTktItemBinding
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.trakt.TraktSync
 import okhttp3.Call
@@ -44,7 +44,7 @@ class ListAdapterTkt(
 ) : RecyclerView.Adapter<ListAdapterTkt.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ListListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ListTktItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
@@ -83,7 +83,7 @@ class ListAdapterTkt(
         diffResult.dispatchUpdatesTo(this)
     }
 
-    inner class ViewHolder(private val binding: ListListItemBinding) :
+    inner class ViewHolder(private val binding: ListTktItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(jsonObject: JSONObject) {
