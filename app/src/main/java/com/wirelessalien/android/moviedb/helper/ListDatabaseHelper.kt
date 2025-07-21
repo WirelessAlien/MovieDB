@@ -95,6 +95,12 @@ class ListDatabaseHelper(context: Context?) :
         db.close()
     }
 
+    fun deleteList(listId: Int) {
+        val db = this.writableDatabase
+        db.delete(TABLE_LISTS, "$COLUMN_LIST_ID=$listId", null)
+        db.delete(TABLE_LIST_DATA, "$COLUMN_LIST_ID=$listId", null)
+        db.close()
+    }
     fun deleteAllData() {
         val db = this.writableDatabase
         db.delete(TABLE_LIST_DATA, null, null)

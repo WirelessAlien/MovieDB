@@ -88,11 +88,9 @@ class ListItemActivityTmdb : AppCompatActivity() {
 
     private fun loadListDetails() {
         val accessToken = preferences.getString("access_token", "") ?: ""
-        val pagingSource = TmdbListDetailsPagingSource(listId, accessToken, this)
-
         val pager = Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            pagingSourceFactory = { pagingSource }
+            pagingSourceFactory = { TmdbListDetailsPagingSource(listId, accessToken, this) }
         )
 
         lifecycleScope.launch {

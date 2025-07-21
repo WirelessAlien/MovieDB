@@ -28,6 +28,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.ListDataTmdb
 import com.wirelessalien.android.moviedb.databinding.BottomSheetListDetailsBinding
+import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteList
 import com.wirelessalien.android.moviedb.tmdb.account.UpdateList
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +41,7 @@ class ListTmdbUpdateBottomSheetFragment(
 ) : BottomSheetDialogFragment() {
 
     private lateinit var binding: BottomSheetListDetailsBinding
+    private lateinit var listDatabaseHelper: ListDatabaseHelper
 
     interface OnListUpdatedListener {
         fun onListUpdated()
@@ -57,6 +59,7 @@ class ListTmdbUpdateBottomSheetFragment(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        listDatabaseHelper = ListDatabaseHelper(requireContext())
         binding.listNameEditText.setText(listDataTmdb.name)
         binding.descriptionEditText.setText(listDataTmdb.description)
         binding.publicChip.isChecked = listDataTmdb.public
@@ -94,6 +97,7 @@ class ListTmdbUpdateBottomSheetFragment(
         builder.setPositiveButton(getString(R.string.delete)) { _, _ ->
             val deleteList = DeleteList(listDataTmdb.id, requireActivity(), object : DeleteList.OnListDeletedListener {
                 override fun onListDeleted() {
+                    listDatabaseHelper.deleteList(listDataTmdb.id)
                     listener.onListUpdated()
                     dismiss()
                 }
