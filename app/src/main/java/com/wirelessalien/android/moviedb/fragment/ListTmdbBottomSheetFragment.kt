@@ -35,7 +35,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ListDataAdapter
-import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.data.ListDataTmdb
 import com.wirelessalien.android.moviedb.data.ListDetailsData
 import com.wirelessalien.android.moviedb.databinding.ListBottomSheetBinding
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
@@ -48,7 +48,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
 
-class ListBottomSheetFragment(
+class ListTmdbBottomSheetFragment(
     private val movieId: Int,
     private val mediaType: String?,
     private val context: Context?,
@@ -196,9 +196,9 @@ class ListBottomSheetFragment(
         lifecycleScope.launch {
             val fetchList =
                 FetchList(context, object : FetchList.OnListFetchListener {
-                    override fun onListFetch(listData: List<ListData>?) {
-                        if (listData != null) {
-                            for (data in listData) {
+                    override fun onListFetch(listDatumTmdbs: List<ListDataTmdb>?) {
+                        if (listDatumTmdbs != null) {
+                            for (data in listDatumTmdbs) {
                                 listDatabaseHelper.addList(data.id, data.name)
                                 lifecycleScope.launch {
                                     val getListDetails = GetAllListData(

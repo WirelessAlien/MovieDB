@@ -262,6 +262,8 @@
     <string name="view_collection">View Collection</string>
     <string name="failed_to_fetch_collection_details">Failed to fetch collection details: %1$s</string>
     <string name="open_app">Open the App</string>
+    <string name="update">Update</string>
+    <string name="last_updated">Updated: %1$s</string>
 
     <string-array name="media_types">
         <item>digital</item>

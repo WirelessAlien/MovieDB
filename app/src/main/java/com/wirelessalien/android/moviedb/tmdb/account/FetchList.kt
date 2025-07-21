@@ -21,7 +21,7 @@ package com.wirelessalien.android.moviedb.tmdb.account
 
 import android.content.Context
 import androidx.preference.PreferenceManager
-import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.data.ListDataTmdb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -37,7 +37,7 @@ class FetchList(
     private val accountId: String?
 
     interface OnListFetchListener {
-        fun onListFetch(listData: List<ListData>?)
+        fun onListFetch(listDatumTmdbs: List<ListDataTmdb>?)
     }
 
     init {
@@ -46,7 +46,7 @@ class FetchList(
         accountId = preferences.getString("account_id", "")
     }
 
-    suspend fun fetchLists(): List<ListData>? {
+    suspend fun fetchLists(): List<ListDataTmdb>? {
         return try {
             val client = OkHttpClient()
             val request = Request.Builder()
@@ -63,21 +63,23 @@ class FetchList(
             }
             val jsonResponse = JSONObject(responseBody!!)
             val results = jsonResponse.getJSONArray("results")
-            val listData: MutableList<ListData> = ArrayList()
+            val listDatumTmdbs: MutableList<ListDataTmdb> = ArrayList()
             for (i in 0 until results.length()) {
                 val result = results.getJSONObject(i)
-                listData.add(
-                    ListData(
+                listDatumTmdbs.add(
+                    ListDataTmdb(
                         result.getInt("id"),
                         result.getString("name"),
                         result.getString("description"),
                         result.getInt("number_of_items"),
-                        result.getDouble("average_rating")
+                        result.getDouble("average_rating"),
+                        result.getInt("public") == 1,
+                        result.getString("updated_at")
                     )
                 )
             }
-            listener?.onListFetch(listData)
-            listData
+            listener?.onListFetch(listDatumTmdbs)
+            listDatumTmdbs
         } catch (e: Exception) {
             e.printStackTrace()
             null

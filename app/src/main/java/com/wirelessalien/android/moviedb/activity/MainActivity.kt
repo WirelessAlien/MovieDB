@@ -87,7 +87,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
-import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.data.ListDataTmdb
 import com.wirelessalien.android.moviedb.data.TktTokenResponse
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
@@ -496,9 +496,9 @@ class MainActivity : BaseActivity() {
                 lifecycleScope.launch {
                     try {
                         val fetchListCoroutineTMDb = FetchList(this@MainActivity, object : FetchList.OnListFetchListener {
-                            override fun onListFetch(listData: List<ListData>?) {
-                                if (listData != null) {
-                                    for (data in listData) {
+                            override fun onListFetch(listDatumTmdbs: List<ListDataTmdb>?) {
+                                if (listDatumTmdbs != null) {
+                                    for (data in listDatumTmdbs) {
                                         listDatabaseHelper.addList(data.id, data.name)
                                         val listDetailsCoroutineTMDb = GetAllListData(
                                             data.id,
@@ -805,8 +805,8 @@ class MainActivity : BaseActivity() {
                                         val fetchListCoroutineTMDb = FetchList(
                                             this@MainActivity,
                                             object : FetchList.OnListFetchListener {
-                                                override fun onListFetch(listData: List<ListData>?) {
-                                                    for (data in listData!!) {
+                                                override fun onListFetch(listDatumTmdbs: List<ListDataTmdb>?) {
+                                                    for (data in listDatumTmdbs!!) {
                                                         listDatabaseHelper.addList(data.id, data.name)
                                                         val listDetailsCoroutineTMDb = GetAllListData(
                                                             data.id,

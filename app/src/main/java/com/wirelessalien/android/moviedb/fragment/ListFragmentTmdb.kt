@@ -31,8 +31,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ListItemActivityTmdb
 import com.wirelessalien.android.moviedb.activity.MainActivity
-import com.wirelessalien.android.moviedb.adapter.ListAdapter
-import com.wirelessalien.android.moviedb.data.ListData
+import com.wirelessalien.android.moviedb.adapter.ListAdapterTmdb
+import com.wirelessalien.android.moviedb.data.ListDataTmdb
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentMyListsBinding
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
@@ -40,15 +40,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedListener {
-    private var listAdapter: ListAdapter? = null
+class ListFragmentTmdb : BaseFragment(), ListTmdbBottomSheetFragment.OnListCreatedListener,
+    ListTmdbUpdateBottomSheetFragment.OnListUpdatedListener {
+    private var listAdapterTmdb: ListAdapterTmdb? = null
     private lateinit var activityBinding: ActivityMainBinding
     private lateinit var binding: FragmentMyListsBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?): View {
+        savedInstanceState: Bundle?
+    ): View {
 
         binding = FragmentMyListsBinding.inflate(inflater, container, false)
         val view: View = binding.root
@@ -57,27 +59,27 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
 
         activityBinding.fab.setImageResource(R.drawable.ic_add)
 
-        listAdapter = ListAdapter(ArrayList(), object : ListAdapter.OnItemClickListener {
-            override fun onItemClick(listData: ListData?) {
+        listAdapterTmdb = ListAdapterTmdb(ArrayList(), object : ListAdapterTmdb.OnItemClickListener {
+            override fun onItemClick(listDataTmdb: ListDataTmdb?) {
                 val intent = Intent(activity, ListItemActivityTmdb::class.java)
-                intent.putExtra("listId", listData?.id)
-                intent.putExtra("listName", listData?.name)
+                intent.putExtra("listId", listDataTmdb?.id)
+                intent.putExtra("listName", listDataTmdb?.name)
                 startActivity(intent)
             }
-        }, true)
+        }, this)
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
-        binding.recyclerView.adapter = listAdapter
+        binding.recyclerView.adapter = listAdapterTmdb
         binding.shimmerFrameLayout1.visibility = View.VISIBLE
         binding.shimmerFrameLayout1.startShimmer()
 
         refreshList()
 
         activityBinding.fab.setOnClickListener {
-            val listBottomSheetFragment =
-                ListBottomSheetFragment(0, null, context, false, this@ListFragmentTmdb)
-            listBottomSheetFragment.show(
+            val listTmdbBottomSheetFragment =
+                ListTmdbBottomSheetFragment(0, null, context, false, this@ListFragmentTmdb)
+            listTmdbBottomSheetFragment.show(
                 childFragmentManager,
-                listBottomSheetFragment.tag
+                listTmdbBottomSheetFragment.tag
             )
         }
         return view
@@ -87,11 +89,11 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
         super.onResume()
         activityBinding.fab.visibility = View.VISIBLE
         activityBinding.fab.setOnClickListener {
-            val listBottomSheetFragment =
-                ListBottomSheetFragment(0, null, context, false, this@ListFragmentTmdb)
-            listBottomSheetFragment.show(
+            val listTmdbBottomSheetFragment =
+                ListTmdbBottomSheetFragment(0, null, context, false, this@ListFragmentTmdb)
+            listTmdbBottomSheetFragment.show(
                 childFragmentManager,
-                listBottomSheetFragment.tag
+                listTmdbBottomSheetFragment.tag
             )
         }
 
@@ -99,6 +101,10 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
     }
 
     override fun onListCreated() {
+        refreshList()
+    }
+
+    override fun onListUpdated() {
         refreshList()
     }
 
@@ -111,7 +117,7 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
         binding.shimmerFrameLayout1.startShimmer()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val fetchedListData: List<ListData>? = try {
+            val fetchedTmdbListData: List<ListDataTmdb>? = try {
                 withContext(Dispatchers.IO) {
                     val fetcher = FetchList(requireContext(), null)
                     fetcher.fetchLists()
@@ -124,12 +130,12 @@ class ListFragmentTmdb : BaseFragment(), ListBottomSheetFragment.OnListCreatedLi
             withContext(Dispatchers.Main) {
 
                 if (isAdded) {
-                    fetchedListData?.let { listData ->
-                        listAdapter?.updateData(listData)
+                    fetchedTmdbListData?.let { listData ->
+                        listAdapterTmdb?.updateData(listData)
                     }
                     binding.shimmerFrameLayout1.stopShimmer()
                     binding.shimmerFrameLayout1.visibility = View.GONE
-                    if (fetchedListData == null) {
+                    if (fetchedTmdbListData == null) {
                         Toast.makeText(
                             context,
                             getString(R.string.error_loading_data),

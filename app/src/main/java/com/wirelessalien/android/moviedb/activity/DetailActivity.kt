@@ -50,7 +50,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -106,7 +105,7 @@ import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.ReviewItemBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
-import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragment
+import com.wirelessalien.android.moviedb.fragment.ListTmdbBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.databaseUpdate
 import com.wirelessalien.android.moviedb.fragment.ReviewFragment
@@ -149,7 +148,7 @@ import kotlin.math.round
  * This class provides all the details about the shows.
  * It also manages personal show data.
  */
-class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedListener, LastEpisodeFragment.OnUpcomingEpisodeClickListener {
+class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreatedListener, LastEpisodeFragment.OnUpcomingEpisodeClickListener {
     private var apiKey: String? = null
     private var tktaccessToken: String? = null
     private var apiReadAccessToken: String? = null
@@ -710,11 +709,11 @@ class DetailActivity : BaseActivity(), ListBottomSheetFragment.OnListCreatedList
 
         binding.addToListTmdb.setOnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
-            val listBottomSheetFragment =
-                ListBottomSheetFragment(movieId, typeCheck, mActivity, true, this)
-            listBottomSheetFragment.show(
+            val listTmdbBottomSheetFragment =
+                ListTmdbBottomSheetFragment(movieId, typeCheck, mActivity, true, this)
+            listTmdbBottomSheetFragment.show(
                 supportFragmentManager,
-                listBottomSheetFragment.tag
+                listTmdbBottomSheetFragment.tag
             )
         }
         binding.favouriteButtonTmdb.setOnClickListener {

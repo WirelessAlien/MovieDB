@@ -19,10 +19,12 @@
  */
 package com.wirelessalien.android.moviedb.data
 
-class ListData(
+data class ListDataTmdb(
     val id: Int,
     val name: String,
     val description: String,
     val itemCount: Int,
-    val averageRating: Double
+    val averageRating: Double,
+    val public: Boolean,
+    val updatedAt: String,
 )
