@@ -53,12 +53,17 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
+import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.WeeklyWorkerTkt
 import java.util.concurrent.TimeUnit
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
+
+    private val notificationDbHelper: NotificationDatabaseHelper by lazy {
+        NotificationDatabaseHelper(requireContext())
+    }
 
     private val preferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -327,6 +332,9 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             }
 
         editor.apply()
+
+        // Delete all notifications from the database
+        notificationDbHelper.deleteAllNotifications()
     }
 
     private fun showSyncProviderDialog() {

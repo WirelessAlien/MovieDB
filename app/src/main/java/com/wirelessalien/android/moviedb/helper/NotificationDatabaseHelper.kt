@@ -88,6 +88,10 @@ class NotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, D
         writableDatabase.delete(TABLE_NOTIFICATIONS, "$COLUMN_ID = ?", arrayOf(id.toString()))
     }
 
+    fun deleteAllNotifications() {
+        writableDatabase.delete(TABLE_NOTIFICATIONS, null, null)
+    }
+
     fun getAllNotifications(): List<NotificationItem> {
         val notifications = mutableListOf<NotificationItem>()
         val cursor: Cursor = readableDatabase.rawQuery("SELECT * FROM $TABLE_NOTIFICATIONS ORDER BY $COLUMN_DATE DESC", null)
