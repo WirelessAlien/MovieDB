@@ -69,6 +69,8 @@
         android:id="@+id/publicChip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Chip.Filter"
+        app:chipCornerRadius="10dp"
         android:layout_marginTop="8dp"
         android:text="@string/public_list"
         android:checkable="true" />
@@ -78,6 +80,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        style="@style/Widget.Material3.Button.TonalButton"
         app:cornerRadius="10dp"
         android:text="@string/update" />
 

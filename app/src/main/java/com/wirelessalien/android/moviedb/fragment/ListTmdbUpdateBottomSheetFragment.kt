@@ -25,6 +25,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.ListDataTmdb
 import com.wirelessalien.android.moviedb.databinding.BottomSheetListDetailsBinding
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteList
@@ -82,6 +83,15 @@ class ListTmdbUpdateBottomSheetFragment(
         }
 
         binding.deleteButton.setOnClickListener {
+            showDeleteConfirmationDialog()
+        }
+    }
+
+    private fun showDeleteConfirmationDialog() {
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+        builder.setTitle(getString(R.string.delete_list))
+        builder.setMessage(getString(R.string.delete_list_confirmation))
+        builder.setPositiveButton(getString(R.string.delete)) { _, _ ->
             val deleteList = DeleteList(listDataTmdb.id, requireActivity(), object : DeleteList.OnListDeletedListener {
                 override fun onListDeleted() {
                     listener.onListUpdated()
@@ -92,5 +102,9 @@ class ListTmdbUpdateBottomSheetFragment(
                 deleteList.deleteList()
             }
         }
+        builder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.show()
     }
 }

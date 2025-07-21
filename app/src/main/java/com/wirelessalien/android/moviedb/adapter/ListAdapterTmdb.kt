@@ -28,6 +28,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.ListDataTmdb
 import com.wirelessalien.android.moviedb.databinding.ListListItemBinding
 import com.wirelessalien.android.moviedb.fragment.ListTmdbUpdateBottomSheetFragment
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -87,9 +88,17 @@ class ListAdapterTmdb(
             apiDateFormat.timeZone = TimeZone.getTimeZone("UTC")
             val date = apiDateFormat.parse(listDataTmdb.updatedAt)
 
-            val localeDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            localeDateFormat.timeZone = TimeZone.getDefault()
-            binding.updatedAt.text = itemView.context.getString(R.string.last_updated, localeDateFormat.format(date?: ""))
+            val dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+            val timeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+            timeFormatter.timeZone = TimeZone.getDefault()
+
+            val formattedDate = if (date != null) {
+                "${dateFormatter.format(date)} ${timeFormatter.format(date)}"
+            } else {
+                ""
+            }
+
+            binding.updatedAt.text = itemView.context.getString(R.string.last_updated, formattedDate)
             itemView.tag = listDataTmdb
             itemView.setOnClickListener { onItemClickListener.onItemClick(itemView.tag as ListDataTmdb) }
             itemView.setOnLongClickListener {

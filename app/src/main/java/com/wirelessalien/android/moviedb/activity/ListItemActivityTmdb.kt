@@ -21,6 +21,8 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -31,13 +33,18 @@ import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityListItemBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.pagingSource.TmdbListDetailsPagingSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 class ListItemActivityTmdb : AppCompatActivity() {
 
@@ -123,5 +130,58 @@ class ListItemActivityTmdb : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressedDispatcher.onBackPressed()
         return true
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_clear_list, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_clear_all -> {
+                showClearConfirmationDialog()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showClearConfirmationDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.clear_all_items))
+            .setMessage(getString(R.string.clear_list_confirmation))
+            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setPositiveButton(getString(R.string.ok)) { dialog, _ ->
+                clearList()
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun clearList() {
+        lifecycleScope.launch {
+            val accessToken = preferences.getString("api_read_access_token", "") ?: ""
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url("https://api.themoviedb.org/4/list/$listId/clear")
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer $accessToken")
+                .build()
+
+            val response = withContext(Dispatchers.IO) {
+                client.newCall(request).execute()
+            }
+
+            if (response.isSuccessful) {
+                Toast.makeText(this@ListItemActivityTmdb, getString(R.string.list_cleared_successfully), Toast.LENGTH_SHORT).show()
+                adapter.refresh()
+            } else {
+                Toast.makeText(this@ListItemActivityTmdb, getString(R.string.error_clearing_list), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

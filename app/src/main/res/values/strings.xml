@@ -264,6 +264,12 @@
     <string name="open_app">Open the App</string>
     <string name="update">Update</string>
     <string name="last_updated">Updated: %1$s</string>
+    <string name="delete_list">Delete List?</string>
+    <string name="delete_list_confirmation">Are you sure you want to delete this list?</string>
+    <string name="clear_all_items">Clear All Items</string>
+    <string name="clear_list_confirmation">Are you sure you want to clear all items from this list?</string>
+    <string name="list_cleared_successfully">List cleared successfully.</string>
+    <string name="error_clearing_list">Error clearing list.</string>
 
     <string-array name="media_types">
         <item>digital</item>
