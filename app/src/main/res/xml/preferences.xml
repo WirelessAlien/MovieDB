@@ -83,6 +83,13 @@
             android:title="@string/get_episode_data_auto"
             android:summary="@string/get_episode_data_auto_summary"
             app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="key_get_in_app_update"
+            android:title="@string/get_app_update"
+            android:summary="@string/get_app_update_summary"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/notification"

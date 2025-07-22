@@ -56,6 +56,7 @@ import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
+import com.wirelessalien.android.moviedb.work.UpdateWorker
 import com.wirelessalien.android.moviedb.work.WeeklyWorkerTkt
 import java.util.concurrent.TimeUnit
 
@@ -252,10 +253,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                             .build()
 
                         val monthlyWorkRequest =
-                            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(
-                                30,
-                                TimeUnit.DAYS
-                            )
+                            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, TimeUnit.DAYS)
                                 .setConstraints(constraints)
                                 .build()
 
@@ -277,6 +275,46 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                     // Cancel the worker if disabled
                     WorkManager.getInstance(requireContext())
                         .cancelUniqueWork("monthlyTvShowUpdateWorker")
+                }
+                true
+            }
+        }
+
+        findPreference<SwitchPreferenceCompat>("key_get_in_app_update")?.let { preference ->
+            preference.setOnPreferenceChangeListener { _, newValue ->
+                if (newValue as Boolean) {
+                    // Check network connectivity
+                    val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val network = connectivityManager.activeNetwork
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+                    if (networkCapabilities != null && networkCapabilities.hasCapability(
+                            NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+
+                        val constraints = Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+
+                        val updateWorker = PeriodicWorkRequestBuilder<UpdateWorker>(1, TimeUnit.DAYS)
+                            .setConstraints(constraints)
+                            .build()
+
+                        WorkManager.getInstance(requireContext())
+                            .enqueueUniquePeriodicWork(
+                                "updateWorker",
+                                ExistingPeriodicWorkPolicy.KEEP,
+                                updateWorker
+                        )
+
+                    } else {
+                        // Network is not connected, show error and uncheck the switch
+                        Toast.makeText(requireContext(), getString(R.string.no_internet_connection), Toast.LENGTH_SHORT).show()
+                        preference.isChecked = false
+                        return@setOnPreferenceChangeListener false
+                    }
+                } else {
+                    // Cancel the worker if disabled
+                    WorkManager.getInstance(requireContext())
+                        .cancelUniqueWork("updateWorker")
                 }
                 true
             }

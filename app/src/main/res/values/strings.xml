@@ -270,6 +270,18 @@
     <string name="clear_list_confirmation">Are you sure you want to clear all items from this list?</string>
     <string name="list_cleared_successfully">List cleared successfully.</string>
     <string name="error_clearing_list">Error clearing list.</string>
+    <string name="update_available">Update available</string>
+    <string name="update_notification_text">Version %s is available</string>
+    <string name="update_channel_name">Updates</string>
+    <string name="update_channel_description">Notifications for app updates</string>
+    <string name="download">Download</string>
+    <string name="install">Install</string>
+    <string name="downloading">Downloading…</string>
+    <string name="download_completed">Download completed</string>
+    <string name="downloading_update">Downloading update</string>
+    <string name="failed_to_open_installer">Failed to open installer</string>
+    <string name="get_app_update">Fetch app update automatically</string>
+    <string name="get_app_update_summary">Get new available version of the app automatically within the app</string>
 
     <string-array name="media_types">
         <item>digital</item>
