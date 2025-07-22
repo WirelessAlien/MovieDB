@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.work
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.gson.Gson
@@ -45,6 +46,7 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
             }
             Result.success()
         } catch (e: Exception) {
+            Log.e("UpdateWorker", "Error checking for updates", e)
             Result.failure()
         }
     }
@@ -71,6 +73,7 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
                 null
             }
         } catch (e: IOException) {
+            Log.e("UpdateWorker", "Network error while fetching latest release", e)
             null
         }
     }
