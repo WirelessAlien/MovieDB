@@ -34,6 +34,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityUpdateBinding
@@ -119,7 +120,7 @@ class UpdateActivity : AppCompatActivity() {
     private fun installApk() {
         val fileName = "showcase-app-update.apk"
         val destination = File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
-        val uri = Uri.fromFile(destination)
+        val uri = FileProvider.getUriForFile(this, applicationContext.packageName + ".provider", destination)
         val intent = Intent(Intent.ACTION_VIEW)
         intent.setDataAndType(uri, "application/vnd.android.package-archive")
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
