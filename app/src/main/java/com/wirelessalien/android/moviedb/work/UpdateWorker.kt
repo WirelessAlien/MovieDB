@@ -62,10 +62,10 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
                 val responseBody = response.body?.string()
                 val releaseInfo = Gson().fromJson(responseBody, GithubRelease::class.java)
                 val assets = releaseInfo.assets
-                val downloadUrl = assets.find { it.name.endsWith(".apk") && !it.name.contains("-plus") }?.browserDownloadUrl
-                val plusDownloadUrl = assets.find { it.name.endsWith("-plus.apk") }?.browserDownloadUrl
+                val downloadUrl = assets.find { it.name.endsWith(".apk") && !it.name.contains("-plus") }?.browser_download_url
+                val plusDownloadUrl = assets.find { it.name.endsWith("-plus.apk") }?.browser_download_url
                 if (downloadUrl != null && plusDownloadUrl != null) {
-                    Release(releaseInfo.tagName.replace("v", ""), downloadUrl, plusDownloadUrl)
+                    Release(releaseInfo.tag_name.replace("v", ""), downloadUrl, plusDownloadUrl)
                 } else {
                     null
                 }
@@ -79,12 +79,12 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 
     private data class GithubRelease(
-        val tagName: String,
+        val tag_name: String,
         val assets: List<Asset>
     )
 
     private data class Asset(
         val name: String,
-        val browserDownloadUrl: String
+        val browser_download_url: String
     )
 }
