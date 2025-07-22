@@ -54,6 +54,7 @@
 -keepattributes Signature
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken
+-keep class com.wirelessalien.android.moviedb.work.UpdateWorker$* { *; }
 
 -keep class com.wirelessalien.android.moviedb.data.** {
     !transient <fields>;
