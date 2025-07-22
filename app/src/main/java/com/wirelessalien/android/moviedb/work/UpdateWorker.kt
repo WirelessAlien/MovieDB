@@ -62,7 +62,7 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
                 val responseBody = response.body?.string()
                 val releaseInfo = Gson().fromJson(responseBody, GithubRelease::class.java)
                 val assets = releaseInfo.assets
-                val downloadUrl = assets.find { it.name.endsWith(".apk") && !it.name.contains("plus") }?.browserDownloadUrl
+                val downloadUrl = assets.find { it.name.endsWith(".apk") && !it.name.contains("-plus") }?.browserDownloadUrl
                 val plusDownloadUrl = assets.find { it.name.endsWith("-plus.apk") }?.browserDownloadUrl
                 if (downloadUrl != null && plusDownloadUrl != null) {
                     Release(releaseInfo.tagName.replace("v", ""), downloadUrl, plusDownloadUrl)
