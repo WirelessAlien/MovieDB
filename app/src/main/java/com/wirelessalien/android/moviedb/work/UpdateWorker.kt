@@ -62,7 +62,7 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
     private fun getLatestRelease(): Release? {
         val client = OkHttpClient()
         val request = Request.Builder()
-            .url("https://api.github.com/repos/WirelessAlien/mdb-test/releases/latest")
+            .url("https://api.github.com/repos/WirelessAlien/MovieDB/releases/latest")
             .build()
         return try {
             val response = client.newCall(request).execute()
