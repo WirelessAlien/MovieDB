@@ -43,6 +43,7 @@ class ReleaseNotificationHelper(private val context: Context) {
             putExtra("release", release.version)
             putExtra("downloadUrl", release.downloadUrl)
             putExtra("plusDownloadUrl", release.plusDownloadUrl)
+            putExtra("changelog", release.changelog)
         }
         val pendingIntent = PendingIntent.getActivity(context,
             0,

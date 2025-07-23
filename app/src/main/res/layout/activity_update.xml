@@ -22,7 +22,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:gravity="center"
     android:padding="16dp"
     android:orientation="vertical">
 
@@ -30,6 +29,7 @@
         android:id="@+id/update_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="@string/update_available"
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
@@ -40,9 +40,22 @@
         android:textSize="14sp"
         android:layout_marginTop="8dp" />
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/update_changelog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp" />
+    </ScrollView>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/download_button"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cornerRadius="10dp"
         android:layout_marginTop="16dp"
@@ -57,7 +70,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/install_button"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         app:cornerRadius="10dp"

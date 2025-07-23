@@ -85,7 +85,7 @@
             app:iconSpaceReserved="false"/>
 
         <androidx.preference.SwitchPreferenceCompat
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="key_get_in_app_update"
             android:title="@string/get_app_update"
             android:summary="@string/get_app_update_summary"

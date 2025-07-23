@@ -96,8 +96,10 @@ class UpdateActivity : AppCompatActivity() {
         val release = intent.getStringExtra("release")
         val downloadUrl = intent.getStringExtra("downloadUrl")
         val plusDownloadUrl = intent.getStringExtra("plusDownloadUrl")
+        val changelog = intent.getStringExtra("changelog")
 
         binding.updateVersion.text = release
+        binding.updateChangelog.text = changelog
 
         binding.downloadButton.setOnClickListener {
             val installedVersion = UpdateUtils.getInstalledVersionName(this)

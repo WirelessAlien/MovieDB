@@ -23,5 +23,6 @@ package com.wirelessalien.android.moviedb.data
 data class Release(
     val version: String,
     val downloadUrl: String,
-    val plusDownloadUrl: String
+    val plusDownloadUrl: String,
+    val changelog: String
 )

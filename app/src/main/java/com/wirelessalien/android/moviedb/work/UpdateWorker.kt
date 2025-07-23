@@ -65,7 +65,7 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
                 val downloadUrl = assets.find { it.name.endsWith(".apk") && !it.name.contains("-plus") }?.browser_download_url
                 val plusDownloadUrl = assets.find { it.name.endsWith("-plus.apk") }?.browser_download_url
                 if (downloadUrl != null && plusDownloadUrl != null) {
-                    Release(releaseInfo.tag_name.replace("v", ""), downloadUrl, plusDownloadUrl)
+                    Release(releaseInfo.tag_name.replace("v", ""), downloadUrl, plusDownloadUrl, releaseInfo.body)
                 } else {
                     null
                 }
@@ -80,7 +80,8 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
 
     private data class GithubRelease(
         val tag_name: String,
-        val assets: List<Asset>
+        val assets: List<Asset>,
+        val body: String
     )
 
     private data class Asset(
