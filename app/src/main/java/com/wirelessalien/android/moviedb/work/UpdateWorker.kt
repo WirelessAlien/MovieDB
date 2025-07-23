@@ -41,6 +41,14 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
             if (release != null) {
                 val installedVersion = UpdateUtils.getInstalledVersionName(applicationContext)
                 if (UpdateUtils.isNewVersionAvailable(installedVersion, release.version)) {
+                    val prefs = applicationContext.getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
+                    with(prefs.edit()) {
+                        putString("release_version", release.version)
+                        putString("download_url", release.downloadUrl)
+                        putString("plus_download_url", release.plusDownloadUrl)
+                        putString("changelog", release.changelog)
+                        apply()
+                    }
                     ReleaseNotificationHelper(applicationContext).showUpdateNotification(release)
                 }
             }

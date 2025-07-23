@@ -21,13 +21,16 @@ package com.wirelessalien.android.moviedb.fragment
 
 import android.content.Intent
 import android.net.Uri
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.UpdateActivity
 import com.wirelessalien.android.moviedb.databinding.FragmentAboutBinding
 
 class AboutBottomSheet : BottomSheetDialogFragment() {
@@ -46,6 +49,25 @@ class AboutBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.versionNumberText.text = BuildConfig.VERSION_NAME
+
+        val prefs = requireActivity().getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
+        val latestVersion = prefs.getString("release_version", "") ?: ""
+        val installedVersion = com.wirelessalien.android.moviedb.helper.UpdateUtils.getInstalledVersionName(requireContext())
+
+        if (com.wirelessalien.android.moviedb.helper.UpdateUtils.isNewVersionAvailable(installedVersion, latestVersion)) {
+            binding.updateAvailableText.visibility = View.VISIBLE
+            val blinkAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.blink)
+            binding.updateAvailableText.startAnimation(blinkAnimation)
+            binding.updateAvailableText.setOnClickListener {
+                val intent = Intent(requireContext(), UpdateActivity::class.java).apply {
+                    putExtra("release", latestVersion)
+                    putExtra("downloadUrl", prefs.getString("download_url", ""))
+                    putExtra("plusDownloadUrl", prefs.getString("plus_download_url", ""))
+                    putExtra("changelog", prefs.getString("changelog", ""))
+                }
+                startActivity(intent)
+            }
+        }
 
         binding.sourceCode.setOnClickListener {
             openUrl("https://github.com/WirelessAlien/MovieDB")

@@ -282,6 +282,7 @@
     <string name="failed_to_open_installer">Failed to open installer</string>
     <string name="get_app_update">Fetch app update automatically</string>
     <string name="get_app_update_summary">Get new available version of the app automatically within the app</string>
+    <string name="update_available2">Update available!</string>
 
     <string-array name="media_types">
         <item>digital</item>

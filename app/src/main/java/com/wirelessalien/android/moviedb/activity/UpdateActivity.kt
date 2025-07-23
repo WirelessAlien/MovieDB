@@ -98,7 +98,7 @@ class UpdateActivity : AppCompatActivity() {
         val plusDownloadUrl = intent.getStringExtra("plusDownloadUrl")
         val changelog = intent.getStringExtra("changelog")
 
-        binding.updateVersion.text = release
+        binding.updateVersion.text = "v$release"
         binding.updateChangelog.text = changelog
 
         binding.downloadButton.setOnClickListener {
@@ -111,6 +111,11 @@ class UpdateActivity : AppCompatActivity() {
 
         binding.installButton.setOnClickListener {
             installApk()
+        }
+
+        binding.closeButton.setOnClickListener {
+            dialog.dismiss()
+            finish()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
