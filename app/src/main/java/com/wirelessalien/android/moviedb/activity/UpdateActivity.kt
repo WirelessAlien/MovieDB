@@ -27,9 +27,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
@@ -46,6 +44,33 @@ class UpdateActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUpdateBinding
     private lateinit var dialog: androidx.appcompat.app.AlertDialog
     private var downloadId: Long = -1
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val progressRunnable = object : Runnable {
+        override fun run() {
+            val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val query = DownloadManager.Query().setFilterById(downloadId)
+            val cursor = downloadManager.query(query)
+            if (cursor != null && cursor.moveToFirst()) {
+                val bytesDownloaded = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+                val bytesTotal = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+                if (bytesTotal > 0) {
+                    val progress = (bytesDownloaded * 100L / bytesTotal).toInt()
+                    binding.downloadProgress.progress = progress
+                }
+
+                when (cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
+                    DownloadManager.STATUS_SUCCESSFUL, DownloadManager.STATUS_FAILED -> {
+                        handler.removeCallbacks(this)
+                        cursor.close()
+                        return
+                    }
+                }
+            }
+            cursor?.close()
+            handler.postDelayed(this, 500)
+        }
+    }
 
     private val onDownloadComplete: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -98,11 +123,13 @@ class UpdateActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(onDownloadComplete)
+        handler.removeCallbacks(progressRunnable)
     }
 
     private fun downloadApk(url: String) {
         binding.downloadButton.visibility = View.GONE
         binding.downloadProgress.visibility = View.VISIBLE
+        binding.downloadProgress.progress = 0
 
         val fileName = "showcase-app-update.apk"
         val destination = File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
@@ -115,6 +142,8 @@ class UpdateActivity : AppCompatActivity() {
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         downloadId = downloadManager.enqueue(request)
+
+        handler.post(progressRunnable)
     }
 
     private fun installApk() {
@@ -133,3 +162,4 @@ class UpdateActivity : AppCompatActivity() {
         }
     }
 }
+

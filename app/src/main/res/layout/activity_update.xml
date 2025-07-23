@@ -23,6 +23,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center"
+    android:padding="16dp"
     android:orientation="vertical">
 
     <TextView
@@ -30,12 +31,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/update_available"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
     <TextView
         android:id="@+id/update_version"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="14sp"
         android:layout_marginTop="8dp" />
 
     <com.google.android.material.button.MaterialButton
