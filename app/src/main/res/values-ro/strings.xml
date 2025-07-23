@@ -1,3 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="no_permission_dialog_ok">OK</string>
+    <string name="no_permission_dialog_cancel">Anulează</string>
+    <string name="place_of_birth">Loc de naștere: %1$s</string>
+    <string name="birthday">Zii de naștere: %1$s</string>
+    <string name="movie_added">Film adăugat</string>
+    <string name="series_added">Serie adăugată</string>
 </resources>
