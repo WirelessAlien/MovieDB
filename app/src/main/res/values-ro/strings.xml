@@ -6,4 +6,7 @@
     <string name="birthday">Zii de naștere: %1$s</string>
     <string name="movie_added">Film adăugat</string>
     <string name="series_added">Serie adăugată</string>
+    <string name="import_cancel">Anulează</string>
+    <string name="cancel">Anulează</string>
+    <string name="ok">OK</string>
 </resources>
