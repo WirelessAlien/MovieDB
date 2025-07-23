@@ -35,8 +35,8 @@ object UpdateUtils {
     }
 
     fun isNewVersionAvailable(installedVersion: String, latestVersion: String): Boolean {
-        val installed = installedVersion.split(".").map { it.toInt() }
-        val latest = latestVersion.split(".").map { it.toInt() }
+        val installed = installedVersion.split("-")[0].split(".").map { it.toInt() }
+        val latest = latestVersion.split("-")[0].split(".").map { it.toInt() }
         val length = maxOf(installed.size, latest.size)
         for (i in 0 until length) {
             val installedPart = if (i < installed.size) installed[i] else 0
