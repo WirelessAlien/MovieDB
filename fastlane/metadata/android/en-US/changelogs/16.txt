@@ -1,0 +1,7 @@
+v3.6
+Fix notification history crash
+Add Collection for movies
+Add external link share (TMDB and IMDb link)
+Add external text share (to search media directly from other app)
+Add in app update (if prefered, enable in Settings)
+Improve TMDB list features (add ability to update list data within the app and a few more improvement)
