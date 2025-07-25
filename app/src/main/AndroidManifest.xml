@@ -117,15 +117,6 @@
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
-                <data android:scheme="https"/>
-                <data android:host="www.themoviedb.org"/>
-                <data android:pathPrefix="/movie/"/>
-                <data android:host="www.themoviedb.org"/>
-                <data android:pathPrefix="/tv/"/>
-                <data android:host="www.imdb.com"/>
-                <data android:pathPrefix="/title/"/>
-                <data android:host="m.imdb.com"/>
-                <data android:pathPrefix="/title/"/>
             </intent-filter>
         </activity>
 
