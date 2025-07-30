@@ -18,38 +18,34 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragment.UpNextFragment">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/textViewUpNext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        android:text="@string/up_next"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewUpNext"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:padding="16dp"
-            android:text="@string/up_next"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewUpNext"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:padding="8dp"/>
-    </LinearLayout>
+        android:layout_below="@id/textViewUpNext"
+        android:clipToPadding="false"
+        android:padding="8dp"/>
 
     <TextView
         android:id="@+id/emptyState"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:text="@string/no_up_next_episodes"
-        android:visibility="gone"/>
-</FrameLayout>
+        android:text="@string/no_up_next_episodes"/>
+</RelativeLayout>

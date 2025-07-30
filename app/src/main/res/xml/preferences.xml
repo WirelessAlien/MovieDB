@@ -64,6 +64,13 @@
             android:summary="@string/show_shows_as_default_in_the_account_tab"
             app:iconSpaceReserved="false"/>
 
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="key_show_continue_watching"
+            android:title="@string/quick_access_of_episodes_to_watch_next"
+            android:summary="@string/show_the_continue_watching_chip_desc"
+            app:iconSpaceReserved="false"/>
+
         <Preference
             android:key="sync_provider"
             app:title="@string/sync_provider2"

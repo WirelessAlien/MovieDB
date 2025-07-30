@@ -104,6 +104,7 @@ import com.wirelessalien.android.moviedb.fragment.LoginFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.SyncProviderBottomSheet
+import com.wirelessalien.android.moviedb.fragment.UpNextFragment
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
@@ -322,6 +323,10 @@ class MainActivity : BaseActivity() {
         binding.bottomNavigation.viewTreeObserver.addOnGlobalLayoutListener {
             val bottomNavHeight = binding.bottomNavigation.height
 
+            val paramsChip = binding.upnextChip.layoutParams as CoordinatorLayout.LayoutParams
+            paramsChip.bottomMargin = bottomNavHeight + 16
+            binding.upnextChip.layoutParams = paramsChip
+
             // Adjust the position of the first FAB
             val paramsFab = binding.fab.layoutParams as CoordinatorLayout.LayoutParams
             paramsFab.bottomMargin = bottomNavHeight + 16
@@ -338,6 +343,17 @@ class MainActivity : BaseActivity() {
             val params = binding.container.layoutParams as CoordinatorLayout.LayoutParams
             params.bottomMargin = bottomNavHeight
             binding.container.layoutParams = params
+        }
+
+        if (preferences.getBoolean("key_show_continue_watching", true)) {
+            binding.upnextChip.visibility = View.VISIBLE
+        } else {
+            binding.upnextChip.visibility = View.GONE
+        }
+
+        binding.upnextChip.setOnClickListener {
+            val upNextFragment = UpNextFragment()
+            upNextFragment.show(supportFragmentManager, "UpNextFragment")
         }
 
         mShowGenreList = HashMap()

@@ -283,6 +283,9 @@
     <string name="get_app_update">Fetch app update automatically</string>
     <string name="get_app_update_summary">Get new available version of the app automatically within the app</string>
     <string name="update_available2">Update available!</string>
+    <string name="continue_watching">Continue Watching!</string>
+    <string name="quick_access_of_episodes_to_watch_next">Quick access of up next episode</string>
+    <string name="show_the_continue_watching_chip_desc">Show the \"Continue Watching\" chip in all tabs to quickly access the next episode to watch.</string>
 
     <string-array name="media_types">
         <item>digital</item>
