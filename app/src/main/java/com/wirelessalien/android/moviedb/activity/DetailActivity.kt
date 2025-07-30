@@ -105,9 +105,9 @@ import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.ReviewItemBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment.Companion.newInstance
-import com.wirelessalien.android.moviedb.fragment.ListTmdbBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.databaseUpdate
+import com.wirelessalien.android.moviedb.fragment.ListTmdbBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ReviewFragment
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -816,20 +816,27 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
 
         val customTabsIntent = CustomTabsIntent.Builder().build()
-        customTabsIntent.intent.setPackage("com.android.chrome")
-        CustomTabsClient.bindCustomTabsService(
-            mActivity,
-            "com.android.chrome",
-            object : CustomTabsServiceConnection() {
-                override fun onCustomTabsServiceConnected(
-                    componentName: ComponentName,
-                    customTabsClient: CustomTabsClient
-                ) {
-                    customTabsClient.warmup(0L)
-                }
+        val packageName = CustomTabsClient.getPackageName(mActivity, null)
 
-                override fun onServiceDisconnected(name: ComponentName) {}
-            })
+        if (packageName != null) {
+            customTabsIntent.intent.setPackage(packageName)
+            CustomTabsClient.bindCustomTabsService(
+                mActivity,
+                packageName,
+                object : CustomTabsServiceConnection() {
+                    override fun onCustomTabsServiceConnected(
+                        componentName: ComponentName,
+                        customTabsClient: CustomTabsClient
+                    ) {
+                        customTabsClient.warmup(0L)
+                    }
+
+                    override fun onServiceDisconnected(name: ComponentName) {}
+                }
+            )
+        } else {
+            Log.w("CT", "No CT supported browser available")
+        }
 
         binding.fab.setOnClickListener(object : View.OnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
@@ -1291,12 +1298,17 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private fun launchUrl(context: Context, url: String) {
         val builder = CustomTabsIntent.Builder()
         val customTabsIntent = builder.build()
-        if (customTabsIntent.intent.resolveActivity(context.packageManager) != null) {
+
+        val customTabsPackage = CustomTabsClient.getPackageName(context, null)
+        if (customTabsPackage != null) {
+            // Launch the URL in a Custom Tab
+            customTabsIntent.intent.setPackage(customTabsPackage)
             customTabsIntent.launchUrl(context, Uri.parse(url))
         } else {
+            // Fallback to ACTION_VIEW if Custom Tabs is not available
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            if (browserIntent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(browserIntent)
+            if (browserIntent.resolveActivity(packageManager) != null) {
+                startActivity(browserIntent)
             } else {
                 Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show()
             }
@@ -3842,15 +3854,19 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                 val builder = CustomTabsIntent.Builder()
                 val customTabsIntent = builder.build()
-                if (customTabsIntent.intent.resolveActivity(packageManager) != null) {
+
+                val customTabsPackage = CustomTabsClient.getPackageName(context, null)
+                if (customTabsPackage != null) {
+                    // Launch the URL in a Custom Tab
+                    customTabsIntent.intent.setPackage(customTabsPackage)
                     customTabsIntent.launchUrl(context, Uri.parse(url))
                 } else {
+                    // Fallback to ACTION_VIEW if Custom Tabs is not available
                     val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                     if (browserIntent.resolveActivity(packageManager) != null) {
                         startActivity(browserIntent)
                     } else {
-                        Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG)
-                            .show()
+                        Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show()
                     }
                 }
             }
