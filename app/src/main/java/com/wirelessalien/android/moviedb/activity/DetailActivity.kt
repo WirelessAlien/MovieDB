@@ -2383,7 +2383,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         // if they do, use the movieObject values.
         try {
             // Set the movieId
-            movieId = movieObject.getString("id").toInt()
+            movieId = movieObject.optInt("id")
 
             // Due to the difficulty of comparing images (or rather,
             // this can be a really slow process) the id of the image is
@@ -2391,27 +2391,31 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             if (movieObject.has("poster_path") && binding.moviePoster.drawable == null) {
                 Picasso.get().load(
                     "https://image.tmdb.org/t/p/" + imageSize +
-                            movieObject.getString("poster_path")
+                            movieObject.optString("poster_path")
                 )
                     .into(binding.moviePoster)
 
                 // Set the old posterId to the new one.
-                movieObject.getString("poster_path")
+                movieObject.optString("poster_path")
             }
 
             // Check if it is a movie or a TV series.
             val title = if (movieObject.has("title")) "title" else "name"
-            movieTitle = if (isMovie) movieObject.getString("title") else movieObject.getString("name")
-            movieYear = if (movieObject.has("release_date")) movieObject.getString("release_date").substring(0, 4) else movieObject.getString("first_air_date").substring(0, 4)
+            movieTitle = if (isMovie) movieObject.optString("title") else movieObject.optString("name")
+            movieYear = if (movieObject.has("release_date")) {
+                movieObject.optString("release_date").take(4)
+            } else {
+                movieObject.optString("first_air_date").take(4)
+            }
             showName = movieObject.optString("name")
             if (movieObject.has(title) &&
-                movieObject.getString(title) != binding.movieTitle
+                movieObject.optString(title) != binding.movieTitle
                     .text.toString()
             ) {
-                binding.movieTitle.text = movieObject.getString(title)
+                binding.movieTitle.text = movieObject.optString(title)
 
                 // Initialise global variables (will become visible when scrolling down).
-                showTitle = SpannableString(movieObject.getString(title))
+                showTitle = SpannableString(movieObject.optString(title))
             }
 
             // The rating also uses a class variable for the same reason
@@ -2586,9 +2590,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
             // Set TMDB rating if it exists
             if (movieObject.has("vote_average") &&
-                movieObject.getString("vote_average") != voteAverage
+                movieObject.optString("vote_average") != voteAverage
             ) {
-                val voteAverage = movieObject.getString("vote_average").toFloat()
+                val voteAverage = movieObject.optDouble("vote_average").toFloat()
                 val localizedTen = String.format(Locale.getDefault(), "%d", 10)
                 binding.rating.text =
                     String.format(Locale.getDefault(), "%.2f/%s", voteAverage, localizedTen)
@@ -2596,12 +2600,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
             // If the overview (summary) is different in the new dataset, change it.
             if (movieObject.has("overview") &&
-                movieObject.getString("overview") != binding.movieDescription
-                    .text.toString() && movieObject.getString("overview") != "" && movieObject.getString(
+                movieObject.optString("overview") != binding.movieDescription
+                    .text.toString() && movieObject.optString("overview") != "" && movieObject.optString(
                     "overview"
                 ) != "Overview not available"
             ) {
-                binding.movieDescription.text = movieObject.getString("overview")
+                binding.movieDescription.text = movieObject.optString("overview")
             }
 
             // Set the genres
@@ -2611,7 +2615,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 // the new text with genres will be compared to the old one.
 
                 // Remove the [ and ] from the String
-                val genreIds = movieObject.getString("genre_ids").substring(1, movieObject.getString("genre_ids").length - 1)
+                val genreIdsString = movieObject.optString("genre_ids")
+                val genreIds = if (genreIdsString.length > 1) genreIdsString.substring(1, genreIdsString.length - 1) else ""
 
                 // Split the String with the ids and set them into an array.
                 val genreArray =
@@ -2638,7 +2643,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
 
             if (movieObject.has("popularity")) {
-                val popularity = movieObject.getString("popularity").toDouble()
+                val popularity = movieObject.optDouble("popularity")
                 val formattedPopularity = NumberFormat.getNumberInstance(Locale.getDefault()).format(popularity)
                 binding.popularityText.text = formattedPopularity
             }
@@ -2673,7 +2678,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
 
             if (movieObject.has("tagline")) {
-                val tagline = movieObject.getString("tagline")
+                val tagline = movieObject.optString("tagline")
                 if (tagline != binding.tagline.text.toString()) {
                     binding.tagline.text = tagline
                     binding.tagline.visibility = View.VISIBLE
@@ -2683,7 +2688,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
             if (!isMovie) {
                 if (movieObject.has("first_air_date")) {
-                    val firstAirDateStr = movieObject.getString("first_air_date")
+                    val firstAirDateStr = movieObject.optString("first_air_date")
                     try {
                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                         val firstAirDate = sdf.parse(firstAirDateStr)
@@ -2702,8 +2707,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
 
             if (isMovie) {
-                if (movieObject.has("runtime") && movieObject.getString("runtime") != binding.runtime.text.toString()) {
-                    val totalMinutes = movieObject.getString("runtime").toInt()
+                if (movieObject.has("runtime") && movieObject.optString("runtime") != binding.runtime.text.toString()) {
+                    val totalMinutes = movieObject.optInt("runtime")
                     val hours = totalMinutes / 60
                     val minutes = totalMinutes % 60
                     val formattedRuntime =
@@ -2727,8 +2732,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     binding.runtime.setText(R.string.unknown)
                 }
             }
-            if (movieObject.has("status") && movieObject.getString("status") != binding.statusDataText.text.toString()) {
-                binding.statusDataText.text = movieObject.getString("status")
+            if (movieObject.has("status") && movieObject.optString("status") != binding.statusDataText.text.toString()) {
+                binding.statusDataText.text = movieObject.optString("status")
             }
             if (movieObject.has("production_countries")) {
                 val productionCountries = movieObject.getJSONArray("production_countries")
@@ -2743,13 +2748,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.countryDataText.text = countries.toString()
             }
             val formattedRevenue: String = if (movieObject.has("revenue")) {
-                val revenue = movieObject.getString("revenue").toLong()
+                val revenue = movieObject.optLong("revenue")
                 formatCurrency(revenue)
             } else {
                 getString(R.string.unknown)
             }
             val formattedBudget: String = if (movieObject.has("budget")) {
-                val budget = movieObject.getString("budget").toLong()
+                val budget = movieObject.optLong("budget")
                 formatCurrency(budget)
             } else {
                 getString(R.string.unknown)

@@ -557,8 +557,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             activityBinding.fab.visibility = View.GONE
             activityBinding.fab2.visibility = View.GONE
         } else if (binding.chipWatching.isChecked) {
-            activityBinding.fab.visibility = View.VISIBLE
-            activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+            if (preferences.getBoolean("key_show_continue_watching", true)) {
+                activityBinding.fab.visibility = View.GONE
+            } else {
+                activityBinding.fab.visibility = View.VISIBLE
+                activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+            }
             activityBinding.fab.setOnClickListener {
                 val upNextFragment = UpNextFragment()
                 upNextFragment.show(parentFragmentManager, "UpNextFragment")
@@ -893,8 +897,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
         binding.chipWatching.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming)) {
-                activityBinding.fab.visibility = View.VISIBLE
-                activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+                if (preferences.getBoolean("key_show_continue_watching", true)) {
+                    activityBinding.fab.visibility = View.GONE
+                } else {
+                    activityBinding.fab.visibility = View.VISIBLE
+                    activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+                }
                 activityBinding.fab2.visibility = View.GONE
                 activityBinding.fab.setOnClickListener {
                     val upNextFragment = UpNextFragment()
