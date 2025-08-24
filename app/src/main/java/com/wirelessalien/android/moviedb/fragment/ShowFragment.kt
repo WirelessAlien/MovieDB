@@ -235,16 +235,10 @@ class ShowFragment : BaseFragment() {
                 }
 
                 "between_dates" -> {
-                    var startDate: String
-                    if (sharedPreferences.getString(FilterActivity.FILTER_START_DATE, null)
-                            .also { startDate = it!! } != null
-                    ) {
+                    sharedPreferences.getString(FilterActivity.FILTER_START_DATE, null)?.let { startDate ->
                         filterParameter += "&primary_release_date.gte=$startDate"
                     }
-                    var endDate: String
-                    if (sharedPreferences.getString(FilterActivity.FILTER_END_DATE, null)
-                            .also { endDate = it!! } != null
-                    ) {
+                    sharedPreferences.getString(FilterActivity.FILTER_END_DATE, null)?.let { endDate ->
                         filterParameter += "&primary_release_date.lte=$endDate"
                     }
                 }

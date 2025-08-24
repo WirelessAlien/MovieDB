@@ -547,8 +547,9 @@ public class FilterActivity extends AppCompatActivity {
 
                 Chip genreChip = findViewById(id);
                 if (genreChip != null) {
-                    Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_check, null);
-                    genreChip.setChipIcon(drawable);
+                    genreChip.setChipBackgroundColorResource(R.color.md_theme_primary);
+                    genreChip.setCloseIconResource(R.drawable.ic_check);
+                    genreChip.setCloseIconVisible(true);
                 }
             }
         }
@@ -560,8 +561,9 @@ public class FilterActivity extends AppCompatActivity {
 
                 Chip genreChip = findViewById(id);
                 if (genreChip != null) {
-                    Drawable drawable = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_close, null);
-                    genreChip.setChipIcon(drawable);
+                    genreChip.setChipBackgroundColorResource(R.color.colorRed);
+                    genreChip.setCloseIconResource(R.drawable.ic_close);
+                    genreChip.setCloseIconVisible(true);
                 }
             }
         }

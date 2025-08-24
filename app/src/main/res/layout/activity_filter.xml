@@ -253,7 +253,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/start_date2" />
+                        android:text="@string/start_date2"
+                        android:layout_marginEnd="10dp"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/startDateButton"
@@ -262,7 +263,7 @@
                         android:drawableEnd="@drawable/ic_calendar"
                         android:drawablePadding="5dp"
                         style="@style/Widget.Material3.Button.OutlinedButton"
-                        app:cornerRadius="5dp"
+                        app:cornerRadius="10dp"
                         android:onClick="selectDate"
                         android:tag="start_date" />
                 </TableRow>
@@ -275,7 +276,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/end_date" />
+                        android:text="@string/end_date"
+                        android:layout_marginEnd="10dp"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/endDateButton"
@@ -284,7 +286,7 @@
                         android:drawableEnd="@drawable/ic_calendar"
                         android:drawablePadding="5dp"
                         style="@style/Widget.Material3.Button.OutlinedButton"
-                        app:cornerRadius="5dp"
+                        app:cornerRadius="10dp"
                         android:onClick="selectDate"
                         android:tag="end_date" />
                 </TableRow>
