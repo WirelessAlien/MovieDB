@@ -222,7 +222,7 @@ class CastActivity : BaseActivity() {
         if (preferences.getBoolean(DYNAMIC_COLOR_DETAILS_ACTIVITY, false)) {
             if (actorObject.has("profile_path") && binding.actorImage.drawable == null) {
                 val imageUrl: String = try {
-                    "https://image.tmdb.org/t/p/h632" + actorObject.getString("profile_path")
+                    "https://image.tmdb.org/t/p/h632" + actorObject.optString("profile_path")
                 } catch (e: JSONException) {
                     e.printStackTrace()
                     ""
@@ -299,7 +299,7 @@ class CastActivity : BaseActivity() {
                     try {
                         Picasso.get().load(
                             "https://image.tmdb.org/t/p/h632" +
-                                    actorObject.getString("profile_path")
+                                    actorObject.optString("profile_path")
                         )
                             .into(binding.actorImage)
                     } catch (e: JSONException) {
@@ -378,10 +378,10 @@ class CastActivity : BaseActivity() {
             val profiles = imagesObject.getJSONArray("profiles")
             for (i in 0 until profiles.length()) {
                 val imageUrl = "https://image.tmdb.org/t/p/h632" + profiles.getJSONObject(i)
-                    .getString("file_path")
+                    .optString("file_path")
                 imageUrls.add(imageUrl)
 
-                val filePath = profiles.getJSONObject(i).getString("file_path")
+                val filePath = profiles.getJSONObject(i).optString("file_path")
                 filePaths.add(filePath)
             }
 
@@ -547,7 +547,7 @@ class CastActivity : BaseActivity() {
             try {
                 var actorData = fetchActorDetails(urlWithLanguage)
 
-                if (actorData.getString("biography").isEmpty()) {
+                if (actorData.optString("biography").isEmpty()) {
                     actorData = fetchActorDetails(baseUrl)
                 }
                 withContext(Dispatchers.Main) {
@@ -666,7 +666,7 @@ class CastActivity : BaseActivity() {
                         val profiles = jsonObject.getJSONArray("profiles")
                         if (profiles.length() > 0) {
                             imagesObject = jsonObject
-                            val firstImage = profiles.getJSONObject(0).getString("file_path")
+                            val firstImage = profiles.getJSONObject(0).optString("file_path")
                             val imageUrl = "https://image.tmdb.org/t/p/h632$firstImage"
                             Picasso.get().load(imageUrl).into(binding.backgroundImage)
                         }
