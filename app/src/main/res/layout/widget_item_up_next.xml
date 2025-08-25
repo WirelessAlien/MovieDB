@@ -21,47 +21,44 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
+    android:padding="8dp"
     android:theme="@style/AppTheme"
-    android:padding="8dp">
-
-    <TextView
-        android:id="@+id/widget_item_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:text="Item Title"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/widget_item_season_episode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textSize="16sp"
-        android:text="Season 1, Episode 1: Episode Name"
-        android:textAppearance="?android:attr/textAppearanceSmall"/>
+    android:gravity="center_vertical">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/widget_item_release_date"
+            android:id="@+id/widget_item_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Date"
-            android:alpha="0.8"/>
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Item Title"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/widget_item_release_time"
+            android:id="@+id/widget_item_season_episode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="Time"
-            android:alpha="0.8"/>
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="S01E01"
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
+
     </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/widget_item_watched_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_done_2"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/mark_as_watched" />
+
 </LinearLayout>

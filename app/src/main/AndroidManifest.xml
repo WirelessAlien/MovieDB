@@ -205,6 +205,7 @@
         <!-- Upcoming Movies/Shows Widget -->
         <receiver
             android:name=".widget.UpcomingWidgetProvider"
+            android:label="@string/upcoming"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -220,6 +221,26 @@
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
         <!-- End of Upcoming Movies/Shows Widget -->
+
+        <!-- Up Next Widget -->
+        <receiver
+            android:name=".widget.UpNextWidgetProvider"
+            android:label="@string/up_next"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.wirelessalien.android.moviedb.widget.action.MARK_AS_WATCHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/up_next_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".widget.UpNextWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+        <!-- End of Up Next Widget -->
 
         <activity android:name=".activity.UpdateActivity"
             android:theme="@style/Theme.Transparent">

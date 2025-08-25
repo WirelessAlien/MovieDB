@@ -265,7 +265,7 @@ class UpcomingRemoteViewsFactory(
                 val episodeNum = cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_NUMBER))
 
                 title = showTitle
-                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum: $episodeTitle"
+                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E${String.format("%02d", episodeNum)}: $episodeTitle"
 
                 jsonObject.put("name", title)
                 jsonObject.put("seasonEpisode", seasonEpisodeInfo)
