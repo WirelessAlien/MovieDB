@@ -55,6 +55,18 @@
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken
 -keep class com.wirelessalien.android.moviedb.work.UpdateWorker$* { *; }
+-keep class com.wirelessalien.android.moviedb.data.CollectionDetails
+-keep class com.wirelessalien.android.moviedb.data.Episode
+-keep class com.wirelessalien.android.moviedb.data.EpisodeDbDetails
+-keep class com.wirelessalien.android.moviedb.data.ListDataTmdb
+-keep class com.wirelessalien.android.moviedb.data.ListDetailsData
+-keep class com.wirelessalien.android.moviedb.data.ListDetailsData
+-keep class com.wirelessalien.android.moviedb.data.MovieImage
+-keep class com.wirelessalien.android.moviedb.data.NotificationItem
+-keep class com.wirelessalien.android.moviedb.data.Release
+-keep class com.wirelessalien.android.moviedb.data.TktTokenResponse
+-keep class com.wirelessalien.android.moviedb.data.TraktMediaObject
+-keep class com.wirelessalien.android.moviedb.data.TVSeason
 
 -keep class com.wirelessalien.android.moviedb.data.** {
     !transient <fields>;

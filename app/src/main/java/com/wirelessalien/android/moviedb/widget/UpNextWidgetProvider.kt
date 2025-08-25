@@ -28,6 +28,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import android.widget.Toast
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -78,6 +79,9 @@ class UpNextWidgetProvider : AppWidgetProvider() {
             val thisAppWidget = ComponentName(context.packageName, javaClass.name)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget)
             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view)
+            if (intent.action == ACTION_REFRESH_UPNEXT) {
+                Toast.makeText(context, R.string.done, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

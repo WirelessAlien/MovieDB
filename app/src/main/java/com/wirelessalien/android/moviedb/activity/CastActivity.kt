@@ -43,6 +43,7 @@ import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.squareup.picasso.Picasso
@@ -51,7 +52,9 @@ import com.squareup.picasso.Target
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ImagePagerAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.TimelineAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityCastBinding
+import com.wirelessalien.android.moviedb.databinding.BottomSheetTimelineBinding
 import com.wirelessalien.android.moviedb.databinding.DialogPersonImageBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
@@ -64,6 +67,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URL
+import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
@@ -412,6 +416,49 @@ class CastActivity : BaseActivity() {
                 binding.favoriteFab.setImageResource(R.drawable.ic_star)
             }
         }
+
+        binding.upcoming.setOnClickListener {
+            showTimelineBottomSheet()
+        }
+    }
+
+    private fun showTimelineBottomSheet() {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val bottomSheetBinding = BottomSheetTimelineBinding.inflate(layoutInflater)
+        bottomSheetDialog.setContentView(bottomSheetBinding.root)
+
+        val today = Date()
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+        val allCredits = (castMovieArrayList + crewMovieArrayList)
+            .filter {
+                val releaseDateStr =
+                    it.optString("release_date", "") ?: it.optString("first_air_date", "")
+                if (releaseDateStr.isNullOrEmpty()) {
+                    false
+                } else {
+                    try {
+                        val releaseDate = dateFormat.parse(releaseDateStr)
+                        releaseDate != null && releaseDate.after(today)
+                    } catch (e: Exception) {
+                        false
+                    }
+                }
+            }
+            .sortedByDescending {
+                val releaseDateStr =
+                    it.optString("release_date", "") ?: it.optString("first_air_date", "")
+                try {
+                    dateFormat.parse(releaseDateStr)?.time ?: 0L
+                } catch (e: Exception) {
+                    0L
+                }
+            }
+
+        val adapter = TimelineAdapter(allCredits)
+        bottomSheetBinding.timelineRecyclerView.adapter = adapter
+
+        bottomSheetDialog.show()
     }
 
     override fun doNetworkWork() {

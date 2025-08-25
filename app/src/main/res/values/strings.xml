@@ -289,6 +289,7 @@
     <string name="tv_shows">Shows</string>
     <string name="no_up_next_shows">No shows to watch next.</string>
     <string name="up_next_widget_description">Shows the next episode to watch.</string>
+    <string name="timeline">Timeline</string>
 
     <string-array name="media_types">
         <item>digital</item>

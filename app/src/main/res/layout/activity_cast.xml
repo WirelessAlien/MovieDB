@@ -130,6 +130,15 @@
                             android:text="@string/image"/>
 
                         <com.google.android.material.chip.Chip
+                            android:id="@+id/upcoming"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:chipIcon="@drawable/ic_history"
+                            android:layout_marginEnd="16dp"
+                            style="@style/Widget.Material3.Chip.Assist.Elevated"
+                            android:text="@string/upcoming"/>
+
+                        <com.google.android.material.chip.Chip
                             android:id="@+id/homepage"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -181,22 +190,22 @@
                 android:text="@string/crew_title" />
         </com.google.android.material.tabs.TabLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/castMovieRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginStart="11dp"
-        android:layout_marginEnd="11dp"
-        android:scrollbars="none" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/castMovieRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="11dp"
+            android:layout_marginEnd="11dp"
+            android:scrollbars="none" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/crewMovieRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginStart="11dp"
-        android:layout_marginEnd="11dp"
-        android:scrollbars="none"
-        android:visibility="gone"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/crewMovieRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="11dp"
+            android:layout_marginEnd="11dp"
+            android:scrollbars="none"
+            android:visibility="gone"/>
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
