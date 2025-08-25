@@ -20,6 +20,7 @@
 
 package com.wirelessalien.android.moviedb.widget
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -46,6 +47,16 @@ class UpNextWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        scheduleNextUpdate(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        super.onDisabled(context)
+        cancelAlarm(context)
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_MARK_AS_WATCHED) {
@@ -61,6 +72,50 @@ class UpNextWidgetProvider : AppWidgetProvider() {
                 val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
                 appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view)
             }
+        }
+        if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE || intent.action == ACTION_REFRESH_UPNEXT) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val thisAppWidget = ComponentName(context.packageName, javaClass.name)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget)
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view)
+        }
+    }
+
+    private fun scheduleNextUpdate(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, UpNextWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            1,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        alarmManager.setInexactRepeating(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis(),
+            AlarmManager.INTERVAL_HALF_DAY,
+            pendingIntent
+        )
+    }
+
+    private fun cancelAlarm(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, UpNextWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            1,
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
+            pendingIntent.cancel()
         }
     }
 
@@ -82,6 +137,17 @@ class UpNextWidgetProvider : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_headerRL, pendingIntent)
+
+        val refreshIntent = Intent(context, UpNextWidgetProvider::class.java).apply {
+            action = ACTION_REFRESH_UPNEXT
+        }
+        val refreshPendingIntent = PendingIntent.getBroadcast(
+            context,
+            2,
+            refreshIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.widget_refresh_button, refreshPendingIntent)
 
         val clickIntent = Intent(context, UpNextWidgetProvider::class.java).apply {
             action = ACTION_MARK_AS_WATCHED
@@ -106,6 +172,7 @@ class UpNextWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ACTION_MARK_AS_WATCHED = "com.wirelessalien.android.moviedb.widget.action.MARK_AS_WATCHED"
+        const val ACTION_REFRESH_UPNEXT = "com.wirelessalien.android.moviedb.widget.action.REFRESH_UPNEXT"
         const val EXTRA_SHOW_ID = "com.wirelessalien.android.moviedb.widget.extra.SHOW_ID"
         const val EXTRA_SEASON_NUMBER = "com.wirelessalien.android.moviedb.widget.extra.SEASON_NUMBER"
         const val EXTRA_EPISODE_NUMBER = "com.wirelessalien.android.moviedb.widget.extra.EPISODE_NUMBER"

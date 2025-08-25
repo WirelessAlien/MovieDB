@@ -87,17 +87,13 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
 
     private fun scheduleNextUpdate(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, UpcomingWidgetProvider::class.java)
-        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        intent.action = "com.wirelessalien.android.moviedb.widget.action.UPDATE_WIDGET"
-
-
-        // Get all widget IDs for this provider
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val componentName = ComponentName(context, UpcomingWidgetProvider::class.java)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
-
+        val intent = Intent(context, UpcomingWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val componentName = ComponentName(context, UpcomingWidgetProvider::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+        }
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
@@ -106,7 +102,6 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Calculate time for next update (next day at midnight)
         val calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, 0)
@@ -115,7 +110,7 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
             add(Calendar.DAY_OF_YEAR, 1)
         }
 
-        alarmManager.setRepeating(
+        alarmManager.setInexactRepeating(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
             AlarmManager.INTERVAL_DAY,
@@ -126,12 +121,12 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
     private fun cancelAlarm(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, UpcomingWidgetProvider::class.java)
-        intent.action = "com.wirelessalien.android.moviedb.widget.action.UPDATE_WIDGET"
+        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             0,
             intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE // Check if alarm exists
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         )
         if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
