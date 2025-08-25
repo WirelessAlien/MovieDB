@@ -19,10 +19,10 @@
   -->
 
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="125dp"
+    android:minWidth="180dp"
     android:minHeight="110dp"
     android:updatePeriodMillis="0"
-    android:previewImage="@drawable/upcoming_widget"
+    android:previewImage="@drawable/upnext_widget"
     android:initialLayout="@layout/widget_up_next"
     android:previewLayout="@layout/widget_up_next"
     android:description="@string/up_next_widget_description"

@@ -430,7 +430,7 @@ class CastActivity : BaseActivity() {
         val today = Date()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-        val allCredits = (castMovieArrayList + crewMovieArrayList)
+        val allCreditsRaw = (castMovieArrayList + crewMovieArrayList)
             .filter {
                 val releaseDateStr =
                     it.optString("release_date", "") ?: it.optString("first_air_date", "")
@@ -445,6 +445,24 @@ class CastActivity : BaseActivity() {
                     }
                 }
             }
+
+        val combinedCredits = allCreditsRaw.groupBy { it.optInt("id") }
+            .map { (_, credits) ->
+                if (credits.size > 1) {
+                    val cast = credits.find { !it.has("job") }
+                    val crew = credits.find { it.has("job") }
+                    if (cast != null && crew != null) {
+                        val newCredit = JSONObject(cast.toString()) // clone cast
+                        val crewJob = crew.optString("job")
+                        newCredit.put("job", "Actor, $crewJob")
+                        newCredit
+                    } else {
+                        credits.first()
+                    }
+                } else {
+                    credits.first()
+                }
+            }
             .sortedByDescending {
                 val releaseDateStr =
                     it.optString("release_date", "") ?: it.optString("first_air_date", "")
@@ -455,7 +473,7 @@ class CastActivity : BaseActivity() {
                 }
             }
 
-        val adapter = TimelineAdapter(allCredits)
+        val adapter = TimelineAdapter(combinedCredits)
         bottomSheetBinding.timelineRecyclerView.adapter = adapter
 
         bottomSheetDialog.show()

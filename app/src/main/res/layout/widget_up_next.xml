@@ -38,7 +38,8 @@
             android:layout_height="wrap_content"
             app:tint="?attr/colorPrimaryContainer"
             style="@style/Widget.Material3.Button.IconButton"
-            android:src="@drawable/ic_app_icon"/>
+            android:src="@drawable/ic_app_icon"
+            android:contentDescription="@string/app_name" />
 
         <TextView
             android:id="@+id/widget_header"
@@ -75,6 +76,6 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:text="@string/no_up_next_shows"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
         android:visibility="gone" />
 </RelativeLayout>

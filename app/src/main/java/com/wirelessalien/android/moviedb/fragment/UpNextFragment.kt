@@ -73,6 +73,10 @@ class UpNextFragment : BottomSheetDialogFragment() {
     }
 
     private fun loadUpNextEpisodes() {
+        binding.shimmerFrameLayout.startShimmer()
+        binding.shimmerFrameLayout.visibility = View.VISIBLE
+        binding.recyclerViewUpNext.visibility = View.GONE
+
         lifecycleScope.launch(Dispatchers.IO) {
             val watchingShows = getWatchingShows()
             val upNextEpisodes = mutableListOf<UpNextAdapter.UpNextItem>()
@@ -87,6 +91,8 @@ class UpNextFragment : BottomSheetDialogFragment() {
             upNextEpisodes.sortByDescending { it.lastWatchedDate }
 
             withContext(Dispatchers.Main) {
+                binding.shimmerFrameLayout.stopShimmer()
+                binding.shimmerFrameLayout.visibility = View.GONE
                 if (upNextEpisodes.isEmpty()) {
                     binding.emptyState.visibility = View.VISIBLE
                     binding.recyclerViewUpNext.visibility = View.GONE

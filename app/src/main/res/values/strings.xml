@@ -245,7 +245,7 @@
     <string name="schedule_update">Schedule Update</string>
     <string name="schedule_monthly_update">Schedule Monthly Update</string>
     <string name="enable_update">Enable update</string>
-    <string name="upcoming_widget_description">Shows upcoming Movies and TV show episodes.</string>
+    <string name="upcoming_widget_description">Shows upcoming Movies and TV show episodes for Saved media.</string>
     <string name="loading_data">Loading data…</string>
     <string name="unknown_title">Unknown Title</string>
     <string name="notifications">Notifications</string>
@@ -287,8 +287,8 @@
     <string name="quick_access_of_episodes_to_watch_next">Quick access of up next episode</string>
     <string name="show_the_continue_watching_chip_desc">Show the \"Continue Watching\" chip in all tabs to quickly access the next episode to watch.</string>
     <string name="tv_shows">Shows</string>
-    <string name="no_up_next_shows">No shows to watch next.</string>
-    <string name="up_next_widget_description">Shows the next episode to watch.</string>
+    <string name="no_up_next_shows">No ongoing shows available, start watching new shows!</string>
+    <string name="up_next_widget_description">Shows the next episode to watch (for ongoing Shows).</string>
     <string name="timeline">Timeline</string>
 
     <string-array name="media_types">
