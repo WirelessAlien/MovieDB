@@ -20,31 +20,60 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
 
-    <RadioGroup
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_export_choice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true">
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_json"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_json"
+            style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:chipCornerRadius="8dp"
             android:text="JSON" />
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_db"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_db"
+            style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:chipCornerRadius="8dp"
             android:text="DB" />
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/radio_csv"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_csv"
+            style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:chipCornerRadius="8dp"
             android:text="CSV" />
-    </RadioGroup>
+    </com.google.android.material.chip.ChipGroup>
+
+    <LinearLayout
+        android:id="@+id/csv_export_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkbox_movies_only"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/export_movies_only" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkbox_movies_and_episodes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/export_movies_and_episodes" />
+    </LinearLayout>
 </LinearLayout>

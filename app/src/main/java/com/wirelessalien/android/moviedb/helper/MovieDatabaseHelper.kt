@@ -30,9 +30,12 @@ import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
-import android.widget.RadioButton
+import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
+import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ExportActivity
@@ -177,36 +180,58 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         return episodesArray
     }
 
-    suspend fun getCSVExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
+    suspend fun getCSVExportString(database: SQLiteDatabase, moviesOnly: Boolean): String = withContext(Dispatchers.IO) {
         val csvBuilder = StringBuilder()
 
-        // Get all movies with their episodes
-        val query = """
-        SELECT 
-            m.$COLUMN_MOVIES_ID as tmdb_id,
-            m.$COLUMN_TITLE as title,
-            m.$COLUMN_SUMMARY as summary,
-            m.$COLUMN_RATING as tmdb_rating,
-            m.$COLUMN_IMAGE as image,
-            m.$COLUMN_ICON as icon,
-            m.$COLUMN_GENRES as genres,
-            m.$COLUMN_GENRES_IDS as genres_ids,
-            m.$COLUMN_PERSONAL_RATING as rating,
-            m.$COLUMN_RELEASE_DATE as release_date,
-            m.$COLUMN_PERSONAL_START_DATE as start_date,
-            m.$COLUMN_PERSONAL_FINISH_DATE as finish_date,
-            m.$COLUMN_MOVIE_REVIEW as movie_review,
-            m.$COLUMN_MOVIE as is_movie,
-            m.$COLUMN_CATEGORIES as categories,
-            e.$COLUMN_SEASON_NUMBER as season,
-            e.$COLUMN_EPISODE_NUMBER as episode,
-            e.$COLUMN_EPISODE_RATING as episode_rating,
-            e.$COLUMN_EPISODE_WATCH_DATE as episode_watch_date,
-            e.$COLUMN_EPISODE_REVIEW as episode_review
-        FROM $TABLE_MOVIES m
-        LEFT JOIN $TABLE_EPISODES e ON m.$COLUMN_MOVIES_ID = e.$COLUMN_MOVIES_ID
-        ORDER BY m.$COLUMN_TITLE, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER
-    """
+        val query = if (moviesOnly) {
+            """
+            SELECT 
+                m.$COLUMN_MOVIES_ID as tmdb_id,
+                m.$COLUMN_TITLE as title,
+                m.$COLUMN_SUMMARY as summary,
+                m.$COLUMN_RATING as tmdb_rating,
+                m.$COLUMN_IMAGE as image,
+                m.$COLUMN_ICON as icon,
+                m.$COLUMN_GENRES as genres,
+                m.$COLUMN_GENRES_IDS as genres_ids,
+                m.$COLUMN_PERSONAL_RATING as rating,
+                m.$COLUMN_RELEASE_DATE as release_date,
+                m.$COLUMN_PERSONAL_START_DATE as start_date,
+                m.$COLUMN_PERSONAL_FINISH_DATE as finish_date,
+                m.$COLUMN_MOVIE_REVIEW as movie_review,
+                m.$COLUMN_MOVIE as is_movie,
+                m.$COLUMN_CATEGORIES as categories
+            FROM $TABLE_MOVIES m
+            ORDER BY m.$COLUMN_TITLE
+            """
+        } else {
+            """
+            SELECT 
+                m.$COLUMN_MOVIES_ID as tmdb_id,
+                m.$COLUMN_TITLE as title,
+                m.$COLUMN_SUMMARY as summary,
+                m.$COLUMN_RATING as tmdb_rating,
+                m.$COLUMN_IMAGE as image,
+                m.$COLUMN_ICON as icon,
+                m.$COLUMN_GENRES as genres,
+                m.$COLUMN_GENRES_IDS as genres_ids,
+                m.$COLUMN_PERSONAL_RATING as rating,
+                m.$COLUMN_RELEASE_DATE as release_date,
+                m.$COLUMN_PERSONAL_START_DATE as start_date,
+                m.$COLUMN_PERSONAL_FINISH_DATE as finish_date,
+                m.$COLUMN_MOVIE_REVIEW as movie_review,
+                m.$COLUMN_MOVIE as is_movie,
+                m.$COLUMN_CATEGORIES as categories,
+                e.$COLUMN_SEASON_NUMBER as season,
+                e.$COLUMN_EPISODE_NUMBER as episode,
+                e.$COLUMN_EPISODE_RATING as episode_rating,
+                e.$COLUMN_EPISODE_WATCH_DATE as episode_watch_date,
+                e.$COLUMN_EPISODE_REVIEW as episode_review
+            FROM $TABLE_MOVIES m
+            LEFT JOIN $TABLE_EPISODES e ON m.$COLUMN_MOVIES_ID = e.$COLUMN_MOVIES_ID
+            ORDER BY m.$COLUMN_TITLE, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER
+            """
+        }
 
         val csr = database.rawQuery(query, null)
 
@@ -230,7 +255,6 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                                 str
                             }
                         }
-
                         else -> ""
                     }
                     value
@@ -251,32 +275,44 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val builder = MaterialAlertDialogBuilder(context)
         val inflater = LayoutInflater.from(context)
         val customView = inflater.inflate(R.layout.export_dialog, null)
-        val jsonRadioButton = customView.findViewById<RadioButton>(R.id.radio_json)
-        val dbRadioButton = customView.findViewById<RadioButton>(R.id.radio_db)
-        val csvRadioButton = customView.findViewById<RadioButton>(R.id.radio_csv)
+        val jsonChip = customView.findViewById<Chip>(R.id.chip_json)
+        val dbChip = customView.findViewById<Chip>(R.id.chip_db)
+        val csvChip = customView.findViewById<Chip>(R.id.chip_csv)
+        val csvExportOptions = customView.findViewById<LinearLayout>(R.id.csv_export_options)
+        val moviesOnlyCheckBox = customView.findViewById<MaterialCheckBox>(R.id.checkbox_movies_only)
+
+        csvChip.setOnCheckedChangeListener { _, isChecked ->
+            csvExportOptions.isVisible = isChecked
+        }
+
         builder.setView(customView)
         builder.setTitle(context.resources.getString(R.string.choose_export_file))
             .setPositiveButton(context.getString(R.string.export)) { _, _ ->
                 val exportDirectory = getExportDirectory(context)
+                val isJson = jsonChip.isChecked
+                val isDb = dbChip.isChecked
+                val isCsv = csvChip.isChecked
+                val isMoviesOnly = moviesOnlyCheckBox.isChecked
+
                 if (exportDirectoryUri != null) {
-                    exportToUri(context, exportDirectoryUri, jsonRadioButton, dbRadioButton, csvRadioButton)
+                    exportToUri(context, exportDirectoryUri, isJson, isDb, isCsv, isMoviesOnly)
                     Log.d("Export", "Exporting to URI")
                 } else if (exportDirectory != null) {
-                    exportToDirectory(context, exportDirectory, jsonRadioButton, dbRadioButton, csvRadioButton)
+                    exportToDirectory(context, exportDirectory, isJson, isDb, isCsv, isMoviesOnly)
                     Log.d("Export", "Exporting to DIR")
                 } else {
-                    promptUserToSaveFile(context, jsonRadioButton, dbRadioButton, csvRadioButton)
+                    promptUserToSaveFile(context, isJson, isDb, isCsv, isMoviesOnly)
                 }
             }
             .setNegativeButton(context.getString(R.string.cancel)) { dialogInterface, _ -> dialogInterface.cancel() }
         builder.show()
     }
 
-    private fun exportToUri(context: Context, exportDirectoryUri: String, jsonRadioButton: RadioButton, dbRadioButton: RadioButton, csvRadioButton: RadioButton) {
+    private fun exportToUri(context: Context, exportDirectoryUri: String, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isMoviesOnly: Boolean) {
         val documentFile = DocumentFile.fromTreeUri(context, Uri.parse(exportDirectoryUri))
         val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
         when {
-            jsonRadioButton.isChecked -> {
+            isJson -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     val fileContent = getJSONExportString(readableDatabase)
                     val fileExtension = ".json"
@@ -294,12 +330,12 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false)
                         }
                     }
                 }
             }
-            dbRadioButton.isChecked -> {
+            isDb -> {
                 val fileExtension = ".db"
                 val exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                 CoroutineScope(Dispatchers.IO).launch {
@@ -332,15 +368,15 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
                             if (context is ExportActivity) {
-                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false)
+                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false, isMovieOnly = false)
                             }
                         }
                     }
                 }
             }
-            csvRadioButton.isChecked -> {
+            isCsv -> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val fileContent = getCSVExportString(readableDatabase)
+                    val fileContent = getCSVExportString(readableDatabase, isMoviesOnly)
                     val fileExtension = ".csv"
                     val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                     try {
@@ -356,7 +392,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly)
                         }
                     }
                 }
@@ -364,10 +400,10 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
     }
 
-    private fun exportToDirectory(context: Context, exportDirectory: File, jsonRadioButton: RadioButton, dbRadioButton: RadioButton, csvRadioButton: RadioButton) {
-        val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
+    private fun exportToDirectory(context: Context, exportDirectory: File, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isMoviesOnly: Boolean) {
+        val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm-ss-SSS", Locale.US)
         when {
-            jsonRadioButton.isChecked -> {
+            isJson -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     val fileContent = getJSONExportString(readableDatabase)
                     val fileExtension = ".json"
@@ -384,12 +420,12 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false)
                         }
                     }
                 }
             }
-            dbRadioButton.isChecked -> {
+            isDb -> {
                 val fileExtension = ".db"
                 val exportDBPath = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                 CoroutineScope(Dispatchers.IO).launch {
@@ -421,15 +457,15 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
                             if (context is ExportActivity) {
-                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false)
+                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false, isMovieOnly = false)
                             }
                         }
                     }
                 }
             }
-            csvRadioButton.isChecked -> {
+            isCsv -> {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val fileContent = getCSVExportString(readableDatabase)
+                    val fileContent = getCSVExportString(readableDatabase, isMoviesOnly)
                     val fileExtension = ".csv"
                     val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
                     try {
@@ -444,7 +480,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly)
                         }
                     }
                 }
@@ -452,23 +488,23 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
     }
 
-    private fun promptUserToSaveFile(context: Context, jsonRadioButton: RadioButton, dbRadioButton: RadioButton, csvRadioButton: RadioButton) {
+    private fun promptUserToSaveFile(context: Context, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isMoviesOnly: Boolean) {
         val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
         when {
-            jsonRadioButton.isChecked -> {
+            isJson -> {
                 val fileExtension = ".json"
                 val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false)
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false)
             }
-            dbRadioButton.isChecked -> {
+            isDb -> {
                 val fileExtension = ".db"
                 val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = false)
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = false, isMovieOnly = false)
             }
-            csvRadioButton.isChecked -> {
+            isCsv -> {
                 val fileExtension = ".csv"
                 val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true)
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly)
             }
         }
     }

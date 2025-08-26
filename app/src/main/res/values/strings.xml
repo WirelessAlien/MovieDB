@@ -290,6 +290,8 @@
     <string name="no_up_next_shows">No ongoing shows available, start watching new shows!</string>
     <string name="up_next_widget_description">Shows the next episode to watch (for ongoing Shows).</string>
     <string name="timeline">Timeline</string>
+    <string name="export_movies_only">Export movie and show (without episodes) only</string>
+    <string name="export_movies_and_episodes">Export movie and show (with episodes)</string>
 
     <string-array name="media_types">
         <item>digital</item>

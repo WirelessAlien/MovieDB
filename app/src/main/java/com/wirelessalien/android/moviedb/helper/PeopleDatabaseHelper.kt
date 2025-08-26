@@ -164,7 +164,7 @@ class PeopleDatabaseHelper(context: Context?) :
     fun exportDatabase(context: Context, exportDirectoryUri: String?) {
         val builder = MaterialAlertDialogBuilder(context)
         val inflater = LayoutInflater.from(context)
-        val customView = inflater.inflate(R.layout.export_dialog, null)
+        val customView = inflater.inflate(R.layout.export_dialog_2, null)
         val jsonRadioButton = customView.findViewById<RadioButton>(R.id.radio_json)
         val dbRadioButton = customView.findViewById<RadioButton>(R.id.radio_db)
         val csvRadioButton = customView.findViewById<RadioButton>(R.id.radio_csv)
