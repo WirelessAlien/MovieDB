@@ -139,7 +139,7 @@
                     android:minHeight="48dp"
                     android:padding="10dp"
                     android:gravity="center_vertical"
-                    android:inputType="number"
+                    android:inputType="none"
                     android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
 

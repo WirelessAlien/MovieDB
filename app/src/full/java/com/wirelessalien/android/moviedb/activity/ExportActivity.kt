@@ -195,33 +195,41 @@ class ExportActivity : AppCompatActivity() {
         }
 
         val backupFrequency = preferences.getInt("backup_frequency", 1440)
-        val timeUnitString = convertMinutesToLargestUnit(backupFrequency)
-        binding.backupFrequencyET.setText(timeUnitString)
-
-        binding.backupFrequencyET.setOnTouchListener { _, _ ->
-            binding.backupFrequencyET.showDropDown()
-            false
-        }
+        binding.backupFrequencyET.setText(
+            when (backupFrequency) {
+                15 -> "15 minutes"
+                30 -> "30 minutes"
+                60 -> "1 hour"
+                360 -> "6 hours"
+                720 -> "12 hours"
+                1440 -> "24 hours"
+                10080 -> "1 week"
+                43200 -> "1 month"
+                else -> "24 hours"
+            }
+        )
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValues)
         binding.backupFrequencyET.setAdapter(adapter)
 
-        binding.backupFrequencyET.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                binding.backupFrequencyET.clearFocus()
-                saveBackupFrequency()
-
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(binding.backupFrequencyET.windowToken, 0)
-
-                // Get the current frequency value and convert it
-                val frequencyInMinutes = preferences.getInt("backup_frequency", 1440)
-                val convertedValue = convertMinutesToLargestUnit(frequencyInMinutes)
-                binding.backupFrequencyET.setText(convertedValue)
-
-                true
-            } else {
-                false
+        binding.backupFrequencyET.apply {
+            setOnClickListener {
+                showDropDown()
+            }
+            setOnItemClickListener { _, _, position, _ ->
+                val frequencyInMinutes = when (predefinedValues[position]) {
+                    "15 minutes" -> 15
+                    "30 minutes" -> 30
+                    "1 hour" -> 60
+                    "6 hours" -> 360
+                    "12 hours" -> 720
+                    "24 hours" -> 1440
+                    "1 week" -> 10080
+                    "1 month" -> 43200
+                    else -> 1440
+                }
+                preferences.edit().putInt("backup_frequency", frequencyInMinutes).apply()
+                scheduleDatabaseExport()
             }
         }
 
@@ -416,72 +424,6 @@ class ExportActivity : AppCompatActivity() {
             ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
             backupWorkRequest
         )
-    }
-
-
-    private fun convertMinutesToLargestUnit(minutes: Int): String {
-        val months = minutes / 43200
-        val remainingMinutesAfterMonths = minutes % 43200
-        val days = remainingMinutesAfterMonths / 1440
-        val remainingMinutesAfterDays = remainingMinutesAfterMonths % 1440
-        val hours = remainingMinutesAfterDays / 60
-        val remainingMinutes = remainingMinutesAfterDays % 60
-
-        return buildString {
-            if (months > 0) append("$months month(s) ")
-            if (days > 0) append("$days day(s) ")
-            if (hours > 0) append("$hours hour(s) ")
-            if (remainingMinutes > 0) append("$remainingMinutes minute(s)")
-        }.trim()
-    }
-
-    private fun saveBackupFrequency() {
-        val frequencyInMinutes = when (val frequencyText = binding.backupFrequencyET.text.toString()) {
-            "15 minutes" -> 15
-            "30 minutes" -> 30
-            "1 hour" -> 60
-            "6 hours" -> 360
-            "12 hours" -> 720
-            "24 hours" -> 1440
-            "1 week" -> 10080
-            "1 month" -> 43200
-            else -> frequencyText.toIntOrNull()
-        }
-
-        if (frequencyInMinutes == null || frequencyInMinutes < 15) {
-            binding.backupFrequencyET.error = getString(R.string.backup_fequency_error_text)
-            binding.backupFrequencyET.requestFocus()
-            return
-        }
-
-        preferences.edit().putInt("backup_frequency", frequencyInMinutes).apply()
-
-        // Restart the worker with the new frequency
-        val dbBackupDirectory = preferences.getString("db_backup_directory", null)
-        if (dbBackupDirectory != null) {
-            val directoryUri = Uri.parse(dbBackupDirectory)
-            val inputData = workDataOf("directoryUri" to directoryUri.toString())
-
-            val constraints = Constraints.Builder()
-                .setRequiresBatteryNotLow(true)
-                .build()
-
-
-            val exportWorkRequest = PeriodicWorkRequestBuilder<DatabaseBackupWorker>(frequencyInMinutes.toLong(), TimeUnit.MINUTES)
-                .setInputData(inputData)
-                .setConstraints(constraints)
-                .addTag("DatabaseBackupWorker")
-                .build()
-
-            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                "DatabaseBackupWorker",
-                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                exportWorkRequest
-            )
-
-        } else {
-            Log.e("ExportActivity", "saveBackupFrequency: No backup directory selected")
-        }
     }
 
     private fun scheduleDatabaseExport() {
