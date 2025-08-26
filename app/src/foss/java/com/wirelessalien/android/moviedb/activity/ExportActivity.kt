@@ -63,6 +63,7 @@ class ExportActivity : AppCompatActivity() {
     private lateinit var binding: ActivityExportBinding
     private var isJson: Boolean = false
     private var isCsv: Boolean = false
+    private var isMovieOnly: Boolean = false
     private var backupDirectoryUri: Uri? = null
     private var exportDirectoryUri: Uri? = null
     private lateinit var preferences: SharedPreferences
@@ -71,7 +72,7 @@ class ExportActivity : AppCompatActivity() {
     )
     private val createFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri: Uri? ->
         uri?.let {
-            saveFileToUri(it, isJson, isCsv)
+            saveFileToUri(it, isJson, isCsv, isMovieOnly)
         }
     }
     private val openBackupDirectoryLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -320,13 +321,14 @@ class ExportActivity : AppCompatActivity() {
         }
     }
 
-    fun promptUserToSaveFile(fileName: String, isJson: Boolean, isCsv: Boolean) {
+    fun promptUserToSaveFile(fileName: String, isJson: Boolean, isCsv: Boolean, isMovieOnly: Boolean) {
         this.isJson = isJson
         this.isCsv = isCsv
+        this.isMovieOnly = isMovieOnly
         createFileLauncher.launch(fileName)
     }
 
-    private fun saveFileToUri(uri: Uri, isJson: Boolean, isCsv: Boolean) {
+    private fun saveFileToUri(uri: Uri, isJson: Boolean, isCsv: Boolean, isMovieOnly: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 contentResolver.openOutputStream(uri)?.use { outputStream ->
@@ -339,7 +341,7 @@ class ExportActivity : AppCompatActivity() {
                     } else if (isCsv) {
                         val databaseHelper = MovieDatabaseHelper(applicationContext)
                         val csv = databaseHelper.readableDatabase.use { db ->
-                            databaseHelper.getCSVExportString(db)
+                            databaseHelper.getCSVExportString(db, isMovieOnly)
                         }
                         outputStream.write(csv.toByteArray())
                     } else {
