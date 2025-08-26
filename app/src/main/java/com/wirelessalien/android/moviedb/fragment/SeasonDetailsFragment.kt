@@ -360,6 +360,7 @@ class SeasonDetailsFragment : Fragment() {
 
     private fun loadSeasonDetails() {
         viewLifecycleOwner.lifecycleScope.launch {
+            binding.defaultMessage.root.visibility = View.GONE
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
 
@@ -380,10 +381,10 @@ class SeasonDetailsFragment : Fragment() {
                     binding.episodeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
                     binding.episodeRecyclerView.adapter = adapter
                     binding.episodeRecyclerView.visibility = View.VISIBLE
-                    binding.defaultMessage.visibility = View.GONE
+                    binding.defaultMessage.root.visibility = View.GONE
                 } else {
                     if (seasonNumber == 0) {
-                        binding.defaultMessage.visibility = View.VISIBLE
+                        binding.defaultMessage.root.visibility = View.VISIBLE
                         binding.episodeRecyclerView.visibility = View.GONE
                     }
                 }

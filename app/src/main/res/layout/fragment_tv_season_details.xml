@@ -33,23 +33,18 @@
         android:visibility="gone"
         tools:listitem="@layout/episode_item" />
 
-    <com.google.android.material.chip.Chip
+    <include
         android:id="@+id/defaultMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginTop="200dp"
-        android:layout_centerInParent="true"
-        android:clickable="false"
-        style="@style/Widget.Material3.Chip.Assist.Elevated"
-        android:text="@string/no_specials_available"
-        android:visibility="gone"/>
+        layout="@layout/layout_no_specials"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"/>
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmerFrameLayout1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_centerInParent="true"
         android:minHeight="100dp"
         android:visibility="gone"
         app:shimmer_duration="700">
