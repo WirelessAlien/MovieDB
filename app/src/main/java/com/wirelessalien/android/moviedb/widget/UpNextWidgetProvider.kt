@@ -83,6 +83,9 @@ class UpNextWidgetProvider : AppWidgetProvider() {
                 Toast.makeText(context, R.string.done, Toast.LENGTH_SHORT).show()
             }
         }
+        if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+            scheduleNextUpdate(context)
+        }
     }
 
     private fun scheduleNextUpdate(context: Context) {

@@ -52,6 +52,9 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
             val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
             onUpdate(context, appWidgetManager, appWidgetIds)
         }
+        if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+            scheduleNextUpdate(context)
+        }
     }
 
     override fun onEnabled(context: Context) {

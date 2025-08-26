@@ -22,7 +22,6 @@
     android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/widget_background"
     android:theme="@style/AppTheme"
     android:padding="8dp">
@@ -36,7 +35,6 @@
             android:id="@+id/widget_header_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:tint="?attr/colorPrimaryContainer"
             style="@style/Widget.Material3.Button.IconButton"
             android:src="@drawable/ic_app_icon"
             android:contentDescription="@string/app_name" />
