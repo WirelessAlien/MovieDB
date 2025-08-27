@@ -182,7 +182,6 @@ class ExportActivity : AppCompatActivity() {
         if (backupDirectoryUri != null) {
             binding.backupBtn.icon = AppCompatResources.getDrawable(this, R.drawable.ic_check)
             binding.backupBtn.text = getString(R.string.backup_directory_selected)
-            scheduleDatabaseExport()
         }
 
         binding.autoBackupSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -225,25 +224,20 @@ class ExportActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValues)
         binding.backupFrequencyET.setAdapter(adapter)
 
-        binding.backupFrequencyET.apply {
-            setOnClickListener {
-                showDropDown()
+        binding.backupFrequencyET.setOnItemClickListener { _, _, position, _ ->
+            val frequencyInMinutes = when (predefinedValues[position]) {
+                "15 minutes" -> 15
+                "30 minutes" -> 30
+                "1 hour" -> 60
+                "6 hours" -> 360
+                "12 hours" -> 720
+                "24 hours" -> 1440
+                "1 week" -> 10080
+                "1 month" -> 43200
+                else -> 1440
             }
-            setOnItemClickListener { _, _, position, _ ->
-                val frequencyInMinutes = when (predefinedValues[position]) {
-                    "15 minutes" -> 15
-                    "30 minutes" -> 30
-                    "1 hour" -> 60
-                    "6 hours" -> 360
-                    "12 hours" -> 720
-                    "24 hours" -> 1440
-                    "1 week" -> 10080
-                    "1 month" -> 43200
-                    else -> 1440
-                }
-                preferences.edit().putInt("backup_frequency", frequencyInMinutes).apply()
-                scheduleDatabaseExport()
-            }
+            preferences.edit().putInt("backup_frequency", frequencyInMinutes).apply()
+            scheduleDatabaseExport()
         }
 
         val predefinedValuesDrive = arrayOf("1 day", "1 week", "1 month")
@@ -263,10 +257,15 @@ class ExportActivity : AppCompatActivity() {
             binding.backupFrequencyETDrive.isEnabled = isChecked
 
             if (isChecked) {
-                val backupFrequencyDrive = 1440
-                preferences.edit().putInt("backup_frequency_drive", backupFrequencyDrive).apply()
+                val backupFrequencyDrive = preferences.getInt("backup_frequency_drive", 1440)
                 scheduleGoogleDriveBackup(backupFrequencyDrive)
-                binding.backupFrequencyETDrive.setText("1 day")
+                val frequencyTextDrive = when (backupFrequencyDrive) {
+                    1440 -> "1 day"
+                    10080 -> "1 week"
+                    43200 -> "1 month"
+                    else -> "1 day"
+                }
+                binding.backupFrequencyETDrive.setText(frequencyTextDrive, false)
             } else {
                 preferences.edit().remove("backup_frequency_drive").apply()
                 WorkManager.getInstance(this).cancelAllWorkByTag("GoogleDriveBackupWorker")

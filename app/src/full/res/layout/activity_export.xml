@@ -146,7 +146,6 @@
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:padding="10dp"
-                    android:focusedByDefault="true"
                     android:gravity="center_vertical"
                     android:inputType="none"
                     android:imeOptions="actionDone"/>
