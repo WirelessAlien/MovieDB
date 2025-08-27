@@ -130,6 +130,19 @@ class ExportActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
         googleSignIn = GoogleCredSignIn(this, serverClientId)
+
+        val lastBackupTime = preferences.getLong("last_backup_time", 0)
+        if (lastBackupTime > 0) {
+            binding.lastBackupTime.visibility = View.VISIBLE
+            binding.lastBackupTime.text = getString(R.string.last_backup, java.text.DateFormat.getDateTimeInstance().format(java.util.Date(lastBackupTime)))
+        }
+
+        val lastBackupTimeDrive = preferences.getLong("last_backup_time_drive", 0)
+        if (lastBackupTimeDrive > 0) {
+            binding.lastBackupTimeDrive.visibility = View.VISIBLE
+            binding.lastBackupTimeDrive.text = getString(R.string.last_backup, java.text.DateFormat.getDateTimeInstance().format(java.util.Date(lastBackupTimeDrive)))
+        }
+
         val isAutoBackupEnabled = preferences.getBoolean("auto_backup_enabled", false)
         binding.autoBackupSwitch.isChecked = isAutoBackupEnabled
         binding.backupBtn.isEnabled = isAutoBackupEnabled

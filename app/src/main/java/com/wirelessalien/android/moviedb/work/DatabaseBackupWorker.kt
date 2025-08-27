@@ -26,6 +26,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.documentfile.provider.DocumentFile
+import androidx.preference.PreferenceManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.wirelessalien.android.moviedb.R
@@ -60,6 +61,8 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
             showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(
                 R.string.database_backup_successful
             ), true)
+            val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            prefs.edit().putLong("last_backup_time", System.currentTimeMillis()).apply()
             Result.success()
         } catch (e: IOException) {
             e.printStackTrace()

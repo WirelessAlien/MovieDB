@@ -30,6 +30,7 @@
         android:id="@+id/chip_group_export_choice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         app:singleSelection="true">
 
         <com.google.android.material.chip.Chip

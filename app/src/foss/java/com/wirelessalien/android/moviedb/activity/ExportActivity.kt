@@ -107,6 +107,11 @@ class ExportActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
+        val lastBackupTime = preferences.getLong("last_backup_time", 0)
+        if (lastBackupTime > 0) {
+            binding.lastBackupTime.visibility = android.view.View.VISIBLE
+            binding.lastBackupTime.text = getString(R.string.last_backup, java.text.DateFormat.getDateTimeInstance().format(java.util.Date(lastBackupTime)))
+        }
 
         val isAutoBackupEnabled = preferences.getBoolean("auto_backup_enabled", false)
         binding.autoBackupSwitch.isChecked = isAutoBackupEnabled

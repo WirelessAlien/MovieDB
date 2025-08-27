@@ -24,6 +24,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.preference.PreferenceManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
@@ -101,7 +102,8 @@ class GoogleDriveBackupWorker(appContext: Context, workerParams: WorkerParameter
             builder.setContentText(applicationContext.getString(R.string.database_backup_successful))
                 .setProgress(0, 0, false)
             notificationManager.notify(1, builder.build())
-
+            val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            prefs.edit().putLong("last_backup_time_drive", System.currentTimeMillis()).apply()
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()

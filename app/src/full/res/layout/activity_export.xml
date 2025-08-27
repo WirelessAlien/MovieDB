@@ -57,30 +57,30 @@
                 android:src="@drawable/ic_export_db"
                 android:importantForAccessibility="no" />
 
-           <RelativeLayout
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-               <TextView
-                   android:id="@+id/selected_directory_text"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:text="@string/selected_directory"
-                   android:scrollHorizontally="true"
-                   android:textSize="16sp"
-                   android:ellipsize="end"
-                   android:layout_marginTop="16dp"
-                   android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:id="@+id/selected_directory_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/selected_directory"
+                    android:scrollHorizontally="true"
+                    android:textSize="16sp"
+                    android:ellipsize="end"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"/>
 
-               <ImageView
-                   android:id="@+id/edit_icon"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:layout_alignParentEnd="true"
-                   android:layout_centerVertical="true"
-                   android:src="@drawable/ic_edit"/>
+                <ImageView
+                    android:id="@+id/edit_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_edit"/>
 
-           </RelativeLayout>
+            </RelativeLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/export_button"
@@ -104,6 +104,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="@string/enable_auto_backup"/>
+
+            <TextView
+                android:id="@+id/lastBackupTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/backupBtn"
@@ -138,6 +146,7 @@
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:padding="10dp"
+                    android:focusedByDefault="true"
                     android:gravity="center_vertical"
                     android:inputType="none"
                     android:imeOptions="actionDone"/>
@@ -182,6 +191,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="@string/enable_auto_backup"/>
+
+            <TextView
+                android:id="@+id/lastBackupTimeDrive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"/>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
