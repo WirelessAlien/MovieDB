@@ -87,9 +87,6 @@ class ExportActivity : AppCompatActivity() {
     private val serverClientId = "892148791583-lmjdmttoa7akrq1v7hnji8eb3p3h1ali.apps.googleusercontent.com"
     private lateinit var authorizationLauncher: ActivityResultLauncher<IntentSenderRequest>
 
-    private val predefinedValues = arrayOf(
-        "15 minutes", "30 minutes", "1 hour", "6 hours", "12 hours", "24 hours", "1 week", "1 month"
-    )
     private val createFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri: Uri? ->
         uri?.let {
             saveFileToUri(it, isJson, isCsv, isMovieOnly)
@@ -221,8 +218,12 @@ class ExportActivity : AppCompatActivity() {
             }
         )
 
+        val predefinedValues = resources.getStringArray(R.array.backup_frequency_entries)
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValues)
         binding.backupFrequencyET.setAdapter(adapter)
+        binding.backupFrequencyET.setOnClickListener {
+            binding.backupFrequencyET.showDropDown()
+        }
 
         binding.backupFrequencyET.setOnItemClickListener { _, _, position, _ ->
             val frequencyInMinutes = when (predefinedValues[position]) {
@@ -240,7 +241,7 @@ class ExportActivity : AppCompatActivity() {
             scheduleDatabaseExport()
         }
 
-        val predefinedValuesDrive = arrayOf("1 day", "1 week", "1 month")
+        val predefinedValuesDrive = resources.getStringArray(R.array.backup_frequency_entries_drive)
         val adapterDrive = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValuesDrive)
         binding.backupFrequencyETDrive.setAdapter(adapterDrive)
 
@@ -272,20 +273,20 @@ class ExportActivity : AppCompatActivity() {
             }
         }
 
-        binding.backupFrequencyETDrive.apply {
-            setOnClickListener {
-                showDropDown()
+        binding.backupFrequencyETDrive.setOnClickListener {
+            binding.backupFrequencyETDrive.showDropDown()
+        }
+
+        binding.backupFrequencyETDrive.setOnItemClickListener { _, _, position, _ ->
+            val selectedFrequency = predefinedValuesDrive[position]
+            val frequencyInMinutes = when (selectedFrequency) {
+                "1 day" -> 1440
+                "1 week" -> 10080
+                "1 month" -> 43200
+                else -> 1440
             }
-            setOnItemClickListener { _, _, position, _ ->
-                val frequencyInMinutes = when (predefinedValuesDrive[position]) {
-                    "1 day" -> 1440
-                    "1 week" -> 10080
-                    "1 month" -> 43200
-                    else -> 1440
-                }
-                preferences.edit().putInt("backup_frequency_drive", frequencyInMinutes).apply()
-                scheduleGoogleDriveBackup(frequencyInMinutes)
-            }
+            preferences.edit().putInt("backup_frequency_drive", frequencyInMinutes).apply()
+            scheduleGoogleDriveBackup(frequencyInMinutes)
         }
 
         val googleEmail = preferences.getString("google_email", null)

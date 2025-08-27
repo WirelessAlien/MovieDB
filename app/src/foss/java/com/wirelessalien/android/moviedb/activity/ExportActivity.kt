@@ -65,9 +65,6 @@ class ExportActivity : AppCompatActivity() {
     private var backupDirectoryUri: Uri? = null
     private var exportDirectoryUri: Uri? = null
     private lateinit var preferences: SharedPreferences
-    private val predefinedValues = arrayOf(
-        "15 minutes", "30 minutes", "1 hour", "6 hours", "12 hours", "24 hours", "1 week", "1 month"
-    )
     private val createFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri: Uri? ->
         uri?.let {
             saveFileToUri(it, isJson, isCsv, isMovieOnly)
@@ -188,8 +185,12 @@ class ExportActivity : AppCompatActivity() {
             }
         )
 
+        val predefinedValues = resources.getStringArray(R.array.backup_frequency_entries)
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValues)
         binding.backupFrequencyET.setAdapter(adapter)
+        binding.backupFrequencyET.setOnClickListener {
+            binding.backupFrequencyET.showDropDown()
+        }
 
         binding.backupFrequencyET.setOnItemClickListener { _, _, position, _ ->
             val frequencyInMinutes = when (predefinedValues[position]) {
