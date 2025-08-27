@@ -148,6 +148,8 @@
                     android:padding="10dp"
                     android:gravity="center_vertical"
                     android:inputType="none"
+                    android:focusable="false"
+                    android:clickable="true"
                     android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
 
