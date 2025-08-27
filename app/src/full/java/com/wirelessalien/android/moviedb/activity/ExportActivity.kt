@@ -251,7 +251,7 @@ class ExportActivity : AppCompatActivity() {
             43200 -> "1 month"
             else -> "1 day"
         }
-        binding.backupFrequencyETDrive.setText(frequencyTextDrive)
+        binding.backupFrequencyETDrive.setText(frequencyTextDrive, false)
 
         binding.autoBackupSwitchDrive.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit().putBoolean("auto_backup_enabled_drive", isChecked).apply()
