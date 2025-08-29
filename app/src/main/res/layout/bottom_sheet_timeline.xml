@@ -39,4 +39,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="100dp"
+        android:text="@string/no_upcoming_titles_found"
+        android:gravity="center"
+        android:visibility="gone"/>
 </LinearLayout>

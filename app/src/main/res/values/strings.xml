@@ -293,6 +293,7 @@
     <string name="export_movies_only">Export movie and show (without episodes) only</string>
     <string name="export_movies_and_episodes">Export movie and show (with episodes)</string>
     <string name="last_backup">Last backup: %s</string>
+    <string name="no_upcoming_titles_found">No upcoming titles found.</string>
 
     <string-array name="media_types">
         <item>digital</item>

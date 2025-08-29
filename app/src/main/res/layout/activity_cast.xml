@@ -62,6 +62,7 @@
                     android:layout_height="200dp"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="80dp"
+                    style="@style/Widget.Material3.CardView.Elevated"
                     app:cardCornerRadius="10dp">
 
                     <ImageView

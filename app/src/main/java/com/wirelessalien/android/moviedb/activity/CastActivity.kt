@@ -136,8 +136,8 @@ class CastActivity : BaseActivity() {
 
         val intent = intent
         try {
-            setActorData(JSONObject(intent.getStringExtra("actorObject")))
-            actorObject = JSONObject(intent.getStringExtra("actorObject"))
+            setActorData(JSONObject(intent.getStringExtra("actorObject") ?: "{}"))
+            actorObject = JSONObject(intent.getStringExtra("actorObject") ?: "{}")
 
         } catch (e: JSONException) {
             e.printStackTrace()
@@ -473,8 +473,15 @@ class CastActivity : BaseActivity() {
                 }
             }
 
-        val adapter = TimelineAdapter(combinedCredits)
-        bottomSheetBinding.timelineRecyclerView.adapter = adapter
+        if (combinedCredits.isEmpty()) {
+            bottomSheetBinding.timelineRecyclerView.visibility = View.GONE
+            bottomSheetBinding.emptyView.visibility = View.VISIBLE
+        } else {
+            bottomSheetBinding.timelineRecyclerView.visibility = View.VISIBLE
+            bottomSheetBinding.emptyView.visibility = View.GONE
+            val adapter = TimelineAdapter(combinedCredits)
+            bottomSheetBinding.timelineRecyclerView.adapter = adapter
+        }
 
         bottomSheetDialog.show()
     }
