@@ -402,59 +402,6 @@ class MainActivity : BaseActivity() {
             scheduleMonthlyTvShowUpdate()
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val permissions = arrayOf(
-                Manifest.permission.POST_NOTIFICATIONS,
-                Manifest.permission.SCHEDULE_EXACT_ALARM
-            )
-
-            val notGrantedPermissions = permissions.filter {
-                ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-            }
-
-            if (notGrantedPermissions.isNotEmpty()) {
-                if (notGrantedPermissions.any { ActivityCompat.shouldShowRequestPermissionRationale(this, it) }) {
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle(R.string.permission_required)
-                        .setMessage(R.string.permission_required_description)
-                        .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
-                            ActivityCompat.requestPermissions(
-                                this@MainActivity,
-                                notGrantedPermissions.toTypedArray(),
-                                REQUEST_CODE
-                            )
-                        }
-                        .setNegativeButton(R.string.cancel) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
-                        .create().show()
-                } else {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        notGrantedPermissions.toTypedArray(),
-                        REQUEST_CODE
-                    )
-                }
-                return
-            }
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.POST_NOTIFICATIONS)) {
-                MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.permission_required)
-                    .setMessage(R.string.permission_required_description)
-                    .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int ->
-                        ActivityCompat.requestPermissions(
-                            this@MainActivity, arrayOf(
-                                Manifest.permission.POST_NOTIFICATIONS
-                            ), REQUEST_CODE
-                        )
-                    }
-                    .setNegativeButton(R.string.cancel) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
-                    .create().show()
-            } else {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_CODE)
-            }
-            return
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name: CharSequence = getString(R.string.released_movies)
             val description = getString(R.string.notification_for_movie_released)

@@ -19,19 +19,25 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.CheckBoxPreference
@@ -70,9 +76,36 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
 
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            updatePermissionPreferenceVisibility()
+            if (isGranted) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    if (!alarmManager.canScheduleExactAlarms()) {
+                        requestExactAlarmPermission()
+                    }
+                }
+            } else {
+                Toast.makeText(requireContext(), getString(R.string.post_notification_permission_not_granted), Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private val requestExactAlarmLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            updatePermissionPreferenceVisibility()
+        }
+
+    private fun requestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            requestExactAlarmLauncher.launch(intent)
+        }
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
-
+        updatePermissionPreferenceVisibility()
         val aboutPreference = findPreference<Preference>("about_key")
         aboutPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             val fragmentManager = parentFragmentManager
@@ -156,6 +189,26 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         findPreference<SwitchPreferenceCompat>("key_get_notified_for_saved")?.let { preference ->
             preference.setOnPreferenceChangeListener { _, newValue ->
                 if (newValue as Boolean) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val hasPostNotifications = ContextCompat.checkSelfPermission(
+                            requireContext(),
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) == PackageManager.PERMISSION_GRANTED
+                        val hasScheduleExactAlarm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            val alarmManager =
+                                requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                            alarmManager.canScheduleExactAlarms()
+                        } else {
+                            true
+                        }
+
+                        if (!hasPostNotifications || !hasScheduleExactAlarm) {
+                            Toast.makeText(requireContext(), getString(R.string.grant_notification_permissions), Toast.LENGTH_SHORT).show()
+                            preference.isChecked = false
+                            return@setOnPreferenceChangeListener false
+                        }
+                    }
+
                     // Check network connectivity
                     val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                     val network = connectivityManager.activeNetwork
@@ -421,8 +474,41 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         dialog.show()
     }
 
+    private fun updatePermissionPreferenceVisibility() {
+        val requestPermissionPreference = findPreference<Preference>("key_request_notification_permission")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasPostNotifications = ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            val hasScheduleExactAlarm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarmManager.canScheduleExactAlarms()
+            } else {
+                true
+            }
+
+            if (hasPostNotifications && hasScheduleExactAlarm) {
+                requestPermissionPreference?.isVisible = false
+            } else {
+                requestPermissionPreference?.isVisible = true
+                requestPermissionPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                    if (!hasPostNotifications) {
+                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        requestExactAlarmPermission()
+                    }
+                    true
+                }
+            }
+        } else {
+            requestPermissionPreference?.isVisible = false
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        updatePermissionPreferenceVisibility()
         preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
     }
 

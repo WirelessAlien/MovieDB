@@ -103,6 +103,11 @@
         app:iconSpaceReserved="false">
 
         <Preference
+            android:key="key_request_notification_permission"
+            android:title="@string/allow_permission_to_post_notifications"
+            app:iconSpaceReserved="false"/>
+
+        <Preference
             android:selectable="false"
             android:summary="@string/summary_notification_one"
             app:iconSpaceReserved="false"/>
