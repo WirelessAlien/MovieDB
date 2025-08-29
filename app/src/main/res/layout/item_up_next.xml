@@ -18,19 +18,20 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="10dp"
-    app:cardElevation="4dp">
+    android:orientation="horizontal">
 
     <LinearLayout
+        android:id="@+id/llTextContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_margin="8dp"
+        android:layout_toStartOf="@id/btnMarkWatched"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/tvShowName"
@@ -52,9 +53,9 @@
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_margin="16dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
         app:cornerRadius="10dp"
         app:icon="@drawable/ic_visibility_off"
         android:contentDescription="@string/mark_as_watched"/>
-</com.google.android.material.card.MaterialCardView>
+</RelativeLayout>
