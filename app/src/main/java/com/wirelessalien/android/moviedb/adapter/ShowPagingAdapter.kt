@@ -28,6 +28,7 @@ import android.icu.text.SimpleDateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.paging.PagingDataAdapter
@@ -164,13 +165,24 @@ class ShowPagingAdapter(
             e.printStackTrace()
         }
 
+        try {
+            holder.showImage.transitionName = "poster_" + showData.getString(KEY_ID)
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
+
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
             if (showData.has(KEY_NAME)) {
                 intent.putExtra("isMovie", false)
             }
-            view.context.startActivity(intent)
+            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                view.context as Activity,
+                holder.showImage,
+                holder.showImage.transitionName
+            )
+            view.context.startActivity(intent, options.toBundle())
         }
 
         holder.itemView.setOnLongClickListener { view: View ->

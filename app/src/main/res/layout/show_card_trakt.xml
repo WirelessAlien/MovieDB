@@ -60,7 +60,8 @@
                     android:layout_height="match_parent"
                     android:adjustViewBounds="true"
                     android:contentDescription="@string/image_description"
-                    android:scaleType="fitXY" />
+                    android:scaleType="fitXY"
+                    android:transitionName="poster"/>
 
                 <TextView
                     android:id="@+id/categoryColor"

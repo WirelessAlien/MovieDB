@@ -57,6 +57,7 @@
                             android:layout_height="match_parent"
                             android:contentDescription="@string/image_description"
                             android:scaleType="fitXY"
+                            android:transitionName="poster"
                             android:src="@color/md_theme_outline"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
