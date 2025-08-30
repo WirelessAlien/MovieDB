@@ -31,7 +31,7 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardView"
         android:layout_width="110dp"
-        android:layout_height="190dp"
+        android:layout_height="200dp"
         app:cardCornerRadius="10dp">
 
         <RelativeLayout
@@ -42,7 +42,8 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/castCard"
                 android:layout_width="110dp"
-                android:layout_height="100dp"
+                android:layout_height="110dp"
+                style="@style/Widget.Material3.CardView.Elevated"
                 app:cardCornerRadius="10dp">
 
                 <ImageView

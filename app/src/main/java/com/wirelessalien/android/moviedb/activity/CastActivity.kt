@@ -294,6 +294,9 @@ class CastActivity : BaseActivity() {
                 Picasso.get().load(imageUrl).into(target)
             }
         } else {
+
+            binding.backgroundImage.foreground = ContextCompat.getDrawable(context, R.drawable.bg_gradient)
+
             if (actorObject.has("profile_path")) {
                 if (binding.actorImage.drawable == null) {
                     try {

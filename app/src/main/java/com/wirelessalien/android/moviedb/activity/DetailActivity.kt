@@ -636,10 +636,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 Picasso.get().load(imageUrl).into(target)
             }
         } else {
-            val foregroundGradientDrawable = GradientDrawable(
-                GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(ContextCompat.getColor(context, R.color.md_theme_surface), Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT)
-            )
-            binding.movieImage.foreground = foregroundGradientDrawable
+
+            binding.movieImage.foreground = ContextCompat.getDrawable(context, R.drawable.bg_gradient)
 
             if (jMovieObject.has("backdrop_path") && binding.movieImage.drawable == null) {
                 val loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false)

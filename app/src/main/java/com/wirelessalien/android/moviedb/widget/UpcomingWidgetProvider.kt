@@ -34,6 +34,10 @@ import java.util.Calendar
 
 class UpcomingWidgetProvider : AppWidgetProvider() {
 
+    companion object {
+        private const val REFRESH_ACTION = "com.wirelessalien.android.moviedb.widget.action.REFRESH"
+    }
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -46,10 +50,11 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (intent.action == Intent.ACTION_CONFIGURATION_CHANGED || intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
+        if (intent.action == REFRESH_ACTION || intent.action == Intent.ACTION_CONFIGURATION_CHANGED || intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val componentName = ComponentName(context, UpcomingWidgetProvider::class.java)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view)
             onUpdate(context, appWidgetManager, appWidgetIds)
         }
         if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
@@ -84,6 +89,18 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
         )
 
         views.setOnClickPendingIntent(R.id.widget_headerRL, pendingIntent)
+
+        val refreshIntent = Intent(context, UpcomingWidgetProvider::class.java).apply {
+            action = REFRESH_ACTION
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        }
+        val refreshPendingIntent = PendingIntent.getBroadcast(
+            context,
+            appWidgetId,
+            refreshIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.widget_refresh_button, refreshPendingIntent)
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
