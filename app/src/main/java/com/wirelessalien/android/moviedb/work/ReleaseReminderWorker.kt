@@ -27,6 +27,7 @@ import android.database.Cursor
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.icu.util.TimeZone
+import android.os.Build
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
@@ -221,6 +222,17 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
             }
 
+            val scheduledNotification = ScheduledNotification(
+                id = 0,
+                notificationKey = notificationKey,
+                title = title,
+                episodeName = episodeName,
+                episodeNumber = episodeNumber,
+                type = type,
+                alarmTime = alarmTime.time
+            )
+            val notificationId = scheduledNotificationDbHelper.addScheduledNotification(scheduledNotification)
+
             val dbHelper = NotificationDatabaseHelper(applicationContext)
             val notificationItem = NotificationItem(
                 id = 0,
@@ -242,27 +254,20 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
             val pendingIntent = PendingIntent.getBroadcast(
                 applicationContext,
-                notificationKey.hashCode(),
+                notificationId.toInt(),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                alarmTime.time,
-                pendingIntent
-            )
-
-            val scheduledNotification = ScheduledNotification(
-                id = 0,
-                notificationKey = notificationKey,
-                title = title,
-                episodeName = episodeName,
-                episodeNumber = episodeNumber,
-                type = type,
-                alarmTime = alarmTime.time
-            )
-            scheduledNotificationDbHelper.addScheduledNotification(scheduledNotification)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.time, pendingIntent)
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.time, pendingIntent)
+                }
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.time, pendingIntent)
+            }
 
         } catch (e: Exception) {
             e.printStackTrace()

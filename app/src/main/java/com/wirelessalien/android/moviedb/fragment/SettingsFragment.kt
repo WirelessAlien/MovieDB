@@ -409,7 +409,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         for (notification in scheduledNotifications) {
             val pendingIntent = PendingIntent.getBroadcast(
                 requireContext(),
-                notification.notificationKey.hashCode(),
+                notification.id.toInt(),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )

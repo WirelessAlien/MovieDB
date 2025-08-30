@@ -62,7 +62,7 @@ class ScheduledNotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(c
         onCreate(db)
     }
 
-    fun addScheduledNotification(notification: ScheduledNotification) {
+    fun addScheduledNotification(notification: ScheduledNotification): Long {
         val values = ContentValues().apply {
             put(COLUMN_NOTIFICATION_KEY, notification.notificationKey)
             put(COLUMN_TITLE, notification.title)
@@ -71,7 +71,7 @@ class ScheduledNotificationDatabaseHelper(context: Context) : SQLiteOpenHelper(c
             put(COLUMN_TYPE, notification.type)
             put(COLUMN_ALARM_TIME, notification.alarmTime)
         }
-        writableDatabase.insert(TABLE_SCHEDULED_NOTIFICATIONS, null, values)
+        return writableDatabase.insert(TABLE_SCHEDULED_NOTIFICATIONS, null, values)
     }
 
     fun deleteScheduledNotification(notificationKey: String) {
