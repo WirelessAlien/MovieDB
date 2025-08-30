@@ -8,8 +8,8 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.activity.MainActivity
+import com.wirelessalien.android.moviedb.helper.ScheduledNotificationDatabaseHelper
 
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -45,9 +45,7 @@ class NotificationReceiver : BroadcastReceiver() {
             notificationManager.notify(notificationKey.hashCode(), notification)
         }
 
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putBoolean(notificationKey, false)
-            .apply()
+        val dbHelper = ScheduledNotificationDatabaseHelper(context)
+        dbHelper.deleteScheduledNotification(notificationKey)
     }
 }

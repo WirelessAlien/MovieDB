@@ -60,6 +60,7 @@ import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.ScheduledNotificationDatabaseHelper
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.UpdateWorker
@@ -70,6 +71,10 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
     private val notificationDbHelper: NotificationDatabaseHelper by lazy {
         NotificationDatabaseHelper(requireContext())
+    }
+
+    private val scheduledNotificationDbHelper: ScheduledNotificationDatabaseHelper by lazy {
+        ScheduledNotificationDatabaseHelper(requireContext())
     }
 
     private val preferences: SharedPreferences by lazy {
@@ -356,7 +361,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                                 "updateWorker",
                                 ExistingPeriodicWorkPolicy.KEEP,
                                 updateWorker
-                        )
+                            )
 
                     } else {
                         // Network is not connected, show error and uncheck the switch
@@ -397,34 +402,21 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     }
 
     private fun cancelAllNotifications() {
-        // Cancel all pending alarms
+        val scheduledNotifications = scheduledNotificationDbHelper.getAllScheduledNotifications()
         val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(requireContext(), NotificationReceiver::class.java)
 
-        // Clear all notification entries from SharedPreferences
-        val preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val editor = preferences.edit()
+        for (notification in scheduledNotifications) {
+            val pendingIntent = PendingIntent.getBroadcast(
+                requireContext(),
+                notification.notificationKey.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            alarmManager.cancel(pendingIntent)
+        }
 
-        // Find and remove all notification keys
-        preferences.all.keys
-            .filter { it.startsWith("notification_") }
-            .forEach { key ->
-                // Cancel the specific alarm
-                val pendingIntent = PendingIntent.getBroadcast(
-                    requireContext(),
-                    key.hashCode(),
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                alarmManager.cancel(pendingIntent)
-
-                // Remove from preferences
-                editor.remove(key)
-            }
-
-        editor.apply()
-
-        // Delete all notifications from the database
+        scheduledNotificationDbHelper.deleteAllScheduledNotifications()
         notificationDbHelper.deleteAllNotifications()
     }
 

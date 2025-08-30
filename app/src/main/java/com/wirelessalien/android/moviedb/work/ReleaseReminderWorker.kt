@@ -23,12 +23,10 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.database.Cursor
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.icu.util.TimeZone
-import androidx.preference.PreferenceManager
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
@@ -37,14 +35,18 @@ import androidx.work.WorkerParameters
 import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.NotificationItem
+import com.wirelessalien.android.moviedb.data.ScheduledNotification
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.ScheduledNotificationDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import java.util.Date
 import java.util.Locale
 
 class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
+
+    private val scheduledNotificationDbHelper by lazy { ScheduledNotificationDatabaseHelper(applicationContext) }
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
@@ -106,7 +108,6 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
         val episodeDb = EpisodeReminderDatabaseHelper(applicationContext)
         val movieDb = MovieDatabaseHelper(applicationContext)
         val tktDb = TraktDatabaseHelper(applicationContext)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
         val episodeQuery = """
         SELECT * FROM ${EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS}
@@ -129,7 +130,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
 
                 if (calendarExists || movieExists) {
                     val notificationKey = buildNotificationKey(type, movieId ?: 0, seasonNumber, episodeNumber, dateStr)
-                    if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
+                    if (!scheduledNotificationDbHelper.hasNotificationBeenScheduled(notificationKey)) {
                         scheduleNotification(cursor, dateStr, notificationKey, "episode_reminder")
                     }
                 }
@@ -152,7 +153,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 if (dateStr == null || tmdbId == null) continue
 
                 val notificationKey = buildNotificationKey(type, tmdbId, season, episode, dateStr)
-                if (!hasNotificationBeenScheduled(sharedPreferences, notificationKey)) {
+                if (!scheduledNotificationDbHelper.hasNotificationBeenScheduled(notificationKey)) {
                     scheduleNotification(cursor, dateStr, notificationKey, "trakt_calendar")
                 }
             }
@@ -194,7 +195,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
             val title: String
             val message: String
             val episodeName: String
-            val episodeNumber: String?
+            val episodeNumber: String
             val type: String
 
             if (source == "episode_reminder") {
@@ -252,18 +253,20 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 pendingIntent
             )
 
-            PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                .edit()
-                .putBoolean(notificationKey, true)
-                .apply()
+            val scheduledNotification = ScheduledNotification(
+                id = 0,
+                notificationKey = notificationKey,
+                title = title,
+                episodeName = episodeName,
+                episodeNumber = episodeNumber,
+                type = type,
+                alarmTime = alarmTime.time
+            )
+            scheduledNotificationDbHelper.addScheduledNotification(scheduledNotification)
 
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    private fun hasNotificationBeenScheduled(preferences: SharedPreferences, key: String): Boolean {
-        return preferences.getBoolean(key, false)
     }
 
     private fun Cursor.getIntOrNull(columnIndex: Int): Int? {

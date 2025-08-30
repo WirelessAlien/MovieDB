@@ -192,8 +192,17 @@
             android:foregroundServiceType="dataSync" />
 
         <receiver
-            android:name="NotificationReceiver"
+            android:name=".NotificationReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".BootCompletedReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".service.TraktSyncService"
