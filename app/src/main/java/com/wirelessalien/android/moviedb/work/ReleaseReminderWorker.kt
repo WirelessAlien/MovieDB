@@ -250,6 +250,7 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 putExtra("episodeNumber", episodeNumber)
                 putExtra("notificationKey", notificationKey)
                 putExtra("type", type)
+                putExtra("notificationId", notificationId)
             }
 
             val pendingIntent = PendingIntent.getBroadcast(

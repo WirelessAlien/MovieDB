@@ -18,6 +18,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val episodeNumber = intent.getStringExtra("episodeNumber") ?: return
         val notificationKey = intent.getStringExtra("notificationKey") ?: return
         val type = intent.getStringExtra("type") ?: return
+        val notificationId = intent.getLongExtra("notificationId", 0).toInt()
 
         val notificationIntent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -42,7 +43,7 @@ class NotificationReceiver : BroadcastReceiver() {
 
         val notificationManager = NotificationManagerCompat.from(context)
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            notificationManager.notify(notificationKey.hashCode(), notification)
+            notificationManager.notify(notificationId, notification)
         }
 
         val dbHelper = ScheduledNotificationDatabaseHelper(context)

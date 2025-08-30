@@ -44,6 +44,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     putExtra("episodeNumber", notification.episodeNumber)
                     putExtra("notificationKey", notification.notificationKey)
                     putExtra("type", notification.type)
+                    putExtra("notificationId", notification.id)
                 }
 
                 val pendingIntent = PendingIntent.getBroadcast(
