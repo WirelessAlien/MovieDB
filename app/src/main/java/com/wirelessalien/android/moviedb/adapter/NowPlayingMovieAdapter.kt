@@ -19,13 +19,11 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
-import android.app.Activity
 import android.content.Intent
 import android.icu.text.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
@@ -84,24 +82,13 @@ class NowPlayingMovieAdapter(private val mShowArrayList: ArrayList<JSONObject>?)
             e.printStackTrace()
         }
 
-        try {
-            holder.binding.image.transitionName = "poster_" + showData.getString(KEY_ID)
-        } catch (e: JSONException) {
-            e.printStackTrace()
-        }
-
         holder.binding.root.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
             if (showData.has(KEY_NAME)) {
                 intent.putExtra("isMovie", false)
             }
-            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                view.context as Activity,
-                holder.binding.image,
-                holder.binding.image.transitionName
-            )
-            view.context.startActivity(intent, options.toBundle())
+            view.context.startActivity(intent)
         }
 
         holder.binding.root.setOnLongClickListener { view: View ->

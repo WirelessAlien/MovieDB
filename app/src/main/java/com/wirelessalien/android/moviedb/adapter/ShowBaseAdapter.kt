@@ -19,7 +19,6 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -33,7 +32,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.children
 import androidx.preference.PreferenceManager
@@ -462,12 +460,6 @@ class ShowBaseAdapter(
             }
         }
 
-        try {
-            holder.showImage.transitionName = "poster_" + showData.getString(KEY_ID)
-        } catch (e: JSONException) {
-            e.printStackTrace()
-        }
-
         holder.itemView.setOnClickListener { view: View ->
             val intent = Intent(view.context, DetailActivity::class.java)
             intent.putExtra("movieObject", showData.toString())
@@ -477,12 +469,7 @@ class ShowBaseAdapter(
             } else if (showData.has(KEY_NAME)) {
                 intent.putExtra("isMovie", false)
             }
-            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                view.context as Activity,
-                holder.showImage,
-                holder.showImage.transitionName
-            )
-            view.context.startActivity(intent, options.toBundle())
+            view.context.startActivity(intent)
         }
     }
 

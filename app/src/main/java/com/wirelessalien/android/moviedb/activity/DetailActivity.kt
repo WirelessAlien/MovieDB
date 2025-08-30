@@ -422,7 +422,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             if (movieObjectString != null) {
                 setMovieData(JSONObject(movieObjectString))
                 jMovieObject = JSONObject(movieObjectString)
-                binding.moviePoster.transitionName = "poster_" + jMovieObject.getString("id")
 
                 // Set the adapter with the (still) empty ArrayList.
                 castArrayList = ArrayList()
