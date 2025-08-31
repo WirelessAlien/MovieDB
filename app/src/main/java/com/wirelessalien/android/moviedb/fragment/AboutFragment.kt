@@ -85,6 +85,11 @@ class AboutFragment : DialogFragment() {
             openUrl("https://github.com/WirelessAlien/MovieDB/issues")
         }
 
+        binding.appFaq.setOnClickListener {
+            val faqFragment = FaqBottomSheetFragment()
+            faqFragment.show(requireActivity().supportFragmentManager, "faqFragment")
+        }
+
         binding.licenseText.setOnClickListener {
             openUrl("https://www.gnu.org/licenses/gpl-3.0.txt")
         }

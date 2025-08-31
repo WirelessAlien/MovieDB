@@ -299,6 +299,8 @@
     <string name="post_notification_permission_not_granted">Post notification permission not granted</string>
     <string name="grant_notification_permissions">Please grant notification and alarm permissions first</string>
     <string name="donate_desc">If you find the app useful, please consider supporting its development:</string>
+    <string name="faq">FAQ</string>
+    <string name="failed_to_load_faq">Failed to load FAQ.</string>
 
     <string-array name="media_types">
         <item>digital</item>

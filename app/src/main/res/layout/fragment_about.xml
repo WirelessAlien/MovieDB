@@ -89,6 +89,13 @@
         android:paddingTop="8dp" />
 
     <TextView
+        android:id="@+id/app_faq"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/faq"
+        android:paddingTop="8dp" />
+
+    <TextView
         android:id="@+id/report_issue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

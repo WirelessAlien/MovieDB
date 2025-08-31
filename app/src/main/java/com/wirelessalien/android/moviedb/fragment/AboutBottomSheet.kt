@@ -19,9 +19,9 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -75,6 +75,11 @@ class AboutBottomSheet : BottomSheetDialogFragment() {
 
         binding.reportIssue.setOnClickListener {
             openUrl("https://github.com/WirelessAlien/MovieDB/issues")
+        }
+
+        binding.appFaq.setOnClickListener {
+            val faqFragment = FaqBottomSheetFragment()
+            faqFragment.show(requireActivity().supportFragmentManager, "faqFragment")
         }
 
         binding.licenseText.setOnClickListener {

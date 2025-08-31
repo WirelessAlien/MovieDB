@@ -126,6 +126,10 @@ dependencies {
 
     implementation("com.opencsv:opencsv:5.9")
 
+    implementation("io.noties.markwon:core:4.6.2")
+    implementation("io.noties.markwon:ext-tables:4.6.2")
+    implementation("io.noties.markwon:html:4.6.2")
+
     //for Google Sign In
     "fullImplementation"("com.google.android.gms:play-services-auth:21.2.0")
     "fullImplementation"("com.google.apis:google-api-services-drive:v3-rev197-1.25.0")
