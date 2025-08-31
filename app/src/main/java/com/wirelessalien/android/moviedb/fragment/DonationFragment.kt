@@ -21,13 +21,9 @@
 package com.wirelessalien.android.moviedb.fragment
 
 import android.app.Dialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.databinding.FragmentDonationBinding
@@ -56,12 +52,10 @@ class DonationFragment : DialogFragment() {
             startActivity(intent)
         }
 
-        binding.btcId.setOnClickListener {
-
-            val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("BTC Address", "bc1q79tq454fqnn6hcterepr8km4kfsh4v69j9qqyg")
-            clipboard.setPrimaryClip(clip)
-            Toast.makeText(requireContext(), "BTC Address copied to clipboard", Toast.LENGTH_SHORT).show()
+        binding.kofiBtn.setOnClickListener {
+            val url = "https://ko-fi.com/wirelessalien"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
         }
 
         return MaterialAlertDialogBuilder(requireContext())

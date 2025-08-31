@@ -248,6 +248,13 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             }
         }
 
+        val donateKey = findPreference<Preference>("donate_key")
+        donateKey?.setOnPreferenceClickListener {
+            val donateFragment = DonationFragment()
+            donateFragment.show(requireActivity().supportFragmentManager, "donationFragment")
+            true
+        }
+
         findPreference<SwitchPreferenceCompat>("key_auto_sync_tkt_data")?.let { preference ->
             val traktToken = preferences.getString("trakt_access_token", null)
             preference.isEnabled = !traktToken.isNullOrEmpty()
