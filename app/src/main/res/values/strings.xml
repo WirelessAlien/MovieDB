@@ -157,7 +157,7 @@
     <string name="fetching_item_of">Fetching item %1$d of %2$d</string>
     <string name="source_code">Source Code</string>
     <string name="license">License</string>
-    <string name="author_wirelessalien" translatable="false">Author: WirelessAlien</string>
+    <string name="author_wirelessalien" translatable="false">Author: Abhilash</string>
     <string name="report_an_issue">Report an Issue</string>
     <string name="episodesL">Episodes</string>
     <string name="marked_episodes_as_watched">Marked %1$d episodes as watched</string>
