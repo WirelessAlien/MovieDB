@@ -1,0 +1,6 @@
+Add a quick access chip to mark episode as watched
+Add a widget for episode of currently watching shows
+Add upcoming projects for actor
+Improve csv export type
+Fix notification visibility issue that occured after device reboot
+and a few small fix and Improvement

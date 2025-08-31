@@ -54,6 +54,7 @@ The app allows you to filter shows based on genre, release dates, and more. Deta
 -   🔄 **Data Management:** Import and export your local database.
 -   🎨 **Material You:** Modern UI that adapts to your device's theme.
 -   🔔 **Release Notifications:** Get notified about new movie and TV show releases.
+-   🔄 **External Data Import:** Import data from other app (more on [Wiki](https://github.com/WirelessAlien/MovieDB/wiki/Frequently-Asked-Questions-(FAQ)#can-i-import-a-database-from-another-application))
 -   ...and many more!
 ---
 
@@ -157,10 +158,10 @@ Distributed under the GNU General Public License v3.0. See [`LICENSE`](LICENSE) 
 
 If you find ShowCase useful and would like to support its development, please consider donating. Your support helps keep the project alive.
 
-<a href="https://liberapay.com/WirelessAlien/donate" target="_blank" rel="noopener noreferrer"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
+<noscript><a href="https://liberapay.com/WirelessAlien/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>  
 
-**PayPal:**
-*   [One-time Donation](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-42024772MB847863LM7CZV7I)
-*   [Monthly Subscription](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-3H0022989S4788323M7CZXHY)
-*   [Yearly Subscription](https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-9L472332EB637292NM7CZXVA)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I01JN1GG)
 
+<a href="https://www.paypal.me/WirelessAlien">
+  <img src="https://github.com/user-attachments/assets/d2b47113-80e3-40f7-aeb1-a4e07c56c2ef" alt="paypal" width="100" />
+</a>
