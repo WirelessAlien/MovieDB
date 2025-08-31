@@ -294,7 +294,7 @@
     <string name="export_movies_and_episodes">Export movie and show (with episodes)</string>
     <string name="last_backup">Last backup: %s</string>
     <string name="no_upcoming_titles_found">No upcoming titles found.</string>
-    <string name="allow_permission_to_post_notifications">Allow permission to post notifications</string>
+    <string name="allow_permission_to_post_notifications">\u27a4 Allow permission</string>
     <string name="notification_permission_not_granted">Permission not granted to post notification</string>
     <string name="post_notification_permission_not_granted">Post notification permission not granted</string>
     <string name="grant_notification_permissions">Please grant notification and alarm permissions first</string>

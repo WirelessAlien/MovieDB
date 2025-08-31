@@ -104,7 +104,7 @@
 
         <Preference
             android:key="key_request_notification_permission"
-            android:title="@string/allow_permission_to_post_notifications"
+            android:summary="@string/allow_permission_to_post_notifications"
             app:iconSpaceReserved="false"/>
 
         <Preference
