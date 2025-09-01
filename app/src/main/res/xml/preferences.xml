@@ -265,20 +265,15 @@
             android:title="@string/privacy_policy"
             app:iconSpaceReserved="false"
             android:key="privacy_key"/>
+    </PreferenceCategory>
 
-        <PreferenceCategory
-            android:title="@string/attribution"
-            app:iconSpaceReserved="false">
+    <PreferenceCategory
+        android:title="@string/attribution"
+        app:iconSpaceReserved="false"
+        android:layout="@layout/attribution_layout">
 
-            <Preference
-                android:summary="@string/text_tmdb_credits"
-                android:icon="@drawable/ic_movie_db"
-                app:iconSpaceReserved="false"/>
-
-            <Preference
-                android:summary="@string/text_tkt_credits"
-                android:icon="@drawable/ic_trakt"
-                app:iconSpaceReserved="false"/>
-        </PreferenceCategory>
+        <Preference
+            android:summary="@string/text_tmdb_credits"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 </PreferenceScreen>
