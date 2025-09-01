@@ -268,10 +268,12 @@
         app:iconSpaceReserved="false">
 
         <Preference android:title="@string/about_movie_db"
+            android:summary="@string/source_code_faq_bug_report"
             app:iconSpaceReserved="false"
             android:key="about_key"/>
 
         <Preference android:title="@string/donate"
+            android:summary="@string/donate_desc"
             app:iconSpaceReserved="false"
             android:key="donate_key"/>
 

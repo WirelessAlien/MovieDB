@@ -78,8 +78,8 @@
     <string name="genres">Genres</string>
     <string name="advanced">Advanced</string>
     <string name="keyword_text">Exclude and include keywords by putting their IDs in the respective text box below.\n * Use , (comma) to indicate you mean both keywords.\n * Use | (pipe) to indicate you want one or the other.</string>
-    <string name="with_keywords_hint">Include shows with the keywords…</string>
-    <string name="without_keywords_hint">Exclude shows with the keywords…</string>
+    <string name="with_keywords_hint">Include media with the keywords…</string>
+    <string name="without_keywords_hint">Exclude media with the keywords…</string>
 
     <string name="movie_tab_title">Movies</string>
     <string name="series_tab_title">Shows</string>
@@ -111,14 +111,14 @@
     <string name="title_show_recommendations">Display recommendations</string>
     <string name="title_show_save_dialog">Display save dialog</string>
     <string name="title_persistent_filtering">Persistent filter</string>
-    <string name="summary_persistent_filtering">Auto-filter shows when starting the app</string>
+    <string name="summary_persistent_filtering">Auto-filter media when starting the app</string>
     <string name="title_show_representation">Media representation</string>
     <string name="title_shows_in_grid">Display media in a grid</string>
     <string name="title_grid_size">Grid size</string>
     <string name="summary_grid_size">Amount of items in a row</string>
     <string name="title_data_usage">Data usage</string>
     <string name="title_live_search">Use live search</string>
-    <string name="title_hide_tabs">Hide tabs</string>
+    <string name="title_hide_tabs">Tabs visibility</string>
     <string name="summary_hide_tabs">Restart the app to apply changes.</string>
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
     <string name="title_hide_series_tab">Hide the \'Shows\' tab</string>
@@ -159,14 +159,14 @@
     <string name="export">Export</string>
     <string name="login_successful">Logged in</string>
     <string name="experimental">Experimental</string>
-    <string name="dynamic_color_preference_summary">Colours the details page based on movie or cast image colour.</string>
+    <string name="dynamic_color_preference_summary">Colours the details page will be based on movie or cast image colour.</string>
     <string name="dynamic_color_preference_title">Dynamically colored details page</string>
     <string name="share_link_button">Share link button</string>
     <string name="database_import_successful">Database imported. Please reopen the app.</string>
     <string name="notification">Notification</string>
     <string name="summary_notification_one">This preference applies to upcoming movies and shows (including individual episodes) of \"Saved\" and from \"Trakt\" account</string>
     <string name="get_notified_for_saved_movies">Get notified</string>
-    <string name="summary_notification_two">You will get notified for upcoming items of Trakt account and \"Saved\" when released.</string>
+    <string name="summary_notification_two">Get notified for upcoming items of Trakt account and \"Saved\" when released.</string>
     <string name="not_logged_in">You are not logged in</string>
     <string name="logged_in">You are logged in</string>
     <string name="other">Other</string>

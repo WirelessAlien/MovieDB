@@ -245,7 +245,7 @@
     <string name="schedule_update">Schedule Update</string>
     <string name="schedule_monthly_update">Schedule Monthly Update</string>
     <string name="enable_update">Enable update</string>
-    <string name="upcoming_widget_description">Shows upcoming Movies and TV show episodes for Saved media.</string>
+    <string name="upcoming_widget_description">Displays upcoming Movies and TV show episodes for Saved media.</string>
     <string name="loading_data">Loading data…</string>
     <string name="unknown_title">Unknown Title</string>
     <string name="notifications">Notifications</string>
@@ -285,10 +285,10 @@
     <string name="update_available2">Update available!</string>
     <string name="continue_watching">Continue Watching!</string>
     <string name="quick_access_of_episodes_to_watch_next">Quick access of up next episode</string>
-    <string name="show_the_continue_watching_chip_desc">Show the \"Continue Watching\" chip in all tabs to quickly access the next episode to watch.</string>
+    <string name="show_the_continue_watching_chip_desc">Display the \"Continue Watching\" chip in all tabs to quickly access the next episode to watch.</string>
     <string name="tv_shows">Shows</string>
     <string name="no_up_next_shows">No ongoing shows available, start watching new shows!</string>
-    <string name="up_next_widget_description">Shows the next episode to watch (for ongoing Shows).</string>
+    <string name="up_next_widget_description">Displays the next episode to watch (for ongoing Shows).</string>
     <string name="timeline">Timeline</string>
     <string name="export_movies_only">Export movie and show (without episodes) only</string>
     <string name="export_movies_and_episodes">Export movie and show (with episodes)</string>
@@ -298,14 +298,15 @@
     <string name="notification_permission_not_granted">Permission not granted to post notification</string>
     <string name="post_notification_permission_not_granted">Post notification permission not granted</string>
     <string name="grant_notification_permissions">Please grant notification and alarm permissions first</string>
-    <string name="donate_desc">If you find the app useful, please consider supporting its development:</string>
+    <string name="donate_desc">If you find the app useful, please consider supporting its development</string>
     <string name="faq">FAQ</string>
     <string name="failed_to_load_faq">Failed to load FAQ.</string>
     <string name="title_behavior">Behavior</string>
     <string name="title_sync">Sync</string>
-    <string name="show_next_episode_to_watch">Show next episode to watch</string>
+    <string name="show_next_episode_to_watch">Display next episode to watch</string>
     <string name="show_next_episode_to_watch_summary">Display the next episode to watch in the details view instead of the latest aired.</string>
     <string name="display_saved_dialog_summary">Display watch category dialog when adding media to \"Saved.</string>
+    <string name="source_code_faq_bug_report">Source code, faq, bug report...</string>
 
     <string-array name="media_types">
         <item>digital</item>
