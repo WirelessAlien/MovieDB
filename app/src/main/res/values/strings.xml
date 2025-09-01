@@ -284,7 +284,7 @@
     <string name="get_app_update_summary">Get new available version of the app automatically within the app</string>
     <string name="update_available2">Update available!</string>
     <string name="continue_watching">Continue Watching!</string>
-    <string name="quick_access_of_episodes_to_watch_next">Quick access of up next episode</string>
+    <string name="quick_access_of_episodes_to_watch_next">Display \"Continue Watching!\" chip</string>
     <string name="show_the_continue_watching_chip_desc">Display the \"Continue Watching\" chip in all tabs to quickly access the next episode to watch.</string>
     <string name="tv_shows">Shows</string>
     <string name="no_up_next_shows">No ongoing shows available, start watching new shows!</string>
