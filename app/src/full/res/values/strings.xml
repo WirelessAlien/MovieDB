@@ -31,7 +31,7 @@
     <string name="crew_movie_title">Part of the crew in</string>
 
     <string name="movie_added">Movie added</string>
-    <string name="series_added">Series added</string>
+    <string name="series_added">Show added</string>
     <string name="show_added_error">Could not add show to database</string>
     <string name="start_date">Started on: %1$s</string>
     <string name="start_date_unknown">Start date: Not set </string>
@@ -84,7 +84,7 @@
     <!-- SectionsPagerAdapter -->
     <!-- SectionsPagerAdapter -->
     <string name="movie_tab_title">Movies</string>
-    <string name="series_tab_title">Series</string>
+    <string name="series_tab_title">Shows</string>
     <string name="saved_tab_title">Saved</string>
 
     <!-- MovieDatabaseHelper -->
@@ -108,14 +108,14 @@
 
     <!-- Preferences -->
     <string name="title_general">General</string>
-    <string name="title_show_cast">Show cast</string>
-    <string name="title_show_crew">Show crew</string>
-    <string name="title_show_recommendations">Show recommendations</string>
-    <string name="title_show_save_dialog">Show save dialog</string>
+    <string name="title_show_cast">Display cast</string>
+    <string name="title_show_crew">Display crew</string>
+    <string name="title_show_recommendations">Display recommendations</string>
+    <string name="title_show_save_dialog">Display save dialog</string>
     <string name="title_persistent_filtering">Persistent filter</string>
     <string name="summary_persistent_filtering">Auto-filter shows when starting the app</string>
-    <string name="title_show_representation">Show representation</string>
-    <string name="title_shows_in_grid">Display shows in a grid</string>
+    <string name="title_show_representation">Media representation</string>
+    <string name="title_shows_in_grid">Display media in a grid</string>
     <string name="title_grid_size">Grid size</string>
     <string name="summary_grid_size">Amount of items in a row</string>
     <string name="title_data_usage">Data usage</string>
@@ -123,7 +123,7 @@
     <string name="title_hide_tabs">Hide tabs</string>
     <string name="summary_hide_tabs">Restart the app to apply changes.</string>
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
-    <string name="title_hide_series_tab">Hide the \'Series\' tab</string>
+    <string name="title_hide_series_tab">Hide the \'Shows\' tab</string>
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
     <string name="title_api_language">API language</string>
     <string name="summary_api_language">Set the language of the API data (otherwise defaults to system language).</string>
@@ -136,7 +136,7 @@
 
     <!-- Fragment names -->
     <string name="title_movies">Movies</string>
-    <string name="title_series">Series</string>
+    <string name="title_series">Shows</string>
     <string name="title_saved">Saved</string>
     <string name="title_account">Account</string>
     <string name="title_people">People</string>

@@ -301,6 +301,11 @@
     <string name="donate_desc">If you find the app useful, please consider supporting its development:</string>
     <string name="faq">FAQ</string>
     <string name="failed_to_load_faq">Failed to load FAQ.</string>
+    <string name="title_behavior">Behavior</string>
+    <string name="title_sync">Sync</string>
+    <string name="show_next_episode_to_watch">Show next episode to watch</string>
+    <string name="show_next_episode_to_watch_summary">Display the next episode to watch in the details view instead of the latest aired.</string>
+    <string name="display_saved_dialog_summary">Display watch category dialog when adding media to \"Saved.</string>
 
     <string-array name="media_types">
         <item>digital</item>

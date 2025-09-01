@@ -30,73 +30,77 @@
             android:defaultValue="true"
             android:key="key_show_cast"
             android:title="@string/title_show_cast"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="key_show_crew"
             android:title="@string/title_show_crew"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="key_show_similar_movies"
             android:title="@string/title_show_recommendations"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="key_show_continue_watching"
+            android:summary="@string/show_the_continue_watching_chip_desc"
+            android:title="@string/quick_access_of_episodes_to_watch_next"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/title_behavior"
+        app:iconSpaceReserved="false">
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_show_save_dialog"
             android:title="@string/title_show_save_dialog"
-            app:iconSpaceReserved="false"/>
+            android:summary="@string/display_saved_dialog_summary"
+            app:iconSpaceReserved="false" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_persistent_filtering"
-            android:title="@string/title_persistent_filtering"
             android:summary="@string/summary_persistent_filtering"
-            app:iconSpaceReserved="false"/>
+            android:title="@string/title_persistent_filtering"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
 
-        <androidx.preference.SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="key_default_media_type"
-            android:title="@string/default_media_type"
-            android:summary="@string/show_shows_as_default_in_the_account_tab"
-            app:iconSpaceReserved="false"/>
-
-        <androidx.preference.SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="key_show_continue_watching"
-            android:title="@string/quick_access_of_episodes_to_watch_next"
-            android:summary="@string/show_the_continue_watching_chip_desc"
-            app:iconSpaceReserved="false"/>
+    <PreferenceCategory
+        android:title="@string/title_sync"
+        app:iconSpaceReserved="false">
 
         <Preference
             android:key="sync_provider"
-            app:title="@string/sync_provider2"
             android:summary="@string/select_default_sync_provider"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            app:title="@string/sync_provider2" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_auto_sync_tkt_data"
-            android:title="@string/get_tkt_data"
             android:summary="@string/get_tkt_data_summary"
-            app:iconSpaceReserved="false"/>
+            android:title="@string/get_tkt_data"
+            app:iconSpaceReserved="false" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="key_auto_update_episode_data"
-            android:title="@string/get_episode_data_auto"
             android:summary="@string/get_episode_data_auto_summary"
-            app:iconSpaceReserved="false"/>
+            android:title="@string/get_episode_data_auto"
+            app:iconSpaceReserved="false" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_get_in_app_update"
-            android:title="@string/get_app_update"
             android:summary="@string/get_app_update_summary"
-            app:iconSpaceReserved="false"/>
+            android:title="@string/get_app_update"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/notification"
@@ -147,10 +151,17 @@
 
         <androidx.preference.SwitchPreferenceCompat
             app:key="prefs_show_next_episode_to_watch"
-            app:title="Show next episode to watch"
-            app:summary="Display the next episode to watch in the details view instead of the latest aired."
+            app:title="@string/show_next_episode_to_watch"
+            app:summary="@string/show_next_episode_to_watch_summary"
             app:defaultValue="false"
             app:iconSpaceReserved="false"/>
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="key_default_media_type"
+            android:summary="@string/show_shows_as_default_in_the_account_tab"
+            android:title="@string/default_media_type"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/title_data_usage"
@@ -205,7 +216,10 @@
             app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/advanced"
+    <PreferenceCategory
+        android:key="key_advanced"
+        android:title="@string/advanced"
+        app:initialExpandedChildrenCount="0"
         app:iconSpaceReserved="false">
 
         <EditTextPreference
