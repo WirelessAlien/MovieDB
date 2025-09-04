@@ -289,8 +289,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
+    private fun setChipsEnabled(enabled: Boolean) {
+        binding.chipAll.isEnabled = enabled
+        binding.chipUpcoming.isEnabled = enabled
+        binding.chipWatching.isEnabled = enabled
+    }
+
     private suspend fun loadInitialData() {
         withContext(Dispatchers.Main) {
+            setChipsEnabled(false)
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
             mShowAdapter.updateData(ArrayList())
@@ -316,6 +323,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
             binding.shimmerFrameLayout1.stopShimmer()
             binding.shimmerFrameLayout1.visibility = View.GONE
+            setChipsEnabled(true)
         }
     }
 
@@ -501,6 +509,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     updateShowViewAdapter()
                 }
                 binding.chipUpcoming.isChecked -> {
+                    setChipsEnabled(false)
                     mShowArrayList.clear()
                     mShowAdapter.notifyDataSetChanged()
                     binding.shimmerFrameLayout1.apply {
@@ -519,17 +528,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                                     stopShimmer()
                                     visibility = View.GONE
                                 }
+                                setChipsEnabled(true)
                             }
                         }
                     }
                 }
 
                 binding.chipWatching.isChecked -> {
+                    setChipsEnabled(false)
                     // Refresh Watching shows
                     val watchingShows = withContext(Dispatchers.IO) {
                         getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_WATCHING)
                     }
                     mShowAdapter.updateData(watchingShows)
+                    setChipsEnabled(true)
                 }
             }
 
@@ -824,6 +836,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
      */
     private fun updateShowViewAdapter() {
         lifecycleScope.launch(Dispatchers.Main) {
+            setChipsEnabled(false)
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
 
@@ -851,6 +864,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             } finally {
                 binding.shimmerFrameLayout1.visibility = View.GONE
                 binding.shimmerFrameLayout1.stopShimmer()
+                setChipsEnabled(true)
             }
         }
     }
