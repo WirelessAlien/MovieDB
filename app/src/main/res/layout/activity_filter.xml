@@ -77,7 +77,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:tag="start_date_order"
-                android:text="@string/start_date2"
+                android:text="@string/start_date_3"
                 android:visibility="gone"/>
 
             <com.google.android.material.radiobutton.MaterialRadioButton
@@ -85,7 +85,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:tag="finish_date_order"
-                android:text="@string/end_date"
+                android:text="@string/end_date_3"
+                android:visibility="gone"/>
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/watchCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tag="watch_category"
+                android:text="@string/watch_category"
                 android:visibility="gone"/>
         </RadioGroup>
 
@@ -113,47 +121,10 @@
                 android:text="@string/categories"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:id="@+id/categoryCheckBoxesLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/plannedToWatchCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="plan_to_watch"
-                    android:text="@string/plan_to_watch" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/watchingCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="watching"
-                    android:text="@string/watching" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/onHoldCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="on_hold"
-                    android:text="@string/on_hold" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/droppedCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="dropped"
-                    android:text="@string/dropped" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/watchedCheckBox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="watched"
-                    android:text="@string/watched" />
-            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/categoryRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
             <View
                 android:id="@+id/categoryViewSeparator"

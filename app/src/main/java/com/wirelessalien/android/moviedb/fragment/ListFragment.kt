@@ -60,6 +60,9 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.platform.MaterialSharedAxis
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.wirelessalien.android.moviedb.data.CategoryDTO
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.CsvImportActivity
 import com.wirelessalien.android.moviedb.activity.DetailActivity
@@ -176,6 +179,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             intent.putExtra("keywords", false)
             intent.putExtra("startDate", true)
             intent.putExtra("finishDate", true)
+            intent.putExtra("account", false)
             intent.putExtra("account", false)
             filterActivityResultLauncher.launch(intent)
         }
@@ -1200,6 +1204,25 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                             if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
                             if (secondDate == null) return@sortWith -1
                             firstDate.compareTo(secondDate) * -1
+                        }
+                    }
+                }
+                "watch_category" -> {
+                    val categoryOrderJson = sharedPreferences.getString(FilterActivity.CATEGORY_ORDER, null)
+                    if (categoryOrderJson != null) {
+                        val type = object : TypeToken<List<CategoryDTO>>() {}.type
+                        val categoryOrder: List<CategoryDTO> = Gson().fromJson(categoryOrderJson, type)
+                        val categoryMap = categoryOrder.mapIndexed { index, categoryDTO -> categoryDTO.tag to index }.toMap()
+
+                        val comparator = compareBy<JSONObject> {
+                            val category = it.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES)
+                            val categoryTag = DetailActivity.getCategoryName(category)
+                            categoryMap[categoryTag] ?: Int.MAX_VALUE
+                        }
+                        if (mSearchView) {
+                            mSearchShowArrayList.sortWith(comparator)
+                        } else {
+                            mShowArrayList.sortWith(comparator)
                         }
                     }
                 }

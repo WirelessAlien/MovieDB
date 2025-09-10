@@ -25,7 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,14 +43,21 @@ import android.widget.ScrollView;
 import android.widget.TableLayout;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.wirelessalien.android.moviedb.data.CategoryDTO;
 import com.wirelessalien.android.moviedb.R;
+import com.wirelessalien.android.moviedb.adapter.CategoryAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,10 +70,13 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * This class handles all the different sorting and filtering on the shows.
@@ -86,8 +95,11 @@ public class FilterActivity extends AppCompatActivity {
     public static final String FILTER_WITHOUT_GENRES = "filter_without_genres";
     public static final String FILTER_WITH_KEYWORDS = "filter_with_keywords";
     public static final String FILTER_WITHOUT_KEYWORDS = "filter_without_keywords";
+    public static final String CATEGORY_ORDER = "category_order";
     private ArrayList<Integer> withGenres = new ArrayList<>();
     private ArrayList<Integer> withoutGenres = new ArrayList<>();
+    private CategoryAdapter categoryAdapter;
+    private List<CategoryDTO> categoryList;
 
     /**
      * Uses Integer.parseInt on all characters in the string (except for splitArg).
@@ -183,9 +195,29 @@ public class FilterActivity extends AppCompatActivity {
         });
 
         // Show different types of sorting depending on the activity that the user came from.
+        RadioButton watchCategoryButton = findViewById(R.id.watchCategory);
         if (intent.getBooleanExtra("categories", false)) {
+            watchCategoryButton.setVisibility(View.VISIBLE);
             LinearLayout categoriesLayout = findViewById(R.id.categoriesLayout);
             categoriesLayout.setVisibility(View.VISIBLE);
+            RecyclerView categoryRecyclerView = findViewById( R.id.categoryRecyclerView );
+            categoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            initializeCategoryList();
+            categoryAdapter = new CategoryAdapter(this, categoryList);
+            categoryRecyclerView.setAdapter(categoryAdapter);
+
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper( new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
+                @Override
+                public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                    categoryAdapter.onItemMove(viewHolder.getBindingAdapterPosition(), target.getBindingAdapterPosition());
+                    return true;
+                }
+
+                @Override
+                public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                }
+            });
+            itemTouchHelper.attachToRecyclerView( categoryRecyclerView );
         }
 
         if (!intent.getBooleanExtra("most_popular", true)) {
@@ -286,6 +318,23 @@ public class FilterActivity extends AppCompatActivity {
         retrieveFilterPreferences();
     }
 
+    private void initializeCategoryList() {
+        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        String categoryOrderJson = sharedPreferences.getString(CATEGORY_ORDER, null);
+        if (categoryOrderJson != null) {
+            Type type = new TypeToken<List<CategoryDTO>>() {
+            }.getType();
+            categoryList = new Gson().fromJson(categoryOrderJson, type);
+        } else {
+            categoryList = new ArrayList<>();
+            categoryList.add(new CategoryDTO(getString(R.string.plan_to_watch), "plan_to_watch", false));
+            categoryList.add(new CategoryDTO(getString(R.string.watching), "watching", false));
+            categoryList.add(new CategoryDTO(getString(R.string.on_hold), "on_hold", false));
+            categoryList.add(new CategoryDTO(getString(R.string.dropped), "dropped", false));
+            categoryList.add(new CategoryDTO(getString(R.string.watched), "watched", false));
+        }
+    }
+
     /**
      * Concatenates multiple JSONArrays.
      * @param arrays the arrays to concatenate.
@@ -361,15 +410,19 @@ public class FilterActivity extends AppCompatActivity {
                 findViewById(R.id.sortSelection)
         ));
 
-        prefsEditor.putString(FILTER_CATEGORIES, getSelectedCheckBoxes(
-                findViewById(R.id.watchingCheckBox),
-                findViewById(R.id.watchedCheckBox),
-                findViewById(R.id.plannedToWatchCheckBox),
-                findViewById(R.id.onHoldCheckBox),
-                findViewById(R.id.droppedCheckBox)).toString());
+        if (categoryAdapter != null) {
+            ArrayList<String> selectedCategories = new ArrayList<>();
+            for (CategoryDTO category : categoryAdapter.getCategoryList()) {
+                if (category.isChecked()) {
+                    selectedCategories.add(category.getTag());
+                }
+            }
+            prefsEditor.putString(FILTER_CATEGORIES, selectedCategories.toString());
+            prefsEditor.putString(CATEGORY_ORDER, new Gson().toJson(categoryAdapter.getCategoryList()));
+        }
 
-        prefsEditor.putString( FILTER_SHOW_MOVIE, getSelectedCheckBoxes(
-                findViewById( R.id.movieCheckBox),
+        prefsEditor.putString(FILTER_SHOW_MOVIE, getSelectedCheckBoxes(
+                findViewById(R.id.movieCheckBox),
                 findViewById( R.id.tvCheckBox)).toString());
 
         prefsEditor.putString(FILTER_DATES, getSelectedCheckBox(
@@ -483,18 +536,18 @@ public class FilterActivity extends AppCompatActivity {
 
         // Select the criterion to sort by.
         String sortTag = sharedPreferences.getString(FILTER_SORT, null);
-        if (sortTag != null) {
-            selectRadioButtonByTag(sortTag, findViewById(R.id.sortSelection));
-        } else {
-            // Select the default button.
-            selectRadioButtonByTag("most_popular", findViewById(R.id.sortSelection));
-        }
+        // Select the default button.
+        selectRadioButtonByTag( Objects.requireNonNullElse( sortTag, "most_popular" ), findViewById( R.id.sortSelection ) );
 
         // Select the categories to filter (if any) the local database on.
         String categoriesTags = sharedPreferences.getString(FILTER_CATEGORIES, null);
-        if (categoriesTags != null && !categoriesTags.equals("[]")) {
+        if (categoryList != null && categoriesTags != null && !categoriesTags.equals("[]")) {
             ArrayList<String> categoryTagArray = convertStringToArrayList(categoriesTags, ", ");
-            selectCheckBoxByTag(categoryTagArray, findViewById(R.id.categoryCheckBoxesLayout));
+            for (CategoryDTO category : categoryList) {
+                if (categoryTagArray != null && categoryTagArray.contains( category.getTag() )) {
+                    category.setChecked( true );
+                }
+            }
         }
 
         String showMovieTag = sharedPreferences.getString(FILTER_SHOW_MOVIE, "");

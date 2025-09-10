@@ -4498,5 +4498,16 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 else -> MovieDatabaseHelper.CATEGORY_WATCHING
             }
         }
+
+        fun getCategoryName(category: Int): String {
+            return when (category) {
+                MovieDatabaseHelper.CATEGORY_WATCHING -> "watching"
+                MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> "plan_to_watch"
+                MovieDatabaseHelper.CATEGORY_WATCHED -> "watched"
+                MovieDatabaseHelper.CATEGORY_ON_HOLD -> "on_hold"
+                MovieDatabaseHelper.CATEGORY_DROPPED -> "dropped"
+                else -> "watching"
+            }
+        }
     }
 }
