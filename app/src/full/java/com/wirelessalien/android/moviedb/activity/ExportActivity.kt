@@ -241,6 +241,26 @@ class ExportActivity : AppCompatActivity() {
             scheduleDatabaseExport()
         }
 
+        if (!preferences.contains("backup_file_type")) {
+            preferences.edit().putString("backup_file_type", "DB").commit()
+        }
+
+        val backupFileType = preferences.getString("backup_file_type", "DB")
+        binding.backupFileTypeET.setText(backupFileType)
+
+        val fileTypeEntries = resources.getStringArray(R.array.backup_file_type_entries)
+        val fileTypeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, fileTypeEntries)
+        binding.backupFileTypeET.setAdapter(fileTypeAdapter)
+        binding.backupFileTypeET.setOnClickListener {
+            binding.backupFileTypeET.showDropDown()
+        }
+
+        binding.backupFileTypeET.setOnItemClickListener { _, _, position, _ ->
+            val fileType = fileTypeEntries[position]
+            preferences.edit().putString("backup_file_type", fileType).apply()
+            scheduleDatabaseExport()
+        }
+
         val predefinedValuesDrive = resources.getStringArray(R.array.backup_frequency_entries_drive)
         val adapterDrive = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValuesDrive)
         binding.backupFrequencyETDrive.setAdapter(adapterDrive)
@@ -443,7 +463,11 @@ class ExportActivity : AppCompatActivity() {
         val dbBackupDirectory = preferences.getString("db_backup_directory", null)
         if (dbBackupDirectory != null) {
             val directoryUri = Uri.parse(dbBackupDirectory)
-            val inputData = workDataOf("directoryUri" to directoryUri.toString())
+            val backupFileType = preferences.getString("backup_file_type", "DB")
+            val inputData = workDataOf(
+                "directoryUri" to directoryUri.toString(),
+                "backupFileType" to backupFileType
+            )
 
             val frequency = preferences.getInt("backup_frequency", 1440)
 

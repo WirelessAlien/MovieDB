@@ -23,13 +23,13 @@ package com.wirelessalien.android.moviedb.work
 import android.app.NotificationManager
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.PreferenceManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import java.io.FileInputStream
 import java.io.IOException
 
@@ -38,26 +38,71 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
 
     override suspend fun doWork(): Result {
         val directoryUriString = inputData.getString("directoryUri") ?: return Result.failure()
+        val backupFileType = inputData.getString("backupFileType") ?: "DB"
         val directoryUri = Uri.parse(directoryUriString)
         val documentFile = DocumentFile.fromTreeUri(applicationContext, directoryUri)
-        val databaseName = "movies.db"
-        val existingFile = documentFile?.findFile(databaseName)
+
+        val fileName = when (backupFileType) {
+            "JSON" -> "movies.json"
+            "CSV (Movies and Shows)" -> "movies.csv"
+            "CSV (All data)" -> "movies_with_episodes.csv"
+            else -> "movies.db"
+        }
+
+        val existingFile = documentFile?.findFile(fileName)
+        val mimeType = when (backupFileType) {
+            "JSON" -> "application/json"
+            "CSV (Movies and Shows)", "CSV (All data)" -> "text/csv"
+            else -> "application/octet-stream"
+        }
 
         return try {
-            val currentDBPath = applicationContext.getDatabasePath(databaseName).absolutePath
-            val inputStream = FileInputStream(currentDBPath)
             val outputStream = if (existingFile != null) {
                 applicationContext.contentResolver.openOutputStream(existingFile.uri)
             } else {
-                val newFile = documentFile?.createFile("application/octet-stream", databaseName)
+                val newFile = documentFile?.createFile(mimeType, fileName)
                 applicationContext.contentResolver.openOutputStream(newFile!!.uri)
             }
 
-            inputStream.use { input ->
-                outputStream?.use { output ->
-                    input.copyTo(output)
+            outputStream?.use { output ->
+                when (backupFileType) {
+                    "DB" -> {
+                        val currentDBPath = applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
+                        FileInputStream(currentDBPath).use { input ->
+                            input.copyTo(output)
+                        }
+                    }
+                    "JSON" -> {
+                        val databaseHelper = MovieDatabaseHelper(applicationContext)
+                        val json = databaseHelper.readableDatabase.use { db ->
+                            databaseHelper.getJSONExportString(db)
+                        }
+                        output.write(json.toByteArray())
+                    }
+                    "CSV (Movies and Shows)" -> {
+                        val databaseHelper = MovieDatabaseHelper(applicationContext)
+                        val csv = databaseHelper.readableDatabase.use { db ->
+                            databaseHelper.getCSVExportString(db, true)
+                        }
+                        output.write(csv.toByteArray())
+                    }
+                    "CSV (All data)" -> {
+                        val databaseHelper = MovieDatabaseHelper(applicationContext)
+                        val csv = databaseHelper.readableDatabase.use { db ->
+                            databaseHelper.getCSVExportString(db, false)
+                        }
+                        output.write(csv.toByteArray())
+                    }
+
+                    else -> {
+                        val currentDBPath = applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
+                        FileInputStream(currentDBPath).use { input ->
+                            input.copyTo(output)
+                        }
+                    }
                 }
             }
+
             showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(
                 R.string.database_backup_successful
             ), true)

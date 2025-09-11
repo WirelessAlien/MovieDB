@@ -90,19 +90,16 @@
                 android:text="@string/export" />
 
             <TextView
-                android:id="@+id/backupSettingd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/backup_settings"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:layout_marginTop="16dp"/>
+                android:text="@string/auto_backup"
+                android:layout_marginTop="30dp"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/autoBackupSwitch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:text="@string/enable_auto_backup"/>
 
             <TextView
@@ -121,23 +118,41 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/auto_backup_directory_selection"/>
 
-            <TextView
-                android:id="@+id/backupFrequency"
-                android:layout_width="wrap_content"
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/backup_frequency"
-                android:textSize="16sp"
-                android:layout_marginTop="16dp"/>
+                android:layout_gravity="fill"
+                android:layout_marginTop="16dp"
+                app:boxCornerRadiusTopStart="10dp"
+                app:boxCornerRadiusTopEnd="10dp"
+                app:boxCornerRadiusBottomEnd="10dp"
+                app:boxCornerRadiusBottomStart="10dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
+                android:hint="@string/backup_file_type">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/backupFileTypeET"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:padding="10dp"
+                    android:gravity="center_vertical"
+                    android:inputType="none"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:imeOptions="actionDone"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="fill"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="16dp"
                 app:boxCornerRadiusTopStart="10dp"
                 app:boxCornerRadiusTopEnd="10dp"
                 app:boxCornerRadiusBottomEnd="10dp"
                 app:boxCornerRadiusBottomStart="10dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                 android:hint="@string/backup_frequency">
 
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -158,7 +173,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/backup_to_google_drive"
-                android:textSize="16sp"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_marginTop="16dp"/>
 
             <com.google.android.material.button.MaterialButton
@@ -205,11 +220,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="fill"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="16dp"
                 app:boxCornerRadiusTopStart="10dp"
                 app:boxCornerRadiusTopEnd="10dp"
                 app:boxCornerRadiusBottomEnd="10dp"
                 app:boxCornerRadiusBottomStart="10dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                 android:hint="@string/backup_frequency">
 
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView

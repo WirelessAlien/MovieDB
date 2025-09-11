@@ -36,4 +36,11 @@
         <item>1 week</item>
         <item>1 month</item>
     </string-array>
+
+    <string-array name="backup_file_type_entries">
+        <item>DB</item>
+        <item>JSON</item>
+        <item>CSV (Movies and Shows)</item>
+        <item>CSV (All data)</item>
+    </string-array>
 </resources>

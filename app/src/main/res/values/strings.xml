@@ -293,6 +293,7 @@
     <string name="export_movies_only">Export movie and show (without episodes) only</string>
     <string name="export_movies_and_episodes">Export movie and show (with episodes)</string>
     <string name="last_backup">Last backup: %s</string>
+    <string name="backup_file_type">Backup File Type</string>
     <string name="no_upcoming_titles_found">No upcoming titles found.</string>
     <string name="allow_permission_to_post_notifications">\u27a4 Allow permission</string>
     <string name="notification_permission_not_granted">Permission not granted to post notification</string>
@@ -311,6 +312,7 @@
     <string name="drag_handle">Drag Indicator</string>
     <string name="start_date_3">Start Date</string>
     <string name="end_date_3">End Date</string>
+    <string name="auto_backup">Auto Backup</string>
 
     <string-array name="media_types">
         <item>digital</item>
