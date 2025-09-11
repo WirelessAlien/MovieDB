@@ -30,11 +30,10 @@ import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
-import android.widget.LinearLayout
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
-import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
@@ -278,11 +277,13 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val jsonChip = customView.findViewById<Chip>(R.id.chip_json)
         val dbChip = customView.findViewById<Chip>(R.id.chip_db)
         val csvChip = customView.findViewById<Chip>(R.id.chip_csv)
-        val csvExportOptions = customView.findViewById<LinearLayout>(R.id.csv_export_options)
-        val moviesOnlyCheckBox = customView.findViewById<MaterialCheckBox>(R.id.checkbox_movies_only)
+        val csvExportOptions = customView.findViewById<RadioGroup>(R.id.csv_export_options)
 
         csvChip.setOnCheckedChangeListener { _, isChecked ->
             csvExportOptions.isVisible = isChecked
+            if (isChecked) {
+                csvExportOptions.check(R.id.radio_movies_only)
+            }
         }
 
         builder.setView(customView)
@@ -292,7 +293,12 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 val isJson = jsonChip.isChecked
                 val isDb = dbChip.isChecked
                 val isCsv = csvChip.isChecked
-                val isMoviesOnly = moviesOnlyCheckBox.isChecked
+                val isMoviesOnly = csvExportOptions.checkedRadioButtonId == R.id.radio_movies_only
+
+                if (isCsv && csvExportOptions.checkedRadioButtonId == -1) {
+                    Toast.makeText(context, context.getString(R.string.no_csv_export_option_selected), Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
 
                 if (exportDirectoryUri != null) {
                     exportToUri(context, exportDirectoryUri, isJson, isDb, isCsv, isMoviesOnly)

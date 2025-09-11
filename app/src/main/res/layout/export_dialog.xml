@@ -30,7 +30,6 @@
         android:id="@+id/chip_group_export_choice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         app:singleSelection="true">
 
         <com.google.android.material.chip.Chip
@@ -58,23 +57,23 @@
             android:text="CSV" />
     </com.google.android.material.chip.ChipGroup>
 
-    <LinearLayout
+    <RadioGroup
         android:id="@+id/csv_export_options"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone">
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/checkbox_movies_only"
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radio_movies_only"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/export_movies_only" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/checkbox_movies_and_episodes"
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radio_movies_and_episodes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/export_movies_and_episodes" />
-    </LinearLayout>
+    </RadioGroup>
 </LinearLayout>
