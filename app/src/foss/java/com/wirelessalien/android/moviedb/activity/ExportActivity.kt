@@ -113,6 +113,7 @@ class ExportActivity : AppCompatActivity() {
         val isAutoBackupEnabled = preferences.getBoolean("auto_backup_enabled", false)
         binding.autoBackupSwitch.isChecked = isAutoBackupEnabled
         binding.backupBtn.isEnabled = isAutoBackupEnabled
+        binding.backupFileTypeET.isEnabled = isAutoBackupEnabled
         binding.backupFrequencyET.isEnabled = isAutoBackupEnabled
 
         val exportDirectory = DirectoryHelper.getExportDirectory(context)
@@ -150,6 +151,7 @@ class ExportActivity : AppCompatActivity() {
         binding.autoBackupSwitch.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit().putBoolean("auto_backup_enabled", isChecked).apply()
             binding.backupBtn.isEnabled = isChecked
+            binding.backupFileTypeET.isEnabled = isChecked
             binding.backupFrequencyET.isEnabled = isChecked
 
             if (isChecked) {
@@ -178,10 +180,10 @@ class ExportActivity : AppCompatActivity() {
                 60 -> "1 hour"
                 360 -> "6 hours"
                 720 -> "12 hours"
-                1440 -> "24 hours"
+                1440 -> "1 day"
                 10080 -> "1 week"
                 43200 -> "1 month"
-                else -> "24 hours"
+                else -> "1 day"
             }
         )
 
@@ -199,7 +201,7 @@ class ExportActivity : AppCompatActivity() {
                 "1 hour" -> 60
                 "6 hours" -> 360
                 "12 hours" -> 720
-                "24 hours" -> 1440
+                "1 day" -> 1440
                 "1 week" -> 10080
                 "1 month" -> 43200
                 else -> 1440
