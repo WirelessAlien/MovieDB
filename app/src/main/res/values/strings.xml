@@ -203,7 +203,7 @@
     <string name="all_episodes_watched_message">You\'re all caught up!</string>
     <string name="up_next">Up Next</string>
     <string name="no_seasons_found">No seasons found for this show.</string>
-    <string name="show_not_in_database">Please \"Save\" the show to edit watch status of episodes</string>
+    <string name="show_not_in_database">\"Save\" the show to local database to use this feature</string>
     <string name="number">%d</string>
     <string name="no_app_found_to_pick_files">No app found to pick files.</string>
     <string name="could_not_read_headers">Could not read headers. Check delimiter or ensure CSV is not empty.</string>
@@ -212,9 +212,9 @@
     <string name="please_select_a_csv_file_first">Please select a CSV file first.</string>
     <string name="please_map_at_least_one_csv_column">Please map at least one CSV column.</string>
     <string name="tmdb_id_or_title_required_import">Warning: It\'s required to map a column to \'TMDB ID\' for effective import.</string>
-    <string name="import_process_started">Import process started...</string>
-    <string name="starting_import">Starting import...</string>
-    <string name="importing">Importing...</string>
+    <string name="import_process_started">Import process started…</string>
+    <string name="starting_import">Starting import…</string>
+    <string name="importing">Importing…</string>
     <string name="import_complete">Import complete!</string>
     <string name="import_failed_or_finished_with_errors">Import failed or finished with errors.</string>
     <string name="csv_import_service_notifications">CSV Import Service notifications</string>
