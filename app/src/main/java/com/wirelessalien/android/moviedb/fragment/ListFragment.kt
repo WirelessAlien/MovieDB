@@ -62,7 +62,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.wirelessalien.android.moviedb.data.CategoryDTO
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.CsvImportActivity
 import com.wirelessalien.android.moviedb.activity.DetailActivity
@@ -71,6 +70,7 @@ import com.wirelessalien.android.moviedb.activity.FilterActivity
 import com.wirelessalien.android.moviedb.activity.ImportActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.data.CategoryDTO
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogEpisodeDataExpBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
@@ -121,6 +121,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private var tmdbApiKey: String? = null
     private var accessToken: String? = null
     private var clientId: String? = null
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     private lateinit var filterActivityResultLauncher: ActivityResultLauncher<Intent>
     private lateinit var binding: FragmentSavedBinding
     private lateinit var activityBinding: ActivityMainBinding
@@ -541,9 +542,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 binding.chipWatching.isChecked -> {
                     setChipsEnabled(false)
                     // Refresh Watching shows
-                    val watchingShows = withContext(Dispatchers.IO) {
+                    var watchingShows = withContext(Dispatchers.IO) {
                         getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_WATCHING)
                     }
+                    watchingShows = sortWatchingShows(watchingShows)
                     mShowAdapter.updateData(watchingShows)
                     setChipsEnabled(true)
                 }
@@ -551,6 +553,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
             binding.swipeRefreshLayout.isRefreshing = false
         }
+    }
+
+    private fun sortWatchingShows(shows: ArrayList<JSONObject>): ArrayList<JSONObject> {
+        shows.sortWith { o1, o2 ->
+            val date1 = getSortDate(o1)
+            val date2 = getSortDate(o2)
+            when {
+                date1 == null && date2 == null -> 0
+                date1 == null -> 1
+                date2 == null -> -1
+                else -> date2.compareTo(date1)
+            }
+        }
+        return shows
     }
 
     override fun onResume() {
@@ -873,6 +889,39 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
+    private fun getSortDate(show: JSONObject): Date? {
+        val isMovie = show.optInt(IS_MOVIE, 0) == 1
+        return try {
+            if (isMovie) {
+                val dateStr = show.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
+                if (dateStr.isNotEmpty()) simpleDateFormat.parse(dateStr) else null
+            } else {
+                var maxDate: Date? = null
+                val seasons = show.optJSONObject(SEASONS)
+                if (seasons != null) {
+                    for (seasonKey in seasons.keys()) {
+                        val episodes = seasons.optJSONArray(seasonKey)
+                        if (episodes != null) {
+                            for (i in 0 until episodes.length()) {
+                                val episode = episodes.getJSONObject(i)
+                                val dateStr = episode.optString(EPISODE_WATCH_DATE)
+                                if (dateStr.isNotEmpty()) {
+                                    val date = simpleDateFormat.parse(dateStr)
+                                    if (maxDate == null || date?.after(maxDate) == true) {
+                                        maxDate = date
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                maxDate
+            }
+        } catch (e: ParseException) {
+            null
+        }
+    }
+
     private fun setupMediaTypeChips() {
         binding.chipAll.isChecked = true
         binding.chipUpcoming.isChecked = false
@@ -927,12 +976,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     upNextFragment.show(parentFragmentManager, "UpNextFragment")
                 }
 
-                val watchingShows = ArrayList<JSONObject>()
+                var watchingShows = ArrayList<JSONObject>()
                 for (show in mShowArrayList) {
                     if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHING) {
                         watchingShows.add(show)
                     }
                 }
+                watchingShows = sortWatchingShows(watchingShows)
                 mShowAdapter.updateData(watchingShows)
             }
         }

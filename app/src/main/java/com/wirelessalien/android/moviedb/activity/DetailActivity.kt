@@ -1213,6 +1213,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
 
         addMenuProvider()
+
+        binding.movieTitle.setOnLongClickListener {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = android.content.ClipData.newPlainText("Copied Text", binding.movieTitle.text)
+            clipboard.setPrimaryClip(clip)
+            true
+        }
     }
 
     private fun addMenuProvider() {
@@ -2460,9 +2467,19 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
                     try {
                         val formattedStartDate = when {
+                            startDateString.endsWith("-00-00") -> {
+                                val year = startDateString.substring(0, 4)
+                                year
+                            }
                             startDateString.startsWith("00-00-") -> {
                                 val year = startDateString.substring(6)
                                 year
+                            }
+                            startDateString.endsWith("-00") -> {
+                                val monthYear = startDateString.substring(0, 7)
+                                SimpleDateFormat("yyyy-MM", Locale.getDefault()).parse(monthYear)?.let {
+                                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                                }
                             }
                             startDateString.startsWith("00-") -> {
                                 val monthYear = startDateString.substring(3)
@@ -2498,9 +2515,19 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
                     try {
                         val formattedFinishDate = when {
+                            finishDateString.endsWith("-00-00") -> {
+                                val year = finishDateString.substring(0, 4)
+                                year
+                            }
                             finishDateString.startsWith("00-00-") -> {
                                 val year = finishDateString.substring(6)
                                 year
+                            }
+                            finishDateString.endsWith("-00") -> {
+                                val monthYear = finishDateString.substring(0, 7)
+                                SimpleDateFormat("yyyy-MM", Locale.getDefault()).parse(monthYear)?.let {
+                                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                                }
                             }
                             finishDateString.startsWith("00-") -> {
                                 val monthYear = finishDateString.substring(3)
@@ -3295,39 +3322,23 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         dialogView.btnYear.setOnClickListener {
             showYearMonthPickerDialog(context) { selectedYear, selectedMonth ->
-                // Save the selected year and month to the database
+                val dateText = if (selectedMonth == null) {
+                    "$selectedYear-00-00"
+                } else {
+                    String.format(Locale.ENGLISH, "%d-%02d-00", selectedYear, selectedMonth)
+                }
+
                 val movieValues = ContentValues()
                 database = databaseHelper.writableDatabase
                 databaseHelper.onCreate(database)
-                val month = selectedMonth?.toString()?.padStart(2, '0') ?: "00"
-                val dateText = "00-$month-$selectedYear"
+
                 if (view.tag == "start_date") {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, dateText)
-                    binding.startDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
-                    binding.movieStartDate.text = getString(R.string.start_date, formatDateString(dateText))
                 } else {
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
-                    binding.endDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
-                    binding.movieFinishDate.text = getString(R.string.finish_date, formatDateString(dateText))
                 }
                 database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
-                // Update the UI component immediately
-                when (view.tag) {
-                    "start_date" -> {
-                        binding.startDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
-                        binding.movieStartDate.text = getString(R.string.start_date, formatDateString(dateText))
-                        binding.movieStartDate.visibility = View.VISIBLE
-                    }
-                    "end_date" -> {
-                        binding.endDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
-                        binding.movieFinishDate.text = getString(R.string.finish_date, formatDateString(dateText))
-                        binding.movieFinishDate.visibility = View.VISIBLE
-                    }
-                    else -> {
-                        binding.endDateButton.text = String.format("%02d-%d", month.toInt(), selectedYear)
-                        binding.movieFinishDate.text = getString(R.string.start_date_unknown)
-                    }
-                }
+                updateEditShowDetails()
                 dialog.dismiss()
             }
         }
@@ -3354,44 +3365,34 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
     }
 
-    private fun showYearMonthPickerDialog(
-        context: Context,
-        onYearMonthSelected: (Int, Int?) -> Unit
-    ) {
-        val dialogView = DialogYearMonthPickerBinding.inflate(LayoutInflater.from(context))
-        val yearPicker = dialogView.yearPicker
-        val monthPicker = dialogView.monthPicker
-        val monthTitle = dialogView.monthTitle
-        val monthLayout = dialogView.monthLayout
-        val disableMonthPicker = dialogView.disableMonthPicker
+    private fun showYearMonthPickerDialog(context: Context, onYearMonthSelected: (Int, Int?) -> Unit) {
+        val binding = DialogYearMonthPickerBinding.inflate(LayoutInflater.from(context))
+        val dialogView = binding.root
 
-        val currentYear = android.icu.util.Calendar.getInstance().get(android.icu.util.Calendar.YEAR)
-        yearPicker.minValue = 1900
-        yearPicker.maxValue = currentYear
-        yearPicker.value = currentYear
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        binding.yearPicker.minValue = 1900
+        binding.yearPicker.maxValue = currentYear
+        binding.yearPicker.value = currentYear
 
         val months = DateFormatSymbols.getInstance(Locale.getDefault()).months
-        monthPicker.minValue = 0
-        monthPicker.maxValue = months.size - 1
-        monthPicker.displayedValues = months
-        monthPicker.value = android.icu.util.Calendar.getInstance().get(android.icu.util.Calendar.MONTH)
+        binding.monthPicker.minValue = 0
+        binding.monthPicker.maxValue = months.size - 1
+        binding.monthPicker.displayedValues = months
+        binding.monthPicker.value = Calendar.getInstance().get(Calendar.MONTH)
 
-        disableMonthPicker.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                monthLayout.visibility = View.GONE
-                monthTitle.visibility = View.GONE
-            } else {
-                monthLayout.visibility = View.VISIBLE
-                monthTitle.visibility = View.VISIBLE
-            }
+        binding.disableMonthPicker.setOnCheckedChangeListener { _, isChecked ->
+            binding.monthPicker.isEnabled = !isChecked
+            binding.monthPicker.visibility = if (isChecked) View.GONE else View.VISIBLE
+            binding.monthTitle.visibility = if (isChecked) View.GONE else View.VISIBLE
+            binding.monthLayout.visibility = if (isChecked) View.GONE else View.VISIBLE
         }
 
         MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.select_year_and_month))
-            .setView(dialogView.root)
+            .setView(dialogView)
             .setPositiveButton(context.getString(R.string.ok)) { _, _ ->
-                val selectedYear = yearPicker.value
-                val selectedMonth = if (disableMonthPicker.isChecked) null else monthPicker.value + 1
+                val selectedYear = binding.yearPicker.value
+                val selectedMonth = if (binding.disableMonthPicker.isChecked) null else binding.monthPicker.value + 1
                 onYearMonthSelected(selectedYear, selectedMonth)
             }
             .setNegativeButton(context.getString(R.string.cancel), null)
