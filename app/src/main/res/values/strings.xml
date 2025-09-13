@@ -307,6 +307,8 @@
     <string name="show_next_episode_to_watch">Display next episode to watch</string>
     <string name="show_next_episode_to_watch_summary">Display the next episode to watch in the details view instead of the latest aired.</string>
     <string name="display_saved_dialog_summary">Display watch category dialog when adding media to \"Saved\".</string>
+    <string name="title_sort_watching_by_date">Sort by date</string>
+    <string name="summary_sort_watching_by_date">Sort watching media by last watched date in \"Saved\" tab</string>
     <string name="source_code_faq_bug_report">Source code, faq, bug report…</string>
     <string name="no_data_available">No data available</string>
     <string name="watch_category">Watch Category</string>

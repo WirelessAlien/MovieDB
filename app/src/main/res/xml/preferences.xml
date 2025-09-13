@@ -162,6 +162,13 @@
             android:summary="@string/show_shows_as_default_in_the_account_tab"
             android:title="@string/default_media_type"
             app:iconSpaceReserved="false" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="key_sort_watching_by_date"
+            android:summary="@string/summary_sort_watching_by_date"
+            android:title="@string/title_sort_watching_by_date"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/title_data_usage"

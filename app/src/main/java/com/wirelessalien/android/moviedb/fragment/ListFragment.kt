@@ -556,14 +556,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private fun sortWatchingShows(shows: ArrayList<JSONObject>): ArrayList<JSONObject> {
-        shows.sortWith { o1, o2 ->
-            val date1 = getSortDate(o1)
-            val date2 = getSortDate(o2)
-            when {
-                date1 == null && date2 == null -> 0
-                date1 == null -> 1
-                date2 == null -> -1
-                else -> date2.compareTo(date1)
+        val sortEnabled = preferences.getBoolean("key_sort_watching_by_date", true)
+        if (sortEnabled) {
+            shows.sortWith { o1, o2 ->
+                val date1 = getSortDate(o1)
+                val date2 = getSortDate(o2)
+                when {
+                    date1 == null && date2 == null -> 0
+                    date1 == null -> 1
+                    date2 == null -> -1
+                    else -> date2.compareTo(date1)
+                }
             }
         }
         return shows
