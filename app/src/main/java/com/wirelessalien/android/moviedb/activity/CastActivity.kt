@@ -154,13 +154,25 @@ class CastActivity : BaseActivity() {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 when (tab.position) {
                     0 -> {
-                        binding.castMovieRecyclerView.visibility = View.VISIBLE
                         binding.crewMovieRecyclerView.visibility = View.GONE
+                        if (castMovieArrayList.isEmpty()) {
+                            binding.castMovieRecyclerView.visibility = View.GONE
+                            binding.emptyView.visibility = View.VISIBLE
+                        } else {
+                            binding.castMovieRecyclerView.visibility = View.VISIBLE
+                            binding.emptyView.visibility = View.GONE
+                        }
                     }
 
                     1 -> {
                         binding.castMovieRecyclerView.visibility = View.GONE
-                        binding.crewMovieRecyclerView.visibility = View.VISIBLE
+                        if (crewMovieArrayList.isEmpty()) {
+                            binding.crewMovieRecyclerView.visibility = View.GONE
+                            binding.emptyView.visibility = View.VISIBLE
+                        } else {
+                            binding.crewMovieRecyclerView.visibility = View.VISIBLE
+                            binding.emptyView.visibility = View.GONE
+                        }
                     }
                 }
             }
@@ -634,28 +646,44 @@ class CastActivity : BaseActivity() {
             try {
                 val reader = JSONObject(response)
 
-                if (reader.getJSONArray("cast").length() <= 0) {
-                    binding.castMovieRecyclerView.visibility = View.GONE
+                val castMovieArray = reader.getJSONArray("cast")
+                if (castMovieArray.length() <= 0) {
+                    if (binding.tabLayout.selectedTabPosition == 0) {
+                        binding.castMovieRecyclerView.visibility = View.GONE
+                        binding.emptyView.visibility = View.VISIBLE
+                    }
                 } else {
-                    val castMovieArray = reader.getJSONArray("cast")
                     castMovieArrayList.clear()
+                    val addedItems = mutableSetOf<Pair<Int, String>>()
                     for (i in 0 until castMovieArray.length()) {
                         val actorMovies = castMovieArray.getJSONObject(i)
-                        castMovieArrayList.add(actorMovies)
+                        val id = actorMovies.optInt("id")
+                        val mediaType = actorMovies.optString("media_type")
+                        if (addedItems.add(Pair(id, mediaType))) {
+                            castMovieArrayList.add(actorMovies)
+                        }
                     }
 
                     castMovieAdapter = ShowBaseAdapter(context, castMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
                     binding.castMovieRecyclerView.adapter = castMovieAdapter
                 }
 
-                if (reader.getJSONArray("crew").length() <= 0) {
-                    binding.crewMovieRecyclerView.visibility = View.GONE
+                val crewMovieArray = reader.getJSONArray("crew")
+                if (crewMovieArray.length() <= 0) {
+                    if (binding.tabLayout.selectedTabPosition == 1) {
+                        binding.crewMovieRecyclerView.visibility = View.GONE
+                        binding.emptyView.visibility = View.VISIBLE
+                    }
                 } else {
-                    val crewMovieArray = reader.getJSONArray("crew")
                     crewMovieArrayList.clear()
+                    val addedItems = mutableSetOf<Pair<Int, String>>()
                     for (i in 0 until crewMovieArray.length()) {
                         val crewMovies = crewMovieArray.getJSONObject(i)
-                        crewMovieArrayList.add(crewMovies)
+                        val id = crewMovies.optInt("id")
+                        val mediaType = crewMovies.optString("media_type")
+                        if (addedItems.add(Pair(id, mediaType))) {
+                            crewMovieArrayList.add(crewMovies)
+                        }
                     }
 
                     crewMovieAdapter = ShowBaseAdapter(context, crewMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
