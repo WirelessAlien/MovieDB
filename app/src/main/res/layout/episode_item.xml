@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignWithParentIfMissing="true"
                     android:layout_below="@id/relativeLayout2"
-                    android:layout_marginBottom="5dip"
+                    android:layout_marginBottom="5dp"
                     android:ellipsize="end" />
 
                 <RelativeLayout

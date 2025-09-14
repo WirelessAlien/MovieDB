@@ -317,6 +317,7 @@
     <string name="end_date_3">End Date</string>
     <string name="auto_backup">Auto Backup</string>
     <string name="no_csv_export_option_selected">Please select a CSV export option</string>
+    <string name="guest_stars">Guest Stars</string>
 
     <string-array name="media_types">
         <item>digital</item>

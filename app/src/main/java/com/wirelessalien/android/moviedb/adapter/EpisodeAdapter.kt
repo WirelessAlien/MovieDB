@@ -61,6 +61,7 @@ import com.wirelessalien.android.moviedb.databinding.EpisodeItemBinding
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
+import com.wirelessalien.android.moviedb.fragment.EpisodeDetailsBottomSheet
 import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -693,6 +694,21 @@ class EpisodeAdapter(
         holder.binding.btnWatchedToLocalDb.setOnLongClickListener {
             showMarkPreviousEpisodesMenu(episode, holder)
             true
+        }
+
+        holder.binding.relativeLayout.setOnClickListener {
+            val bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
+            bottomSheet.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+        }
+
+        holder.binding.relativeLayout2.setOnClickListener {
+            val bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
+            bottomSheet.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+        }
+
+        holder.binding.description.setOnClickListener {
+            val bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
+            bottomSheet.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
         }
     }
 
