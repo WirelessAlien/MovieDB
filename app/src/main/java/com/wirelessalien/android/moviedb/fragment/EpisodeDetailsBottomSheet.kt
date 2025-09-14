@@ -71,7 +71,20 @@ class EpisodeDetailsBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        showShimmer(true)
         fetchEpisodeDetails()
+    }
+
+    private fun showShimmer(show: Boolean) {
+        if (show) {
+            binding.shimmerFrameLayout.startShimmer()
+            binding.shimmerFrameLayout.visibility = View.VISIBLE
+            binding.contentView.visibility = View.GONE
+        } else {
+            binding.shimmerFrameLayout.stopShimmer()
+            binding.shimmerFrameLayout.visibility = View.GONE
+            binding.contentView.visibility = View.VISIBLE
+        }
     }
 
     private fun fetchEpisodeDetails() {
@@ -85,18 +98,22 @@ class EpisodeDetailsBottomSheet : BottomSheetDialogFragment() {
                 val request = Request.Builder().url(url).build()
                 val response = client.newCall(request).execute()
                 val jsonData = response.body?.string()
-                val episodeObject = JSONObject(jsonData)
+                val episodeObject = JSONObject(jsonData?: "{}")
 
                 withContext(Dispatchers.Main) {
                     populateViews(episodeObject)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    showShimmer(false)
+                }
             }
         }
     }
 
     private fun populateViews(episodeObject: JSONObject) {
+        showShimmer(false)
         binding.episodeTitle.text = episodeObject.getString("name")
         binding.episodeOverview.text = episodeObject.getString("overview")
 
