@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <include layout="@layout/episode_details_skeleton" />
+            <include layout="@layout/show_skeleton" />
         </LinearLayout>
     </com.facebook.shimmer.ShimmerFrameLayout>
 

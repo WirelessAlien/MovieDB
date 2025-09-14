@@ -2,3 +2,4 @@ Add new sorting options in Saved tab #34
 Add ability to rearrange watch category #35
 Add new sorting for watching media #62
 Add file type selection to automated local backup #33
+Add episode details #104
