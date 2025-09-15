@@ -67,5 +67,5 @@ The app offers several sync providers to manage your data, each with different f
 *   **Trakt Only (Recommended):**
     This is another excellent option for syncing your data with a powerful online service.
 
-*   **TMDB and Trakt Combination (Not Recommended):**
-    We strongly advise against using both TMDB and Trakt as your primary sync providers simultaneously. Managing two separate sync sources can lead to confusion and data inconsistencies.
+*   **TMDB and Trakt Combination and Local and Trakt Combination (Not Recommended):**
+    We strongly advise against using both TMDB and Trakt and Local and Trakt as your primary sync providers simultaneously. Managing two separate sync sources can lead to confusion and data inconsistencies.
