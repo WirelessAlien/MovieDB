@@ -62,8 +62,8 @@
     <string name="title_show_crew">Εμφάνισε το συνεργείο</string>
     <string name="title_show_recommendations">Εμφάνισε συστάσεις</string>
     <string name="title_show_save_dialog">Εμφάνισε τον αποθηκευμένο διάλογο</string>
-    <string name="title_persistent_filtering">Επίμονο φίλτρο</string>
-    <string name="summary_persistent_filtering">Auto-filter δείχνει κατά την έναρξη της εφαρμογής</string>
+    <string name="title_persistent_filtering">Μόνιμο φίλτρο</string>
+    <string name="summary_persistent_filtering">Αυτόματο φιλτράρισμα των τηλεοπτικών σειρών κατά την έναρξη της εφαρμογής</string>
     <string name="title_show_representation">Show εκπροσώπηση</string>
     <string name="title_shows_in_grid">Εμφάνισε τις τηλεοπτικές σειρές σε πλέγμα</string>
     <string name="title_grid_size">Μέγεθος πλέγματος</string>
@@ -76,7 +76,7 @@
     <string name="title_hide_series_tab">Απέκρυψε την καρτέλα \"Τηλεοπτικές Σειρές\"</string>
     <string name="title_hide_saved_tab">Απέκρυψε την καρτέλα \"Αποθηκευμένα\"</string>
     <string name="title_api_language">Γλώσσα API</string>
-    <string name="summary_api_language">Ρυθμίστε τη γλώσσα των δεδομένων API (αλλοίωτες αθέτησες στη γλώσσα του συστήματος).</string>
+    <string name="summary_api_language">Ρυθμίστε τη γλώσσα των δεδομένων της API (αλλιώς προεπιλέγεται η γλώσσα του συστήματος).</string>
     <string name="text_tmdb_credits">Αυτό το προϊόν χρησιμοποιεί το TMDB API, αλλά δεν έχει εγκριθεί ή πιστοποιηθεί από την TMDB</string>
     <string name="action_settings">Ρυθμίσεις</string>
     <string name="no_internet_connection">Δεν υπάρχει σύνδεση στο Διαδίκτυο</string>
@@ -87,7 +87,7 @@
     <string name="title_people">Άνθρωποι</string>
     <string name="collapse_icon_description">Collapses ή επεκτείνει την άποψη</string>
     <string name="image_description">Αφίσα της Τηλεοτικής Σειράς</string>
-    <string name="person_image_description">Φωτογραφία του ατόμου</string>
+    <string name="person_image_description">Φωτογραφία ατόμου</string>
     <string name="movie_image_description">Φωτογραφία από τη Τηλεοπτική Σειρά</string>
     <string name="edit_icon_description">Ενεργοποιεί τη λειτουργία “επεξεργασίας”</string>
     <string name="file_picked_success">Το αρχείο επιλέχθηκε</string>
