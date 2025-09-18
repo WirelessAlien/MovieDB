@@ -1,3 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="no_permission_dialog_ok">Ok</string>
+    <string name="no_permission_dialog_cancel">Annulla</string>
+    <string name="place_of_birth">Luogo di nascita: %1$s</string>
+    <string name="birthday">Compleanno: %1$s</string>
+    <string name="cast_movie_title">Parte del cast in</string>
+    <string name="crew_movie_title">Parte del personale in</string>
+    <string name="movie_added">Film aggiunto</string>
+    <string name="series_added">Serie aggiunta</string>
+    <string name="show_added_error">Impossibile aggiungere show al database</string>
+    <string name="start_date">Iniziato il: %1$s</string>
+    <string name="start_date_unknown">Data di inizio: non impostata</string>
+    <string name="finish_date">Terminato il: %1$s</string>
+    <string name="finish_date_unknown">Data di fine: non impostata</string>
+    <string name="times_watched">Visto %1$d volte</string>
+    <string name="episodes_seen">Episodi visti: %1$d/%2$d</string>
+    <string name="rating">"Valutazione: "</string>
+    <string name="change_start_date_2">"Data di inizio: "</string>
+    <string name="change_finish_date_2">"Data di fine: "</string>
+    <string name="change_watched_times">"Volte visto: "</string>
+    <string name="cast_title">Cast</string>
+    <string name="crew_title">Personale</string>
+    <string name="recommendations_title">Raccomandazioni</string>
+    <string name="category_picker">Scegli la categoria appropriata</string>
+    <string name="show_category">"Categoria: "</string>
+    <string name="sort_by">Ordina per</string>
+    <string name="default_sort">Predefinito</string>
+    <string name="most_popular">Più popolari</string>
+    <string name="best_rated">Valutazione migliore</string>
+    <string name="release_date">Data di uscita</string>
+    <string name="alphabetic_order">A–Z</string>
+    <string name="categories">Categorie</string>
+    <string name="watching">In visione</string>
+    <string name="plan_to_watch">Da vedere</string>
+    <string name="watched">Visto</string>
+    <string name="on_hold">In pausa</string>
+    <string name="dropped">Abbandonato</string>
+    <string name="dates">Date</string>
+    <string name="in_the_theater_right_now">Al cinema</string>
+    <string name="between_two_dates">Tra due date</string>
+    <string name="end_date">"Data di fine: "</string>
+    <string name="genres">Generi</string>
+    <string name="advanced">Avanzate</string>
 </resources>
