@@ -24,166 +24,190 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <LinearLayout android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/contentLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <TextView
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/quick_access"
+                        android:textSize="18sp"
+                        android:layout_centerVertical="true"
+                        android:textStyle="bold"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/addToWatched"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                        app:icon="@drawable/ic_visibility"
+                        app:cornerRadius="10dp"/>
+                </RelativeLayout>
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp">
+
+               <com.google.android.material.card.MaterialCardView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   app:cardCornerRadius="10dp"
+                   style="@style/Widget.Material3.CardView.Elevated">
+
+                   <com.wirelessalien.android.moviedb.view.WideRatioImageView
+                        android:id="@+id/imageView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scaleType="fitXY" />
+               </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipEpS"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/quick_access"
-                    android:textSize="18sp"
-                    android:layout_centerVertical="true"
+                    android:checkable="false"
+                    android:layout_marginStart="8dp"
+                    android:layout_gravity="start|bottom"
+                    style="@style/Widget.Material3.Chip.Suggestion.Elevated"/>
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_gravity="bottom">
+
+                <TextView
+                    android:id="@+id/episodeName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:textStyle="bold"/>
 
+                <TextView
+                    android:id="@+id/episodeOverview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"/>
+                <TextView
+                    android:id="@+id/episodeAirDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="13-Jul-2034"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/episodeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/episodesL"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"/>
+
+            <RelativeLayout
+                android:id="@+id/episodeSliderLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone">
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/episodeSlider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toStartOf="@id/saveBtn"
+                    app:labelBehavior="floating"
+                    android:stepSize="1"/>
+
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/addToWatched"
+                    android:id="@+id/saveBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    app:icon="@drawable/ic_visibility"
-                    app:cornerRadius="10dp"/>
+                    app:cornerRadius="10dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_centerVertical="true"
+                    app:icon="@drawable/ic_done_2"/>
             </RelativeLayout>
-        </LinearLayout>
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp">
-
-           <com.google.android.material.card.MaterialCardView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               app:cardCornerRadius="10dp"
-               style="@style/Widget.Material3.CardView.Elevated">
-
-               <com.wirelessalien.android.moviedb.view.WideRatioImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scaleType="fitXY" />
-           </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipEpS"
-                android:layout_width="wrap_content"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupSeasons"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:checkable="false"
-                android:layout_marginStart="8dp"
-                android:layout_gravity="start|bottom"
-                style="@style/Widget.Material3.Chip.Suggestion.Elevated"/>
-        </FrameLayout>
-
-        <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_gravity="bottom">
-
-            <TextView
-                android:id="@+id/episodeName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/episodeOverview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"/>
-            <TextView
-                android:id="@+id/episodeAirDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="13-Jul-2034"/>
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/episodeTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/episodesL"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:visibility="gone"/>
-
-        <RelativeLayout
-            android:id="@+id/episodeSliderLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone">
-
-            <com.google.android.material.slider.Slider
-                android:id="@+id/episodeSlider"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toStartOf="@id/saveBtn"
-                app:labelBehavior="floating"
-                android:stepSize="1"/>
+                app:chipSpacing="10dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                app:singleSelection="true"
+                android:orientation="horizontal" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/saveBtn"
-                android:layout_width="wrap_content"
+                android:id="@+id/seasonActionButton"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                app:cornerRadius="10dp"
+                android:text="Add Season to Watched"
+                android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_centerVertical="true"
-                app:icon="@drawable/ic_done_2"/>
-        </RelativeLayout>
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone"
+                app:cornerRadius="10dp"
+                android:enabled="false" />
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupSeasons"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:chipSpacing="10dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            app:singleSelection="true"
-            android:orientation="horizontal" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewEpisodes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp"/>
+        </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/seasonActionButton"
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerFrameLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Add Season to Watched"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:visibility="gone"
-            app:cornerRadius="10dp"
-            android:enabled="false" />
+            app:shimmer_duration="700">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewEpisodes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="16dp"/>
-    </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center">
+
+                <include layout="@layout/show_skeleton" />
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+    </FrameLayout>
 </androidx.core.widget.NestedScrollView>

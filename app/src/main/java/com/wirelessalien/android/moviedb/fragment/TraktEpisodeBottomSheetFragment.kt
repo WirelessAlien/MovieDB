@@ -20,6 +20,7 @@
 
 package com.wirelessalien.android.moviedb.fragment
 
+import android.icu.text.DateFormat
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -50,6 +51,8 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTraktAdapter.EpisodeClickListener {
 
@@ -79,6 +82,9 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.shimmerFrameLayout.visibility = View.VISIBLE
+        binding.contentLayout.visibility = View.GONE
+
         arguments?.let {
             showId = it.getInt("showId")
             initialSeasonNumber = it.getInt("seasonNumber")
@@ -103,7 +109,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
 
         lifecycleScope.launch {
             if (traktId == 0) {
-                Toast.makeText(context, "Could not get Trakt ID for this show.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.could_not_get_trakt_id_for_this_show), Toast.LENGTH_SHORT).show()
                 dismiss()
                 return@launch
             }
@@ -264,12 +270,25 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
                 val jsonResponse = response.body?.string()?.let { JSONObject(it) }
 
                 withContext(Dispatchers.Main) {
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.contentLayout.visibility = View.VISIBLE
                     if (jsonResponse != null) {
                         binding.episodeName.text = jsonResponse.optString("name", "N/A")
                         binding.episodeOverview.text = jsonResponse.optString("overview", "No overview available.")
+
                         val airDate = jsonResponse.optString("air_date")
-                        // Date formatting...
-                        binding.episodeAirDate.text = airDate
+                        if (airDate.isNotEmpty()) {
+                            try {
+                                val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                val date = inputFormat.parse(airDate)
+                                val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault()).format(date)
+                                binding.episodeAirDate.text = formattedDate
+                            } catch (e: Exception) {
+                                binding.episodeAirDate.text = "N/A"
+                            }
+                        } else {
+                            binding.episodeAirDate.text = "N/A"
+                        }
 
                         val stillPath = jsonResponse.optString("still_path")
                         if (stillPath.isNotEmpty() && stillPath != "null") {
@@ -283,6 +302,11 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
                     }
                 }
             } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.contentLayout.visibility = View.VISIBLE
+                    Toast.makeText(context, getString(R.string.error_loading_data) + ":" + e.message, Toast.LENGTH_SHORT).show()
+                }
                 e.printStackTrace()
             }
         }
@@ -323,31 +347,46 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
     }
 
     private fun traktSync(episodeJSONObject: JSONObject, endpoint: String, tmdbId: Int, traktId:Int, title: String, seasonNumber: Int, episodeNumber: Int, currentTime: String) {
-        val traktApiService = TraktSync(tktaccessToken?: "", requireContext())
-        traktApiService.post(endpoint, episodeJSONObject, object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                activity?.runOnUiThread {
-                    Toast.makeText(context, context?.getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                activity?.runOnUiThread {
-                    if (response.isSuccessful) {
-                        val dbHelper = TraktDatabaseHelper(requireContext())
-                        val newStatus = endpoint == "sync/history"
-                        if (newStatus) {
-                            dbHelper.addEpisodeToWatched(traktId, tmdbId, seasonNumber, episodeNumber, currentTime)
-                        } else {
-                            dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
-                        }
-                        addItemtoTmdb()
-                        updateWatchedIcon(newStatus)
-                        (binding.recyclerViewEpisodes.adapter as? EpisodeTraktAdapter)?.updateEpisodeWatched(episodeNumber, newStatus)
+        try {
+            val traktApiService = TraktSync(tktaccessToken ?: "", requireContext())
+            traktApiService.post(endpoint, episodeJSONObject, object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    activity?.runOnUiThread {
+                        Toast.makeText(context, context?.getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
                     }
                 }
+
+                override fun onResponse(call: Call, response: Response) {
+                    activity?.runOnUiThread {
+                        if (response.isSuccessful) {
+                            val dbHelper = TraktDatabaseHelper(requireContext())
+                            val newStatus = endpoint == "sync/history"
+                            if (newStatus) {
+                                dbHelper.addEpisodeToWatched(
+                                    traktId,
+                                    tmdbId,
+                                    seasonNumber,
+                                    episodeNumber,
+                                    currentTime
+                                )
+                            } else {
+                                dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
+                            }
+                            addItemtoTmdb()
+                            updateWatchedIcon(newStatus)
+                            (binding.recyclerViewEpisodes.adapter as? EpisodeTraktAdapter)?.updateEpisodeWatched(
+                                episodeNumber,
+                                newStatus
+                            )
+                        }
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            activity?.runOnUiThread {
+                Toast.makeText(context, context?.getString(R.string.failed_to_sync, endpoint), Toast.LENGTH_SHORT).show()
             }
-        })
+        }
     }
 
     override fun onDestroyView() {

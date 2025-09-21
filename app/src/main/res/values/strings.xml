@@ -318,6 +318,7 @@
     <string name="auto_backup">Auto Backup</string>
     <string name="no_csv_export_option_selected">Please select a CSV export option</string>
     <string name="guest_stars">Guest Stars</string>
+    <string name="could_not_get_trakt_id_for_this_show">Could not get Trakt ID for this show.</string>
 
     <string-array name="media_types">
         <item>digital</item>
