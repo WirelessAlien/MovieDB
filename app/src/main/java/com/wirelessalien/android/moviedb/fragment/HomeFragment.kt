@@ -34,8 +34,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.badge.BadgeDrawable
-import com.google.android.material.badge.BadgeUtils
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.CarouselSnapHelper
 import com.google.android.material.transition.platform.MaterialSharedAxis
@@ -48,7 +46,6 @@ import com.wirelessalien.android.moviedb.adapter.TrendingPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentHomeBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
-import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -183,7 +180,11 @@ class HomeFragment : BaseFragment() {
         super.onResume()
         activityBinding.fab.visibility = View.GONE
         activityBinding.fab2.visibility = View.GONE
-        requireActivity().invalidateOptionsMenu()
+        if (preferences.getBoolean("key_show_continue_watching", true)) {
+            activityBinding.upnextChip.visibility = View.VISIBLE
+        } else {
+            activityBinding.upnextChip.visibility = View.GONE
+        }
     }
 
     private fun createShowList() {

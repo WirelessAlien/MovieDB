@@ -343,6 +343,7 @@ class AccountDataFragmentTkt : BaseFragment() {
         reloadFragment()
         activityBinding.fab.visibility = View.GONE
         activityBinding.fab2.visibility = View.GONE
+        activityBinding.upnextChip.visibility = View.GONE
         requireActivity().invalidateOptionsMenu()
     }
 

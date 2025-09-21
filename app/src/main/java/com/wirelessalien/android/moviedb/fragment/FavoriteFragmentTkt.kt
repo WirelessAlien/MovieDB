@@ -26,8 +26,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowTraktAdapter
@@ -48,6 +50,7 @@ class FavoriteFragmentTkt : BaseFragment() {
     private lateinit var tmdbHelper: TmdbDetailsDatabaseHelper
     private lateinit var linearLayoutManager: LinearLayoutManager
     private lateinit var binding: FragmentProgressTktBinding
+    private var isInitialLoad = true
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +59,7 @@ class FavoriteFragmentTkt : BaseFragment() {
         exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         dbHelper = TraktDatabaseHelper(requireContext())
         tmdbHelper = TmdbDetailsDatabaseHelper(requireContext())
+        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
 
     override fun onCreateView(
@@ -64,6 +68,7 @@ class FavoriteFragmentTkt : BaseFragment() {
     ): View {
         binding = FragmentProgressTktBinding.inflate(inflater, container, false)
         val view = binding.root
+        isInitialLoad = true
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
 
@@ -85,7 +90,6 @@ class FavoriteFragmentTkt : BaseFragment() {
 
         binding.showRecyclerView.adapter = adapter
 
-        binding.chipAll.isChecked = true
         binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
@@ -171,6 +175,14 @@ class FavoriteFragmentTkt : BaseFragment() {
                 cursor.close()
             }
             applySorting()
+            if (isInitialLoad) {
+                if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) {
+                    binding.chipGroup.check(R.id.chipShow)
+                } else {
+                    binding.chipGroup.check(R.id.chipMovie)
+                }
+                isInitialLoad = false
+            }
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
@@ -198,5 +210,16 @@ class FavoriteFragmentTkt : BaseFragment() {
     private fun filterFavoriteData(type: String) {
         val filteredList = ArrayList(fullFavoritelist.filter { it.getString("type") == type })
         adapter.updateShowList(filteredList)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
+        fab.visibility = View.GONE
+    }
+
+
+    companion object {
+        private const val DEFAULT_MEDIA_TYPE = "key_default_media_type"
     }
 }

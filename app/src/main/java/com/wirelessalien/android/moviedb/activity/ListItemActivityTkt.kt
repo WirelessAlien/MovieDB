@@ -22,7 +22,6 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -51,14 +50,14 @@ class ListItemActivityTkt : AppCompatActivity() {
     private var listId: Int? = null
     private var listName: String? = null
     lateinit var preferences: SharedPreferences
-    private var SHOWS_LIST_PREFERENCE = "key_show_shows_grid"
-    private var GRID_SIZE_PREFERENCE = "key_grid_size_number"
+    private var isInitialLoad = true
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityListItemBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        isInitialLoad = true
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
 
@@ -92,7 +91,6 @@ class ListItemActivityTkt : AppCompatActivity() {
         binding.recyclerView.adapter = adapter
 
         binding.chipGroup.visibility = View.VISIBLE
-        binding.chipAll.isChecked = true
         binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
@@ -209,6 +207,14 @@ class ListItemActivityTkt : AppCompatActivity() {
                 cursor.close()
             }
             applySorting()
+            if (isInitialLoad) {
+                if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) {
+                    binding.chipGroup.check(R.id.chipShow)
+                } else {
+                    binding.chipGroup.check(R.id.chipMovie)
+                }
+                isInitialLoad = false
+            }
             binding.shimmerFrameLayout.visibility = View.GONE
             binding.shimmerFrameLayout.stopShimmer()
         }
@@ -241,5 +247,11 @@ class ListItemActivityTkt : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressedDispatcher.onBackPressed()
         return true
+    }
+
+    companion object {
+        private const val DEFAULT_MEDIA_TYPE = "key_default_media_type"
+        private var SHOWS_LIST_PREFERENCE = "key_show_shows_grid"
+        private var GRID_SIZE_PREFERENCE = "key_grid_size_number"
     }
 }

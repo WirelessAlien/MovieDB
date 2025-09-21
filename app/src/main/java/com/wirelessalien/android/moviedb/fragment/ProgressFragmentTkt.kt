@@ -30,6 +30,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowProgressTraktAdapter
@@ -54,6 +55,7 @@ class ProgressFragmentTkt : BaseFragment() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var linearLayoutManager: LinearLayoutManager
     private lateinit var binding: FragmentProgressTktBinding
+    private var isInitialLoad = true
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +67,7 @@ class ProgressFragmentTkt : BaseFragment() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         traktAccessToken = sharedPreferences.getString("trakt_access_token", null)
         clientId = ConfigHelper.getConfigValue(requireContext(), "client_id")
+        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
 
     override fun onCreateView(
@@ -73,6 +76,7 @@ class ProgressFragmentTkt : BaseFragment() {
     ): View {
         binding = FragmentProgressTktBinding.inflate(inflater, container, false)
         val view = binding.root
+        isInitialLoad = true
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
 
@@ -104,7 +108,6 @@ class ProgressFragmentTkt : BaseFragment() {
 
         binding.showRecyclerView.adapter = adapter
 
-        binding.chipAll.isChecked = true
         binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
@@ -195,6 +198,14 @@ class ProgressFragmentTkt : BaseFragment() {
                 cursor.close()
             }
             applySorting()
+            if (isInitialLoad) {
+                if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) {
+                    binding.chipGroup.check(R.id.chipShow)
+                } else {
+                    binding.chipGroup.check(R.id.chipMovie)
+                }
+                isInitialLoad = false
+            }
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
@@ -221,5 +232,15 @@ class ProgressFragmentTkt : BaseFragment() {
     private fun filterWatchedData(type: String) {
         val filteredList = ArrayList(fullWatchedList.filter { it.getString("type") == type })
         adapter.updateShowList(filteredList)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
+        fab.visibility = View.GONE
+    }
+
+    companion object {
+        private const val DEFAULT_MEDIA_TYPE = "key_default_media_type"
     }
 }

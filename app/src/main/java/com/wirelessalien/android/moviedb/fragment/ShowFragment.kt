@@ -148,6 +148,11 @@ class ShowFragment : BaseFragment() {
         activityBinding.fab.setOnClickListener {
             filterRequestLauncher.launch(Intent())
         }
+        if (preferences.getBoolean("key_show_continue_watching", true)) {
+            activityBinding.upnextChip.visibility = View.VISIBLE
+        } else {
+            activityBinding.upnextChip.visibility = View.GONE
+        }
         requireActivity().invalidateOptionsMenu()
     }
 

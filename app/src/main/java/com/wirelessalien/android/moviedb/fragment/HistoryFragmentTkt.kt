@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowTraktAdapter
 import com.wirelessalien.android.moviedb.databinding.FragmentHistoryTktBinding
@@ -204,6 +205,12 @@ class HistoryFragmentTkt : BaseFragment() {
         }
 
         adapter.updateShowList(fullHistorylist)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
+        fab.visibility = View.GONE
     }
 
     private fun filterHistoryData(type: String) {

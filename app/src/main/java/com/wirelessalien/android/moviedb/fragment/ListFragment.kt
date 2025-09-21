@@ -587,6 +587,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             filterAdapter()
         }
 
+        if (preferences.getBoolean("key_show_continue_watching", true)) {
+            activityBinding.upnextChip.visibility = View.VISIBLE
+        } else {
+            activityBinding.upnextChip.visibility = View.GONE
+        }
+
         if (binding.chipUpcoming.isChecked) {
             // Hide the FAB if the "Upcoming" chip is checked
             activityBinding.fab.visibility = View.GONE

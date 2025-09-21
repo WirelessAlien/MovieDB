@@ -25,8 +25,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowTraktAdapter
 import com.wirelessalien.android.moviedb.databinding.FragmentWatchlistTktBinding
@@ -46,12 +48,14 @@ class RatingFragmentTkt : BaseFragment() {
     private lateinit var tmdbHelper: TmdbDetailsDatabaseHelper
     private lateinit var linearLayoutManager: LinearLayoutManager
     private lateinit var binding: FragmentWatchlistTktBinding
+    private var isInitialLoad = true
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dbHelper = TraktDatabaseHelper(requireContext())
         tmdbHelper = TmdbDetailsDatabaseHelper(requireContext())
+        preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
 
     override fun onCreateView(
@@ -60,6 +64,7 @@ class RatingFragmentTkt : BaseFragment() {
     ): View {
         binding = FragmentWatchlistTktBinding.inflate(inflater, container, false)
         val view = binding.root
+        isInitialLoad = true
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
 
@@ -89,7 +94,6 @@ class RatingFragmentTkt : BaseFragment() {
 
         binding.showRecyclerView.adapter = adapter
 
-        binding.chipAll.isChecked = true
         binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 when (checkedIds[0]) {
@@ -186,9 +190,9 @@ class RatingFragmentTkt : BaseFragment() {
                             jsonObject.put("overview", tmdbCursor.getString(
                                 tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_SUMMARY)))
                             jsonObject.put("vote_average", tmdbCursor.getDouble(
-                                    tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_VOTE_AVERAGE)))
+                                tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_VOTE_AVERAGE)))
                             jsonObject.put("release_date", tmdbCursor.getString(
-                                    tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_RELEASE_DATE)))
+                                tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_RELEASE_DATE)))
                             jsonObject.put("genre_ids",
                                 tmdbCursor.getString(tmdbCursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.COL_GENRE_IDS)))
                             jsonObject.put("seasons_episode_show_tmdb",
@@ -203,6 +207,14 @@ class RatingFragmentTkt : BaseFragment() {
                 cursor.close()
             }
             applySorting()
+            if (isInitialLoad) {
+                if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) {
+                    binding.chipGroup.check(R.id.chipShow)
+                } else {
+                    binding.chipGroup.check(R.id.chipMovie)
+                }
+                isInitialLoad = false
+            }
             binding.shimmerFrameLayout1.visibility = View.GONE
             binding.shimmerFrameLayout1.stopShimmer()
         }
@@ -230,5 +242,15 @@ class RatingFragmentTkt : BaseFragment() {
     private fun filterRatingData(type: String) {
         val filteredList = ArrayList(fullRatinglist.filter { it.getString("type") == type })
         adapter.updateShowList(filteredList)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
+        fab.visibility = View.GONE
+    }
+
+    companion object {
+        private const val DEFAULT_MEDIA_TYPE = "key_default_media_type"
     }
 }

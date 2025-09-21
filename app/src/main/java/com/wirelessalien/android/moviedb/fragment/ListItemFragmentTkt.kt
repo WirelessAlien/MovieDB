@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
+//No use
 class ListItemFragmentTkt : BaseFragment() {
 
     private lateinit var adapter: ShowTraktAdapter
