@@ -355,6 +355,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
                             if (newStatus) {
                                 dbHelper.addEpisodeToWatched(traktId, tmdbId, seasonNumber, episodeNumber, currentTime)
                                 dbHelper.addEpisodeToHistory(title, traktId, tmdbId, "episode", seasonNumber, episodeNumber, currentTime)
+                                dbHelper.addEpisodeToWatchedTable(tmdbId, traktId, "show", title, currentTime)
                             } else {
                                 dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
                                 dbHelper.removeEpisodeFromHistory(tmdbId, seasonNumber, episodeNumber)

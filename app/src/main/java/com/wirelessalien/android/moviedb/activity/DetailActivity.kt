@@ -1842,8 +1842,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 dbHelper.addMovieToWatched(movieTitle, type, tmdbId, watchedAtN)
             }
             "sync/history/remove" -> {
-                dbHelper.removeMovieFromHistory(tmdbId)
-                dbHelper.removeMovieFromWatched(tmdbId)
+                if (isMovie) {
+                    dbHelper.removeMovieFromHistory(tmdbId)
+                    dbHelper.removeMovieFromWatched(tmdbId)
+                } else {
+                    dbHelper.removeShowAndEpisodesFromHistory(tmdbId)
+                    dbHelper.removeShowAndEpisodesFromWatched(tmdbId)
+                }
             }
             "sync/ratings" -> dbHelper.addMovieRating(movieTitle, type, tmdbId, rating, collectedAt)
             "sync/ratings/remove" -> dbHelper.removeMovieRating(tmdbId)

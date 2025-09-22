@@ -1033,23 +1033,34 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         return lastWatched
     }
 
-    fun addEpisodeToWatched(
-        showTraktId: Int,
-        showTmdbId: Int,
-        seasonNumber: Int,
-        episodeNumber: Int,
-        collectedAt: String?
-    ) {
+    fun addEpisodeToWatched(showTraktId: Int, showTmdbId: Int, seasonNumber: Int, episodeNumber: Int, collectedAt: String?) {
         val db = writableDatabase
+        val selection = "$COL_SHOW_TRAKT_ID = ? AND $COL_SHOW_TMDB_ID = ? AND $COL_SEASON_NUMBER = ? AND $COL_EPISODE_NUMBER = ?"
+        val selectionArgs = arrayOf(showTraktId.toString(), showTmdbId.toString(), seasonNumber.toString(), episodeNumber.toString())
+
+        val cursor = db.query(TABLE_SEASON_EPISODE_WATCHED, arrayOf(COL_PLAYS), selection, selectionArgs, null, null, null)
+
+        val currentPlays = if (cursor.moveToFirst()) {
+            cursor.getInt(cursor.getColumnIndexOrThrow(COL_PLAYS))
+        } else {
+            1
+        }
+        cursor.close()
+
         val values = ContentValues().apply {
             put(COL_SHOW_TRAKT_ID, showTraktId)
             put(COL_SHOW_TMDB_ID, showTmdbId)
             put(COL_SEASON_NUMBER, seasonNumber)
             put(COL_EPISODE_NUMBER, episodeNumber)
-            put(COL_PLAYS, 1)
+            put(COL_PLAYS, currentPlays + 1)
             put(COL_LAST_WATCHED_AT, collectedAt)
         }
-        db.insert(TABLE_SEASON_EPISODE_WATCHED, null, values)
+
+        if (currentPlays > 0) {
+            db.update(TABLE_SEASON_EPISODE_WATCHED, values, selection, selectionArgs)
+        } else {
+            db.insert(TABLE_SEASON_EPISODE_WATCHED, null, values)
+        }
     }
 
     fun isSasonInWatched(
@@ -1207,6 +1218,18 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         }
         cursor.close()
         return collectionDetails
+    }
+
+    fun removeShowAndEpisodesFromHistory(showTmdbId: Int) {
+        val db = writableDatabase
+        db.delete(TABLE_HISTORY, "$COL_SHOW_TMDB = ?", arrayOf(showTmdbId.toString()))
+        db.delete(TABLE_HISTORY, "$COL_TMDB = ?", arrayOf(showTmdbId.toString()))
+    }
+
+    fun removeShowAndEpisodesFromWatched(showTmdbId: Int) {
+        val db = writableDatabase
+        db.delete(TABLE_WATCHED, "$COL_TMDB = ?", arrayOf(showTmdbId.toString()))
+        db.delete(TABLE_SEASON_EPISODE_WATCHED, "$COL_SHOW_TMDB_ID = ?", arrayOf(showTmdbId.toString()))
     }
 
     override fun close() {

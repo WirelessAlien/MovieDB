@@ -19,7 +19,6 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -788,18 +787,11 @@ class ShowTraktAdapter(
                 Handler(Looper.getMainLooper()).post {
                     val message = if (response.isSuccessful) {
                         val dbHelper = TraktDatabaseHelper(context)
-                        val db = dbHelper.writableDatabase
 
                         if (endpoint == "sync/history") {
-                            val values = ContentValues().apply {
-                                put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, traktId)
-                                put(TraktDatabaseHelper.COL_SHOW_TMDB_ID, tmdbId)
-                                put(TraktDatabaseHelper.COL_SEASON_NUMBER, seasonNumber)
-                                put(TraktDatabaseHelper.COL_EPISODE_NUMBER, episodeNumber)
-                                put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, currentTime)
-                            }
-                            dbHelper.insertSeasonEpisodeWatchedData(values)
+                            dbHelper.addEpisodeToWatched(traktId, tmdbId, seasonNumber, episodeNumber, currentTime)
                             dbHelper.addEpisodeToHistory(title, traktId, tmdbId, "episode", seasonNumber, episodeNumber, currentTime)
+                            dbHelper.addEpisodeToWatchedTable(tmdbId, traktId, "show", title, currentTime)
                             binding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
                             dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
@@ -808,7 +800,7 @@ class ShowTraktAdapter(
                                 AppCompatResources.getDrawable(context, R.drawable.ic_close)
                         }
 
-                        db.close()
+                        dbHelper.close()
                         context.getString(R.string.success)
                     } else {
                         response.message
