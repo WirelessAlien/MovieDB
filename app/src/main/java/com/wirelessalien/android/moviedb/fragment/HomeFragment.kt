@@ -180,7 +180,7 @@ class HomeFragment : BaseFragment() {
         super.onResume()
         activityBinding.fab.visibility = View.GONE
         activityBinding.fab2.visibility = View.GONE
-        if (preferences.getBoolean("key_show_continue_watching", true)) {
+        if (preferences.getBoolean("key_show_continue_watching", true) && preferences.getString("sync_provider", "local") == "local") {
             activityBinding.upnextChip.visibility = View.VISIBLE
         } else {
             activityBinding.upnextChip.visibility = View.GONE
