@@ -493,7 +493,8 @@ class ShowTraktAdapter(
                                     )
 
                                 val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
-                                traktSync(episodeObject, endpoint, bottomSheetBinding!!, showData.optInt("id"), traktId, showData.optString("show_title"), seasonNumber, episodeNumber, currentDateTime)
+                                val title = showData.optString("show_title", showData.optString("name", ""))
+                                traktSync(episodeObject, endpoint, bottomSheetBinding!!, showData.optInt("id"), traktId, title, seasonNumber, episodeNumber, currentDateTime)
                             }
                         }
 
@@ -528,7 +529,8 @@ class ShowTraktAdapter(
                                     )
 
                                 val endpoint = if (isWatched) "sync/history/remove" else "sync/history"
-                                traktSync(episodeObject, endpoint, bottomSheetBinding!!, showData.optInt("id"), traktId, showData.optString("show_title"), seasonNumberN, episodeNumberN, currentDateTime)
+                                val title = showData.optString("show_title", showData.optString("name", ""))
+                                traktSync(episodeObject, endpoint, bottomSheetBinding!!, showData.optInt("id"), traktId, title, seasonNumberN, episodeNumberN, currentDateTime)
                             }
                         }
 

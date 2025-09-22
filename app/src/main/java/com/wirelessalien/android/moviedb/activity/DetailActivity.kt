@@ -4225,7 +4225,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             lifecycleScope.launch {
                 val traktId = fetchTraktId(showId, imdbId)
                 if (traktId != null) {
-                    val bottomSheet = TraktEpisodeBottomSheetFragment.newInstance(showId, traktId, seasonNumber, episodeNumber, movieTitle, isMovie, movieDataObject)
+                    val bottomSheet = TraktEpisodeBottomSheetFragment.newInstance(showId, traktId, seasonNumber, episodeNumber, movieTitle ?: "", isMovie, movieDataObject)
                     bottomSheet.show(supportFragmentManager, TraktEpisodeBottomSheetFragment.TAG)
                 } else {
                     Toast.makeText(context, "Could not get Trakt ID for this show.", Toast.LENGTH_SHORT).show()

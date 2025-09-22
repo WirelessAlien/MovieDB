@@ -63,7 +63,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
     private var initialSeasonNumber: Int = 0
     private var initialEpisodeNumber: Int = 0
     private var traktId: Int = 0
-    private var showTitle: String? = null
+    private var showTitle: String = ""
     private var isMovie: Boolean = false
     private var movieDataObject: JSONObject? = null
 
@@ -90,7 +90,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
             initialSeasonNumber = it.getInt("seasonNumber")
             initialEpisodeNumber = it.getInt("episodeNumber")
             traktId = it.getInt("trakt_id")
-            showTitle = it.getString("show_title")
+            showTitle = it.getString("show_title", "")
             isMovie = it.getBoolean("isMovie", false)
             movieDataObject = it.getString("showObject")?.let { objStr -> JSONObject(objStr) }
 
@@ -140,7 +140,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
                 it.text == getString(R.string.season_p, initialSeasonNumber)
             }?.performClick()
 
-            onEpisodeClick(showId, traktId, initialSeasonNumber, initialEpisodeNumber, -1, showTitle ?: "")
+            onEpisodeClick(showId, traktId, initialSeasonNumber, initialEpisodeNumber, -1, showTitle)
         }
     }
 
@@ -169,7 +169,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
                 if (episodeData != null) {
                     val episodeObject = traktCreatetraktepisodeobject(episodeData)
                     val endpoint = if (isCurrentlyWatched) "sync/history/remove" else "sync/history"
-                    traktSync(episodeObject, endpoint, tvShowId, traktId, title, seasonNumber, episodeNumber, currentDateTime)
+                    traktSync(episodeObject, endpoint, tvShowId, traktId, showTitle, seasonNumber, episodeNumber, currentDateTime)
                 }
             }
         }
@@ -381,7 +381,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
     companion object {
         const val TAG = "TraktEpisodeBottomSheetFragment"
 
-        fun newInstance(showId: Int, traktId: Int, seasonNumber: Int, episodeNumber: Int, showTitle: String?, isMovie: Boolean, tmdbJSONObject: JSONObject?): TraktEpisodeBottomSheetFragment {
+        fun newInstance(showId: Int, traktId: Int, seasonNumber: Int, episodeNumber: Int, showTitle: String, isMovie: Boolean, tmdbJSONObject: JSONObject?): TraktEpisodeBottomSheetFragment {
             val args = Bundle()
             args.putInt("id", showId)
             args.putInt("trakt_id", traktId)
