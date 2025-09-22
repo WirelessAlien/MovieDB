@@ -210,7 +210,7 @@ class EpisodeTraktAdapter(
                                 put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, currentTime)
                             }
                             dbHelper.insertSeasonEpisodeWatchedData(values)
-                            dbHelper.addEpisodeToHistory(showData.optString("title", "NULL"), traktId, showData.optInt("id", -1), "episode", seasonNumber, episodeNumber, currentTime)
+                            dbHelper.addEpisodeToHistory(showData.optString("show_title", "NULL"), traktId, showData.optInt("id", -1), "episode", seasonNumber, episodeNumber, currentTime)
                             watchedEpisodes.add(episodeNumber)
                             holder.episodeStatusButton.setImageResource(R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
