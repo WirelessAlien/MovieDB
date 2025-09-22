@@ -45,9 +45,12 @@ import java.util.Locale
  */
 @SuppressLint("Registered")
 open class BaseActivity : AppCompatActivity() {
+    private lateinit var connectivityManager: ConnectivityManager
+    private lateinit var networkCallback: NetworkCallback
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
+        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 
     /**
@@ -75,14 +78,13 @@ open class BaseActivity : AppCompatActivity() {
      * If/Once a network connection is established, it calls doNetworkWork().
      */
     fun checkNetwork() {
-        val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         val builder = NetworkRequest.Builder()
-        connectivityManager.registerNetworkCallback(builder.build(),
-            object : NetworkCallback() {
-                override fun onAvailable(network: Network) {
-                    doNetworkWork()
-                }
-            })
+        networkCallback = object : NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                doNetworkWork()
+            }
+        }
+        connectivityManager.registerNetworkCallback(builder.build(), networkCallback)
 
         // Check if there is an Internet connection, if not tell the user.
         val network = connectivityManager.activeNetwork
@@ -118,6 +120,13 @@ open class BaseActivity : AppCompatActivity() {
 
     public override fun onPause() {
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (this::networkCallback.isInitialized) {
+            connectivityManager.unregisterNetworkCallback(networkCallback)
+        }
     }
 
     inner class ConnectivityReceiver : BroadcastReceiver() {
