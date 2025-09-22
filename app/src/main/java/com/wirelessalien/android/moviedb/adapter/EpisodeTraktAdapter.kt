@@ -200,6 +200,7 @@ class EpisodeTraktAdapter(
                         val dbHelper = TraktDatabaseHelper(context)
                         val db = dbHelper.writableDatabase
                         val traktId = showData.optInt("trakt_id", -1)
+                        val tmdbId = showData.optInt("id", -1)
 
                         if (endpoint == "sync/history") {
                             val values = ContentValues().apply {
@@ -214,11 +215,8 @@ class EpisodeTraktAdapter(
                             watchedEpisodes.add(episodeNumber)
                             holder.episodeStatusButton.setImageResource(R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
-                            db.delete(
-                                TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
-                                "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_SEASON_NUMBER} = ? AND ${TraktDatabaseHelper.COL_EPISODE_NUMBER} = ?",
-                                arrayOf(traktId.toString(), seasonNumber.toString(), episodeNumber.toString())
-                            )
+                            dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
+                            dbHelper.removeEpisodeFromHistory(tmdbId, seasonNumber, episodeNumber)
                             watchedEpisodes.remove(episodeNumber)
                             holder.episodeStatusButton.setImageResource(R.drawable.ic_close)
                         }
