@@ -799,27 +799,11 @@ class ShowTraktAdapter(
                                 put(TraktDatabaseHelper.COL_LAST_WATCHED_AT, currentTime)
                             }
                             dbHelper.insertSeasonEpisodeWatchedData(values)
-                            dbHelper.addEpisodeToHistory(
-                                title,
-                                traktId,
-                                tmdbId,
-                                "episode",
-                                seasonNumber,
-                                episodeNumber,
-                                currentTime
-                            )
-                            binding.addToWatched.icon =
-                                AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
+                            dbHelper.addEpisodeToHistory(title, traktId, tmdbId, "episode", seasonNumber, episodeNumber, currentTime)
+                            binding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
-                            db.delete(
-                                TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
-                                "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ? AND ${TraktDatabaseHelper.COL_SEASON_NUMBER} = ? AND ${TraktDatabaseHelper.COL_EPISODE_NUMBER} = ?",
-                                arrayOf(
-                                    traktId.toString(),
-                                    seasonNumber.toString(),
-                                    episodeNumber.toString()
-                                )
-                            )
+                            dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
+                            dbHelper.removeEpisodeFromHistory(tmdbId, seasonNumber, episodeNumber)
                             binding.addToWatched.icon =
                                 AppCompatResources.getDrawable(context, R.drawable.ic_close)
                         }

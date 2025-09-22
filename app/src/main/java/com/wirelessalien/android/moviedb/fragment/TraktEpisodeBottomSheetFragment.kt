@@ -86,11 +86,11 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
         binding.contentLayout.visibility = View.GONE
 
         arguments?.let {
-            showId = it.getInt("showId")
+            showId = it.getInt("id")
             initialSeasonNumber = it.getInt("seasonNumber")
             initialEpisodeNumber = it.getInt("episodeNumber")
-            traktId = it.getInt("traktId")
-            showTitle = it.getString("showTitle")
+            traktId = it.getInt("trakt_id")
+            showTitle = it.getString("show_title")
             isMovie = it.getBoolean("isMovie", false)
             movieDataObject = it.getString("showObject")?.let { objStr -> JSONObject(objStr) }
 
@@ -129,16 +129,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
                         val episodes = TmdbDetailsDatabaseHelper(requireContext()).use { it.getEpisodesForSeason(showId, sNum) }
                         val watchedEpisodes = getWatchedEpisodesFromDb(traktId, sNum)
 
-                        val episodeAdapter = EpisodeTraktAdapter(
-                            episodes,
-                            watchedEpisodes,
-                            showData,
-                            sNum,
-                            requireContext(),
-                            tktaccessToken ?: "",
-                            tktApiKey ?: "",
-                            this@TraktEpisodeBottomSheetFragment
-                        )
+                        val episodeAdapter = EpisodeTraktAdapter(episodes, watchedEpisodes, showData, sNum, requireContext(), tktaccessToken ?: "", tktApiKey ?: "", this@TraktEpisodeBottomSheetFragment)
                         binding.recyclerViewEpisodes.adapter = episodeAdapter
                     }
                 }
@@ -170,7 +161,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
 
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                java.util.Locale.ENGLISH
+                Locale.ENGLISH
             ).format(java.util.Date())
 
             lifecycleScope.launch {
@@ -362,22 +353,15 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
                             val dbHelper = TraktDatabaseHelper(requireContext())
                             val newStatus = endpoint == "sync/history"
                             if (newStatus) {
-                                dbHelper.addEpisodeToWatched(
-                                    traktId,
-                                    tmdbId,
-                                    seasonNumber,
-                                    episodeNumber,
-                                    currentTime
-                                )
+                                dbHelper.addEpisodeToWatched(traktId, tmdbId, seasonNumber, episodeNumber, currentTime)
+                                dbHelper.addEpisodeToHistory(title, traktId, tmdbId, "episode", seasonNumber, episodeNumber, currentTime)
                             } else {
                                 dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
+                                dbHelper.removeEpisodeFromHistory(tmdbId, seasonNumber, episodeNumber)
                             }
                             addItemtoTmdb()
                             updateWatchedIcon(newStatus)
-                            (binding.recyclerViewEpisodes.adapter as? EpisodeTraktAdapter)?.updateEpisodeWatched(
-                                episodeNumber,
-                                newStatus
-                            )
+                            (binding.recyclerViewEpisodes.adapter as? EpisodeTraktAdapter)?.updateEpisodeWatched(episodeNumber, newStatus)
                         }
                     }
                 }
@@ -399,11 +383,11 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
 
         fun newInstance(showId: Int, traktId: Int, seasonNumber: Int, episodeNumber: Int, showTitle: String?, isMovie: Boolean, tmdbJSONObject: JSONObject?): TraktEpisodeBottomSheetFragment {
             val args = Bundle()
-            args.putInt("showId", showId)
-            args.putInt("traktId", traktId)
+            args.putInt("id", showId)
+            args.putInt("trakt_id", traktId)
             args.putInt("seasonNumber", seasonNumber)
             args.putInt("episodeNumber", episodeNumber)
-            args.putString("showTitle", showTitle)
+            args.putString("show_title", showTitle)
             args.putBoolean("isMovie", isMovie)
             args.putString("showObject", tmdbJSONObject.toString())
             val fragment = TraktEpisodeBottomSheetFragment()
