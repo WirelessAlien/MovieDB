@@ -1040,10 +1040,11 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
 
         val cursor = db.query(TABLE_SEASON_EPISODE_WATCHED, arrayOf(COL_PLAYS), selection, selectionArgs, null, null, null)
 
-        val currentPlays = if (cursor.moveToFirst()) {
+        val recordExists = cursor.moveToFirst()
+        val currentPlays = if (recordExists) {
             cursor.getInt(cursor.getColumnIndexOrThrow(COL_PLAYS))
         } else {
-            1
+            0
         }
         cursor.close()
 
@@ -1056,7 +1057,7 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
             put(COL_LAST_WATCHED_AT, collectedAt)
         }
 
-        if (currentPlays > 0) {
+        if (recordExists) {
             db.update(TABLE_SEASON_EPISODE_WATCHED, values, selection, selectionArgs)
         } else {
             db.insert(TABLE_SEASON_EPISODE_WATCHED, null, values)
