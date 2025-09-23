@@ -20,22 +20,32 @@
 
 package com.wirelessalien.android.moviedb.fragment
 
+import android.content.ContentValues
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ListAdapterTkt
 import com.wirelessalien.android.moviedb.databinding.FragmentMyListsBinding
+import com.wirelessalien.android.moviedb.databinding.ListOptionsBottomSheetTktBinding
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.trakt.TraktSync
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
 import org.json.JSONObject
+import java.io.IOException
 
 class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreatedListener {
 
@@ -65,7 +75,9 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
         fab.visibility = View.VISIBLE
         fab.setImageResource(R.drawable.ic_add)
-        adapter = ListAdapterTkt(listData, accessToken?:"")
+        adapter = ListAdapterTkt(listData, accessToken ?: "") { jsonObject, position ->
+            showEditBottomSheet(jsonObject, position)
+        }
 
         linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.layoutManager = linearLayoutManager
@@ -75,7 +87,7 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
         loadListData()
         fab.setOnClickListener {
             val listBottomSheetFragment =
-                ListBottomSheetFragmentTkt(0, context, false,  "", JSONObject(), JSONObject(), this)
+                ListBottomSheetFragmentTkt(0, context, false, "", JSONObject(), JSONObject(), this)
             listBottomSheetFragment.show(
                 childFragmentManager,
                 listBottomSheetFragment.tag
@@ -84,6 +96,116 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
         return view
     }
 
+    private fun showEditBottomSheet(jsonObject: JSONObject, position: Int) {
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        val bottomSheetBinding = ListOptionsBottomSheetTktBinding.inflate(layoutInflater)
+        bottomSheetDialog.setContentView(bottomSheetBinding.root)
+
+        bottomSheetBinding.listNameEditText.setText(jsonObject.getString("name"))
+        bottomSheetBinding.listDescriptionEditText.setText(jsonObject.getString("description"))
+
+        val privacyOptions = resources.getStringArray(R.array.privacy_options)
+        val currentPrivacy = jsonObject.getString("privacy")
+
+        for (option in privacyOptions) {
+            val chip = Chip(requireContext())
+            chip.text = option
+            chip.isCheckable = true
+            if (option == currentPrivacy) {
+                chip.isChecked = true
+            }
+            bottomSheetBinding.privacyChipGroup.addView(chip)
+        }
+
+        bottomSheetBinding.updateButton.setOnClickListener {
+            val newName = bottomSheetBinding.listNameEditText.text.toString()
+            val newDescription = bottomSheetBinding.listDescriptionEditText.text.toString()
+            val checkedChipId = bottomSheetBinding.privacyChipGroup.checkedChipId
+            val checkedChip = bottomSheetDialog.findViewById<Chip>(checkedChipId)
+            val newPrivacy = checkedChip?.text.toString()
+            updateList(jsonObject.getInt("trakt_list_id"), newName, newDescription, newPrivacy)
+            bottomSheetDialog.dismiss()
+        }
+
+        bottomSheetBinding.deleteButton.setOnClickListener {
+            deleteList(jsonObject.getInt("trakt_list_id"), position)
+            bottomSheetDialog.dismiss()
+        }
+
+        bottomSheetDialog.show()
+    }
+
+    private fun updateList(listId: Int, name: String, description: String, privacy: String) {
+        val traktSync = TraktSync(accessToken ?: "", requireContext())
+        val endpoint = "users/me/lists/$listId"
+        val json = JSONObject().apply {
+            put("name", name)
+            put("description", description)
+            put("privacy", privacy)
+        }
+
+        traktSync.post(endpoint, json, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                activity?.runOnUiThread {
+                    Toast.makeText(context, getString(R.string.failed_to_update_list), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                activity?.runOnUiThread {
+                    if (response.isSuccessful) {
+                        val values = ContentValues().apply {
+                            put(TraktDatabaseHelper.COL_NAME, name)
+                            put(TraktDatabaseHelper.COL_DESCRIPTION, description)
+                            put(TraktDatabaseHelper.COL_PRIVACY, privacy)
+                        }
+                        dbHelper.writableDatabase.update(
+                            TraktDatabaseHelper.USER_LISTS,
+                            values,
+                            "${TraktDatabaseHelper.COL_TRAKT_ID} = ?",
+                            arrayOf(listId.toString())
+                        )
+                        Toast.makeText(context, getString(R.string.list_update_success), Toast.LENGTH_SHORT).show()
+                        loadListData()
+                    } else {
+                        Toast.makeText(context, getString(R.string.failed_to_update_list), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun deleteList(listId: Int, position: Int) {
+        val traktSync = TraktSync(accessToken ?: "", requireContext())
+        val endpoint = "users/me/lists/$listId"
+
+        traktSync.delete(endpoint, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                activity?.runOnUiThread {
+                    Toast.makeText(context, getString(R.string.failed_to_delete_list), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                activity?.runOnUiThread {
+                    if (response.isSuccessful) {
+                        dbHelper.writableDatabase.delete(
+                            TraktDatabaseHelper.USER_LISTS,
+                            "${TraktDatabaseHelper.COL_TRAKT_ID} = ?",
+                            arrayOf(listId.toString())
+                        )
+                        listData.removeAt(position)
+                        adapter.notifyItemRemoved(position)
+                        Toast.makeText(context, getString(R.string.list_delete_success), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, getString(R.string.failed_to_delete_list), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+
     private fun loadListData() {
         lifecycleScope.launch {
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
@@ -91,7 +213,8 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
             val newList = withContext(Dispatchers.IO) {
                 val db = dbHelper.readableDatabase
                 val cursor = db.query(
-                    TraktDatabaseHelper.USER_LISTS, null, null, null, null, null, null)
+                    TraktDatabaseHelper.USER_LISTS, null, null, null, null, null, null
+                )
 
                 val tempList = ArrayList<JSONObject>()
                 if (cursor.moveToFirst()) {
@@ -102,6 +225,8 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
                             put("number_of_items", cursor.getInt(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_ITEM_COUNT)))
                             put("description", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_DESCRIPTION)))
                             put("created_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_CREATED_AT)))
+                            put("updated_at", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_UPDATED_AT)))
+                            put("privacy", cursor.getString(cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_PRIVACY)))
                         }
                         tempList.add(jsonObject)
                     } while (cursor.moveToNext())

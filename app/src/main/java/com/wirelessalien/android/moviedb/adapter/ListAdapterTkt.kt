@@ -19,28 +19,20 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ListItemActivityTkt
 import com.wirelessalien.android.moviedb.databinding.ListTktItemBinding
-import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
-import com.wirelessalien.android.moviedb.trakt.TraktSync
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Response
 import org.json.JSONObject
-import java.io.IOException
 
 class ListAdapterTkt(
     private val listData: ArrayList<JSONObject>,
-    private val accessToken: String
+    private val accessToken: String,
+    private val onListLongClickListener: (JSONObject, Int) -> Unit
 ) : RecyclerView.Adapter<ListAdapterTkt.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -49,7 +41,7 @@ class ListAdapterTkt(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(listData[position])
+        holder.bind(listData[position], position)
     }
 
     override fun getItemCount(): Int {
@@ -86,7 +78,7 @@ class ListAdapterTkt(
     inner class ViewHolder(private val binding: ListTktItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(jsonObject: JSONObject) {
+        fun bind(jsonObject: JSONObject, position: Int) {
             binding.listNameTextView.text = jsonObject.getString("name")
 
             val description = jsonObject.getString("description")
@@ -96,6 +88,14 @@ class ListAdapterTkt(
                 binding.description.text = description
             }
             binding.itemCount.text = itemView.context.getString(R.string.items_count, jsonObject.getInt("number_of_items"))
+            binding.updatedAt.text = itemView.context.getString(R.string.last_updated, jsonObject.getString("updated_at"))
+            val privacy = jsonObject.getString("privacy")
+            if (privacy == "private") {
+                binding.privacy.setImageResource(R.drawable.ic_lock)
+            } else {
+                binding.privacy.setImageResource(R.drawable.ic_lock_open)
+            }
+
             binding.root.tag = jsonObject
             binding.root.setOnClickListener {
                 val context = binding.root.context
@@ -106,46 +106,10 @@ class ListAdapterTkt(
                 context.startActivity(intent)
             }
 
-            binding.deleteButton.setOnClickListener {
-                val context = binding.root.context
-                val listId = jsonObject.getInt("trakt_list_id")
-                deleteList(context, listId, bindingAdapterPosition)
+            binding.root.setOnLongClickListener {
+                onListLongClickListener(jsonObject, position)
+                true
             }
         }
-
-    }
-
-    private fun deleteList(context: Context, listId: Int, position: Int) {
-        val traktSync = TraktSync(accessToken, context)
-        val endpoint = "users/me/lists/$listId"
-
-        traktSync.delete(endpoint, object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                (context as? Activity)?.runOnUiThread {
-                    Toast.makeText(context, context.getString(R.string.failed_to_delete_list), Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                (context as? Activity)?.runOnUiThread {
-                    if (response.isSuccessful) {
-                        listData.removeAt(position)
-                        notifyItemRemoved(position)
-
-                        // Delete from local database
-                        val db = TraktDatabaseHelper(context).writableDatabase
-                        db.delete(
-                            TraktDatabaseHelper.USER_LISTS,
-                            "${TraktDatabaseHelper.COL_TRAKT_ID} = ?",
-                            arrayOf(listId.toString())
-                        )
-
-                        Toast.makeText(context, context.getString(R.string.list_delete_success), Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, context.getString(R.string.failed_to_delete_list), Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        })
     }
 }
