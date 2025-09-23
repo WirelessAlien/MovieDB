@@ -28,6 +28,9 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ListItemActivityTkt
 import com.wirelessalien.android.moviedb.databinding.ListTktItemBinding
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 class ListAdapterTkt(
     private val listData: ArrayList<JSONObject>,
@@ -88,7 +91,18 @@ class ListAdapterTkt(
                 binding.description.text = description
             }
             binding.itemCount.text = itemView.context.getString(R.string.items_count, jsonObject.getInt("number_of_items"))
-            binding.updatedAt.text = itemView.context.getString(R.string.last_updated, jsonObject.getString("updated_at"))
+            val utcDate = jsonObject.getString("updated_at")
+            val utcFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            utcFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+            val date = utcFormat.parse(utcDate)
+            val localFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
+            localFormat.timeZone = TimeZone.getDefault()
+
+            binding.updatedAt.text = itemView.context.getString(
+                R.string.last_updated,
+                localFormat.format(date ?: "")
+            )
             val privacy = jsonObject.getString("privacy")
             if (privacy == "private") {
                 binding.privacy.setImageResource(R.drawable.ic_lock)

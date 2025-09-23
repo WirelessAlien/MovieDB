@@ -28,6 +28,12 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:boxCornerRadiusTopStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        app:boxCornerRadiusTopEnd="10dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
         android:hint="@string/list_name">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -40,6 +46,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        app:boxCornerRadiusTopStart="10dp"
+        app:boxCornerRadiusBottomEnd="10dp"
+        app:boxCornerRadiusBottomStart="10dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+        app:boxCornerRadiusTopEnd="10dp"
         android:hint="@string/description">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -61,20 +72,21 @@
         android:orientation="horizontal"
         android:layout_marginTop="16dp">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/updateButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            app:cornerRadius="10dp"
             android:layout_weight="1"
             android:text="@string/update" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/deleteButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            app:cornerRadius="10dp"
             android:layout_marginStart="8dp"
             android:text="@string/delete" />
     </LinearLayout>
-
 </LinearLayout>

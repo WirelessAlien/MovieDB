@@ -60,6 +60,30 @@ class TraktSync(private val accessToken: String, applicationContext: Context) {
         })
     }
 
+    fun put(endpoint: String, jsonBody: JSONObject, callback: Callback) {
+        val mediaType = "application/json".toMediaTypeOrNull()
+        val body = jsonBody.toString().toRequestBody(mediaType)
+        Log.d("TraktSync", "Request: $jsonBody")
+        Log.d("TraktSync", "url: $baseUrl/$endpoint")
+        val request = Request.Builder()
+            .url("$baseUrl/$endpoint")
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .addHeader("trakt-api-version", "2")
+            .addHeader("trakt-api-key", clientId?: "")
+            .put(body)
+            .build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                callback.onFailure(call, e)
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                callback.onResponse(call, response)
+            }
+        })
+    }
+
     fun delete(endpoint: String, callback: Callback) {
         val request = Request.Builder()
             .url("$baseUrl/$endpoint")

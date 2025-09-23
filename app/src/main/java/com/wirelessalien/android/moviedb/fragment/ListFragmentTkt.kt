@@ -150,7 +150,7 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
             put("privacy", privacy)
         }
 
-        traktSync.post(endpoint, json, object : Callback {
+        traktSync.put(endpoint, json, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 activity?.runOnUiThread {
                     Toast.makeText(context, getString(R.string.failed_to_update_list), Toast.LENGTH_SHORT).show()
