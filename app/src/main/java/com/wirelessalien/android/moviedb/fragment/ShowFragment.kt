@@ -148,7 +148,8 @@ class ShowFragment : BaseFragment() {
         activityBinding.fab.setOnClickListener {
             filterRequestLauncher.launch(Intent())
         }
-        if (preferences.getBoolean("key_show_continue_watching", true) && preferences.getString("sync_provider", "local") == "local") {
+        if (preferences.getBoolean("key_show_continue_watching", true) &&
+            (preferences.getString("sync_provider", "local") == "local" || preferences.getBoolean("force_local_sync", false))) {
             activityBinding.upnextChip.visibility = View.VISIBLE
         } else {
             activityBinding.upnextChip.visibility = View.GONE

@@ -87,11 +87,7 @@ class AccountDataFragment : BaseFragment() {
         super.onResume()
         activityBinding.fab.isEnabled = !(sessionId == null || accountId == null)
         activityBinding.fab2.visibility = View.GONE
-        if (sPreferences.getBoolean("key_show_continue_watching", true) && sPreferences.getString("sync_provider", "local") == "local") {
-            activityBinding.upnextChip.visibility = View.VISIBLE
-        } else {
-            activityBinding.upnextChip.visibility = View.GONE
-        }
+        activityBinding.upnextChip.visibility = View.GONE
         requireActivity().invalidateOptionsMenu()
     }
 
