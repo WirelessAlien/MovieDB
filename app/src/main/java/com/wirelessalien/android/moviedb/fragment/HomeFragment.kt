@@ -29,6 +29,8 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -75,6 +77,8 @@ class HomeFragment : BaseFragment() {
     private lateinit var binding: FragmentHomeBinding
     private lateinit var activityBinding: ActivityMainBinding
     private lateinit var menuProvider: MenuProvider
+    private var centeredView: View? = null
+    private val snapHelper = CarouselSnapHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -170,10 +174,29 @@ class HomeFragment : BaseFragment() {
     private fun showTrendingList() {
         val layoutManager = CarouselLayoutManager()
         binding.trendingViewPager.layoutManager = layoutManager
-        val snapHelper = CarouselSnapHelper()
         snapHelper.attachToRecyclerView(binding.trendingViewPager)
         val adapter = TrendingPagerAdapter(ArrayList())
         binding.trendingViewPager.adapter = adapter
+
+        binding.trendingViewPager.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    val centerView = snapHelper.findSnapView(layoutManager)
+                    if (centerView != null && centerView != centeredView) {
+                        centeredView?.let {
+                            val movieImage = it.findViewById<ImageView>(R.id.movieImage)
+                            val zoomOut = AnimationUtils.loadAnimation(requireContext(), R.anim.zoom_out)
+                            movieImage.startAnimation(zoomOut)
+                        }
+                        val movieImage = centerView.findViewById<ImageView>(R.id.movieImage)
+                        val zoomIn = AnimationUtils.loadAnimation(requireContext(), R.anim.zoom_in)
+                        movieImage.startAnimation(zoomIn)
+                        centeredView = centerView
+                    }
+                }
+            }
+        })
     }
 
     override fun onResume() {
@@ -457,8 +480,20 @@ class HomeFragment : BaseFragment() {
                 }
                 val adapter = binding.trendingViewPager.adapter as TrendingPagerAdapter?
                 if (adapter != null) {
+                    centeredView?.findViewById<ImageView>(R.id.movieImage)?.clearAnimation()
+                    centeredView = null
                     adapter.updateData(trendingArrayList)
                     adapter.notifyDataSetChanged()
+                    binding.trendingViewPager.post {
+                        val layoutManager = binding.trendingViewPager.layoutManager as CarouselLayoutManager
+                        val centerView = snapHelper.findSnapView(layoutManager)
+                        if (centerView != null) {
+                            val movieImage = centerView.findViewById<ImageView>(R.id.movieImage)
+                            val zoomIn = AnimationUtils.loadAnimation(requireContext(), R.anim.zoom_in)
+                            movieImage.startAnimation(zoomIn)
+                            centeredView = centerView
+                        }
+                    }
                 }
                 mShowListLoaded = true
                 binding.shimmerFrameLayout1.visibility = View.GONE

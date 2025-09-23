@@ -85,7 +85,10 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
         binding.recyclerView.adapter = adapter
 
         loadListData()
+
         fab.setOnClickListener {
+            if (!isAdded) return@setOnClickListener
+
             val listBottomSheetFragment =
                 ListBottomSheetFragmentTkt(0, context, false, "", JSONObject(), JSONObject(), this)
             listBottomSheetFragment.show(
@@ -97,6 +100,8 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
     }
 
     private fun showEditBottomSheet(jsonObject: JSONObject, position: Int) {
+        if (!isAdded) return
+
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         val bottomSheetBinding = ListOptionsBottomSheetTktBinding.inflate(layoutInflater)
         bottomSheetDialog.setContentView(bottomSheetBinding.root)

@@ -1,3 +1,4 @@
 add default media prioritization (movie, show) for Trakt account
 add quick access episode sheet for Trakt in Details screen
+add animation to trending cards
 fix #109, #110
