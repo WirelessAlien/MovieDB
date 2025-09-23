@@ -343,12 +343,6 @@ class MainActivity : BaseActivity() {
             binding.container.layoutParams = params
         }
 
-        if (preferences.getBoolean("key_show_continue_watching", true)) {
-            binding.upnextChip.visibility = View.VISIBLE
-        } else {
-            binding.upnextChip.visibility = View.GONE
-        }
-
         binding.upnextChip.setOnClickListener {
             val upNextFragment = UpNextFragment()
             upNextFragment.show(supportFragmentManager, "UpNextFragment")

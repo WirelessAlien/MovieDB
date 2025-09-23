@@ -25,5 +25,5 @@
         android:id="@+id/action_person"
         android:icon="@drawable/ic_people_group"
         android:title="@string/title_people"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
 </menu>
