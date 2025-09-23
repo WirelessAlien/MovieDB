@@ -109,6 +109,7 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
 
         for (option in privacyOptions) {
             val chip = Chip(requireContext())
+            chip.id = View.generateViewId()
             chip.text = option
             chip.isCheckable = true
             if (option == currentPrivacy) {
@@ -121,8 +122,13 @@ class ListFragmentTkt : BaseFragment(), ListBottomSheetFragmentTkt.OnListCreated
             val newName = bottomSheetBinding.listNameEditText.text.toString()
             val newDescription = bottomSheetBinding.listDescriptionEditText.text.toString()
             val checkedChipId = bottomSheetBinding.privacyChipGroup.checkedChipId
-            val checkedChip = bottomSheetDialog.findViewById<Chip>(checkedChipId)
-            val newPrivacy = checkedChip?.text.toString()
+            if (checkedChipId == View.NO_ID) {
+                Toast.makeText(context,
+                    getString(R.string.please_select_a_privacy_option), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val checkedChip = bottomSheetBinding.privacyChipGroup.findViewById<Chip>(checkedChipId)
+            val newPrivacy = checkedChip.text.toString()
             updateList(jsonObject.getInt("trakt_list_id"), newName, newDescription, newPrivacy)
             bottomSheetDialog.dismiss()
         }

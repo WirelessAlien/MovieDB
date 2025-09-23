@@ -321,6 +321,7 @@
     <string name="could_not_get_trakt_id_for_this_show">Could not get Trakt ID for this show.</string>
     <string name="failed_to_update_list">Failed to update list</string>
     <string name="list_update_success">List updated successfully</string>
+    <string name="please_select_a_privacy_option">Please select a privacy option</string>
 
     <string-array name="media_types">
         <item>digital</item>
