@@ -4242,10 +4242,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     val bottomSheet = TraktEpisodeBottomSheetFragment.newInstance(showId, traktId, seasonNumber, episodeNumber, movieTitle ?: "", isMovie, movieDataObject)
                     bottomSheet.show(supportFragmentManager, TraktEpisodeBottomSheetFragment.TAG)
                 } else {
-                    Toast.makeText(context, "Could not get Trakt ID for this show.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.could_not_get_trakt_id_for_this_show), Toast.LENGTH_SHORT).show()
                 }
             }
-        } else {
+        } else if (syncProvider == "local" || preferences.getBoolean("force_local_sync", false)) {
             val bottomSheetDialog = BottomSheetDialog(this)
             val bottomSheetBinding = com.wirelessalien.android.moviedb.databinding.BottomSheetSeasonEpisodeBinding.inflate(layoutInflater)
             bottomSheetDialog.setContentView(bottomSheetBinding.root)
@@ -4403,6 +4403,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
 
             bottomSheetDialog.show()
+        } else {
+            //do nothing
         }
     }
 
