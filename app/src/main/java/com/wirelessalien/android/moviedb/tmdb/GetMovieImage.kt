@@ -19,11 +19,7 @@
  */
 package com.wirelessalien.android.moviedb.tmdb
 
-import android.content.Context
-import androidx.recyclerview.widget.RecyclerView
-import com.wirelessalien.android.moviedb.adapter.MovieImageAdapter
 import com.wirelessalien.android.moviedb.data.MovieImage
-import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,12 +32,9 @@ import java.util.Locale
 class GetMovieImage(
     private val movieId: Int,
     private val type: String,
-    private val context: Context,
-    private val recyclerView: RecyclerView
+    private val apiKey: String?
 ) {
-    private val apiKey: String? = getConfigValue(context, "api_read_access_token")
-
-    fun fetchMovieImages(imageType: String) {
+    fun fetchMovieImages(imageType: String, callback: (List<MovieImage>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val locale = Locale.getDefault().language
@@ -62,8 +55,7 @@ class GetMovieImage(
                     movieImages.add(MovieImage(imageObject.getString("file_path")))
                 }
                 withContext(Dispatchers.Main) {
-                    val adapter = MovieImageAdapter(context, movieImages)
-                    recyclerView.adapter = adapter
+                    callback(movieImages)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

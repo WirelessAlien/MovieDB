@@ -38,18 +38,18 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.MovieImageAdapter
-import com.wirelessalien.android.moviedb.data.MovieImage
 import com.wirelessalien.android.moviedb.databinding.ActivityMovieImageBinding
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.tmdb.GetMovieImage
 
 class MovieImageActivity : AppCompatActivity() {
-    private lateinit var movieImages: List<MovieImage>
     private var movieId = 0
     private var type: String? = null
     private lateinit var popupWindow: PopupWindow
     private lateinit var binding: ActivityMovieImageBinding
     private lateinit var getMovieImage: GetMovieImage
+    private lateinit var adapter: MovieImageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,7 +107,6 @@ class MovieImageActivity : AppCompatActivity() {
     private fun initializeActivity() {
         movieId = intent.getIntExtra("movieId", 0)
         type = if (intent.getBooleanExtra("isMovie", true)) "movie" else "tv"
-        movieImages = emptyList()
         popupWindow = PopupWindow(this)
         val layoutManager = FlexboxLayoutManager(this)
         layoutManager.flexWrap = FlexWrap.WRAP
@@ -115,28 +114,24 @@ class MovieImageActivity : AppCompatActivity() {
         layoutManager.alignItems = AlignItems.STRETCH
         layoutManager.justifyContent = JustifyContent.SPACE_EVENLY
         binding.movieimageRv.layoutManager = layoutManager
-        val adapter = MovieImageAdapter(this, movieImages)
+
+        adapter = MovieImageAdapter(this, emptyList(), "backdrops")
         binding.movieimageRv.adapter = adapter
-        getMovieImage = GetMovieImage(movieId, type!!, this, binding.movieimageRv)
+
+        val apiKey = ConfigHelper.getConfigValue(this, "api_read_access_token")
+        getMovieImage = GetMovieImage(movieId, type!!, apiKey)
 
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.backdrops))
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.posters))
 
         val imageType = intent.getStringExtra("image_type")
-        if (imageType == "poster") {
-            binding.tabLayout.getTabAt(1)?.select()
-            getMovieImage.fetchMovieImages("posters")
-        } else {
-            binding.tabLayout.getTabAt(0)?.select()
-            getMovieImage.fetchMovieImages("backdrops")
-        }
+        val initialTab = if (imageType == "poster") 1 else 0
+        binding.tabLayout.getTabAt(initialTab)?.select()
+        fetchImagesForTab(initialTab)
 
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> getMovieImage.fetchMovieImages("backdrops")
-                    1 -> getMovieImage.fetchMovieImages("posters")
-                }
+                fetchImagesForTab(tab?.position ?: 0)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
@@ -156,7 +151,16 @@ class MovieImageActivity : AppCompatActivity() {
         })
     }
 
+    private fun fetchImagesForTab(position: Int) {
+        val imageType = if (position == 0) "backdrops" else "posters"
+        adapter.updateData(emptyList(), imageType)
+        getMovieImage.fetchMovieImages(imageType) { movieImages ->
+            adapter.updateData(movieImages, imageType)
+        }
+    }
+
     companion object {
         private const val REQUEST_WRITE_STORAGE = 112
     }
 }
+

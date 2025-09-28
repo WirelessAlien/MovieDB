@@ -19,6 +19,7 @@
  */
 package com.wirelessalien.android.moviedb.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -42,15 +43,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MovieImageAdapter(private val context: Context, private val movieImages: List<MovieImage>) :
-    RecyclerView.Adapter<MovieImageAdapter.ViewHolder?>() {
+class MovieImageAdapter(
+    private val context: Context,
+    private var movieImages: List<MovieImage>,
+    private var imageType: String
+) : RecyclerView.Adapter<MovieImageAdapter.ViewHolder?>() {
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateData(newMovieImages: List<MovieImage>, newImageType: String) {
+        this.movieImages = newMovieImages
+        this.imageType = newImageType
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = MovieImageItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val imageUrl = "https://image.tmdb.org/t/p/w300" + movieImages[position].getFilePath()
+        val imageSize = if (imageType == "posters") "w185" else "w300"
+        val imageUrl = "https://image.tmdb.org/t/p/$imageSize" + movieImages[position].getFilePath()
         Picasso.get()
             .load(imageUrl)
             .placeholder(R.color.md_theme_outline)
