@@ -41,7 +41,7 @@ class GetMovieImage(
 ) {
     private val apiKey: String? = getConfigValue(context, "api_read_access_token")
 
-    fun fetchMovieImages() {
+    fun fetchMovieImages(imageType: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val locale = Locale.getDefault().language
@@ -55,7 +55,7 @@ class GetMovieImage(
                 val response = client.newCall(request).execute()
                 val responseBody = response.body!!.string()
                 val jsonObject = JSONObject(responseBody)
-                val jsonArray = jsonObject.getJSONArray("backdrops")
+                val jsonArray = jsonObject.getJSONArray(imageType)
                 val movieImages: MutableList<MovieImage> = ArrayList()
                 for (i in 0 until jsonArray.length()) {
                     val imageObject = jsonArray.getJSONObject(i)

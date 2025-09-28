@@ -934,11 +934,20 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
         }
 
-        binding.moreImageBtn.setOnClickListener {
-            val imageintent = Intent(applicationContext, MovieImageActivity::class.java)
-            imageintent.putExtra("movieId", movieId)
-            imageintent.putExtra("isMovie", isMovie)
-            startActivity(imageintent)
+        binding.moviePoster.setOnClickListener {
+            val imageIntent = Intent(applicationContext, MovieImageActivity::class.java)
+            imageIntent.putExtra("movieId", movieId)
+            imageIntent.putExtra("isMovie", isMovie)
+            imageIntent.putExtra("image_type", "poster")
+            startActivity(imageIntent)
+        }
+
+        binding.movieImage.setOnClickListener {
+            val imageIntent = Intent(applicationContext, MovieImageActivity::class.java)
+            imageIntent.putExtra("movieId", movieId)
+            imageIntent.putExtra("isMovie", isMovie)
+            imageIntent.putExtra("image_type", "backdrop")
+            startActivity(imageIntent)
         }
 
         binding.fabSave.setOnClickListener {

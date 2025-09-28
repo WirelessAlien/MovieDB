@@ -35,6 +35,7 @@ import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.MovieImageAdapter
 import com.wirelessalien.android.moviedb.data.MovieImage
@@ -48,6 +49,7 @@ class MovieImageActivity : AppCompatActivity() {
     private var type: String? = null
     private lateinit var popupWindow: PopupWindow
     private lateinit var binding: ActivityMovieImageBinding
+    private lateinit var getMovieImage: GetMovieImage
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,7 +117,32 @@ class MovieImageActivity : AppCompatActivity() {
         binding.movieimageRv.layoutManager = layoutManager
         val adapter = MovieImageAdapter(this, movieImages)
         binding.movieimageRv.adapter = adapter
-        GetMovieImage(movieId, type!!, this, binding.movieimageRv).fetchMovieImages()
+        getMovieImage = GetMovieImage(movieId, type!!, this, binding.movieimageRv)
+
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.backdrops))
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.posters))
+
+        val imageType = intent.getStringExtra("image_type")
+        if (imageType == "poster") {
+            binding.tabLayout.getTabAt(1)?.select()
+            getMovieImage.fetchMovieImages("posters")
+        } else {
+            binding.tabLayout.getTabAt(0)?.select()
+            getMovieImage.fetchMovieImages("backdrops")
+        }
+
+        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> getMovieImage.fetchMovieImages("backdrops")
+                    1 -> getMovieImage.fetchMovieImages("posters")
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+
 
         // Handle back button press
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {

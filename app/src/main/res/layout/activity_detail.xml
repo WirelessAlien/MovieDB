@@ -805,16 +805,6 @@
                 android:layout_below="@id/movieDescription">
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/moreImageBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:chipIcon="@drawable/ic_image"
-                    android:text="@string/image"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
-
-                <com.google.android.material.chip.Chip
                     android:id="@+id/trailer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
