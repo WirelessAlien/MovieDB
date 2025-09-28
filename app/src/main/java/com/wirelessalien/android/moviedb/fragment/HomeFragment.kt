@@ -43,6 +43,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.activity.PersonActivity
+import com.wirelessalien.android.moviedb.activity.ShowMoreActivity
 import com.wirelessalien.android.moviedb.adapter.NowPlayingMovieAdapter
 import com.wirelessalien.android.moviedb.adapter.TrendingPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
@@ -119,6 +120,30 @@ class HomeFragment : BaseFragment() {
         activityBinding.fab2.visibility = View.GONE
         activityBinding.fab.visibility = View.GONE
         activityBinding.searchView.setupWithSearchBar(binding.searchbar)
+
+        binding.nowPlayingMore.setOnClickListener {
+            val intent = Intent(requireContext(), ShowMoreActivity::class.java)
+            intent.putExtra(ShowMoreActivity.EXTRA_LIST_TYPE, "now_playing")
+            startActivity(intent)
+        }
+
+        binding.airingTodayMore.setOnClickListener {
+            val intent = Intent(requireContext(), ShowMoreActivity::class.java)
+            intent.putExtra(ShowMoreActivity.EXTRA_LIST_TYPE, "airing_today")
+            startActivity(intent)
+        }
+
+        binding.upcomingMovieMore.setOnClickListener {
+            val intent = Intent(requireContext(), ShowMoreActivity::class.java)
+            intent.putExtra(ShowMoreActivity.EXTRA_LIST_TYPE, "upcoming")
+            startActivity(intent)
+        }
+
+        binding.upcomingTvMore.setOnClickListener {
+            val intent = Intent(requireContext(), ShowMoreActivity::class.java)
+            intent.putExtra(ShowMoreActivity.EXTRA_LIST_TYPE, "on_the_air")
+            startActivity(intent)
+        }
 
         binding.searchbar.inflateMenu(R.menu.menu_person)
 

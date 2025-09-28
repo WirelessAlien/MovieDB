@@ -65,21 +65,39 @@
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
 
-        <TextView
-            android:id="@+id/nowPlaying"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:layout_marginStart="16dp"
-            android:layout_below="@id/trendingViewPager"
-            android:textStyle="bold"
-            android:text="@string/now_playing" />
+        <RelativeLayout
+          android:id="@+id/nowPlayingLayout"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="16dp"
+          android:layout_below="@id/trendingViewPager">
+
+            <TextView
+                android:id="@+id/nowPlaying"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:text="@string/now_playing" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nowPlayingMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                app:icon="@drawable/ic_arrow_next"
+                android:layout_centerVertical="true"
+                android:contentDescription="@string/more"
+                style="@style/Widget.Material3.Button.IconButton" />
+      </RelativeLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/nowPlayingRecyclerView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/nowPlaying"
+            android:layout_below="@id/nowPlayingLayout"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="15dp"
@@ -94,7 +112,7 @@
             android:layout_height="match_parent"
             android:minHeight="230dp"
             android:visibility="gone"
-            android:layout_below="@id/nowPlaying"
+            android:layout_below="@id/nowPlayingLayout"
             app:shimmer_duration="700">
 
             <LinearLayout
@@ -106,21 +124,38 @@
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
 
-        <TextView
-            android:id="@+id/airingToday"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:id="@+id/airingTodayLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_below="@id/nowPlayingRecyclerView"
             android:layout_marginStart="16dp"
-            android:text="@string/airing_today" />
+            android:layout_below="@id/nowPlayingRecyclerView">
+
+            <TextView
+                android:id="@+id/airingToday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_centerVertical="true"
+                android:textStyle="bold"
+                android:text="@string/airing_today" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/airingTodayMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                app:icon="@drawable/ic_arrow_next"
+                android:layout_centerVertical="true"
+                android:contentDescription="@string/more"
+                style="@style/Widget.Material3.Button.IconButton"/>
+        </RelativeLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/nowPlayingTVRecyclerView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/airingToday"
+            android:layout_below="@id/airingTodayLayout"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="15dp"
@@ -135,7 +170,7 @@
             android:layout_height="match_parent"
             android:minHeight="230dp"
             android:visibility="gone"
-            android:layout_below="@id/airingToday"
+            android:layout_below="@id/airingTodayLayout"
             app:shimmer_duration="700">
 
             <LinearLayout
@@ -147,21 +182,38 @@
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
 
-        <TextView
-            android:id="@+id/upcomingMovie"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:id="@+id/upcomingMovieLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_below="@id/nowPlayingTVRecyclerView"
             android:layout_marginStart="16dp"
-            android:text="@string/upcoming" />
+            android:layout_below="@id/nowPlayingTVRecyclerView">
+
+            <TextView
+                android:id="@+id/upcomingMovie"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:text="@string/upcoming" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/upcomingMovieMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                app:icon="@drawable/ic_arrow_next"
+                android:layout_centerVertical="true"
+                android:contentDescription="@string/more"
+                style="@style/Widget.Material3.Button.IconButton"/>
+        </RelativeLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/upcomingMovieRecyclerView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/upcomingMovie"
+            android:layout_below="@id/upcomingMovieLayout"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="15dp"
@@ -176,7 +228,7 @@
             android:layout_height="match_parent"
             android:visibility="gone"
             android:minHeight="230dp"
-            android:layout_below="@id/upcomingMovie"
+            android:layout_below="@id/upcomingMovieLayout"
             app:shimmer_duration="700">
 
             <LinearLayout
@@ -188,15 +240,32 @@
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
 
-        <TextView
-            android:id="@+id/upcomingTv"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:id="@+id/upcomingTvLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_below="@id/upcomingMovieRecyclerView"
             android:layout_marginStart="16dp"
-            android:text="@string/on_the_air" />
+            android:layout_below="@id/upcomingMovieRecyclerView">
+            <TextView
+                android:id="@+id/upcomingTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="16dp"
+                android:text="@string/on_the_air" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/upcomingTvMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                app:icon="@drawable/ic_arrow_next"
+                android:layout_centerVertical="true"
+                android:contentDescription="@string/more"
+                style="@style/Widget.Material3.Button.IconButton"/>
+        </RelativeLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/upcomingTVRecyclerView"
@@ -204,7 +273,7 @@
             android:layout_height="wrap_content"
             android:clipToPadding="false"
             android:minHeight="230dp"
-            android:layout_below="@id/upcomingTv"
+            android:layout_below="@id/upcomingTvLayout"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="15dp"
@@ -217,7 +286,7 @@
             android:layout_height="match_parent"
             android:visibility="gone"
             android:minHeight="230dp"
-            android:layout_below="@id/upcomingTv"
+            android:layout_below="@id/upcomingTvLayout"
             app:shimmer_duration="700">
 
             <LinearLayout

@@ -324,6 +324,7 @@
     <string name="please_select_a_privacy_option">Please select a privacy option</string>
     <string name="backdrops">Backdrops</string>
     <string name="posters">Posters</string>
+    <string name="more">more</string>
 
     <string-array name="media_types">
         <item>digital</item>

@@ -87,6 +87,10 @@
         </activity>
 
         <activity
+            android:name=".activity.ShowMoreActivity"
+            android:theme="@style/AppTheme" />
+
+        <activity
             android:name=".activity.DeepLinkActivity"
             android:exported="true"
             android:theme="@style/Theme.Transparent">
