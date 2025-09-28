@@ -18,12 +18,13 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
- <ImageView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.imageview.ShapeableImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/movie_image"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="10dp"
     android:scaleType="centerCrop"
+    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Small"
     android:contentDescription="Movie Image">
-</ImageView>
+</com.google.android.material.imageview.ShapeableImageView>
