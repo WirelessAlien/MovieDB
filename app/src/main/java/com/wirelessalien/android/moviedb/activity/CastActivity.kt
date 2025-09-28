@@ -384,7 +384,7 @@ class CastActivity : BaseActivity() {
             }
         }
 
-        binding.images.setOnClickListener {
+        binding.actorImage.setOnClickListener {
             val dialogBinding = DialogPersonImageBinding.inflate(layoutInflater)
             val viewPager = dialogBinding.viewPager
 

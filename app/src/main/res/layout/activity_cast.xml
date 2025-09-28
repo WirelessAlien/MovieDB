@@ -122,15 +122,6 @@
                         android:orientation="horizontal">
 
                         <com.google.android.material.chip.Chip
-                            android:id="@+id/images"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:chipIcon="@drawable/ic_image"
-                            android:layout_marginEnd="16dp"
-                            style="@style/Widget.Material3.Chip.Assist.Elevated"
-                            android:text="@string/image"/>
-
-                        <com.google.android.material.chip.Chip
                             android:id="@+id/upcoming"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
