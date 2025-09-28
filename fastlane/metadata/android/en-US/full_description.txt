@@ -15,6 +15,7 @@ Key Features-
  -Import/Export database
  -Get notified of movie and tv show release
  -Download Movie/Show posters
+ -Import data from other apps
  -Support for Material You 
  -And many more...
 
