@@ -85,7 +85,7 @@
         android:layout_height="wrap_content"
         android:text="@string/continue_watching"
         app:chipCornerRadius="8dp"
-        style="@style/Widget.Material3.Chip.Assist"
+        style="@style/Widget.Material3.Chip.Assist.Elevated"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_margin="16dp"
         android:visibility="gone"
