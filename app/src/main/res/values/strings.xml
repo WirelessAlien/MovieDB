@@ -325,6 +325,9 @@
     <string name="backdrops">Backdrops</string>
     <string name="posters">Posters</string>
     <string name="more">more</string>
+    <string name="release_details">Release Details</string>
+    <string name="no_release_dates_found">No release dates found for your region.</string>
+    <string name="certification_with_country">%1$s (%2$s)</string>
 
     <string-array name="media_types">
         <item>digital</item>

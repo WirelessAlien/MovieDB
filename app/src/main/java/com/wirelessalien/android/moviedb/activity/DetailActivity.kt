@@ -93,10 +93,12 @@ import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
 import com.wirelessalien.android.moviedb.adapter.ReviewAdapter
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.ReleaseDatesAdapter
 import com.wirelessalien.android.moviedb.adapter.WatchProviderAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding
 import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
+import com.wirelessalien.android.moviedb.databinding.DialogReleaseDetailsBinding
 import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentButtonsDescriptionBinding
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
@@ -1229,6 +1231,60 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             val clip = android.content.ClipData.newPlainText("Copied Text", binding.movieTitle.text)
             clipboard.setPrimaryClip(clip)
             true
+        }
+
+        binding.releaseDateCv.setOnClickListener {
+            if (isMovie) {
+                showReleaseDetailsDialog()
+            }
+        }
+    }
+
+    private fun showReleaseDetailsDialog() {
+        val dialogBinding = DialogReleaseDetailsBinding.inflate(layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        dialog.show()
+
+        if (!movieDataObject.has("release_dates")) {
+            dialogBinding.emptyView.visibility = View.VISIBLE
+            return
+        }
+
+        try {
+            val releaseDatesObject = movieDataObject.getJSONObject("release_dates")
+            val resultsArray = releaseDatesObject.getJSONArray("results")
+
+            val localeCountry = Locale.getDefault().country
+            var localeReleaseDatesJson: JSONArray? = null
+
+            for (i in 0 until resultsArray.length()) {
+                val result = resultsArray.getJSONObject(i)
+                if (result.getString("iso_3166_1") == localeCountry) {
+                    localeReleaseDatesJson = result.getJSONArray("release_dates")
+                    break
+                }
+            }
+
+            if (localeReleaseDatesJson == null || localeReleaseDatesJson.length() == 0) {
+                dialogBinding.emptyView.visibility = View.VISIBLE
+            } else {
+                val releaseDateList = mutableListOf<JSONObject>()
+                for (i in 0 until localeReleaseDatesJson.length()) {
+                    releaseDateList.add(localeReleaseDatesJson.getJSONObject(i))
+                }
+
+                val adapter = ReleaseDatesAdapter(this@DetailActivity, releaseDateList)
+                dialogBinding.releaseDatesRecyclerview.layoutManager = LinearLayoutManager(this@DetailActivity)
+                dialogBinding.releaseDatesRecyclerview.adapter = adapter
+                dialogBinding.releaseDatesRecyclerview.visibility = View.VISIBLE
+            }
+        } catch (e: JSONException) {
+            e.printStackTrace()
+            dialogBinding.emptyView.text = getString(R.string.error_loading_data)
+            dialogBinding.emptyView.visibility = View.VISIBLE
         }
     }
 
