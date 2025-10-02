@@ -512,13 +512,20 @@ class HomeFragment : BaseFragment() {
                     adapter.notifyDataSetChanged()
                     if (trendingArrayList.isNotEmpty()) {
                         binding.trendingViewPager.post {
-                            val layoutManager = binding.trendingViewPager.layoutManager as CarouselLayoutManager
-                            val centerView = snapHelper.findSnapView(layoutManager)
-                            if (centerView != null) {
-                                val movieImage = centerView.findViewById<ImageView>(R.id.movieImage)
-                                val zoomIn = AnimationUtils.loadAnimation(requireContext(), R.anim.zoom_in)
-                                movieImage.startAnimation(zoomIn)
-                                centeredView = centerView
+                            if (view?.isAttachedToWindow == true) {
+                                val layoutManager =
+                                    binding.trendingViewPager.layoutManager as CarouselLayoutManager
+                                val centerView = snapHelper.findSnapView(layoutManager)
+                                if (centerView != null) {
+                                    val movieImage =
+                                        centerView.findViewById<ImageView>(R.id.movieImage)
+                                    val zoomIn = AnimationUtils.loadAnimation(
+                                        requireContext(),
+                                        R.anim.zoom_in
+                                    )
+                                    movieImage.startAnimation(zoomIn)
+                                    centeredView = centerView
+                                }
                             }
                         }
                     }
