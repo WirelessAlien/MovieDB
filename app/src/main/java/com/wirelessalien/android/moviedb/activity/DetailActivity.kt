@@ -90,10 +90,10 @@ import com.squareup.picasso.Target
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
+import com.wirelessalien.android.moviedb.adapter.ReleaseDatesAdapter
 import com.wirelessalien.android.moviedb.adapter.ReviewAdapter
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
-import com.wirelessalien.android.moviedb.adapter.ReleaseDatesAdapter
 import com.wirelessalien.android.moviedb.adapter.WatchProviderAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding
 import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
@@ -1214,14 +1214,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         binding.justwatchIv.setOnClickListener {
             val typeCheck = if (isMovie) "movie" else "tv"
             val url = "https://www.themoviedb.org/$typeCheck/$movieId/watch?locale=${Locale.getDefault().country}"
-            val builder = CustomTabsIntent.Builder()
-            val customTabIntent = builder.build()
-            if (customTabIntent.intent.resolveActivity(packageManager) != null) {
-                customTabIntent.launchUrl(this, Uri.parse(url))
-            } else {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(browserIntent)
-            }
+            launchUrl(context, url)
         }
 
         addMenuProvider()
@@ -3701,14 +3694,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         val adapter = WatchProviderAdapter(this) { _ ->
             val typeCheck = if (isMovie) "movie" else "tv"
             val url = "https://www.themoviedb.org/$typeCheck/$movieId/watch?locale=${Locale.getDefault().country}"
-            val builder = CustomTabsIntent.Builder()
-            val customTabIntent = builder.build()
-            if (customTabIntent.intent.resolveActivity(packageManager) != null) {
-                customTabIntent.launchUrl(this, Uri.parse(url))
-            } else {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(browserIntent)
-            }
+            launchUrl(context, url)
         }
         binding.watchProvidersRv.adapter = adapter
 
@@ -3926,24 +3912,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 } else {
                     "https://www.imdb.com/title/$imdbId"
                 }
-
-                val builder = CustomTabsIntent.Builder()
-                val customTabsIntent = builder.build()
-
-                val customTabsPackage = CustomTabsClient.getPackageName(context, null)
-                if (customTabsPackage != null) {
-                    // Launch the URL in a Custom Tab
-                    customTabsIntent.intent.setPackage(customTabsPackage)
-                    customTabsIntent.launchUrl(context, Uri.parse(url))
-                } else {
-                    // Fallback to ACTION_VIEW if Custom Tabs is not available
-                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    if (browserIntent.resolveActivity(packageManager) != null) {
-                        startActivity(browserIntent)
-                    } else {
-                        Toast.makeText(context, R.string.no_browser_available, Toast.LENGTH_LONG).show()
-                    }
-                }
+                launchUrl(context, url)
             }
 
             mMovieDetailsLoaded = true
