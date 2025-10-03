@@ -1242,7 +1242,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private fun showReleaseDetailsDialog() {
         val dialogBinding = DialogReleaseDetailsBinding.inflate(layoutInflater)
-        val dialog = MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.MaterialDialog)
             .setView(dialogBinding.root)
             .create()
 

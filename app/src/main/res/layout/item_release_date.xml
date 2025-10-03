@@ -23,7 +23,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardCornerRadius="10dp"
-    android:layout_margin="4dp"
+    style="@style/Widget.Material3.CardView.Elevated"
     app:cardElevation="2dp">
 
     <LinearLayout
@@ -36,25 +36,31 @@
             android:id="@+id/release_date_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBody1" />
+            android:layout_marginBottom="3dp"
+            android:textAppearance="@style/TextAppearance.Material3.LabelMedium" />
 
         <TextView
             android:id="@+id/certification_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBody2" />
+            android:layout_marginBottom="3dp"
+            android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
 
         <TextView
             android:id="@+id/type_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceCaption" />
+            android:layout_marginBottom="3dp"
+            android:alpha="0.9"
+            android:textAppearance="@style/TextAppearance.Material3.LabelSmall" />
 
         <TextView
             android:id="@+id/note_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:visibility="gone" />
+            android:layout_marginBottom="3dp"
+            android:alpha="0.9"
+            android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+            android:visibility="gone"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
