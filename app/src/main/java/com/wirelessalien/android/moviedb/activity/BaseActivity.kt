@@ -48,9 +48,9 @@ open class BaseActivity : AppCompatActivity() {
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: NetworkCallback
     override fun onCreate(savedInstanceState: Bundle?) {
+        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         super.onCreate(savedInstanceState)
         CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)
-        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 
     /**
