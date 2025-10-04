@@ -90,6 +90,7 @@ import com.squareup.picasso.Target
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
+import com.wirelessalien.android.moviedb.adapter.VideoAdapter
 import com.wirelessalien.android.moviedb.adapter.ReleaseDatesAdapter
 import com.wirelessalien.android.moviedb.adapter.ReviewAdapter
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
@@ -103,6 +104,7 @@ import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBindin
 import com.wirelessalien.android.moviedb.databinding.FragmentButtonsDescriptionBinding
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
+import com.wirelessalien.android.moviedb.databinding.BottomSheetVideosBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.ReviewItemBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment
@@ -214,6 +216,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private var mSimilarMoviesLoaded = false
     private var mCastAndCrewLoaded = false
     private var mVideosLoaded = false
+    private var videos: JSONArray? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(
@@ -3976,11 +3979,11 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     }
 
     private fun showTrailer(movieData: JSONObject) {
-        val videos = movieData.getJSONObject("videos").getJSONArray("results")
+        videos = movieData.getJSONObject("videos").getJSONArray("results")
         var trailerUrl: String? = null
 
-        for (i in 0 until videos.length()) {
-            val video = videos.getJSONObject(i)
+        for (i in 0 until videos!!.length()) {
+            val video = videos!!.getJSONObject(i)
             val type = video.getString("type")
             val site = video.getString("site")
             if (type == "Trailer" && site == "YouTube") {
@@ -3991,17 +3994,36 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
 
         binding.trailer.setOnClickListener {
-            if (trailerUrl == "null" || trailerUrl.isNullOrEmpty()) {
-                Toast.makeText(context, getString(R.string.no_trailer_available), Toast.LENGTH_SHORT).show()
-            } else {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))
-                if (intent.resolveActivity(context.packageManager) != null) {
-                    context.startActivity(intent)
-                } else {
-                    val builder = CustomTabsIntent.Builder()
-                    val customTabIntent = builder.build()
-                    customTabIntent.launchUrl(context, Uri.parse(trailerUrl))
+            if (videos != null && videos!!.length() > 0) {
+                val bottomSheetDialog = BottomSheetDialog(this)
+                val bottomSheetBinding = BottomSheetVideosBinding.inflate(layoutInflater)
+                bottomSheetDialog.setContentView(bottomSheetBinding.root)
+
+                val videoList = mutableListOf<JSONObject>()
+                for (i in 0 until videos!!.length()) {
+                    videoList.add(videos!!.getJSONObject(i))
                 }
+
+                val videoAdapter = VideoAdapter(videoList) { video ->
+                    val key = video.getString("key")
+                    val videoUrl = "https://www.youtube.com/watch?v=$key"
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl))
+                    if (intent.resolveActivity(packageManager) != null) {
+                        startActivity(intent)
+                    } else {
+                        val builder = CustomTabsIntent.Builder()
+                        val customTabIntent = builder.build()
+                        customTabIntent.launchUrl(this, Uri.parse(videoUrl))
+                    }
+                    bottomSheetDialog.dismiss()
+                }
+
+                bottomSheetBinding.videosRecyclerView.layoutManager = LinearLayoutManager(this)
+                bottomSheetBinding.videosRecyclerView.adapter = videoAdapter
+
+                bottomSheetDialog.show()
+            } else {
+                Toast.makeText(this, getString(R.string.no_videos_available), Toast.LENGTH_SHORT).show()
             }
         }
     }

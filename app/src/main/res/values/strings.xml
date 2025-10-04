@@ -428,4 +428,6 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
+    <string name="videos">Videos</string>
+    <string name="no_videos_available">No videos available</string>
 </resources>
