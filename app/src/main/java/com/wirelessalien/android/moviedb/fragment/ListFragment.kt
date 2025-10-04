@@ -880,7 +880,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                 if (!mSearchView) {
                     mShowView.adapter = mShowAdapter
-                    if (usedFilter) {
+                    if (usedFilter || preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
                         filterAdapter()
                     }
                     mScrollPosition?.let { mShowView.scrollToPosition(it) }
@@ -954,7 +954,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                 if (!mSearchView) {
                     mShowView.adapter = mShowAdapter
-                    if (usedFilter) {
+                    if (usedFilter || preferences.getBoolean(PERSISTENT_FILTERING_PREFERENCE, false)) {
                         filterAdapter()
                     }
                 }
