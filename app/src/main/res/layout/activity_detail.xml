@@ -781,6 +781,7 @@
                 android:layout_below="@id/collection_layout"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
+                android:layout_marginTop="6dp"
                 android:text="@string/overview"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -812,6 +813,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/videos"
+                    app:chipCornerRadius="8dp"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -822,6 +824,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
+                    app:chipCornerRadius="8dp"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -831,6 +834,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="IMDb: 0/10"
+                    app:chipCornerRadius="8dp"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
@@ -841,6 +845,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="R. Tomatoes: 0%"
+                    app:chipCornerRadius="8dp"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
@@ -851,6 +856,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="Metacritic: 0/100"
+                    app:chipCornerRadius="8dp"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
             </com.google.android.flexbox.FlexboxLayout>
