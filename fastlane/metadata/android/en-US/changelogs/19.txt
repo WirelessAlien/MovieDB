@@ -2,4 +2,7 @@ add default media prioritization (movie, show) for Trakt account
 add quick access episode sheet for Trakt in Details screen
 add animation to trending cards
 add more items button to Home screen sections
-fix #109, #110
+add video dialog (all videos for a movie/show will display instead of only trailer)
+add release data dialog (on click of release date more details will be shown)
+fix #109, #110 #111
+a lot of small improvements and bug fixes
