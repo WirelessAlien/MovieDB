@@ -334,58 +334,56 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     private fun loadUpcomingContent(): ArrayList<JSONObject> {
         val upcomingContent = ArrayList<JSONObject>()
-        epDbHelper.readableDatabase.use { epDb ->
-            mDatabaseHelper.readableDatabase.use { movieDb ->
-                val projection = arrayOf(
-                    EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
-                    EpisodeReminderDatabaseHelper.COLUMN_DATE,
-                    EpisodeReminderDatabaseHelper.COL_TYPE,
-                    EpisodeReminderDatabaseHelper.COL_SEASON,
-                    EpisodeReminderDatabaseHelper.COLUMN_NAME,
-                    EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER
+        val epDb = epDbHelper.readableDatabase
+        val movieDb = mDatabaseHelper.readableDatabase
+        val projection = arrayOf(
+            EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID,
+            EpisodeReminderDatabaseHelper.COLUMN_DATE,
+            EpisodeReminderDatabaseHelper.COL_TYPE,
+            EpisodeReminderDatabaseHelper.COL_SEASON,
+            EpisodeReminderDatabaseHelper.COLUMN_NAME,
+            EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER
+        )
+        epDb.query(
+            EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
+            projection,
+            null,
+            null,
+            null,
+            null,
+            "${EpisodeReminderDatabaseHelper.COLUMN_DATE} ASC"
+        ).use { epCursor ->
+            while (epCursor.moveToNext()) {
+                val movieId = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
+                val movieProjection = arrayOf(
+                    MovieDatabaseHelper.COLUMN_MOVIES_ID,
+                    MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
+                    MovieDatabaseHelper.COLUMN_RATING,
+                    MovieDatabaseHelper.COLUMN_IMAGE,
+                    MovieDatabaseHelper.COLUMN_ICON,
+                    MovieDatabaseHelper.COLUMN_TITLE,
+                    MovieDatabaseHelper.COLUMN_SUMMARY,
+                    MovieDatabaseHelper.COLUMN_GENRES_IDS,
+                    MovieDatabaseHelper.COLUMN_MOVIE
                 )
-                epDb.query(
-                    EpisodeReminderDatabaseHelper.TABLE_EPISODE_REMINDERS,
-                    projection,
+                movieDb.query(
+                    MovieDatabaseHelper.TABLE_MOVIES,
+                    movieProjection,
+                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                    arrayOf(movieId.toString()),
                     null,
                     null,
-                    null,
-                    null,
-                    "${EpisodeReminderDatabaseHelper.COLUMN_DATE} ASC"
-                ).use { epCursor ->
-                    while (epCursor.moveToNext()) {
-                        val movieId = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_MOVIE_ID))
-                        val movieProjection = arrayOf(
-                            MovieDatabaseHelper.COLUMN_MOVIES_ID,
-                            MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
-                            MovieDatabaseHelper.COLUMN_RATING,
-                            MovieDatabaseHelper.COLUMN_IMAGE,
-                            MovieDatabaseHelper.COLUMN_ICON,
-                            MovieDatabaseHelper.COLUMN_TITLE,
-                            MovieDatabaseHelper.COLUMN_SUMMARY,
-                            MovieDatabaseHelper.COLUMN_GENRES_IDS,
-                            MovieDatabaseHelper.COLUMN_MOVIE
-                        )
-                        movieDb.query(
-                            MovieDatabaseHelper.TABLE_MOVIES,
-                            movieProjection,
-                            "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
-                            arrayOf(movieId.toString()),
-                            null,
-                            null,
-                            null
-                        ).use { movieCursor ->
-                            if (movieCursor.moveToFirst()) {
-                                val isMovie = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
-                                val upcomingType = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
+                    null
+                ).use { movieCursor ->
+                    if (movieCursor.moveToFirst()) {
+                        val isMovie = movieCursor.getInt(movieCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
+                        val upcomingType = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_TYPE))
 
-                                if (isMovie && upcomingType == EPISODE) {
-                                    // Skip this entry
-                                } else {
-                                    createMovieDetails(movieCursor, epCursor)?.let {
-                                        upcomingContent.add(it)
-                                    }
-                                }
+                        if (isMovie && upcomingType == EPISODE) {
+                            // Skip this entry
+                        } else {
+                            createMovieDetails(movieCursor, epCursor)?.let {
+                                upcomingContent.add(it)
                             }
                         }
                     }
