@@ -34,6 +34,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityCsvImportBinding
+import com.wirelessalien.android.moviedb.databinding.BottomSheetImportInfoBinding
 import com.wirelessalien.android.moviedb.databinding.ItemCsvHeaderMappingBinding
 import com.wirelessalien.android.moviedb.helper.CsvParserUtil
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
@@ -87,7 +88,7 @@ class CsvImportActivity : AppCompatActivity() {
         mappingAutoCompleteTextViews.forEach { autoCompleteTextView ->
             val selectedDbFieldKey = autoCompleteTextView.text.toString()
             val dbColumnConstant = databaseFields[selectedDbFieldKey]
-            if (dbColumnConstant == MovieDatabaseHelper.COLUMN_MOVIE && dbColumnConstant != "DO_NOT_IMPORT") {
+            if (dbColumnConstant == MovieDatabaseHelper.COLUMN_MOVIE) {
                 isMovieColumnMapped = true
             }
         }
@@ -148,8 +149,8 @@ class CsvImportActivity : AppCompatActivity() {
 
         binding.buttonInfo.setOnClickListener {
             val bottomSheetDialog = BottomSheetDialog(this)
-            val view = layoutInflater.inflate(R.layout.bottom_sheet_import_info, null)
-            bottomSheetDialog.setContentView(view)
+            val bottomSheetBinding = BottomSheetImportInfoBinding.inflate(layoutInflater)
+            bottomSheetDialog.setContentView(bottomSheetBinding.root)
             bottomSheetDialog.show()
         }
     }
