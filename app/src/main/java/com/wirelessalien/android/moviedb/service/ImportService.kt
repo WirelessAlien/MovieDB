@@ -227,8 +227,8 @@ class ImportService : Service() {
                     val needsSummary = contentValues.getAsString(MovieDatabaseHelper.COLUMN_SUMMARY) == "N/A" || contentValues.getAsString(MovieDatabaseHelper.COLUMN_SUMMARY).isNullOrBlank()
                     val needsRating = contentValues.getAsDouble(MovieDatabaseHelper.COLUMN_RATING) == 0.0
                     val needsReleaseDate = contentValues.getAsString(MovieDatabaseHelper.COLUMN_RELEASE_DATE).isNullOrBlank()
-                    val needsPoster = contentValues.getAsString(MovieDatabaseHelper.COLUMN_IMAGE).isNullOrBlank()
-                    val needsBackdrop = contentValues.getAsString(MovieDatabaseHelper.COLUMN_ICON).isNullOrBlank()
+                    val needsPoster = contentValues.getAsString(MovieDatabaseHelper.COLUMN_ICON).isNullOrBlank()
+                    val needsBackdrop = contentValues.getAsString(MovieDatabaseHelper.COLUMN_IMAGE).isNullOrBlank()
                     val needsGenres = contentValues.getAsString(MovieDatabaseHelper.COLUMN_GENRES_IDS) == "[]" || contentValues.getAsString(MovieDatabaseHelper.COLUMN_GENRES_IDS).isNullOrBlank()
 
 
@@ -256,11 +256,11 @@ class ImportService : Service() {
                             }
                             if (needsPoster && !tmdbJson.optString("poster_path").isNullOrBlank()
                             ) {
-                                contentValues.put(MovieDatabaseHelper.COLUMN_IMAGE, tmdbJson.optString("poster_path"))
+                                contentValues.put(MovieDatabaseHelper.COLUMN_ICON, tmdbJson.optString("poster_path"))
                             }
                             if (needsBackdrop && !tmdbJson.optString("backdrop_path").isNullOrBlank()
                             ) {
-                                contentValues.put(MovieDatabaseHelper.COLUMN_ICON, tmdbJson.optString("backdrop_path"))
+                                contentValues.put(MovieDatabaseHelper.COLUMN_IMAGE, tmdbJson.optString("backdrop_path"))
                             }
                             if (needsGenres) {
                                 val genresArray = tmdbJson.optJSONArray("genres")

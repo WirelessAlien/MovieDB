@@ -233,7 +233,7 @@ class CsvImportActivity : AppCompatActivity() {
                 .substringBefore("(")
 
             if (normalizedCsvHeader.contains(normalizedDbField) || normalizedDbField.contains(normalizedCsvHeader)) {
-                val currentSimilarity = if (normalizedCsvHeader == normalizedDbField) 1.0 else 0.8
+                val currentSimilarity = if (normalizedCsvHeader == normalizedDbField) 1.0 else 0.7
                 if (currentSimilarity > highestSimilarity) {
                     highestSimilarity = currentSimilarity
                     bestMatchIndex = index
