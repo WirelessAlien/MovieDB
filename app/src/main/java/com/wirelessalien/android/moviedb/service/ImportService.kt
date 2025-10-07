@@ -180,239 +180,209 @@ class ImportService : Service() {
             Log.d(TAG, "Processing CSV row $processedRows: $mappedRow")
             updateNotification(getString(R.string.importing), processedRows, totalRowsEstimate)
 
-            serviceScope.launch {
-                try {
-                    val contentValues = ContentValues()
+            try {
+                val contentValues = ContentValues()
 
-                    defaultValues.forEach { (key, defaultValue) ->
-                        contentValues.put(key, defaultValue.toString()) // Start with defaults
-                    }
+                defaultValues.forEach { (key, defaultValue) ->
+                    contentValues.put(key, defaultValue.toString()) // Start with defaults
+                }
 
-                    mappedRow.forEach { (dbColumn, value) ->
-                        if (value != null) { // Only override default if CSV provides a value
-                            when (dbColumn) {
-                                MovieDatabaseHelper.COLUMN_MOVIES_ID -> contentValues.put(
-                                    dbColumn,
-                                    value.toLongOrNull()
-                                )
-
-                                MovieDatabaseHelper.COLUMN_RATING,
-                                MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
-                                MovieDatabaseHelper.COLUMN_EPISODE_RATING -> contentValues.put(
-                                    dbColumn,
-                                    value.toDoubleOrNull()
-                                )
-
-                                MovieDatabaseHelper.COLUMN_CATEGORIES,
-                                MovieDatabaseHelper.COLUMN_SEASON_NUMBER,
-                                MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
-                                MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED -> contentValues.put(
-                                    dbColumn,
-                                    value.toIntOrNull()
-                                )
-
-                                MovieDatabaseHelper.COLUMN_MOVIE -> contentValues.put(
-                                    dbColumn,
-                                    value.toIntOrNull()
-                                )
-
-                                else -> contentValues.put(dbColumn, value)
-                            }
+                mappedRow.forEach { (dbColumn, value) ->
+                    if (value != null) { // Only override default if CSV provides a value
+                        when (dbColumn) {
+                            MovieDatabaseHelper.COLUMN_MOVIES_ID -> contentValues.put(dbColumn, value.toLongOrNull())
+                            MovieDatabaseHelper.COLUMN_RATING,
+                            MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
+                            MovieDatabaseHelper.COLUMN_EPISODE_RATING -> contentValues.put(dbColumn, value.toDoubleOrNull())
+                            MovieDatabaseHelper.COLUMN_CATEGORIES,
+                            MovieDatabaseHelper.COLUMN_SEASON_NUMBER,
+                            MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
+                            MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED -> contentValues.put(dbColumn, value.toIntOrNull())
+                            MovieDatabaseHelper.COLUMN_MOVIE -> contentValues.put(dbColumn, value.toIntOrNull())
+                            else -> contentValues.put(dbColumn, value)
                         }
                     }
+                }
 
-                    // Determine isMovie status
-                    val currentIsMovie = mappedRow[MovieDatabaseHelper.COLUMN_MOVIE]?.toIntOrNull()
-                        ?: (defaultIsMovieType ?: ultimateFallbackIsMovie)
+                // Determine isMovie status:
+                // 1. From CSV if mapped and valid.
+                // 2. From defaultIsMovieType if provided by activity.
+                // 3. Fallback to ultimateFallbackIsMovie (typically 1 for Movie).
+                val isMovieValueFromCsv = mappedRow[MovieDatabaseHelper.COLUMN_MOVIE]?.toIntOrNull()
+                val currentIsMovie: Int
+                if (isMovieValueFromCsv != null) {
+                    currentIsMovie = isMovieValueFromCsv
                     contentValues.put(MovieDatabaseHelper.COLUMN_MOVIE, currentIsMovie)
-                    val isMovieForTmdbFetch = currentIsMovie == 1
+                } else {
+                    currentIsMovie = defaultIsMovieType ?: ultimateFallbackIsMovie
+                    contentValues.put(MovieDatabaseHelper.COLUMN_MOVIE, currentIsMovie)
+                }
+                val isMovieForTmdbFetch = currentIsMovie == 1
 
-                    val tmdbIdFromCsv =
-                        contentValues.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID)
-                    val titleFromCsv = contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE)
+                val tmdbIdFromCsv = contentValues.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID)
+                var titleFromCsv = contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE)
 
-                    if (tmdbApiKey != null && tmdbIdFromCsv != null && tmdbIdFromCsv != 0L) {
-                        val needsTitle = titleFromCsv.isNullOrBlank()
-                        val needsSummary =
-                            contentValues.getAsString(MovieDatabaseHelper.COLUMN_SUMMARY) == "N/A" || contentValues.getAsString(
-                                MovieDatabaseHelper.COLUMN_SUMMARY
-                            ).isNullOrBlank()
-                        val needsRating =
-                            contentValues.getAsDouble(MovieDatabaseHelper.COLUMN_RATING) == 0.0
-                        val needsReleaseDate =
-                            contentValues.getAsString(MovieDatabaseHelper.COLUMN_RELEASE_DATE)
-                                .isNullOrBlank()
-                        val needsPoster = contentValues.getAsString(MovieDatabaseHelper.COLUMN_ICON)
-                            .isNullOrBlank()
-                        val needsBackdrop =
-                            contentValues.getAsString(MovieDatabaseHelper.COLUMN_IMAGE)
-                                .isNullOrBlank()
-                        val needsGenres =
-                            contentValues.getAsString(MovieDatabaseHelper.COLUMN_GENRES_IDS) == "[]" || contentValues.getAsString(
-                                MovieDatabaseHelper.COLUMN_GENRES_IDS
-                            ).isNullOrBlank()
+                if (tmdbApiKey != null && tmdbIdFromCsv != null && tmdbIdFromCsv != 0L) {
+                    val needsTitle = titleFromCsv.isNullOrBlank()
+                    val needsSummary = contentValues.getAsString(MovieDatabaseHelper.COLUMN_SUMMARY) == "N/A" || contentValues.getAsString(MovieDatabaseHelper.COLUMN_SUMMARY).isNullOrBlank()
+                    val needsRating = contentValues.getAsDouble(MovieDatabaseHelper.COLUMN_RATING) == 0.0
+                    val needsReleaseDate = contentValues.getAsString(MovieDatabaseHelper.COLUMN_RELEASE_DATE).isNullOrBlank()
+                    val needsPoster = contentValues.getAsString(MovieDatabaseHelper.COLUMN_IMAGE).isNullOrBlank()
+                    val needsBackdrop = contentValues.getAsString(MovieDatabaseHelper.COLUMN_ICON).isNullOrBlank()
+                    val needsGenres = contentValues.getAsString(MovieDatabaseHelper.COLUMN_GENRES_IDS) == "[]" || contentValues.getAsString(MovieDatabaseHelper.COLUMN_GENRES_IDS).isNullOrBlank()
 
-                        if (needsTitle || needsSummary || needsRating || needsReleaseDate || needsPoster || needsBackdrop || needsGenres) {
+
+                    if (needsTitle || needsSummary || needsRating || needsReleaseDate || needsPoster || needsBackdrop || needsGenres) {
+                        serviceScope.launch {
                             val tmdbJson = fetchTmdbData(tmdbIdFromCsv.toInt(), isMovieForTmdbFetch)
 
                             if (tmdbJson != null) {
+                                Log.d(TAG, "Successfully fetched TMDB data for ID $tmdbIdFromCsv: $tmdbJson")
                                 if (needsTitle) {
-                                    val fetchedTitle =
-                                        if (isMovieForTmdbFetch) tmdbJson.optString("title") else tmdbJson.optString(
-                                            "name"
-                                        )
-                                    if (fetchedTitle.isNotBlank()) contentValues.put(
-                                        MovieDatabaseHelper.COLUMN_TITLE,
-                                        fetchedTitle
-                                    )
+                                    val fetchedTitle = if (isMovieForTmdbFetch) tmdbJson.optString("title") else tmdbJson.optString("name")
+                                    if (!fetchedTitle.isNullOrBlank()) {
+                                        contentValues.put(MovieDatabaseHelper.COLUMN_TITLE, fetchedTitle)
+                                    }
                                 }
-                                if (needsSummary && tmdbJson.optString("overview").isNotBlank()) {
-                                    contentValues.put(
-                                        MovieDatabaseHelper.COLUMN_SUMMARY,
-                                        tmdbJson.optString("overview")
-                                    )
+                                if (needsSummary && !tmdbJson.optString("overview").isNullOrBlank()) {
+                                    contentValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, tmdbJson.optString("overview"))
                                 }
                                 if (needsRating && tmdbJson.optDouble("vote_average", 0.0) > 0.0) {
-                                    contentValues.put(
-                                        MovieDatabaseHelper.COLUMN_RATING,
-                                        tmdbJson.optDouble("vote_average")
-                                    )
+                                    contentValues.put(MovieDatabaseHelper.COLUMN_RATING, tmdbJson.optDouble("vote_average"))
                                 }
                                 if (needsReleaseDate) {
                                     val date =
-                                        if (isMovieForTmdbFetch) tmdbJson.optString("release_date") else tmdbJson.optString(
-                                            "first_air_date"
-                                        )
-                                    if (date.isNotBlank()) contentValues.put(
-                                        MovieDatabaseHelper.COLUMN_RELEASE_DATE,
-                                        date
-                                    )
+                                        if (isMovieForTmdbFetch) tmdbJson.optString("release_date") else tmdbJson.optString("first_air_date")
+                                    if (!date.isNullOrBlank()) contentValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, date)
                                 }
-                                if (needsPoster && tmdbJson.optString("poster_path").isNotBlank()) {
-                                    contentValues.put(
-                                        MovieDatabaseHelper.COLUMN_ICON,
-                                        tmdbJson.optString("poster_path")
-                                    )
-                                }
-                                if (needsBackdrop && tmdbJson.optString("backdrop_path")
-                                        .isNotBlank()
+                                if (needsPoster && !tmdbJson.optString("poster_path").isNullOrBlank()
                                 ) {
-                                    contentValues.put(
-                                        MovieDatabaseHelper.COLUMN_IMAGE,
-                                        tmdbJson.optString("backdrop_path")
-                                    )
+                                    contentValues.put(MovieDatabaseHelper.COLUMN_IMAGE, tmdbJson.optString("poster_path"))
+                                }
+                                if (needsBackdrop && !tmdbJson.optString("backdrop_path").isNullOrBlank()
+                                ) {
+                                    contentValues.put(MovieDatabaseHelper.COLUMN_ICON, tmdbJson.optString("backdrop_path"))
                                 }
                                 if (needsGenres) {
-                                    tmdbJson.optJSONArray("genres")?.let { genresArray ->
-                                        if (genresArray.length() > 0) {
-                                            val genreIds =
-                                                (0 until genresArray.length()).mapNotNull {
-                                                    genresArray.optJSONObject(it)?.optInt("id")
-                                                }
-                                            val genreNames =
-                                                (0 until genresArray.length()).mapNotNull {
-                                                    genresArray.optJSONObject(it)?.optString("name")
-                                                }
-                                            if (genreIds.isNotEmpty()) {
-                                                contentValues.put(
-                                                    MovieDatabaseHelper.COLUMN_GENRES_IDS,
-                                                    genreIds.joinToString(",", "[", "]")
-                                                )
-                                                contentValues.put(
-                                                    MovieDatabaseHelper.COLUMN_GENRES,
-                                                    genreNames.joinToString(", ")
-                                                )
+                                    val genresArray = tmdbJson.optJSONArray("genres")
+                                    if (genresArray != null && genresArray.length() > 0) {
+                                        val genreIds = mutableListOf<Int>()
+                                        val genreNames = mutableListOf<String>()
+                                        for (i in 0 until genresArray.length()) {
+                                            val genreObj = genresArray.optJSONObject(i)
+                                            if (genreObj != null) {
+                                                genreIds.add(genreObj.optInt("id"))
+                                                genreNames.add(genreObj.optString("name"))
                                             }
+                                        }
+                                        if (genreIds.isNotEmpty()) {
+                                            contentValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, genreIds.joinToString(",", "[", "]"))
+                                            contentValues.put(MovieDatabaseHelper.COLUMN_GENRES, genreNames.joinToString(", "))
                                         }
                                     }
                                 }
+                            } else {
+                                Log.w(TAG, "Failed to fetch or parse TMDB data for ID $tmdbIdFromCsv.")
                             }
                         }
                     }
+                }
 
-                    val finalTmdbId = contentValues.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID)
-                    val finalTitle = contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE)
+                val finalTmdbId = contentValues.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID)
+                val finalTitle = contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE)
 
-                    if ((finalTmdbId == null || finalTmdbId == 0L) || finalTitle.isNullOrBlank() || finalTitle == "N/A") {
-                        Log.w(
-                            TAG,
-                            "Skipping insert for row due to missing TMDB ID or valid Title: $contentValues"
-                        )
-                        return@launch
-                    }
+                if ((finalTmdbId == null || finalTmdbId == 0L) && (finalTitle.isNullOrBlank() || finalTitle == "N/A") ) {
+                    Log.w(TAG, "Skipping insert for row due to missing TMDB ID and valid Title after all processing: $contentValues")
+                    return@processCsvWithMapping
+                }
+                if (finalTitle.isNullOrBlank() || finalTitle == "N/A") {
+                    Log.w(TAG, "Skipping insert for TMDB ID $finalTmdbId due to missing valid Title after all processing: $contentValues")
+                    return@processCsvWithMapping
+                }
 
-                    val movieCV = ContentValues()
-                    val episodeCV = ContentValues()
-                    var hasEpisodeData = false
+                val movieCV = ContentValues()
+                val episodeCV = ContentValues()
+                var hasEpisodeData = false
 
-                    contentValues.keySet().forEach { key ->
-                        val value = contentValues.get(key)
-                        when (key) {
-                            MovieDatabaseHelper.COLUMN_SEASON_NUMBER,
-                            MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
-                            MovieDatabaseHelper.COLUMN_EPISODE_RATING,
-                            MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE,
-                            MovieDatabaseHelper.COLUMN_EPISODE_REVIEW -> {
-                                if (value != null && value.toString().isNotBlank()) {
+                contentValues.keySet().forEach { key ->
+                    val value = contentValues.get(key)
+                    when (key) {
+                        MovieDatabaseHelper.COLUMN_SEASON_NUMBER,
+                        MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
+                        MovieDatabaseHelper.COLUMN_EPISODE_RATING,
+                        MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE,
+                        MovieDatabaseHelper.COLUMN_EPISODE_REVIEW -> {
+                            if (value != null && value.toString().isNotBlank()) {
+                                // Ensure movie_id is present for episode
+                                if(finalTmdbId != null && finalTmdbId != 0L) {
                                     episodeCV.put(MovieDatabaseHelper.COLUMN_MOVIES_ID, finalTmdbId)
-                                    episodeCV.put(key, value.toString())
+                                    episodeCV.put(key, value.toString()) // Store as string, let SQLite handle
                                     hasEpisodeData = true
                                 }
                             }
-
-                            else -> {
-                                if (value != null) movieCV.put(key, value.toString())
+                        }
+                        else -> {
+                            if (value != null) {
+                                movieCV.put(key, value.toString()) // Store as string, let SQLite handle
                             }
                         }
                     }
+                }
 
-                    val db = movieDbHelper.writableDatabase
-                    db.beginTransaction()
-                    try {
-                        val existingMovieRowId = movieDbHelper.getMovieRowId(
-                            finalTmdbId,
-                            movieCV.getAsInteger(MovieDatabaseHelper.COLUMN_MOVIE) == 1
-                        )
+                val db = movieDbHelper.writableDatabase
+                db.beginTransaction()
+                try {
+                    if (finalTmdbId != null && finalTmdbId != 0L && finalTitle.isNotBlank() && finalTitle != "N/A") {
+                        // Ensure essential movie fields have non-null defaults if still null
+                        if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_SUMMARY).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_SUMMARY, "N/A")
+                        if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_IMAGE).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_IMAGE, "")
+                        if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_ICON).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_ICON, "")
+                        if (movieCV.getAsDouble(MovieDatabaseHelper.COLUMN_RATING) == null) movieCV.put(MovieDatabaseHelper.COLUMN_RATING, 0.0)
+                        if (movieCV.getAsInteger(MovieDatabaseHelper.COLUMN_MOVIE) == null) movieCV.put(MovieDatabaseHelper.COLUMN_MOVIE, currentIsMovie)
+                        if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_GENRES).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_GENRES, "N/A")
+                        if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_GENRES_IDS).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, "[]")
+
+                        val existingMovieRowId = movieDbHelper.getMovieRowId(finalTmdbId, movieCV.getAsInteger(MovieDatabaseHelper.COLUMN_MOVIE) == 1)
                         if (existingMovieRowId != null) {
-                            db.update(
-                                MovieDatabaseHelper.TABLE_MOVIES,
-                                movieCV,
-                                "${MovieDatabaseHelper.COLUMN_ID} = ?",
-                                arrayOf(existingMovieRowId.toString())
-                            )
+                            // Update existing movie
+                            val updatedRows = db.update(MovieDatabaseHelper.TABLE_MOVIES, movieCV, "${MovieDatabaseHelper.COLUMN_ID} = ?", arrayOf(existingMovieRowId.toString()))
+                            Log.d(TAG, "Updated movie: ${movieCV.getAsString(MovieDatabaseHelper.COLUMN_TITLE)}, Rows updated: $updatedRows")
                         } else {
-                            db.insert(MovieDatabaseHelper.TABLE_MOVIES, null, movieCV)
+                            // Insert new movie
+                            val result = db.insert(MovieDatabaseHelper.TABLE_MOVIES, null, movieCV)
+                            Log.d(TAG, "Inserted movie: ${movieCV.getAsString(MovieDatabaseHelper.COLUMN_TITLE)}, Result ID: $result")
                         }
 
                         if (hasEpisodeData &&
-                            (episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_SEASON_NUMBER)
-                                ?: 0) > 0 &&
-                            (episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER)
-                                ?: 0) > 0
+                            episodeCV.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID) != null &&
+                            episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_SEASON_NUMBER) != null && episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_SEASON_NUMBER) > 0 &&
+                            episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER) != null && episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER) > 0
                         ) {
-                            val existingEpisodeRowId = movieDbHelper.getEpisodeRowId(
-                                episodeCV.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID),
-                                episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_SEASON_NUMBER),
-                                episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER)
-                            )
+                            val episodeTmdbId = episodeCV.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID)
+                            val seasonNo = episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_SEASON_NUMBER)
+                            val episodeNo = episodeCV.getAsInteger(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER)
+
+                            val existingEpisodeRowId = movieDbHelper.getEpisodeRowId(episodeTmdbId, seasonNo, episodeNo)
                             if (existingEpisodeRowId != null) {
-                                db.update(
-                                    MovieDatabaseHelper.TABLE_EPISODES,
-                                    episodeCV,
-                                    "${MovieDatabaseHelper.COLUMN_ID} = ?",
-                                    arrayOf(existingEpisodeRowId.toString())
-                                )
+                                // Update existing episode
+                                val updatedEpRows = db.update(MovieDatabaseHelper.TABLE_EPISODES, episodeCV, "${MovieDatabaseHelper.COLUMN_ID} = ?", arrayOf(existingEpisodeRowId.toString()))
+                                Log.d(TAG, "Updated episode for ${movieCV.getAsString(MovieDatabaseHelper.COLUMN_TITLE)} S${seasonNo}E${episodeNo}, Rows updated: $updatedEpRows")
                             } else {
+                                // Insert new episode
                                 db.insert(MovieDatabaseHelper.TABLE_EPISODES, null, episodeCV)
+                                Log.d(TAG, "Inserted episode for ${movieCV.getAsString(MovieDatabaseHelper.COLUMN_TITLE)} S${seasonNo}E${episodeNo}")
                             }
                         }
-                        db.setTransactionSuccessful()
-                    } finally {
-                        db.endTransaction()
                     }
+                    db.setTransactionSuccessful()
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error processing mapped row $processedRows: $mappedRow", e)
+                    Log.e(TAG, "Error inserting row into database: $mappedRow", e)
+                } finally {
+                    db.endTransaction()
                 }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing mapped row $processedRows: $mappedRow", e)
             }
         }
 
@@ -420,7 +390,7 @@ class ImportService : Service() {
             updateNotification(getString(R.string.import_complete), processedRows, if(totalRowsEstimate < processedRows) processedRows else totalRowsEstimate , true)
             Log.i(TAG, "Import completed. Processed $processedRows rows.")
         } else {
-            updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, isFinished = true, isError = true)
+            updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, true, true)
             Log.e(TAG, "Import failed or finished with errors.")
         }
         // Delay stopping foreground and service to allow user to see final notification
@@ -462,12 +432,10 @@ class ImportService : Service() {
             .setOngoing(!isFinished)
             .setOnlyAlertOnce(true)
 
-        if (!isFinished) {
-            if (maxProgress > 0) {
-                builder.setProgress(maxProgress, progress, false)
-            } else {
-                builder.setProgress(0, 0, true)
-            }
+        if (!isFinished && maxProgress > 0) {
+            builder.setProgress(maxProgress, progress, false)
+        } else if (!isFinished && maxProgress <= 0) {
+            builder.setProgress(0, 0, true)
         }
 
         return builder.build()

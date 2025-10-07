@@ -78,7 +78,6 @@ class CsvImportActivity : AppCompatActivity() {
                 loadCsvHeaders(uri)
                 binding.buttonStartImport.isEnabled = true
                 binding.textViewNoHeadersMessage.visibility = View.GONE
-                binding.textViewInternetWarning.visibility = View.VISIBLE
             }
         }
     }

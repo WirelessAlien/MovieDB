@@ -241,7 +241,6 @@
         4. If your CSV doesn\'t have a column specifying if an item is a Movie or TV Show, select a default type below the mappings (It is required).\n
         5. Click \'Start Import\'. The import will run in the background.
     </string>
-    <string name="import_warning_internet_connection">If the CSV data is incomplete, an internet connection is required to fetch the missing information from TMDB.</string>
     <string name="csv_import">CSV Import</string>
     <string name="schedule_update">Schedule Update</string>
     <string name="schedule_monthly_update">Schedule Monthly Update</string>

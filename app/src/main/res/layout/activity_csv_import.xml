@@ -96,18 +96,6 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
-            android:id="@+id/textViewInternetWarning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/import_warning_internet_connection"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:gravity="center"
-            android:visibility="gone"
-            android:layout_marginTop="16dp"
-            android:padding="8dp"
-            tools:visibility="visible"/>
-
-        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
