@@ -220,7 +220,7 @@ class ImportService : Service() {
                 val isMovieForTmdbFetch = currentIsMovie == 1
 
                 val tmdbIdFromCsv = contentValues.getAsLong(MovieDatabaseHelper.COLUMN_MOVIES_ID)
-                var titleFromCsv = contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE)
+                val titleFromCsv = contentValues.getAsString(MovieDatabaseHelper.COLUMN_TITLE)
 
                 if (tmdbApiKey != null && tmdbIdFromCsv != null && tmdbIdFromCsv != 0L) {
                     val needsTitle = titleFromCsv.isNullOrBlank()
@@ -233,57 +233,55 @@ class ImportService : Service() {
 
 
                     if (needsTitle || needsSummary || needsRating || needsReleaseDate || needsPoster || needsBackdrop || needsGenres) {
-                        serviceScope.launch {
-                            val tmdbJson = fetchTmdbData(tmdbIdFromCsv.toInt(), isMovieForTmdbFetch)
+                        val tmdbJson = fetchTmdbData(tmdbIdFromCsv.toInt(), isMovieForTmdbFetch)
 
-                            if (tmdbJson != null) {
-                                Log.d(TAG, "Successfully fetched TMDB data for ID $tmdbIdFromCsv: $tmdbJson")
-                                if (needsTitle) {
-                                    val fetchedTitle = if (isMovieForTmdbFetch) tmdbJson.optString("title") else tmdbJson.optString("name")
-                                    if (!fetchedTitle.isNullOrBlank()) {
-                                        contentValues.put(MovieDatabaseHelper.COLUMN_TITLE, fetchedTitle)
-                                    }
+                        if (tmdbJson != null) {
+                            Log.d(TAG, "Successfully fetched TMDB data for ID $tmdbIdFromCsv: $tmdbJson")
+                            if (needsTitle) {
+                                val fetchedTitle = if (isMovieForTmdbFetch) tmdbJson.optString("title") else tmdbJson.optString("name")
+                                if (!fetchedTitle.isNullOrBlank()) {
+                                    contentValues.put(MovieDatabaseHelper.COLUMN_TITLE, fetchedTitle)
                                 }
-                                if (needsSummary && !tmdbJson.optString("overview").isNullOrBlank()) {
-                                    contentValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, tmdbJson.optString("overview"))
-                                }
-                                if (needsRating && tmdbJson.optDouble("vote_average", 0.0) > 0.0) {
-                                    contentValues.put(MovieDatabaseHelper.COLUMN_RATING, tmdbJson.optDouble("vote_average"))
-                                }
-                                if (needsReleaseDate) {
-                                    val date =
-                                        if (isMovieForTmdbFetch) tmdbJson.optString("release_date") else tmdbJson.optString("first_air_date")
-                                    if (!date.isNullOrBlank()) contentValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, date)
-                                }
-                                if (needsPoster && !tmdbJson.optString("poster_path").isNullOrBlank()
-                                ) {
-                                    contentValues.put(MovieDatabaseHelper.COLUMN_IMAGE, tmdbJson.optString("poster_path"))
-                                }
-                                if (needsBackdrop && !tmdbJson.optString("backdrop_path").isNullOrBlank()
-                                ) {
-                                    contentValues.put(MovieDatabaseHelper.COLUMN_ICON, tmdbJson.optString("backdrop_path"))
-                                }
-                                if (needsGenres) {
-                                    val genresArray = tmdbJson.optJSONArray("genres")
-                                    if (genresArray != null && genresArray.length() > 0) {
-                                        val genreIds = mutableListOf<Int>()
-                                        val genreNames = mutableListOf<String>()
-                                        for (i in 0 until genresArray.length()) {
-                                            val genreObj = genresArray.optJSONObject(i)
-                                            if (genreObj != null) {
-                                                genreIds.add(genreObj.optInt("id"))
-                                                genreNames.add(genreObj.optString("name"))
-                                            }
-                                        }
-                                        if (genreIds.isNotEmpty()) {
-                                            contentValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, genreIds.joinToString(",", "[", "]"))
-                                            contentValues.put(MovieDatabaseHelper.COLUMN_GENRES, genreNames.joinToString(", "))
-                                        }
-                                    }
-                                }
-                            } else {
-                                Log.w(TAG, "Failed to fetch or parse TMDB data for ID $tmdbIdFromCsv.")
                             }
+                            if (needsSummary && !tmdbJson.optString("overview").isNullOrBlank()) {
+                                contentValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, tmdbJson.optString("overview"))
+                            }
+                            if (needsRating && tmdbJson.optDouble("vote_average", 0.0) > 0.0) {
+                                contentValues.put(MovieDatabaseHelper.COLUMN_RATING, tmdbJson.optDouble("vote_average"))
+                            }
+                            if (needsReleaseDate) {
+                                val date =
+                                    if (isMovieForTmdbFetch) tmdbJson.optString("release_date") else tmdbJson.optString("first_air_date")
+                                if (!date.isNullOrBlank()) contentValues.put(MovieDatabaseHelper.COLUMN_RELEASE_DATE, date)
+                            }
+                            if (needsPoster && !tmdbJson.optString("poster_path").isNullOrBlank()
+                            ) {
+                                contentValues.put(MovieDatabaseHelper.COLUMN_IMAGE, tmdbJson.optString("poster_path"))
+                            }
+                            if (needsBackdrop && !tmdbJson.optString("backdrop_path").isNullOrBlank()
+                            ) {
+                                contentValues.put(MovieDatabaseHelper.COLUMN_ICON, tmdbJson.optString("backdrop_path"))
+                            }
+                            if (needsGenres) {
+                                val genresArray = tmdbJson.optJSONArray("genres")
+                                if (genresArray != null && genresArray.length() > 0) {
+                                    val genreIds = mutableListOf<Int>()
+                                    val genreNames = mutableListOf<String>()
+                                    for (i in 0 until genresArray.length()) {
+                                        val genreObj = genresArray.optJSONObject(i)
+                                        if (genreObj != null) {
+                                            genreIds.add(genreObj.optInt("id"))
+                                            genreNames.add(genreObj.optString("name"))
+                                        }
+                                    }
+                                    if (genreIds.isNotEmpty()) {
+                                        contentValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, genreIds.joinToString(",", "[", "]"))
+                                        contentValues.put(MovieDatabaseHelper.COLUMN_GENRES, genreNames.joinToString(", "))
+                                    }
+                                }
+                            }
+                        } else {
+                            Log.w(TAG, "Failed to fetch or parse TMDB data for ID $tmdbIdFromCsv.")
                         }
                     }
                 }
@@ -332,7 +330,7 @@ class ImportService : Service() {
                 val db = movieDbHelper.writableDatabase
                 db.beginTransaction()
                 try {
-                    if (finalTmdbId != null && finalTmdbId != 0L && finalTitle.isNotBlank() && finalTitle != "N/A") {
+                    if (finalTmdbId != null && finalTmdbId != 0L && finalTitle.isNotBlank()) {
                         // Ensure essential movie fields have non-null defaults if still null
                         if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_SUMMARY).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_SUMMARY, "N/A")
                         if (movieCV.getAsString(MovieDatabaseHelper.COLUMN_IMAGE).isNullOrEmpty()) movieCV.put(MovieDatabaseHelper.COLUMN_IMAGE, "")
@@ -390,7 +388,7 @@ class ImportService : Service() {
             updateNotification(getString(R.string.import_complete), processedRows, if(totalRowsEstimate < processedRows) processedRows else totalRowsEstimate , true)
             Log.i(TAG, "Import completed. Processed $processedRows rows.")
         } else {
-            updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, true, true)
+            updateNotification(getString(R.string.import_failed_or_finished_with_errors), processedRows, totalRowsEstimate, isFinished = true, isError = true)
             Log.e(TAG, "Import failed or finished with errors.")
         }
         // Delay stopping foreground and service to allow user to see final notification
@@ -434,10 +432,9 @@ class ImportService : Service() {
 
         if (!isFinished && maxProgress > 0) {
             builder.setProgress(maxProgress, progress, false)
-        } else if (!isFinished && maxProgress <= 0) {
+        } else {
             builder.setProgress(0, 0, true)
         }
-
         return builder.build()
     }
 

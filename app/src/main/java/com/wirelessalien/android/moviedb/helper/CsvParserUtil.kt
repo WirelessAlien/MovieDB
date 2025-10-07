@@ -47,13 +47,13 @@ object CsvParserUtil {
     }
 
 
-    fun processCsvWithMapping(
+    suspend fun processCsvWithMapping(
         context: Context,
         fileUri: Uri,
         headerMapping: Map<String, String>,
         defaultValues: Map<String, Any?>,
         delimiter: Char,
-        onRowProcessed: (Map<String, String?>) -> Unit
+        onRowProcessed: suspend (Map<String, String?>) -> Unit
     ): Boolean {
         try {
             context.contentResolver.openInputStream(fileUri)?.use { inputStream ->

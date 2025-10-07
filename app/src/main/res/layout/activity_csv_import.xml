@@ -99,6 +99,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:text="@string/internet_connection_warning"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:drawablePadding="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="@string/map_csv_columns_to_database_fields"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:layout_marginBottom="8dp"/>
