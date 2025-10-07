@@ -222,7 +222,7 @@ class CsvImportActivity : AppCompatActivity() {
     private fun findBestMatchForHeader(csvHeader: String): Int {
         val normalizedCsvHeader = csvHeader.lowercase().replace("_", "").replace(" ", "")
         var bestMatchIndex = 0
-        var highestSimilarity = 0.7
+        var highestSimilarity = 0.5
 
         databaseFields.keys.forEachIndexed { index, dbFieldDisplayName ->
             if (index == 0) return@forEachIndexed
@@ -233,7 +233,7 @@ class CsvImportActivity : AppCompatActivity() {
                 .substringBefore("(")
 
             if (normalizedCsvHeader.contains(normalizedDbField) || normalizedDbField.contains(normalizedCsvHeader)) {
-                val currentSimilarity = if (normalizedCsvHeader == normalizedDbField) 1.0 else 0.7
+                val currentSimilarity = if (normalizedCsvHeader == normalizedDbField) 1.0 else 0.5
                 if (currentSimilarity > highestSimilarity) {
                     highestSimilarity = currentSimilarity
                     bestMatchIndex = index
