@@ -210,6 +210,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private lateinit var preferences: SharedPreferences
     private var showNextEpisodePref: Boolean = false
+    private var currentPosterPath: String? = null
+    private var currentBackdropPath: String? = null
 
     // Indicate whether network items have loaded.
     private var mMovieDetailsLoaded = false
@@ -533,136 +535,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.shimmerFrameLayout1.stopShimmer()
         }
 
-        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
-        val isDarkTheme = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
-        val color: Int = if (isDarkTheme) {
-            Color.BLACK
-        } else {
-            Color.WHITE
-        }
-        if (preferences.getBoolean(DYNAMIC_COLOR_DETAILS_ACTIVITY, false)) {
-            if (jMovieObject.has("backdrop_path") && binding.movieImage.drawable == null) {
-                val loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false)
-                val imageSize = if (loadHDImage) "w1280" else "w780"
-                val imageUrl: String = try {
-                    "https://image.tmdb.org/t/p/" + imageSize + jMovieObject.getString("backdrop_path")
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    ""
-                }
-
-                // Set the loaded bitmap to your ImageView before generating the Palette
-                target = object : Target {
-                    override fun onBitmapLoaded(bitmap: Bitmap, from: LoadedFrom) {
-                        // Set the loaded bitmap to your ImageView before generating the Palette
-                        binding.movieImage.setImageBitmap(bitmap)
-                        palette = Palette.from(bitmap).generate()
-                        darkMutedColor =
-                            palette.getDarkMutedColor(palette.getMutedColor(Color.TRANSPARENT))
-                        lightMutedColor =
-                            palette.getLightMutedColor(palette.getMutedColor(Color.TRANSPARENT))
-                        val gradientDrawable: GradientDrawable
-                        val mutedColor: Int
-                        if (isDarkTheme) {
-                            gradientDrawable = GradientDrawable(
-                                GradientDrawable.Orientation.TL_BR,
-                                intArrayOf(darkMutedColor, color)
-                            )
-                            mutedColor = darkMutedColor
-                        } else {
-                            gradientDrawable = GradientDrawable(
-                                GradientDrawable.Orientation.TL_BR,
-                                intArrayOf(lightMutedColor, color)
-                            )
-                            mutedColor = lightMutedColor
-                        }
-                        binding.root.background = gradientDrawable
-                        binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT)
-
-                        val foregroundGradientDrawable = GradientDrawable(
-                            GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(mutedColor, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT)
-                        )
-                        binding.movieImage.foreground = foregroundGradientDrawable
-
-                        val colorStateList = ColorStateList.valueOf(mutedColor)
-                        if (mutedColor != Color.TRANSPARENT) {
-                            binding.fab.backgroundTintList = colorStateList
-
-                            binding.allEpisodeBtn.backgroundTintList = colorStateList
-                            binding.editIcon.backgroundTintList = colorStateList
-                            binding.fabSave.backgroundTintList = colorStateList
-                            binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
-                            binding.collapsingToolbar.setContentScrimColor(mutedColor)
-                            binding.showRating.backgroundTintList = colorStateList
-
-
-                            binding.btnAddToTraktWatchlist.backgroundTintList = colorStateList
-                            binding.btnAddToTraktFavorite.backgroundTintList = colorStateList
-                            binding.btnAddToTraktCollection.backgroundTintList = colorStateList
-                            binding.btnAddToTraktHistory.backgroundTintList = colorStateList
-                            binding.btnAddToTraktList.backgroundTintList = colorStateList
-                            binding.btnAddTraktRating.backgroundTintList = colorStateList
-                            binding.ratingBtnTmdb.backgroundTintList = colorStateList
-                            binding.favouriteButtonTmdb.backgroundTintList = colorStateList
-                            binding.addToListTmdb.backgroundTintList = colorStateList
-                            binding.watchListButtonTmdb.backgroundTintList = colorStateList
-                            binding.syncProviderChange.backgroundTintList = colorStateList
-                            binding.syncProviderBtn.backgroundTintList = colorStateList
-
-                        }
-                        val animation = AnimationUtils.loadAnimation(
-                            applicationContext, R.anim.slide_in_right
-                        )
-                        binding.movieImage.startAnimation(animation)
-                    }
-
-                    override fun onBitmapFailed(e: Exception, errorDrawable: Drawable?) {
-                        if (retryCount < MAX_RETRY_COUNT) {
-                            Picasso.get().load(imageUrl).into(this)
-                            retryCount++
-                        } else {
-                            val fallbackDrawable = errorDrawable ?: ContextCompat.getColor(context, R.color.md_theme_surface)
-                            binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
-                            binding.movieImage.setBackgroundColor(fallbackDrawable as Int)
-
-                        }
-                    }
-
-                    override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                        // Ensure placeHolderDrawable is not null
-                        placeHolderDrawable ?: ContextCompat.getColor(context, R.color.md_theme_outline)
-                        binding.movieImage.setBackgroundColor(
-                            ContextCompat.getColor(
-                                context,
-                                R.color.md_theme_surface
-                            )
-                        )
-                    }
-                }
-                Picasso.get().load(imageUrl).into(target)
-            }
-        } else {
-
-            binding.movieImage.foreground = ContextCompat.getDrawable(context, R.drawable.bg_gradient)
-
-            if (jMovieObject.has("backdrop_path") && binding.movieImage.drawable == null) {
-                val loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false)
-                val imageSize = if (loadHDImage) "w1280" else "w780"
-                try {
-                    Picasso.get().load(
-                        "https://image.tmdb.org/t/p/" + imageSize +
-                                jMovieObject.getString("backdrop_path")
-                    )
-                        .into(binding.movieImage)
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                val animation = AnimationUtils.loadAnimation(
-                    applicationContext, R.anim.fade_in
-                )
-                binding.movieImage.startAnimation(animation)
-            }
-        }
+        loadBackdropImage(jMovieObject)
 
         val dialogShown = preferences.getBoolean("sync_provider_action_dialog_shown", false)
         if (!dialogShown) {
@@ -2457,18 +2330,17 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             // Set the movieId
             movieId = movieObject.optInt("id")
 
-            // Due to the difficulty of comparing images (or rather,
-            // this can be a really slow process) the id of the image is
-            // saved as class variable for easy comparison.
-            if (movieObject.has("poster_path") && binding.moviePoster.drawable == null) {
+            if (movieObject.has("poster_path") && movieObject.optString("poster_path") != currentPosterPath) {
+                currentPosterPath = movieObject.optString("poster_path")
                 Picasso.get().load(
                     "https://image.tmdb.org/t/p/" + imageSize +
-                            movieObject.optString("poster_path")
+                            currentPosterPath
                 )
                     .into(binding.moviePoster)
+            }
 
-                // Set the old posterId to the new one.
-                movieObject.optString("poster_path")
+            if (movieObject.has("backdrop_path")) {
+                loadBackdropImage(movieObject)
             }
 
             // Check if it is a movie or a TV series.
@@ -2872,6 +2744,102 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             String.format(Locale.getDefault(), "$%.1fK", value / 1000.0)
         } else {
             String.format(Locale.getDefault(), "$%d", value)
+        }
+    }
+
+    private fun loadBackdropImage(movieObject: JSONObject) {
+        val backdropPath = movieObject.optString("backdrop_path", "")
+        if (backdropPath.isEmpty() || backdropPath == currentBackdropPath) {
+            return
+        }
+        currentBackdropPath = backdropPath
+
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        val isDarkTheme = uiModeManager.nightMode == UiModeManager.MODE_NIGHT_YES
+        val color: Int = if (isDarkTheme) Color.BLACK else Color.WHITE
+        val loadHDImage = preferences.getBoolean(HD_IMAGE_SIZE, false)
+        val imageSize = if (loadHDImage) "w1280" else "w780"
+        val imageUrl = "https://image.tmdb.org/t/p/$imageSize$backdropPath"
+
+        if (preferences.getBoolean(DYNAMIC_COLOR_DETAILS_ACTIVITY, false)) {
+            target = object : Target {
+                override fun onBitmapLoaded(bitmap: Bitmap, from: LoadedFrom) {
+                    binding.movieImage.setImageBitmap(bitmap)
+                    palette = Palette.from(bitmap).generate()
+                    darkMutedColor = palette.getDarkMutedColor(palette.getMutedColor(Color.TRANSPARENT))
+                    lightMutedColor = palette.getLightMutedColor(palette.getMutedColor(Color.TRANSPARENT))
+                    val gradientDrawable: GradientDrawable
+                    val mutedColor: Int
+                    if (isDarkTheme) {
+                        gradientDrawable = GradientDrawable(
+                            GradientDrawable.Orientation.TL_BR,
+                            intArrayOf(darkMutedColor, color)
+                        )
+                        mutedColor = darkMutedColor
+                    } else {
+                        gradientDrawable = GradientDrawable(
+                            GradientDrawable.Orientation.TL_BR,
+                            intArrayOf(lightMutedColor, color)
+                        )
+                        mutedColor = lightMutedColor
+                    }
+                    binding.root.background = gradientDrawable
+                    binding.appBarLayout.setBackgroundColor(Color.TRANSPARENT)
+
+                    val foregroundGradientDrawable = GradientDrawable(
+                        GradientDrawable.Orientation.BOTTOM_TOP,
+                        intArrayOf(mutedColor, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT)
+                    )
+                    binding.movieImage.foreground = foregroundGradientDrawable
+
+                    val colorStateList = ColorStateList.valueOf(mutedColor)
+                    if (mutedColor != Color.TRANSPARENT) {
+                        binding.fab.backgroundTintList = colorStateList
+                        binding.allEpisodeBtn.backgroundTintList = colorStateList
+                        binding.editIcon.backgroundTintList = colorStateList
+                        binding.fabSave.backgroundTintList = colorStateList
+                        binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
+                        binding.collapsingToolbar.setContentScrimColor(mutedColor)
+                        binding.showRating.backgroundTintList = colorStateList
+                        binding.btnAddToTraktWatchlist.backgroundTintList = colorStateList
+                        binding.btnAddToTraktFavorite.backgroundTintList = colorStateList
+                        binding.btnAddToTraktCollection.backgroundTintList = colorStateList
+                        binding.btnAddToTraktHistory.backgroundTintList = colorStateList
+                        binding.btnAddToTraktList.backgroundTintList = colorStateList
+                        binding.btnAddTraktRating.backgroundTintList = colorStateList
+                        binding.ratingBtnTmdb.backgroundTintList = colorStateList
+                        binding.favouriteButtonTmdb.backgroundTintList = colorStateList
+                        binding.addToListTmdb.backgroundTintList = colorStateList
+                        binding.watchListButtonTmdb.backgroundTintList = colorStateList
+                        binding.syncProviderChange.backgroundTintList = colorStateList
+                        binding.syncProviderBtn.backgroundTintList = colorStateList
+                    }
+                    val animation = AnimationUtils.loadAnimation(applicationContext, R.anim.slide_in_right)
+                    binding.movieImage.startAnimation(animation)
+                }
+
+                override fun onBitmapFailed(e: Exception, errorDrawable: Drawable?) {
+                    if (retryCount < MAX_RETRY_COUNT) {
+                        Picasso.get().load(imageUrl).into(this)
+                        retryCount++
+                    } else {
+                        errorDrawable ?: ContextCompat.getDrawable(context, R.color.md_theme_surface)
+                        binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
+                    }
+                }
+
+                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                    placeHolderDrawable?.let {
+                        binding.movieImage.setBackgroundColor(ContextCompat.getColor(context, R.color.md_theme_surface))
+                    }
+                }
+            }
+            Picasso.get().load(imageUrl).into(target)
+        } else {
+            binding.movieImage.foreground = ContextCompat.getDrawable(context, R.drawable.bg_gradient)
+            Picasso.get().load(imageUrl).into(binding.movieImage)
+            val animation = AnimationUtils.loadAnimation(applicationContext, R.anim.fade_in)
+            binding.movieImage.startAnimation(animation)
         }
     }
 
@@ -3980,18 +3948,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private fun showTrailer(movieData: JSONObject) {
         videos = movieData.getJSONObject("videos").getJSONArray("results")
-        var trailerUrl: String? = null
-
-        for (i in 0 until videos!!.length()) {
-            val video = videos!!.getJSONObject(i)
-            val type = video.getString("type")
-            val site = video.getString("site")
-            if (type == "Trailer" && site == "YouTube") {
-                val key = video.getString("key")
-                trailerUrl = "https://www.youtube.com/watch?v=$key"
-                break
-            }
-        }
 
         binding.trailer.setOnClickListener {
             if (videos != null && videos!!.length() > 0) {
