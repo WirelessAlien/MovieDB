@@ -56,6 +56,7 @@ class CsvImportActivity : AppCompatActivity() {
         "Release Date (YYYY-MM-DD)" to MovieDatabaseHelper.COLUMN_RELEASE_DATE,
         "Type (1 for Movie, 0 for TV Show)" to MovieDatabaseHelper.COLUMN_MOVIE,
         "Genres (comma separated text)" to MovieDatabaseHelper.COLUMN_GENRES,
+        "Genre IDs" to MovieDatabaseHelper.COLUMN_GENRES_IDS,
         "My Watch Status (0:Plan, 1:Watched, 2:Watching, 3:Hold, 4:Dropped)" to MovieDatabaseHelper.COLUMN_CATEGORIES,
         "Poster URL (poster_path)" to MovieDatabaseHelper.COLUMN_ICON,
         "Backdrop URL (backdrop_path)" to MovieDatabaseHelper.COLUMN_IMAGE,

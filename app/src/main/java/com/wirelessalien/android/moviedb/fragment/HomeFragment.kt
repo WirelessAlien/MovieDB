@@ -504,43 +504,50 @@ class HomeFragment : BaseFragment() {
                         trendingArrayList.add(websiteData)
                     }
                 }
-                val adapter = binding.trendingViewPager.adapter as TrendingPagerAdapter?
+
+                val adapter = binding.trendingViewPager.adapter as? TrendingPagerAdapter
                 if (adapter != null) {
                     centeredView?.findViewById<ImageView>(R.id.movieImage)?.clearAnimation()
                     centeredView = null
                     adapter.updateData(trendingArrayList)
                     adapter.notifyDataSetChanged()
+
                     if (trendingArrayList.isNotEmpty()) {
-                        binding.trendingViewPager.postOnAnimation {
-                            if (view?.isAttachedToWindow == true) {
-                                val layoutManager = binding.trendingViewPager.layoutManager as? CarouselLayoutManager
-                                if (layoutManager != null) {
-                                    val centerView = snapHelper.findSnapView(layoutManager)
-                                    if (centerView != null) {
-                                        val movieImage = centerView.findViewById<ImageView>(R.id.movieImage)
-                                        val zoomIn = AnimationUtils.loadAnimation(
-                                            requireContext(),
-                                            R.anim.zoom_in
-                                        )
-                                        movieImage.startAnimation(zoomIn)
-                                        centeredView = centerView
-                                    }
-                                }
+                        binding.trendingViewPager.post {
+                            val recyclerView = binding.trendingViewPager
+                            if (!isAdded || view == null || !recyclerView.isAttachedToWindow) return@post
+
+                            val layoutManager = recyclerView.layoutManager as? CarouselLayoutManager ?: return@post
+                            val snapView = snapHelper.findSnapView(layoutManager) ?: return@post
+
+                            val movieImage = snapView.findViewById<ImageView>(R.id.movieImage)
+                            movieImage?.let {
+                                val zoomIn = AnimationUtils.loadAnimation(requireContext(), R.anim.zoom_in)
+                                it.startAnimation(zoomIn)
+                                centeredView = snapView
                             }
                         }
                     }
                 }
+
                 mShowListLoaded = true
-                binding.shimmerFrameLayout1.visibility = View.GONE
-                binding.shimmerFrameLayout1.stopShimmer()
+                binding.shimmerFrameLayout1.apply {
+                    visibility = View.GONE
+                    stopShimmer()
+                }
+
             } catch (je: JSONException) {
                 je.printStackTrace()
-                binding.shimmerFrameLayout1.visibility = View.GONE
-                binding.shimmerFrameLayout1.stopShimmer()
+                binding.shimmerFrameLayout1.apply {
+                    visibility = View.GONE
+                    stopShimmer()
+                }
             }
         } else {
-            binding.shimmerFrameLayout1.visibility = View.GONE
-            binding.shimmerFrameLayout1.stopShimmer()
+            binding.shimmerFrameLayout1.apply {
+                visibility = View.GONE
+                stopShimmer()
+            }
         }
     }
 
