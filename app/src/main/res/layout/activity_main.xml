@@ -111,6 +111,10 @@
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
         android:layout_margin="16dp"/>
 
+    <include
+        android:id="@+id/toggle_button_group"
+        layout="@layout/toggle_button_group" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"

@@ -29,7 +29,6 @@ import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.BaseActivity
@@ -41,10 +40,8 @@ import com.wirelessalien.android.moviedb.pagingSource.RatedListPagingSource
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class RatedListFragment : BaseFragment() {
+class RatedListFragment : TogglableFragment() {
 
-    private var mListType: String? = null
-    private lateinit var pagingAdapter: ShowPagingAdapter
     private lateinit var binding: FragmentShowBinding
     private lateinit var activityBinding: ActivityMainBinding
 
@@ -67,26 +64,12 @@ class RatedListFragment : BaseFragment() {
         val fragmentView = binding.root
         activityBinding = (activity as MainActivity).getBinding()
         showPagingList(fragmentView)
-        updateFabIcon(activityBinding.fab, mListType)
-        activityBinding.fab.setOnClickListener { toggleListTypeAndLoad() }
         return fragmentView
-    }
-
-    private fun toggleListTypeAndLoad() {
-        mListType = if ("movie" == mListType) "tv" else "movie"
-        pagingAdapter.refresh()
-        updateFabIcon(activityBinding.fab, mListType)
     }
 
     override fun onResume() {
         super.onResume()
-        activityBinding.fab.visibility = View.VISIBLE
-        updateFabIcon(activityBinding.fab, mListType)
-        activityBinding.fab.setOnClickListener { toggleListTypeAndLoad() }
-    }
-
-    private fun updateFabIcon(fab: FloatingActionButton, listType: String?) {
-        fab.setImageResource(if ("movie" == listType) R.drawable.ic_movie else R.drawable.ic_tv_show)
+        activityBinding.fab.visibility = View.GONE
     }
 
     private fun createShowList() {

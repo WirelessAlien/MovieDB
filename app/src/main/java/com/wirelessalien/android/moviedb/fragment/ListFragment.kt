@@ -591,6 +591,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             activityBinding.upnextChip.visibility = View.GONE
         }
 
+        activityBinding.toggleButtonGroup.root.visibility = View.GONE
+
         if (binding.chipUpcoming.isChecked) {
             // Hide the FAB if the "Upcoming" chip is checked
             activityBinding.fab.visibility = View.GONE

@@ -141,6 +141,7 @@ class ShowFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
+        activityBinding.toggleButtonGroup.root.visibility = View.GONE
         activityBinding.fab.visibility = View.VISIBLE
         activityBinding.fab2.visibility = View.GONE
         activityBinding.fab.setImageResource(R.drawable.ic_filter_list)

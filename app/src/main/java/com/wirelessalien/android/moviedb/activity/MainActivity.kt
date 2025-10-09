@@ -334,6 +334,10 @@ class MainActivity : BaseActivity() {
             val paramsFab2 = binding.fab2.layoutParams as CoordinatorLayout.LayoutParams
             paramsFab2.bottomMargin = bottomNavHeight + binding.fab.height + 32 // 16dp margin + fab height + 16dp margin
             binding.fab2.layoutParams = paramsFab2
+
+            val paramsToggleGroup = binding.toggleButtonGroup.root.layoutParams as CoordinatorLayout.LayoutParams
+            paramsToggleGroup.bottomMargin = bottomNavHeight + 16
+            binding.toggleButtonGroup.root.layoutParams = paramsToggleGroup
         }
 
         binding.container.viewTreeObserver.addOnGlobalLayoutListener {

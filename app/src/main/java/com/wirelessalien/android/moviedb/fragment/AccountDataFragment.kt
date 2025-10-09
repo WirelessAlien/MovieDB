@@ -57,6 +57,9 @@ class AccountDataFragment : BaseFragment() {
         activityBinding.fab.isEnabled = !(sessionId == null || accountId == null)
 
         setupTabs()
+        // After setupTabs, initialize the toggle button group state
+        binding.tabs.getTabAt(0)?.select()
+        handleTabSelection(0)
         return view
     }
 
@@ -81,6 +84,7 @@ class AccountDataFragment : BaseFragment() {
                 }
             }
         }, viewLifecycleOwner)
+        setupToggleButtonListener()
     }
 
     override fun onResume() {
@@ -91,6 +95,8 @@ class AccountDataFragment : BaseFragment() {
         requireActivity().invalidateOptionsMenu()
     }
 
+    private var currentFragment: Fragment? = null
+
     private fun setupTabs() {
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.watchlist)))
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.favourite)))
@@ -98,18 +104,7 @@ class AccountDataFragment : BaseFragment() {
         binding.tabs.addTab(binding.tabs.newTab().setText(getString(R.string.lists)))
         binding.tabs.addOnTabSelectedListener(object : OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                val selectedFragment: Fragment? = when (tab.position) {
-                    0 -> WatchlistFragment()
-                    1 -> FavoriteFragment()
-                    2 -> RatedListFragment()
-                    3 -> ListFragmentTmdb()
-                    else -> null
-                }
-                if (selectedFragment != null) {
-                    childFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, selectedFragment)
-                        .commit()
-                }
+                handleTabSelection(tab.position)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
@@ -128,6 +123,49 @@ class AccountDataFragment : BaseFragment() {
             childFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, WatchlistFragment())
                 .commit()
+        }
+    }
+
+    private fun handleTabSelection(position: Int) {
+        val selectedFragment: Fragment? = when (position) {
+            0 -> WatchlistFragment()
+            1 -> FavoriteFragment()
+            2 -> RatedListFragment()
+            3 -> ListFragmentTmdb()
+            else -> null
+        }
+
+        if (selectedFragment != null) {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, selectedFragment)
+                .commit()
+            currentFragment = selectedFragment
+        }
+
+        if (position <= 2) { // Watchlist, Favorite, Rated
+            activityBinding.toggleButtonGroup.root.visibility = View.VISIBLE
+            activityBinding.fab.visibility = View.GONE
+            // Set initial type for the fragment
+            val initialType = if (activityBinding.toggleButtonGroup.root.checkedButtonId == R.id.button_movie) "movie" else "show"
+            setCurrentFragmentType(initialType)
+        } else { // Lists
+            activityBinding.toggleButtonGroup.root.visibility = View.GONE
+            activityBinding.fab.visibility = View.VISIBLE
+        }
+    }
+
+    private fun setupToggleButtonListener() {
+        activityBinding.toggleButtonGroup.root.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                val type = if (checkedId == R.id.button_movie) "movie" else "tv"
+                setCurrentFragmentType(type)
+            }
+        }
+    }
+
+    private fun setCurrentFragmentType(type: String) {
+        if (currentFragment is TogglableFragment) {
+            (currentFragment as TogglableFragment).setType(type)
         }
     }
 

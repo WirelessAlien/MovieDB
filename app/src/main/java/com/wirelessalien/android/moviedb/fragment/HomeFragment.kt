@@ -226,6 +226,7 @@ class HomeFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
+        activityBinding.toggleButtonGroup.root.visibility = View.GONE
         activityBinding.fab.visibility = View.GONE
         activityBinding.fab2.visibility = View.GONE
         if (preferences.getBoolean("key_show_continue_watching", true) &&
