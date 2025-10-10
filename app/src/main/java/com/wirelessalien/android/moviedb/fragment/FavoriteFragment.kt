@@ -51,7 +51,6 @@ class FavoriteFragment : TogglableFragment() {
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        mListType = if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) "tv" else "movie"
         mShowArrayList = ArrayList()
         createShowList()
     }
@@ -127,9 +126,5 @@ class FavoriteFragment : TogglableFragment() {
     override fun onPause() {
         binding.shimmerFrameLayout.stopShimmer()
         super.onPause()
-    }
-
-    companion object {
-        private const val DEFAULT_MEDIA_TYPE = "key_default_media_type"
     }
 }

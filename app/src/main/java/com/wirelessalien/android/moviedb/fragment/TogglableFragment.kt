@@ -19,6 +19,7 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
+import android.content.SharedPreferences
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 
 abstract class TogglableFragment : BaseFragment() {
@@ -26,10 +27,26 @@ abstract class TogglableFragment : BaseFragment() {
     protected var mListType: String? = null
     protected lateinit var pagingAdapter: ShowPagingAdapter
 
+    override fun onResume() {
+        super.onResume()
+        updateAndRefreshListType()
+    }
+
+    private fun updateAndRefreshListType() {
+        val newType = if (preferences.getBoolean(DEFAULT_MEDIA_TYPE, false)) "tv" else "movie"
+        if (newType != mListType) {
+            setType(newType)
+        }
+    }
+
     fun setType(type: String) {
         mListType = type
         if (this::pagingAdapter.isInitialized) {
             pagingAdapter.refresh()
         }
+    }
+
+    companion object {
+        const val DEFAULT_MEDIA_TYPE = "key_default_media_type"
     }
 }
