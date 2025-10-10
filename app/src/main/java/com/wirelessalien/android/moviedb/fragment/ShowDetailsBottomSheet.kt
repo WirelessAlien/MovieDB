@@ -309,16 +309,3 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
     }
 }
 
-fun MovieDatabaseHelper.isShowInDatabase(movieId: Int): Boolean {
-    val db = this.readableDatabase
-    var cursor: android.database.Cursor? = null
-    try {
-        cursor = db.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_MOVIES_ID}=? LIMIT 1",
-            arrayOf(movieId.toString())
-        )
-        return (cursor?.count ?: 0) > 0
-    } finally {
-        cursor?.close()
-    }
-}

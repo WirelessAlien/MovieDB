@@ -621,7 +621,8 @@ class ShowBaseAdapter(
                             episodeOverview.visibility = View.VISIBLE
                             episodeAirDate.visibility = View.VISIBLE
                         } else {
-                            episodeImageView.visibility = View.GONE
+                            episodeImageView.visibility = View.VISIBLE
+                            episodeImageView.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outlineVariant, null))
                             episodeName.visibility = View.GONE
                             episodeOverview.visibility = View.GONE
                             episodeAirDate.visibility = View.GONE

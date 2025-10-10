@@ -344,6 +344,8 @@ class AccountDataFragmentTkt : BaseFragment() {
         activityBinding.fab.visibility = View.GONE
         activityBinding.fab2.visibility = View.GONE
         activityBinding.upnextChip.visibility = View.GONE
+        activityBinding.toggleButtonGroup.root.visibility = View.GONE
+
         requireActivity().invalidateOptionsMenu()
     }
 

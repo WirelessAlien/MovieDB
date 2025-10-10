@@ -715,6 +715,9 @@ class ShowTraktAdapter(
                         episodeName.text = name
                         episodeOverview.text = overview
                         episodeAirDate.text = formattedAirDate
+                        episodeName.visibility = View.VISIBLE
+                        episodeOverview.visibility = View.VISIBLE
+                        episodeAirDate.visibility = View.VISIBLE
 
                         if (stillPath.isNotEmpty() && stillPath != "null") {
                             val imageSize = if (loadHdImage) "w780" else "w500"
@@ -723,10 +726,8 @@ class ShowTraktAdapter(
                                 .into(episodeImageView)
                             episodeImageView.visibility = View.VISIBLE
                         } else {
-                            episodeImageView.visibility = View.GONE
-                            episodeName.visibility = View.GONE
-                            episodeOverview.visibility = View.GONE
-                            episodeAirDate.visibility = View.GONE
+                            episodeImageView.visibility = View.VISIBLE
+                            episodeImageView.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outlineVariant, null))
                         }
                     }
                 } else {
