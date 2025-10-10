@@ -19,7 +19,8 @@
  */
 package com.wirelessalien.android.moviedb.fragment
 
-import android.content.SharedPreferences
+import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 
 abstract class TogglableFragment : BaseFragment() {
@@ -30,6 +31,10 @@ abstract class TogglableFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         updateAndRefreshListType()
+        val activityBinding = (activity as? MainActivity)?.getBinding()
+        activityBinding?.toggleButtonGroup?.root?.check(
+            if (mListType == "movie") R.id.button_movie else R.id.button_show
+        )
     }
 
     private fun updateAndRefreshListType() {
