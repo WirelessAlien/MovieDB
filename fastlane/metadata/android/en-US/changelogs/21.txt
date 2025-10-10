@@ -1,0 +1,3 @@
+Update UI - Change the FAB of TMDB account tab to button group (it was confusing to some users)
+Multiple bug fixes and improvements
+Development - Change the R8 rules to keep class and method names
