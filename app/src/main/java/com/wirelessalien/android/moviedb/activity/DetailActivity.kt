@@ -685,6 +685,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                             context,
                             R.drawable.ic_thumb_up_border
                         )
+                        binding.ratingBtnTmdb.text = ""
                     }
                 }
 
