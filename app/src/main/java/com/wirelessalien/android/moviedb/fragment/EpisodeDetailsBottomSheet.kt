@@ -87,6 +87,16 @@ class EpisodeDetailsBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    fun updateEpisode(tvShowId: Int, seasonNumber: Int, episodeNumber: Int) {
+        this.tvShowId = tvShowId
+        this.seasonNumber = seasonNumber
+        this.episodeNumber = episodeNumber
+        arguments?.putInt(ARG_TV_SHOW_ID, tvShowId)
+        arguments?.putInt(ARG_SEASON_NUMBER, seasonNumber)
+        arguments?.putInt(ARG_EPISODE_NUMBER, episodeNumber)
+        fetchEpisodeDetails()
+    }
+
     private fun fetchEpisodeDetails() {
         val apiKey = ConfigHelper.getConfigValue(requireContext(), "api_key")
         val language = BaseActivity.getLanguageParameter(requireContext()).replace("&language=", "")

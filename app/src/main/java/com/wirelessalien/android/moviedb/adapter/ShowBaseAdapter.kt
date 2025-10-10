@@ -529,7 +529,6 @@ class ShowBaseAdapter(
             bottomSheetBinding!!.episodeOverview,
             bottomSheetBinding!!.episodeAirDate,
             bottomSheetBinding!!.imageView,
-            mShowArrayList.getOrNull(0)?.optString("upcoming_date") ?: "",
             preference.getBoolean(HD_IMAGE_SIZE, false),
             apiKey ?: ""
         )
@@ -563,7 +562,6 @@ class ShowBaseAdapter(
         episodeOverview: TextView,
         episodeAirDate: TextView,
         episodeImageView: ImageView,
-        airDate: String,
         loadHdImage : Boolean,
         apiKey: String
     ) {
@@ -583,9 +581,7 @@ class ShowBaseAdapter(
                     val overview = jsonResponse.optString("overview", "No overview available.")
                     val stillPath = jsonResponse.optString("still_path")
 
-                    val dateToFormat = airDate.ifEmpty {
-                        jsonResponse.optString("air_date", "")
-                    }
+                    val dateToFormat = jsonResponse.optString("air_date", "")
 
                     val formats = listOf(
                         "yyyy-MM-dd",

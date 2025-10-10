@@ -99,12 +99,13 @@ class EpisodeAdapter(
     private var tmdbObject: JSONObject
 ) : RecyclerView.Adapter<EpisodeViewHolder?>() {
 
+    private var bottomSheet: EpisodeDetailsBottomSheet? = null
     private var episodeRatings: Map<Int, Double> = HashMap()
     private var watchedEpisodes: Map<Int, Boolean> = HashMap()
     private var mediaObject: JSONObject? = null
     private val tktaccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("trakt_access_token", null)
     private lateinit var clientId: String
-//    private var isInCollection: Boolean = false
+    //    private var isInCollection: Boolean = false
     private var isInWatchList: Boolean = false
     private var isInRating: Boolean = false
     private lateinit var defaultSharedPreferences: SharedPreferences
@@ -229,7 +230,7 @@ class EpisodeAdapter(
                 binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
                 binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                 binding.btnAddRatingToTmdb.visibility = View.GONE
-    //                binding.btnAddToTraktCollection.visibility = View.GONE
+                //                binding.btnAddToTraktCollection.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -697,18 +698,30 @@ class EpisodeAdapter(
         }
 
         holder.binding.relativeLayout.setOnClickListener {
-            val bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
-            bottomSheet.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+            if (bottomSheet?.isAdded == true) {
+                bottomSheet?.updateEpisode(tvShowId, seasonNumber, episode.episodeNumber)
+            } else {
+                bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
+                bottomSheet?.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+            }
         }
 
         holder.binding.relativeLayout2.setOnClickListener {
-            val bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
-            bottomSheet.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+            if (bottomSheet?.isAdded == true) {
+                bottomSheet?.updateEpisode(tvShowId, seasonNumber, episode.episodeNumber)
+            } else {
+                bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
+                bottomSheet?.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+            }
         }
 
         holder.binding.description.setOnClickListener {
-            val bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
-            bottomSheet.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+            if (bottomSheet?.isAdded == true) {
+                bottomSheet?.updateEpisode(tvShowId, seasonNumber, episode.episodeNumber)
+            } else {
+                bottomSheet = EpisodeDetailsBottomSheet.newInstance(tvShowId, seasonNumber, episode.episodeNumber)
+                bottomSheet?.show((context as FragmentActivity).supportFragmentManager, EpisodeDetailsBottomSheet.TAG)
+            }
         }
     }
 
