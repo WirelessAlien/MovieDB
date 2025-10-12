@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         app:tabGravity="fill"
-        app:tabMode="fixed" />
+        app:tabMode="auto" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container"
