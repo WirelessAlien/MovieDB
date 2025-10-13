@@ -127,9 +127,14 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
                 if (dateStr == null) continue
 
                 val calendarExists = showTraktId?.let { checkTraktCalendarExists(tktDb, it) } ?: false
-                val movieExists = movieId?.let { checkMovieExists(movieDb, it) } ?: false
+                val movieTypeMatches = if (movieId != null) {
+                    val dbMediaType = movieDb.getMediaType(movieId)
+                    dbMediaType == type
+                } else {
+                    false
+                }
 
-                if (calendarExists || movieExists) {
+                if (calendarExists || movieTypeMatches) {
                     val notificationKey = buildNotificationKey(type, movieId ?: 0, seasonNumber, episodeNumber, dateStr)
                     if (!scheduledNotificationDbHelper.hasNotificationBeenScheduled(notificationKey)) {
                         scheduleNotification(cursor, dateStr, notificationKey, "episode_reminder")
@@ -177,12 +182,12 @@ class ReleaseReminderWorker(context: Context, workerParams: WorkerParameters) : 
         ).use { it.count > 0 }
     }
 
-    private fun checkMovieExists(movieDb: MovieDatabaseHelper, movieId: Int): Boolean {
-        return movieDb.readableDatabase.rawQuery(
-            "SELECT 1 FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
-            arrayOf(movieId.toString())
-        ).use { it.count > 0 }
-    }
+//    private fun checkMovieExists(movieDb: MovieDatabaseHelper, movieId: Int): Boolean {
+//        return movieDb.readableDatabase.rawQuery(
+//            "SELECT 1 FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+//            arrayOf(movieId.toString())
+//        ).use { it.count > 0 }
+//    }
 
     private fun scheduleNotification(cursor: Cursor, dateStr: String, notificationKey: String, source: String) {
         try {

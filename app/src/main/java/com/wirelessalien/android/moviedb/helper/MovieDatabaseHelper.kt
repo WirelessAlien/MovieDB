@@ -962,10 +962,10 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
 
     fun isShowInDatabase(movieId: Int): Boolean {
         val db = this.readableDatabase
-        var cursor: android.database.Cursor? = null
+        var cursor: Cursor? = null
         try {
             cursor = db.rawQuery(
-                "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_MOVIES_ID}=? LIMIT 1",
+                "SELECT * FROM $TABLE_MOVIES WHERE $COLUMN_MOVIES_ID=? LIMIT 1",
                 arrayOf(movieId.toString())
             )
             return (cursor?.count ?: 0) > 0
@@ -1114,5 +1114,26 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
             }
         }
         return episodes
+    }
+
+    fun getMediaType(movieId: Int): String? {
+        val db = this.readableDatabase
+        var mediaType: String? = null
+        val cursor = db.query(
+            TABLE_MOVIES,
+            arrayOf(COLUMN_MOVIE),
+            "$COLUMN_MOVIES_ID = ?",
+            arrayOf(movieId.toString()),
+            null,
+            null,
+            null,
+            "1"
+        )
+        if (cursor.moveToFirst()) {
+            val typeInt = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MOVIE))
+            mediaType = if (typeInt == 1) "movie" else "episode"
+        }
+        cursor.close()
+        return mediaType
     }
 }
