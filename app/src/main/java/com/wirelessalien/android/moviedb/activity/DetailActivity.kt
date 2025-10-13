@@ -90,13 +90,14 @@ import com.squareup.picasso.Target
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
-import com.wirelessalien.android.moviedb.adapter.VideoAdapter
 import com.wirelessalien.android.moviedb.adapter.ReleaseDatesAdapter
 import com.wirelessalien.android.moviedb.adapter.ReviewAdapter
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.adapter.SimilarMovieBaseAdapter
+import com.wirelessalien.android.moviedb.adapter.VideoAdapter
 import com.wirelessalien.android.moviedb.adapter.WatchProviderAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityDetailBinding
+import com.wirelessalien.android.moviedb.databinding.BottomSheetVideosBinding
 import com.wirelessalien.android.moviedb.databinding.CollectionDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.DialogDateFormatBinding
 import com.wirelessalien.android.moviedb.databinding.DialogReleaseDetailsBinding
@@ -104,7 +105,6 @@ import com.wirelessalien.android.moviedb.databinding.DialogYearMonthPickerBindin
 import com.wirelessalien.android.moviedb.databinding.FragmentButtonsDescriptionBinding
 import com.wirelessalien.android.moviedb.databinding.HistoryDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogBinding
-import com.wirelessalien.android.moviedb.databinding.BottomSheetVideosBinding
 import com.wirelessalien.android.moviedb.databinding.RatingDialogTraktBinding
 import com.wirelessalien.android.moviedb.databinding.ReviewItemBinding
 import com.wirelessalien.android.moviedb.fragment.LastEpisodeFragment
@@ -2873,44 +2873,46 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val showValues = ContentValues()
                 database = databaseHelper.writableDatabase
                 val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
-                cursor.moveToFirst()
 
                 val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
                 val category = getCategoryNumber(position)
 
-                if (category == MovieDatabaseHelper.CATEGORY_WATCHING) {
-                    if (cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) == null) {
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                        binding.startDateButton.text = currentDate
-                        binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+                if (cursor.moveToFirst()) {
+                    if (category == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                        if (cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) == null) {
+                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
+                            binding.startDateButton.text = currentDate
+                            binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+                        }
+                    } else if (category == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                        val startDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                        if (startDate == null) {
+                            showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
+                            binding.startDateButton.text = currentDate
+                            binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+                        }
+                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
+                        binding.endDateButton.text = currentDate
+                        binding.movieFinishDate.text = getString(R.string.finish_date, currentDate)
                     }
-                } else if (category == MovieDatabaseHelper.CATEGORY_WATCHED) {
-                    val startDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                    if (startDate == null) {
-                        showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, currentDate)
-                        binding.startDateButton.text = currentDate
-                        binding.movieStartDate.text = getString(R.string.start_date, currentDate)
+
+                    // Check if the show is already watched and if the user changed the category.
+                    if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) != getCategoryNumber(position)) {
+
+                        // If the user hasn't set their own watched value, automatically set it.
+                        val timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                        if (timesWatchedCount == 0) { showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, 1)
+                            binding.timesWatched.setText("1")
+                        }
+
+                        // Fetch seasons data and add to database if category is changed to "watched"
+                        lifecycleScope.launch {
+                            fetchMovieDetailsCoroutine()
+                            addSeasonsAndEpisodesToDatabase()
+                        }
                     }
-                    showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, currentDate)
-                    binding.endDateButton.text = currentDate
-                    binding.movieFinishDate.text = getString(R.string.finish_date, currentDate)
                 }
 
-                // Check if the show is already watched and if the user changed the category.
-                if (getCategoryNumber(position) == 1 && cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) != getCategoryNumber(position)) {
-
-                    // If the user hasn't set their own watched value, automatically set it.
-                    val timesWatchedCount = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
-                    if (timesWatchedCount == 0) { showValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED, 1)
-                        binding.timesWatched.setText("1")
-                    }
-
-                    // Fetch seasons data and add to database if category is changed to "watched"
-                    lifecycleScope.launch {
-                        fetchMovieDetailsCoroutine()
-                        addSeasonsAndEpisodesToDatabase()
-                    }
-                }
                 showValues.put(MovieDatabaseHelper.COLUMN_CATEGORIES, getCategoryNumber(position))
                 database.update(MovieDatabaseHelper.TABLE_MOVIES, showValues, MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null)
                 database.close()
@@ -3238,87 +3240,85 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private fun updateEditShowDetails() {
         database = databaseHelper.writableDatabase
-        val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
-        if (cursor.count <= 0) {
-            cursor.close()
-        } else {
-            cursor.moveToFirst()
-            when (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES))) {
-                MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> binding.categories.setText(
-                    binding.categories.adapter.getItem(1).toString(), false
-                )
-                MovieDatabaseHelper.CATEGORY_WATCHED -> binding.categories.setText(
-                    binding.categories.adapter.getItem(2).toString(), false
-                )
-                MovieDatabaseHelper.CATEGORY_ON_HOLD -> binding.categories.setText(
-                    binding.categories.adapter.getItem(3).toString(), false
-                )
-                MovieDatabaseHelper.CATEGORY_DROPPED -> binding.categories.setText(
-                    binding.categories.adapter.getItem(4).toString(), false
-                )
-                else -> binding.categories.setText(
-                    binding.categories.adapter.getItem(0).toString(), false
-                )
-            }
-            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) != ""
-            ) {
-                val startDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
-                if (startDateString.startsWith("00-")) {
-                    val parts = startDateString.split("-")
-                    val month = parts[1]
-                    val year = parts[2]
-                    binding.startDateButton.text = getString(R.string.month_year_format1, month, year)
+        database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null).use { cursor ->
+            if (cursor.count > 0) {
+                cursor.moveToFirst()
+                when (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES))) {
+                    MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> binding.categories.setText(
+                        binding.categories.adapter.getItem(1).toString(), false
+                    )
+                    MovieDatabaseHelper.CATEGORY_WATCHED -> binding.categories.setText(
+                        binding.categories.adapter.getItem(2).toString(), false
+                    )
+                    MovieDatabaseHelper.CATEGORY_ON_HOLD -> binding.categories.setText(
+                        binding.categories.adapter.getItem(3).toString(), false
+                    )
+                    MovieDatabaseHelper.CATEGORY_DROPPED -> binding.categories.setText(
+                        binding.categories.adapter.getItem(4).toString(), false
+                    )
+                    else -> binding.categories.setText(
+                        binding.categories.adapter.getItem(0).toString(), false
+                    )
+                }
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                    && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) != ""
+                ) {
+                    val startDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                    if (startDateString.startsWith("00-")) {
+                        val parts = startDateString.split("-")
+                        val month = parts[1]
+                        val year = parts[2]
+                        binding.startDateButton.text = getString(R.string.month_year_format1, month, year)
+                    } else {
+                        try {
+                            binding.startDateButton.text = startDateString
+                        } catch (e: ParseException) {
+                            e.printStackTrace()
+                        }
+                    }
                 } else {
-                    try {
-                        binding.startDateButton.text = startDateString
-                    } catch (e: ParseException) {
-                        e.printStackTrace()
+                    binding.startDateButton.setText(R.string.change_start_date_2)
+                }
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                    && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)) != ""
+                ) {
+                    val finishDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                    if (finishDateString.startsWith("00-")) {
+                        val parts = finishDateString.split("-")
+                        val month = parts[1]
+                        val year = parts[2]
+                        binding.endDateButton.text = getString(R.string.month_year_format1, month, year)
+                    } else {
+                        try {
+                            binding.endDateButton.text = finishDateString
+                        } catch (e: ParseException) {
+                            e.printStackTrace()
+                        }
+                    }
+                } else {
+                    binding.endDateButton.setText(R.string.change_finish_date_2)
+                }
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                    && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)) != "") {
+                    binding.timesWatched.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)))
+                } else {
+                    if (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) == 1) {
+                        binding.timesWatched.setText("1")
+                    } else {
+                        binding.timesWatched.setText("0")
                     }
                 }
-            } else {
-                binding.startDateButton.setText(R.string.change_start_date_2)
-            }
-            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
-                && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)) != ""
-            ) {
-                val finishDateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
-                if (finishDateString.startsWith("00-")) {
-                    val parts = finishDateString.split("-")
-                    val month = parts[1]
-                    val year = parts[2]
-                    binding.endDateButton.text = getString(R.string.month_year_format1, month, year)
-                } else {
-                    try {
-                        binding.endDateButton.text = finishDateString
-                    } catch (e: ParseException) {
-                        e.printStackTrace()
-                    }
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) != "") {
+                    binding.showRating.value = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).toFloat()
                 }
-            } else {
-                binding.endDateButton.setText(R.string.change_finish_date_2)
-            }
-            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
-                && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)) != "") {
-                binding.timesWatched.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)))
-            } else {
-                if (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) == 1) {
-                    binding.timesWatched.setText("1")
-                } else {
-                    binding.timesWatched.setText("0")
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) != "") {
+                    binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
                 }
-            }
-            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) != "") {
-                binding.showRating.value = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).toFloat()
-            }
-            if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) != "") {
-                binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
             }
         }
         val watchedEpisode = databaseHelper.getSeenEpisodesCount(movieId)
 
         binding.movieEpisodes.text = getString(R.string.episodes_seen, watchedEpisode, totalEpisodes)
-        cursor.close()
         databaseUpdate()
     }
 
