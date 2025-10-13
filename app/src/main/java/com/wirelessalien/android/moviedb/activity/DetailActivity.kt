@@ -2348,9 +2348,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             if (cursor.count > 0) {
                 cursor.moveToFirst()
                 // Set the rating to the personal rating of the user.
-                val localizedTen = String.format(Locale.getDefault(), "%d", 10)
-                binding.movieRating.text = getString(R.string.rating_format, cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)), localizedTen)
-                binding.movieRating.visibility = View.VISIBLE
+                val personalRating = cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
+                if (personalRating > 0) {
+                    val localizedTen = String.format(Locale.getDefault(), "%d", 10)
+                    binding.movieRating.text = getString(R.string.rating_format, personalRating, localizedTen)
+                    binding.movieRating.visibility = View.VISIBLE
+                } else {
+                    binding.movieRating.visibility = View.GONE
+                }
 
                 var dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
