@@ -46,7 +46,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedOutputStream
 import java.io.BufferedReader
@@ -65,43 +64,36 @@ import java.util.Locale
  */
 class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databaseFileName, null, DATABASE_VERSION), AutoCloseable {
 
-    /**
-     * Converts the show table in the database to a JSON string.
-     *
-     * @param database the database to get the data from.
-     * @return a string in JSON format containing all the show data.
-     */
-
-    private fun getEpisodesForMovie(movieId: Int, database: SQLiteDatabase): JSONArray {
-        val selectQuery =
-            "SELECT * FROM $TABLE_EPISODES WHERE $COLUMN_MOVIES_ID = $movieId"
-        val cursor = database.rawQuery(selectQuery, null)
-
-        // Convert the database to JSON
-        val episodesSet = JSONArray()
-        cursor.moveToFirst()
-        while (!cursor.isAfterLast) {
-            val totalColumn = cursor.columnCount
-            val rowObject = JSONObject()
-            for (i in 0 until totalColumn) {
-                if (cursor.getColumnName(i) != null) {
-                    try {
-                        if (cursor.getString(i) != null) {
-                            rowObject.put(cursor.getColumnName(i), cursor.getString(i))
-                        } else {
-                            rowObject.put(cursor.getColumnName(i), "")
-                        }
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-            episodesSet.put(rowObject)
-            cursor.moveToNext()
-        }
-        cursor.close()
-        return episodesSet
-    }
+//    private fun getEpisodesForMovie(movieId: Int, database: SQLiteDatabase): JSONArray {
+//        val selectQuery =
+//            "SELECT * FROM $TABLE_EPISODES WHERE $COLUMN_MOVIES_ID = $movieId"
+//        val cursor = database.rawQuery(selectQuery, null)
+//
+//        // Convert the database to JSON
+//        val episodesSet = JSONArray()
+//        cursor.moveToFirst()
+//        while (!cursor.isAfterLast) {
+//            val totalColumn = cursor.columnCount
+//            val rowObject = JSONObject()
+//            for (i in 0 until totalColumn) {
+//                if (cursor.getColumnName(i) != null) {
+//                    try {
+//                        if (cursor.getString(i) != null) {
+//                            rowObject.put(cursor.getColumnName(i), cursor.getString(i))
+//                        } else {
+//                            rowObject.put(cursor.getColumnName(i), "")
+//                        }
+//                    } catch (e: JSONException) {
+//                        e.printStackTrace()
+//                    }
+//                }
+//            }
+//            episodesSet.put(rowObject)
+//            cursor.moveToNext()
+//        }
+//        cursor.close()
+//        return episodesSet
+//    }
 
     suspend fun getJSONExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
         val moviesArray = JSONArray()
@@ -1135,5 +1127,33 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
         cursor.close()
         return mediaType
+    }
+
+    fun getMovieCursor(movieId: Int): Cursor {
+        val db = this.readableDatabase
+        return db.rawQuery(
+            "SELECT * FROM " +
+                    TABLE_MOVIES +
+                    " WHERE " + COLUMN_MOVIES_ID +
+                    "=" + movieId + " LIMIT 1", null
+        )
+    }
+
+    fun deleteMovie(movieId: Int) {
+        val db = this.writableDatabase
+        db.delete(
+            TABLE_MOVIES,
+            "$COLUMN_MOVIES_ID = ?",
+            arrayOf(movieId.toString())
+        )
+    }
+
+    fun deleteEpisodesForMovie(movieId: Int) {
+        val db = this.writableDatabase
+        db.delete(
+            TABLE_EPISODES,
+            "$COLUMN_MOVIES_ID = ?",
+            arrayOf(movieId.toString())
+        )
     }
 }

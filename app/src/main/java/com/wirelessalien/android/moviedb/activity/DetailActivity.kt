@@ -19,6 +19,7 @@
  */
 package com.wirelessalien.android.moviedb.activity
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.UiModeManager
 import android.content.ComponentName
@@ -219,6 +220,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private var mCastAndCrewLoaded = false
     private var mVideosLoaded = false
     private var videos: JSONArray? = null
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(
@@ -457,12 +459,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         databaseHelper.onCreate(database)
 
         // Check if the show is already in the database.
-        val cursor = database.rawQuery(
-            "SELECT * FROM " +
-                    MovieDatabaseHelper.TABLE_MOVIES +
-                    " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                    "=" + movieId + " LIMIT 1", null
-        )
+        val cursor = databaseHelper.getMovieCursor(movieId)
         cursor.use { cursor1 ->
             if (cursor1.count > 0) {
                 // A record has been found
@@ -729,12 +726,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 var userRatingString = getString(R.string.rating_na)
                 var reviewString = getString(R.string.rating_na)
                 var timesWatchedString = getString(R.string.rating_na)
-                val cursorr = database.rawQuery(
-                    "SELECT * FROM " +
-                            MovieDatabaseHelper.TABLE_MOVIES +
-                            " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                            "=" + movieId + " LIMIT 1", null
-                )
+                val cursorr = databaseHelper.getMovieCursor(movieId)
                 cursorr.use {
                     if (it.moveToFirst()) {
                         val personalRating = it.getFloat(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
@@ -833,16 +825,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             if (added) {
 
                 // Remove the show from the database.
-                database.delete(
-                    MovieDatabaseHelper.TABLE_MOVIES,
-                    MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                )
+                databaseHelper.deleteMovie(movieId)
 
                 // Remove all episodes related to the show from the database.
-                database.delete(
-                    MovieDatabaseHelper.TABLE_EPISODES,
-                    MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
-                )
+                databaseHelper.deleteEpisodesForMovie(movieId)
 
                 added = false
                 binding.fabSave.icon = ContextCompat.getDrawable(
@@ -2184,14 +2170,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     val seasonNumber = season.getInt("season_number")
                     val episodeCount = season.getInt("episode_count")
                     for (j in 1..episodeCount) {
-                        val cursor = database.rawQuery(
-                            "SELECT * FROM ${MovieDatabaseHelper.TABLE_EPISODES} WHERE " +
-                                    "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ? AND " +
-                                    "${MovieDatabaseHelper.COLUMN_SEASON_NUMBER} = ? AND " +
-                                    "${MovieDatabaseHelper.COLUMN_EPISODE_NUMBER} = ?",
-                            arrayOf(movieId.toString(), seasonNumber.toString(), j.toString())
-                        )
-                        if (cursor.count == 0) {
+                        if (!databaseHelper.isEpisodeInDatabase(movieId, seasonNumber, listOf(j))) {
                             val values = ContentValues().apply {
                                 put(MovieDatabaseHelper.COLUMN_MOVIES_ID, movieId)
                                 put(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, seasonNumber)
@@ -2199,14 +2178,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                             }
                             val newRowId = database.insert(MovieDatabaseHelper.TABLE_EPISODES, null, values)
                             if (newRowId == -1L) {
-                                Toast.makeText(
-                                    this,
-                                    R.string.error_adding_episode_to_database,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast.makeText(this, R.string.error_adding_episode_to_database, Toast.LENGTH_SHORT).show()
                             }
                         }
-                        cursor.close()
                     }
                 }
             } catch (e: JSONException) {
@@ -2370,12 +2344,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             databaseHelper.onCreate(database)
 
             // Retrieve and present saved data of the show.
-            val cursor = database.rawQuery(
-                "SELECT * FROM " +
-                        MovieDatabaseHelper.TABLE_MOVIES +
-                        " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID +
-                        "=" + movieId + " LIMIT 1", null
-            )
+            val cursor = databaseHelper.getMovieCursor(movieId)
             if (cursor.count > 0) {
                 cursor.moveToFirst()
                 // Set the rating to the personal rating of the user.
@@ -2872,7 +2841,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 // Save the category to the database
                 val showValues = ContentValues()
                 database = databaseHelper.writableDatabase
-                val cursor = database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null)
+                val cursor = databaseHelper.getMovieCursor(movieId)
 
                 val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
                 val category = getCategoryNumber(position)
@@ -3240,7 +3209,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private fun updateEditShowDetails() {
         database = databaseHelper.writableDatabase
-        database.rawQuery("SELECT * FROM " + MovieDatabaseHelper.TABLE_MOVIES + " WHERE " + MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId + " LIMIT 1", null).use { cursor ->
+        databaseHelper.getMovieCursor(movieId).use { cursor ->
             if (cursor.count > 0) {
                 cursor.moveToFirst()
                 when (cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES))) {
@@ -3380,26 +3349,26 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
     }
 
-    private fun formatDateString(dateString: String): String {
-        return when {
-            dateString.startsWith("00-00-") -> {
-                val year = dateString.substring(6)
-                year
-            }
-            dateString.startsWith("00-") -> {
-                val monthYear = dateString.substring(3)
-                SimpleDateFormat("MM-yyyy", Locale.getDefault()).parse(monthYear)?.let {
-                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
-                } ?: dateString
-            }
-            else -> {
-                val dbDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-                dbDateFormat.parse(dateString)?.let {
-                    DateFormat.getDateInstance(DateFormat.DEFAULT).format(it)
-                } ?: dateString
-            }
-        }
-    }
+//    private fun formatDateString(dateString: String): String {
+//        return when {
+//            dateString.startsWith("00-00-") -> {
+//                val year = dateString.substring(6)
+//                year
+//            }
+//            dateString.startsWith("00-") -> {
+//                val monthYear = dateString.substring(3)
+//                SimpleDateFormat("MM-yyyy", Locale.getDefault()).parse(monthYear)?.let {
+//                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+//                } ?: dateString
+//            }
+//            else -> {
+//                val dbDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+//                dbDateFormat.parse(dateString)?.let {
+//                    DateFormat.getDateInstance(DateFormat.DEFAULT).format(it)
+//                } ?: dateString
+//            }
+//        }
+//    }
 
     private fun showYearMonthPickerDialog(context: Context, onYearMonthSelected: (Int, Int?) -> Unit) {
         val binding = DialogYearMonthPickerBinding.inflate(LayoutInflater.from(context))
