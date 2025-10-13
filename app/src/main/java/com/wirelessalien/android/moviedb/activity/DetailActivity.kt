@@ -881,6 +881,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         }
                         binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         binding.editIcon.visibility = View.VISIBLE
+                        updatePersonalDetailsViews()
                     }
                     categoriesDialog.show()
                 } else {
@@ -900,6 +901,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                     binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                     binding.editIcon.visibility = View.VISIBLE
+                    updatePersonalDetailsViews()
                 }
             }
         }
@@ -3066,7 +3068,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
             fadeOutAndHideAnimation(binding.editShowDetails)
             fadeInAndShowAnimation(binding.showDetails)
-            updateEditShowDetails()
+            updatePersonalDetailsViews()
             binding.showDetails.visibility = View.VISIBLE
             binding.editShowDetails.visibility = View.GONE
 
@@ -3077,6 +3079,180 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 lifecycleScope.launch {
                     updateEpisodeFragments()
                 }
+            }
+        }
+    }
+
+    private fun updatePersonalDetailsViews() {
+        databaseHelper.getMovieCursor(movieId).use { cursor ->
+            if (cursor.count > 0) {
+                cursor.moveToFirst()
+                // Set the rating to the personal rating of the user.
+                val personalRating = cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
+                if (personalRating > 0) {
+                    val localizedTen = String.format(Locale.getDefault(), "%d", 10)
+                    binding.movieRating.text = getString(R.string.rating_format, personalRating, localizedTen)
+                    binding.movieRating.visibility = View.VISIBLE
+                } else {
+                    binding.movieRating.visibility = View.GONE
+                }
+
+                var dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+                // If the database has a start date, use it, otherwise print unknown.
+                val dateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                if (dateString != null) {
+                    dbDateFormat = if (dateString.indexOf('-') == 4) {
+                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    } else {
+                        SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                    }
+                } else {
+                    // Handle the null case, e.g., set a default value or log a message
+                    Log.e("DetailActivity", "dateString is null")
+                }
+
+                // Start Date
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                    && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)) != ""
+                ) {
+                    val startDateString =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                    try {
+                        val formattedStartDate = when {
+                            startDateString.endsWith("-00-00") -> {
+                                val year = startDateString.substring(0, 4)
+                                year
+                            }
+                            startDateString.startsWith("00-00-") -> {
+                                val year = startDateString.substring(6)
+                                year
+                            }
+                            startDateString.endsWith("-00") -> {
+                                val monthYear = startDateString.substring(0, 7)
+                                SimpleDateFormat("yyyy-MM", Locale.getDefault()).parse(monthYear)?.let {
+                                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                                }
+                            }
+                            startDateString.startsWith("00-") -> {
+                                val monthYear = startDateString.substring(3)
+                                SimpleDateFormat("MM-yyyy", Locale.getDefault()).parse(monthYear)?.let {
+                                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                                }
+                            }
+                            else -> {
+                                dbDateFormat.parse(startDateString)?.let {
+                                    DateFormat.getDateInstance(DateFormat.DEFAULT).format(it)
+                                }
+                            }
+                        }
+                        val startDateText = if (formattedStartDate != null) {
+                            getString(R.string.start_date, formattedStartDate)
+                        } else {
+                            getString(R.string.start_date_unknown)
+                        }
+                        binding.movieStartDate.text = startDateText
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                        binding.movieStartDate.text = getString(R.string.start_date_unknown)
+                    }
+                } else {
+                    binding.movieStartDate.text = getString(R.string.start_date_unknown)
+                }
+
+                // Finish Date
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                    && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)) != ""
+                ) {
+                    val finishDateString =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                    try {
+                        val formattedFinishDate = when {
+                            finishDateString.endsWith("-00-00") -> {
+                                val year = finishDateString.substring(0, 4)
+                                year
+                            }
+                            finishDateString.startsWith("00-00-") -> {
+                                val year = finishDateString.substring(6)
+                                year
+                            }
+                            finishDateString.endsWith("-00") -> {
+                                val monthYear = finishDateString.substring(0, 7)
+                                SimpleDateFormat("yyyy-MM", Locale.getDefault()).parse(monthYear)?.let {
+                                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                                }
+                            }
+                            finishDateString.startsWith("00-") -> {
+                                val monthYear = finishDateString.substring(3)
+                                SimpleDateFormat("MM-yyyy", Locale.getDefault()).parse(monthYear)?.let {
+                                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(it)
+                                }
+                            }
+                            else -> {
+                                dbDateFormat.parse(finishDateString)?.let {
+                                    DateFormat.getDateInstance(DateFormat.DEFAULT).format(it)
+                                }
+                            }
+                        }
+                        val finishDateText = if (formattedFinishDate != null) {
+                            getString(R.string.finish_date, formattedFinishDate)
+                        } else {
+                            getString(R.string.finish_date_unknown)
+                        }
+                        binding.movieFinishDate.text = finishDateText
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                        binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
+                    }
+                } else {
+                    binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
+                }
+
+                // If the database has a rewatched count, use it, otherwise it is 0.
+                var watched = 0
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                    && cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                            MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED
+                        )
+                    ) != ""
+                ) {
+                    watched =
+                        cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                } else if (cursor.getInt(
+                        cursor.getColumnIndexOrThrow(
+                            MovieDatabaseHelper.COLUMN_CATEGORIES
+                        )
+                    ) == 1
+                ) {
+                    watched = 1
+                }
+                binding.movieRewatched.text = getString(R.string.times_watched, watched)
+                if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW))) {
+                    val review = cursor.getString(
+                        cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW))
+                    if (review.isNotEmpty()) {
+                        binding.movieReviewText.text = getString(R.string.reviews, review)
+                        binding.movieReviewText.visibility = View.VISIBLE
+                    } else {
+                        binding.movieReviewText.text = getString(R.string.no_reviews)
+                        binding.movieReviewText.visibility = View.VISIBLE
+                    }
+                } else {
+                    binding.movieReviewText.text = getString(R.string.no_reviews)
+                }
+
+                if (!isMovie) {
+                    seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
+                    binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
+                    binding.movieEpisodes.visibility = View.VISIBLE
+                }
+
+                // Make all the views visible (if the show is in the database).
+                binding.movieStartDate.visibility = View.VISIBLE
+                binding.movieFinishDate.visibility = View.VISIBLE
+                binding.movieRewatched.visibility = View.VISIBLE
+                binding.movieReviewText.visibility = View.VISIBLE
             }
         }
     }
