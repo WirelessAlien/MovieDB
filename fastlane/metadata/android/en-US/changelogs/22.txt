@@ -1,0 +1,3 @@
+Fix - notification display for unknown episodes #115
+Fix - #116
+Multiple small improvements and fixes
