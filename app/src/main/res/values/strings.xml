@@ -431,4 +431,5 @@
     </plurals>
     <string name="videos">Videos</string>
     <string name="no_videos_available">No videos available</string>
+    <string name="add_season_to_watched">Add Season to Watched</string>
 </resources>

@@ -29,7 +29,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.activity.BaseActivity
 import com.wirelessalien.android.moviedb.activity.CastActivity
 import com.wirelessalien.android.moviedb.adapter.EpisodeCastAdapter
 import com.wirelessalien.android.moviedb.data.CastMember
@@ -98,17 +97,21 @@ class EpisodeDetailsBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun fetchEpisodeDetails() {
-        val apiKey = ConfigHelper.getConfigValue(requireContext(), "api_key")
-        val language = BaseActivity.getLanguageParameter(requireContext()).replace("&language=", "")
-        val url = "https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber/episode/$episodeNumber?api_key=$apiKey&append_to_response=credits&language=$language"
+        val apiKey = ConfigHelper.getConfigValue(requireContext(), "api_read_access_token")
+        val url = "https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber/episode/$episodeNumber?append_to_response=credits"
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val client = OkHttpClient()
-                val request = Request.Builder().url(url).build()
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("accept", "application/json")
+                    .addHeader("Authorization", "Bearer $apiKey")
+                    .build()
                 val response = client.newCall(request).execute()
                 val jsonData = response.body?.string()
-                val episodeObject = JSONObject(jsonData?: "{}")
+                val episodeObject = JSONObject(jsonData ?: "{}")
 
                 withContext(Dispatchers.Main) {
                     populateViews(episodeObject)

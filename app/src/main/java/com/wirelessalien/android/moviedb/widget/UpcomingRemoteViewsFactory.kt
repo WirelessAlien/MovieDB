@@ -35,6 +35,7 @@ import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import org.json.JSONObject
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -306,8 +307,13 @@ class UpcomingRemoteViewsFactory(
                 val episodeName = if (!reminderName.isNullOrEmpty()) ": $reminderName" else ""
 
                 title = showTitle
-                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum$episodeName"
-
+                val episodeNumFormatted = try {
+                    val episodeNumInt = episodeNum.toIntOrNull() ?: 0
+                    NumberFormat.getInstance(Locale.getDefault()).format(episodeNumInt)
+                } catch (e: NumberFormatException) {
+                    episodeNum
+                }
+                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNumFormatted$episodeName"
                 jsonObject.put("name", title)
                 jsonObject.put("seasonEpisode", seasonEpisodeInfo)
                 jsonObject.put(ListFragment.IS_MOVIE, 0)
@@ -367,7 +373,14 @@ class UpcomingRemoteViewsFactory(
                 val episodeName = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_NAME))
                 val seasonNum = epCursor.getInt(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COL_SEASON))
                 val episodeNum = epCursor.getString(epCursor.getColumnIndexOrThrow(EpisodeReminderDatabaseHelper.COLUMN_EPISODE_NUMBER))
-                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNum: $episodeName"
+                val episodeNumFormatted = try {
+                    val episodeNumInt = episodeNum?.toIntOrNull() ?: 0
+                    NumberFormat.getInstance(Locale.getDefault()).format(episodeNumInt)
+                } catch (e: NumberFormatException) {
+                    episodeNum ?: "0"
+                }
+
+                val seasonEpisodeInfo = "S${String.format("%02d", seasonNum)}E$episodeNumFormatted: $episodeName"
                 jsonObject.put("name", itemTitleFromDb)
                 jsonObject.put("seasonEpisode", seasonEpisodeInfo)
             } else {

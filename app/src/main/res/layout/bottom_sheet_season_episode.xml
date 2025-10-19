@@ -175,7 +175,7 @@
                 android:id="@+id/seasonActionButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Add Season to Watched"
+                android:text="@string/add_season_to_watched"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginTop="10dp"
