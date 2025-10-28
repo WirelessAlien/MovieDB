@@ -280,4 +280,6 @@
     <string name="error_rating_exceeds_limit">אנא הזן ערך בתוך 0.0-10.0</string>
     <string name="items_count">תגית: X7X</string>
     <string name="refresh">מרעננים</string>
+    <string name="cancel">לבטל</string>
+    <string name="ok">אוקיי</string>
 </resources>
