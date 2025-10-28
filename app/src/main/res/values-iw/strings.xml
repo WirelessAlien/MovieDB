@@ -1,3 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="no_permission_dialog_ok">אוקיי</string>
+    <string name="no_permission_dialog_cancel">לבטל</string>
+    <string name="place_of_birth">מקום לידה %1$s</string>
+    <string name="birthday">יום הולדת: %1$s</string>
+    <string name="cast_movie_title">חלק מהקאסט נמצא ב</string>
+    <string name="crew_movie_title">חלק מהצוות נמצא ב</string>
 </resources>
