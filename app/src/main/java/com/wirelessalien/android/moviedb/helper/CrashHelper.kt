@@ -43,7 +43,7 @@ class CrashHelper {
                     appVersion = context.packageManager.getPackageInfo(
                         context.packageName,
                         0
-                    ).versionName
+                    ).versionName.toString()
                 } catch (e: PackageManager.NameNotFoundException) {
                     e.printStackTrace()
                 }

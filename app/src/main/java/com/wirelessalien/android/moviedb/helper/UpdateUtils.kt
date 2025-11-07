@@ -31,7 +31,7 @@ object UpdateUtils {
             packageInfo.versionName
         } catch (e: PackageManager.NameNotFoundException) {
             ""
-        }
+        }.toString()
     }
 
     fun isNewVersionAvailable(installedVersion: String, latestVersion: String): Boolean {
