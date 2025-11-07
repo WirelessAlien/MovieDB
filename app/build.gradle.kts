@@ -25,7 +25,7 @@ plugins {
 
 android {
     namespace = "com.wirelessalien.android.moviedb"
-    compileSdk = 34
+    compileSdk = 35
 
     flavorDimensions.add("version")
     productFlavors {
@@ -43,7 +43,7 @@ android {
     defaultConfig {
         applicationId = "com.wirelessalien.android.moviedb"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 22
         versionName = "4.2.3"
 
@@ -95,31 +95,30 @@ tasks.register("printVersionName") {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.13.0-alpha13")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("com.google.android.material:material:1.14.0-alpha06")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
-    implementation("androidx.work:work-runtime:2.9.1")
+    implementation("androidx.work:work-runtime:2.10.1")
     implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.paging:paging-runtime:3.2.1")
-    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("androidx.paging:paging-runtime:3.3.6")
 
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.picasso:picasso:2.8")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
 
     //facebook shimmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
@@ -131,15 +130,15 @@ dependencies {
     implementation("io.noties.markwon:html:4.6.2")
 
     //for Google Sign In
-    "fullImplementation"("com.google.android.gms:play-services-auth:21.2.0")
+    "fullImplementation"("com.google.android.gms:play-services-auth:21.3.0")
     "fullImplementation"("com.google.apis:google-api-services-drive:v3-rev197-1.25.0")
-    "fullImplementation"("com.google.http-client:google-http-client-gson:1.40.0")
-    "fullImplementation"("androidx.credentials:credentials:1.3.0")
-    "fullImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "fullImplementation"("com.google.http-client:google-http-client-gson:1.47.0")
+    "fullImplementation"("androidx.credentials:credentials:1.5.0")
+    "fullImplementation"("androidx.credentials:credentials-play-services-auth:1.5.0")
     "fullImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    "fullImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
+    "fullImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 }
