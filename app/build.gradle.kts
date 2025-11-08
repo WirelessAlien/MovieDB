@@ -23,6 +23,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val omdbApiKey = System.getenv("OMDB_API_KEY") ?: ""
+
 android {
     namespace = "com.wirelessalien.android.moviedb"
     compileSdk = 35
@@ -48,6 +50,7 @@ android {
         versionName = "4.2.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "OMDB_API_KEY", "\"$omdbApiKey\"")
     }
 
     buildTypes {

@@ -88,6 +88,7 @@ import com.google.android.material.timepicker.TimeFormat
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Picasso.LoadedFrom
 import com.squareup.picasso.Target
+import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.CastBaseAdapter
 import com.wirelessalien.android.moviedb.adapter.EpisodePagerAdapter
@@ -4195,7 +4196,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     traktCheckingObject = createTraktCheckinObject(movieData)
                     val imdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
                     val omdbType = if (isMovie) "movie" else "series"
-                    val apiKey = preferences.getString(OMDB_API_KEY, "")
+
+                    // Check for user-provided API key first, then fallback to BuildConfig
+                    var apiKey = preferences.getString(OMDB_API_KEY, "")
+                    if (apiKey.isNullOrEmpty()) {
+                        apiKey = BuildConfig.OMDB_API_KEY
+                    }
+
                     if (!apiKey.isNullOrEmpty()) {
                         val omdbResponse = fetchMovieRatings(imdbId, movieTitle, movieYear, omdbType, apiKey)
                         omdbResponse?.let { response ->

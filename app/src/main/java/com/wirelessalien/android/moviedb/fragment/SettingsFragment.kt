@@ -54,6 +54,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
@@ -158,6 +159,12 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         val apiTimezoneKey = findPreference<EditTextPreference>("key_api_timezone")
         apiTimezoneKey?.setOnBindEditTextListener {
             it.hint = "Example: America/New_York"
+        }
+
+        val omdbApiKeyPreference = findPreference<EditTextPreference>("omdb_api_key")
+        if (BuildConfig.OMDB_API_KEY.isNotEmpty()) {
+            omdbApiKeyPreference?.summary = getString(R.string.omdb_api_key_summary_provided)
+
         }
 
         val hideAccountTab = findPreference<CheckBoxPreference>("key_hide_account_tab")

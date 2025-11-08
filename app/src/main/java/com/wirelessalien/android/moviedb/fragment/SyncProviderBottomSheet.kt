@@ -26,6 +26,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.activity.MainActivity
@@ -72,10 +73,10 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
         }
 
         binding.forceLocalSync.setOnCheckedChangeListener { _, isChecked ->
-            preferences.edit().putBoolean("force_local_sync", isChecked).apply()
+            preferences.edit { putBoolean("force_local_sync", isChecked) }
             // Apply HIDE_SAVED_PREFERENCE based on forceLocalSync state
             if (isChecked) {
-                preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false).apply()
+                preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
             }
         }
 
@@ -89,33 +90,48 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
 
             // Apply preferences based on forceLocalSync *before* applying provider-specific settings
             if (forceLocalSync) {
-                preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false).apply()
+                preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
             } else { // Only apply based on selected provider if forceLocalSync is NOT checked.
                 when (selectedProvider) {
                     "local" -> {
-                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true).apply()
-                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
-                        preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false).apply()
+                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
+                        preferences.edit {
+                            putBoolean(
+                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
+                                true
+                            )
+                        }
+                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
                     }
                     "trakt" -> {
-                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true).apply()
-                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, false).apply()
-                        preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true).apply()
+                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
+                        preferences.edit {
+                            putBoolean(
+                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
+                                false
+                            )
+                        }
+                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true) }
                     }
                     "tmdb" -> {
-                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, false).apply()
-                        preferences.edit().putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true).apply()
-                        preferences.edit().putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true).apply()
+                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, false) }
+                        preferences.edit {
+                            putBoolean(
+                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
+                                true
+                            )
+                        }
+                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true) }
                     }
                 }
             }
 
-            preferences.edit().putString("sync_provider", selectedProvider).apply()
-            preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
+            preferences.edit { putString("sync_provider", selectedProvider) }
+            preferences.edit { putBoolean("sync_provider_dialog_shown", true) }
             dismiss()
 
-            val omdbSetupFragment = OmdbSetupFragment()
-            omdbSetupFragment.show(parentFragmentManager, "OmdbSetupFragment")
+//            val omdbSetupFragment = OmdbSetupFragment()
+//            omdbSetupFragment.show(parentFragmentManager, "OmdbSetupFragment")
         }
     }
 }
