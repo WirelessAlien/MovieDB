@@ -1,0 +1,78 @@
+name: Test Release AAB
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the source
+        uses: actions/checkout@v4 
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Generate Full Release AAB
+        run: ./gradlew bundleFullRelease
+
+      - name: Sign Full Release AAB
+        uses: r0adkll/sign-android-release@v1
+        id: sign_full_aab
+        with:
+          releaseDirectory: app/build/outputs/bundle/fullRelease
+          signingKeyBase64: ${{ secrets.KEYSTORE_FILE_2 }}
+          alias: ${{ secrets.KEY_ALIAS_2 }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD_2 }}
+          keyPassword: ${{ secrets.KEY_PASSWORD_2 }}
+        env:
+          BUILD_TOOLS_VERSION: "35.0.0"
+          KEYSTORE_FILE_2: ${{ secrets.KEYSTORE_FILE_2 }}
+          KEYSTORE_PASSWORD_2: ${{ secrets.KEYSTORE_PASSWORD_2 }}
+          KEY_PASSWORD_2: ${{ secrets.KEY_PASSWORD_2 }}
+          KEY_ALIAS_2: ${{ secrets.KEY_ALIAS_2 }}
+
+      - name: Rename AAB
+        run: |
+          mv ${{ steps.sign_full_aab.outputs.signedReleaseFile }} app/build/outputs/bundle/fullRelease/showcase_full_${{ github.run_number }}.aab
+
+      - name: Install curl
+        run: sudo apt-get update && sudo apt-get install -y curl
+
+      - name: Upload AAB to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          # Upload Full AAB
+          curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+          -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
+          -F caption="Full Release AAB Build #${{ github.run_number }}" \
+          -F document=@"app/build/outputs/bundle/fullRelease/showcase_full_${{ github.run_number }}.aab"
+
+          # Upload Full Mapping File (if it exists)
+          FULL_MAPPING="app/build/outputs/mapping/fullRelease/mapping.txt"
+          if [ -f "$FULL_MAPPING" ]; then
+            echo "Uploading Full mapping file..."
+            curl -s -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id=${{ env.TELEGRAM_CHAT_ID }} \
+            -F caption="Full Release AAB Mapping File Build #${{ github.run_number }}" \
+            -F document=@"$FULL_MAPPING"
+          else
+            echo "Warning: Full mapping file not found at $FULL_MAPPING. Ensure minifyEnabled is true for fullRelease."
+          fi
