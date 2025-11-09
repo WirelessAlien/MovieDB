@@ -34,14 +34,14 @@
 
     <Button
         android:id="@+id/button_movie"
-        style="?attr/materialButtonOutlinedStyle"
+        style="@style/ToggleButtonOutline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/title_movies" />
 
     <Button
         android:id="@+id/button_show"
-        style="?attr/materialButtonOutlinedStyle"
+        style="@style/ToggleButtonOutline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/title_series" />

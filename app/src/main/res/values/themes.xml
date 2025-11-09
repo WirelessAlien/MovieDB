@@ -111,5 +111,8 @@
         <item name="android:windowIsFloating">true</item>
         <item name="android:backgroundDimEnabled">false</item>
     </style>
-</resources>
 
+    <style name="ToggleButtonOutline" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/toggle_button_background</item>
+    </style>
+</resources>
