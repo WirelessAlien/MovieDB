@@ -514,12 +514,12 @@ class HomeFragment : BaseFragment() {
                     adapter.notifyDataSetChanged()
 
                     if (trendingArrayList.isNotEmpty()) {
-                        binding.trendingViewPager.post {
+                        binding.trendingViewPager.postOnAnimation {
                             val recyclerView = binding.trendingViewPager
-                            if (!isAdded || view == null || !recyclerView.isAttachedToWindow) return@post
+                            if (!isAdded || view == null || !recyclerView.isAttachedToWindow) return@postOnAnimation
 
-                            val layoutManager = recyclerView.layoutManager as? CarouselLayoutManager ?: return@post
-                            val snapView = snapHelper.findSnapView(layoutManager) ?: return@post
+                            val layoutManager = recyclerView.layoutManager as? CarouselLayoutManager ?: return@postOnAnimation
+                            val snapView = snapHelper.findSnapView(layoutManager) ?: return@postOnAnimation
 
                             val movieImage = snapView.findViewById<ImageView>(R.id.movieImage)
                             movieImage?.let {

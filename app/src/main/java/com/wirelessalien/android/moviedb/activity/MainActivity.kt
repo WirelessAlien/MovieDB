@@ -1189,8 +1189,9 @@ class MainActivity : BaseActivity() {
         val fragmentManager = supportFragmentManager
         val fragmentList = fragmentManager.fragments
         for (fragment in fragmentList) {
-            val baseFragment = fragment as BaseFragment
-            baseFragment.doNetworkWork()
+            if (fragment is BaseFragment) {
+                fragment.doNetworkWork()
+            }
         }
     }
 
