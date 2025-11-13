@@ -94,6 +94,7 @@ import com.wirelessalien.android.moviedb.fragment.AboutBottomSheet
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
+import com.wirelessalien.android.moviedb.fragment.SettingsFragment
 import com.wirelessalien.android.moviedb.fragment.HomeFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newSavedInstance
@@ -392,6 +393,10 @@ class MainActivity : BaseActivity() {
                         setResult(RESULT_SETTINGS_PAGER_CHANGED)
                     }
                 }
+            }
+            val themeChanged = result.resultCode == SettingsFragment.RESULT_THEME_CHANGED
+            if (themeChanged) {
+                recreate()
             }
         }
 
