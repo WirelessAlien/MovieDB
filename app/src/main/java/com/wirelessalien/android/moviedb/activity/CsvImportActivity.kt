@@ -38,6 +38,7 @@ import com.wirelessalien.android.moviedb.databinding.BottomSheetImportInfoBindin
 import com.wirelessalien.android.moviedb.databinding.ItemCsvHeaderMappingBinding
 import com.wirelessalien.android.moviedb.helper.CsvParserUtil
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.service.ImportService
 
 class CsvImportActivity : AppCompatActivity() {
@@ -104,6 +105,8 @@ class CsvImportActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
+
         super.onCreate(savedInstanceState)
         binding = ActivityCsvImportBinding.inflate(layoutInflater)
         setContentView(binding.root)

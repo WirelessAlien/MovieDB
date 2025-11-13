@@ -267,6 +267,13 @@
     <PreferenceCategory android:title="@string/other"
         app:iconSpaceReserved="false">
 
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="key_amoled_theme"
+            android:title="@string/amoled_theme"
+            android:summary="@string/amoled_theme_summary"
+            app:iconSpaceReserved="false"/>
+
         <Preference android:title="@string/about_movie_db"
             android:summary="@string/source_code_faq_bug_report"
             app:iconSpaceReserved="false"

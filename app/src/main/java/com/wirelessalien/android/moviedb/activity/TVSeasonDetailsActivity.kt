@@ -21,7 +21,6 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.icu.text.NumberFormat
 import android.os.Bundle
-import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -31,12 +30,15 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityTvSeasonDetailsBinding
 import com.wirelessalien.android.moviedb.fragment.SeasonDetailsFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import org.json.JSONObject
 import java.util.Locale
 
 class TVSeasonDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTvSeasonDetailsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
+
         super.onCreate(savedInstanceState)
         binding = ActivityTvSeasonDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)

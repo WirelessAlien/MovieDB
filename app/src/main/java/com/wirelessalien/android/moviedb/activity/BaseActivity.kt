@@ -37,6 +37,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import java.util.Locale
 
 /**
@@ -48,6 +49,7 @@ open class BaseActivity : AppCompatActivity() {
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: NetworkCallback
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         super.onCreate(savedInstanceState)
         CrashHelper.setDefaultUncaughtExceptionHandler(applicationContext)

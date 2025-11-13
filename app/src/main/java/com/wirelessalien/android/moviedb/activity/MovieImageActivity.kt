@@ -41,6 +41,7 @@ import com.wirelessalien.android.moviedb.adapter.MovieImageAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityMovieImageBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.tmdb.GetMovieImage
 
 class MovieImageActivity : AppCompatActivity() {
@@ -52,6 +53,8 @@ class MovieImageActivity : AppCompatActivity() {
     private lateinit var adapter: MovieImageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
+
         super.onCreate(savedInstanceState)
         binding = ActivityMovieImageBinding.inflate(layoutInflater)
         setContentView(binding.root)

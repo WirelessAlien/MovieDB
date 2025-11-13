@@ -39,6 +39,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityTktExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +65,8 @@ class ExportTktDbActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
+
         super.onCreate(savedInstanceState)
         binding = ActivityTktExportBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -114,7 +117,7 @@ class ExportTktDbActivity : AppCompatActivity() {
             try {
                 val customTabsIntent = CustomTabsIntent.Builder().build()
                 customTabsIntent.launchUrl(this, Uri.parse(url))
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(browserIntent)
             }

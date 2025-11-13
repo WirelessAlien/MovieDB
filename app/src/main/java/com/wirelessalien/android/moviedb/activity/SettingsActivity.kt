@@ -27,11 +27,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivitySettingsBinding
 import com.wirelessalien.android.moviedb.fragment.SettingsFragment
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 
 class SettingsActivity : AppCompatActivity() {
     var mTabsPreferenceChanged = false
     private lateinit var binding: ActivitySettingsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
+
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)

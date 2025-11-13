@@ -21,7 +21,6 @@ package com.wirelessalien.android.moviedb.activity
 
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -56,6 +55,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -107,6 +107,7 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
 import com.wirelessalien.android.moviedb.pagingSource.SearchPagingSource
 import com.wirelessalien.android.moviedb.service.TraktSyncService
@@ -260,29 +261,29 @@ class MainActivity : BaseActivity() {
         }
 
         val menu = binding.bottomNavigation.menu
-        menu.findItem(R.id.nav_movie)
-            .setVisible(!preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false))
-        menu.findItem(R.id.nav_series)
-            .setVisible(!preferences.getBoolean(HIDE_SERIES_PREFERENCE, false))
-        menu.findItem(R.id.nav_saved)
-            .setVisible(!preferences.getBoolean(HIDE_SAVED_PREFERENCE, false))
-        menu.findItem(R.id.nav_account)
-            .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false))
-        menu.findItem(R.id.nav_account_tkt)
-            .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false))
+        menu.findItem(R.id.nav_movie).isVisible =
+            !preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false)
+        menu.findItem(R.id.nav_series).isVisible =
+            !preferences.getBoolean(HIDE_SERIES_PREFERENCE, false)
+        menu.findItem(R.id.nav_saved).isVisible =
+            !preferences.getBoolean(HIDE_SAVED_PREFERENCE, false)
+        menu.findItem(R.id.nav_account).isVisible =
+            !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false)
+        menu.findItem(R.id.nav_account_tkt).isVisible =
+            !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false)
         prefListener = OnSharedPreferenceChangeListener { _: SharedPreferences?, key: String? ->
             if (key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE) {
                 val menu1 = binding.bottomNavigation.menu
-                menu1.findItem(R.id.nav_movie)
-                    .setVisible(!preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false))
-                menu1.findItem(R.id.nav_series)
-                    .setVisible(!preferences.getBoolean(HIDE_SERIES_PREFERENCE, false))
-                menu1.findItem(R.id.nav_saved)
-                    .setVisible(!preferences.getBoolean(HIDE_SAVED_PREFERENCE, false))
-                menu1.findItem(R.id.nav_account)
-                    .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false))
-                menu1.findItem(R.id.nav_account_tkt)
-                    .setVisible(!preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false))
+                menu1.findItem(R.id.nav_movie).isVisible =
+                    !preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false)
+                menu1.findItem(R.id.nav_series).isVisible =
+                    !preferences.getBoolean(HIDE_SERIES_PREFERENCE, false)
+                menu1.findItem(R.id.nav_saved).isVisible =
+                    !preferences.getBoolean(HIDE_SAVED_PREFERENCE, false)
+                menu1.findItem(R.id.nav_account).isVisible =
+                    !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false)
+                menu1.findItem(R.id.nav_account_tkt).isVisible =
+                    !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false)
             }
         }
 
@@ -383,7 +384,7 @@ class MainActivity : BaseActivity() {
         settingsActivityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
+            if (result.resultCode == RESULT_OK) {
                 val data = result.data
                 if (data != null) {
                     val pagerChanged = data.getBooleanExtra("pager_changed", false)
@@ -504,7 +505,7 @@ class MainActivity : BaseActivity() {
                 }
             }
             cursor.close()
-            preferences.edit().putBoolean("hasRunOnce", true).apply()
+            preferences.edit {putBoolean("hasRunOnce", true)}
         }
 
         val dialogShown = preferences.getBoolean("sync_provider_dialog_shown", false)
@@ -937,9 +938,9 @@ class MainActivity : BaseActivity() {
 
                 val client = OkHttpClient()
                 val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()
+                val responseBody = response.body.string()
 
-                if (response.isSuccessful && responseBody != null) {
+                if (response.isSuccessful) {
                     val jsonObject = JSONObject(responseBody)
 
                     val tokenResponse = TktTokenResponse(
@@ -961,11 +962,11 @@ class MainActivity : BaseActivity() {
                     scheduleTokenRefresh(tokenResponse.expiresIn)
                 } else {
                     Log.e("TokenRefresh", "Failed to refresh token: ${response.code}")
-                    preferences.edit().remove("trakt_access_token").apply()
+                    preferences.edit {remove("trakt_access_token")}
                 }
             } catch (e: Exception) {
                 Log.e("TokenRefresh", "Error refreshing token", e)
-                preferences.edit().remove("trakt_access_token").apply()
+                preferences.edit {remove("trakt_access_token")}
             }
         }
     }
@@ -1052,7 +1053,7 @@ class MainActivity : BaseActivity() {
 
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            registerReceiver(traktReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+                            registerReceiver(traktReceiver, filter, RECEIVER_NOT_EXPORTED)
                         } else {
                             registerReceiver(traktReceiver, filter)
                         }
@@ -1061,7 +1062,7 @@ class MainActivity : BaseActivity() {
                     }
 
                 } else {
-                    preferences.edit().putStringSet("selected_options", selectedOptions).apply()
+                    preferences.edit {putStringSet("selected_options", selectedOptions)}
                     refreshData(selectedOptions, accessToken)
                 }
             }
@@ -1193,6 +1194,11 @@ class MainActivity : BaseActivity() {
                 fragment.doNetworkWork()
             }
         }
+    }
+
+    override fun onResume() {
+        ThemeHelper.applyAmoledTheme(this)
+        super.onResume()
     }
 
     override fun onSupportNavigateUp(): Boolean {

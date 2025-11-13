@@ -311,6 +311,8 @@
     <string name="title_sort_watching_by_date">Sort by date</string>
     <string name="summary_sort_watching_by_date">Sort watching media by last watched date in \"Saved\" tab</string>
     <string name="source_code_faq_bug_report">Source code, faq, bug report…</string>
+    <string name="amoled_theme">AMOLED theme</string>
+    <string name="amoled_theme_summary">Use a pitch-black background theme (for AMOLED display)</string>
     <string name="no_data_available">No data available</string>
     <string name="watch_category">Watch Category</string>
     <string name="drag_handle">Drag Indicator</string>

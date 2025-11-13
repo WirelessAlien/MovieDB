@@ -37,7 +37,6 @@ import android.graphics.drawable.GradientDrawable
 import android.icu.text.DateFormat
 import android.icu.text.DateFormatSymbols
 import android.icu.text.NumberFormat
-import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.text.SpannableString
@@ -150,6 +149,8 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.abs
 import kotlin.math.round
+import androidx.core.net.toUri
+import androidx.core.view.isGone
 
 /**
  * This class provides all the details about the shows.
@@ -914,9 +915,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             val builder = CustomTabsIntent.Builder()
             val customTabIntent = builder.build()
             if (customTabIntent.intent.resolveActivity(packageManager) != null) {
-                customTabIntent.launchUrl(this, Uri.parse(url))
+                customTabIntent.launchUrl(this, url.toUri())
             } else {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
                 startActivity(browserIntent)
             }
         }
@@ -1086,7 +1087,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         addMenuProvider()
 
         binding.movieTitle.setOnLongClickListener {
-            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
             val clip = android.content.ClipData.newPlainText("Copied Text", binding.movieTitle.text)
             clipboard.setPrimaryClip(clip)
             true
@@ -1233,10 +1234,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         if (customTabsPackage != null) {
             // Launch the URL in a Custom Tab
             customTabsIntent.intent.setPackage(customTabsPackage)
-            customTabsIntent.launchUrl(context, Uri.parse(url))
+            customTabsIntent.launchUrl(context, url.toUri())
         } else {
             // Fallback to ACTION_VIEW if Custom Tabs is not available
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
             if (browserIntent.resolveActivity(packageManager) != null) {
                 startActivity(browserIntent)
             } else {
@@ -1821,7 +1822,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
-                    val jsonArray = JSONArray(response.body!!.string())
+                    val jsonArray = JSONArray(response.body.string())
                     if (jsonArray.length() > 0) {
                         return@withContext jsonArray.getJSONObject(0).getJSONObject("show").getJSONObject("ids").getInt("trakt")
                     }
@@ -1839,7 +1840,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        val jsonArray = JSONArray(response.body!!.string())
+                        val jsonArray = JSONArray(response.body.string())
                         if (jsonArray.length() > 0) {
                             return@withContext jsonArray.getJSONObject(0).getJSONObject("show").getJSONObject("ids").getInt("trakt")
                         }
@@ -1869,7 +1870,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         return@withContext null
                     }
 
-                    val responseBody = response.body?.string() ?: run {
+                    val responseBody = response.body.string() ?: run {
                         Log.e("NetworkError", "Empty response body from TMDB API")
                         return@withContext null
                     }
@@ -1929,7 +1930,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         return@withContext null
                     }
 
-                    val responseBody = response.body?.string() ?: run {
+                    val responseBody = response.body.string() ?: run {
                         Log.e("TMDB_API", "Empty response body")
                         return@withContext null
                     }
@@ -2006,7 +2007,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     }
 
     private suspend fun updateMovieEpisodes() {
-        val sharedPreferences = getSharedPreferences("totalEpisodes", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("totalEpisodes", MODE_PRIVATE)
         withContext(Dispatchers.IO) {
             seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
             totalEpisodes = sharedPreferences.getInt("totalEpisodes_$movieId", 0)
@@ -2142,7 +2143,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             try {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    val responseBody = response.body?.string()
+                    val responseBody = response.body.string()
                     if (responseBody != null) {
                         val episodeJson = JSONObject(responseBody)
                         episodeJson.put("show_id", showId)
@@ -2827,7 +2828,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
      */
     private fun editDetails() {
 
-        if (binding.editShowDetails.visibility == View.GONE) {
+        if (binding.editShowDetails.isGone) {
             fadeOutAndHideAnimation(binding.showDetails)
             fadeInAndShowAnimation(binding.editShowDetails)
 
@@ -3678,7 +3679,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     .build()
                 client.newCall(request).execute().use { res ->
                     if (res.body != null) {
-                        response = res.body!!.string()
+                        response = res.body.string()
                     }
                 }
             } catch (e: IOException) {
@@ -3777,7 +3778,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     .build()
 
                 client.newCall(request).execute().use { response ->
-                    val jsonResponse = response.body?.string()
+                    val jsonResponse = response.body.string()
                     if (jsonResponse != null) {
                         val jsonObject = JSONObject(jsonResponse)
                         val results = jsonObject.optJSONObject("results")
@@ -3897,7 +3898,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         try {
             client.newCall(request).execute().use { res ->
                 if (res.body != null) {
-                    response = res.body!!.string()
+                    response = res.body.string()
                 }
             }
         } catch (e: IOException) {
@@ -3938,7 +3939,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             .addHeader("Authorization", "Bearer $apiReadAccessToken")
             .build()
         client.newCall(request).execute().use { response ->
-            val responseBody = response.body!!.string()
+            val responseBody = response.body.string()
             return JSONObject(responseBody)
         }
     }
@@ -4115,13 +4116,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val videoAdapter = VideoAdapter(videoList) { video ->
                     val key = video.getString("key")
                     val videoUrl = "https://www.youtube.com/watch?v=$key"
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl))
+                    val intent = Intent(Intent.ACTION_VIEW, videoUrl.toUri())
                     if (intent.resolveActivity(packageManager) != null) {
                         startActivity(intent)
                     } else {
                         val builder = CustomTabsIntent.Builder()
                         val customTabIntent = builder.build()
-                        customTabIntent.launchUrl(this, Uri.parse(videoUrl))
+                        customTabIntent.launchUrl(this, videoUrl.toUri())
                     }
                     bottomSheetDialog.dismiss()
                 }
@@ -4203,7 +4204,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         apiKey = BuildConfig.OMDB_API_KEY
                     }
 
-                    if (!apiKey.isNullOrEmpty()) {
+                    if (apiKey.isNotEmpty()) {
                         val omdbResponse = fetchMovieRatings(imdbId, movieTitle, movieYear, omdbType, apiKey)
                         omdbResponse?.let { response ->
                             val ratings = parseRatings(response)
@@ -4233,7 +4234,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
-            val responseBody = response.body?.string()
+            val responseBody = response.body.string()
             return if (responseBody != null) JSONObject(responseBody) else null
         }
     }

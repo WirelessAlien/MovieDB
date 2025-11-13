@@ -58,6 +58,7 @@ import com.google.gson.reflect.TypeToken;
 import com.wirelessalien.android.moviedb.data.CategoryDTO;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CategoryAdapter;
+import com.wirelessalien.android.moviedb.helper.ThemeHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -142,7 +143,7 @@ public class FilterActivity extends AppCompatActivity {
         }
 
         // null will be returned if the string did not contain any items.
-        if (arrayList.size() == 0) {
+        if (arrayList.isEmpty()) {
             return null;
         }
 
@@ -151,6 +152,7 @@ public class FilterActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.INSTANCE.applyAmoledTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
 

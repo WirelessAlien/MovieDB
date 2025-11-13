@@ -36,6 +36,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ExternalSearchAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityExternalSearchBinding
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.viewmodel.ExternalSearchViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -49,6 +50,8 @@ class ExternalSearchActivity : AppCompatActivity() {
     private val viewModel: ExternalSearchViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
+
         super.onCreate(savedInstanceState)
         binding = ActivityExternalSearchBinding.inflate(layoutInflater)
         setContentView(binding.root)

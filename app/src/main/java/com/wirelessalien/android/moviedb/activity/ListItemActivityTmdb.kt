@@ -38,6 +38,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.ShowPagingAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityListItemBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.pagingSource.TmdbListDetailsPagingSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -57,6 +58,8 @@ class ListItemActivityTmdb : AppCompatActivity() {
     private lateinit var binding: ActivityListItemBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyAmoledTheme(this)
+
         super.onCreate(savedInstanceState)
         binding = ActivityListItemBinding.inflate(layoutInflater)
         setContentView(binding.root)
