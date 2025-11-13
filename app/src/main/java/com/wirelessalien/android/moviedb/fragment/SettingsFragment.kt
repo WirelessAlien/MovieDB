@@ -29,7 +29,6 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -38,6 +37,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.CheckBoxPreference
@@ -57,12 +58,12 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.R
-import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
 import com.wirelessalien.android.moviedb.helper.NotificationDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ScheduledNotificationDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.UpdateWorker
@@ -134,9 +135,9 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             try {
                 val builder = CustomTabsIntent.Builder()
                 val customTabsIntent = builder.build()
-                customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
-            } catch (e: Exception) {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                customTabsIntent.launchUrl(requireContext(), url.toUri())
+            } catch (_: Exception) {
+                val browserIntent = Intent(Intent.ACTION_VIEW, url.toUri())
                 startActivity(browserIntent)
             }
             true
@@ -462,7 +463,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         }
 
         dialogBinding.forceLocalSync.setOnCheckedChangeListener { _, isChecked ->
-            preferences.edit().putBoolean("force_local_sync", isChecked).apply()
+            preferences.edit { putBoolean("force_local_sync", isChecked) }
         }
 
         dialogBinding.buttonOk.setOnClickListener {
@@ -473,8 +474,8 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 else -> "local"
             }
 
-            preferences.edit().putString("sync_provider", selectedProvider).apply()
-            preferences.edit().putBoolean("sync_provider_dialog_shown", true).apply()
+            preferences.edit { putString("sync_provider", selectedProvider) }
+            preferences.edit { putBoolean("sync_provider_dialog_shown", true) }
             dialog.dismiss()
         }
 
@@ -528,7 +529,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         if (key == SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE || key == SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE || key == SectionsPagerAdapter.HIDE_SAVED_PREFERENCE || key == SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) {
             (requireActivity() as SettingsActivity).mTabsPreferenceChanged = true
         }
-        if (key == MainActivity.AMOLED_THEME_PREFERENCE) {
+        if (key == ThemeHelper.AMOLED_THEME_PREFERENCE) {
             requireActivity().recreate()
         }
     }
