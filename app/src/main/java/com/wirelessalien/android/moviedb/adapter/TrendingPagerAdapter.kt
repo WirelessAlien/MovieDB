@@ -117,6 +117,9 @@ class TrendingPagerAdapter(private val mShowArrayList: ArrayList<JSONObject>?) :
             val name = if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(KEY_NAME)
             holder.binding.movieTitle.text = name
 
+            holder.binding.typeText.visibility - View.VISIBLE
+            holder.binding.typeText.text = if (showData.has(KEY_TITLE)) context.getString(R.string.movie) else context.getString(R.string.show)
+
             var dateString = if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(KEY_DATE_SERIES)
             val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             try {
@@ -157,6 +160,7 @@ class TrendingPagerAdapter(private val mShowArrayList: ArrayList<JSONObject>?) :
             holder.binding.movieTitle.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
             holder.binding.date.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
             holder.binding.trendingText.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
+            holder.binding.typeText.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
         }
     }
 

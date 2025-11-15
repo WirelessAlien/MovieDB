@@ -68,6 +68,11 @@ class NowPlayingMovieAdapter(private val mShowArrayList: ArrayList<JSONObject>?)
             val name = if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(KEY_NAME)
             holder.binding.title.text = name
 
+            holder.binding.typeIcon.visibility = View.VISIBLE
+            holder.binding.typeIcon.setImageResource(
+                if (showData.has(KEY_NAME)) R.drawable.ic_tv_show else R.drawable.ic_movie
+            )
+
             var dateString = if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(KEY_DATE_SERIES)
             val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             try {

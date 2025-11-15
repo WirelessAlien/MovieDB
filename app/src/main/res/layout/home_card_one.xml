@@ -84,6 +84,15 @@
                             app:icon="@drawable/ic_close"
                             android:visibility="gone"
                             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
+
+                        <ImageView
+                            android:id="@+id/typeIcon"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="bottom|end"
+                            android:src="@drawable/ic_movie"
+                            android:visibility="gone"
+                            android:layout_margin="5dp"/>
                     </FrameLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>

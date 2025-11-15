@@ -58,8 +58,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
                     android:text="@string/trending"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"/>
+
+                <TextView
+                    android:id="@+id/typeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/trendingText"
+                    android:text="@string/movie"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:textAllCaps="true"/>

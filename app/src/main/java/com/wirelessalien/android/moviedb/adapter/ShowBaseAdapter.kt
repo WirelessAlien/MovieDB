@@ -85,9 +85,11 @@ class ShowBaseAdapter(
             null, "2" -> {
                 null
             }
+
             "1" -> {
                 SectionsPagerAdapter.MOVIE
             }
+
             else -> {
                 SectionsPagerAdapter.TV
             }
@@ -100,12 +102,15 @@ class ShowBaseAdapter(
     override fun getItemCount(): Int {
         return mShowArrayList.size
     }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShowItemViewHolder {
         return if (mGridView) {
-            val gridBinding = ShowGridCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            val gridBinding =
+                ShowGridCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             ShowItemViewHolder(null, gridBinding)
         } else {
-            val binding = ShowCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            val binding =
+                ShowCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             ShowItemViewHolder(binding, null)
         }
     }
@@ -121,12 +126,23 @@ class ShowBaseAdapter(
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w500"
             if (showData.getString(KEY_POSTER) == "null") {
-                holder.showImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
+                holder.showImage.setBackgroundColor(
+                    ResourcesCompat.getColor(
+                        context.resources,
+                        R.color.md_theme_outline,
+                        null
+                    )
+                )
             } else {
-                Picasso.get().load("https://image.tmdb.org/t/p/$imageSize" + showData.getString(KEY_POSTER)).into(holder.showImage)
+                Picasso.get()
+                    .load("https://image.tmdb.org/t/p/$imageSize" + showData.getString(KEY_POSTER))
+                    .into(holder.showImage)
             }
 
-            val name = if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(KEY_NAME)
+            val name =
+                if (showData.has(KEY_TITLE)) showData.getString(KEY_TITLE) else showData.getString(
+                    KEY_NAME
+                )
             holder.showTitle.text = name
 
             if (showData.has(KEY_CATEGORIES)) {
@@ -149,7 +165,8 @@ class ShowBaseAdapter(
                     holder.watchedProgressView?.visibility = View.VISIBLE
                     holder.showRating?.visibility = View.GONE
                     if (totalEpisodes > 0) {
-                        holder.watchedProgressView?.progress = (watchedEpisodes.toFloat() / totalEpisodes.toFloat() * 100).toInt()
+                        holder.watchedProgressView?.progress =
+                            (watchedEpisodes.toFloat() / totalEpisodes.toFloat() * 100).toInt()
                     } else {
                         holder.watchedProgressView?.progress = 0
                     }
@@ -211,7 +228,8 @@ class ShowBaseAdapter(
             }
 
             if (parsedDate != null) {
-                val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+                val localFormat =
+                    DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                 dateString = localFormat.format(parsedDate)
             }
             holder.showDate.text = dateString
@@ -227,7 +245,8 @@ class ShowBaseAdapter(
                     ""
                 }
                 val genreArray = genreIds.split(",").dropLastWhile { it.isEmpty() }.toTypedArray()
-                val sharedPreferences = context.getSharedPreferences("GenreList", Context.MODE_PRIVATE)
+                val sharedPreferences =
+                    context.getSharedPreferences("GenreList", Context.MODE_PRIVATE)
                 val genreNames = StringBuilder()
                 for (aGenreArray in genreArray) {
                     if (mGenreHashMap[aGenreArray] != null) {
@@ -236,17 +255,60 @@ class ShowBaseAdapter(
                         genreNames.append(", ").append(sharedPreferences.getString(aGenreArray, ""))
                     }
                 }
-                holder.showGenre?.text = if (genreNames.isNotEmpty()) genreNames.substring(2) else ""
+                holder.showGenre?.text =
+                    if (genreNames.isNotEmpty()) genreNames.substring(2) else ""
             }
         } catch (e: JSONException) {
             e.printStackTrace()
+        }
+
+        holder.typeIconView?.visibility = View.VISIBLE
+
+        when {
+            showData.has(IS_UPCOMING) && showData.optBoolean(IS_UPCOMING) -> {
+                val upcomingType = showData.optString("upcoming_type")
+                if (upcomingType == "movie") {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_movie)
+                } else {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_tv_show)
+                }
+            }
+
+            showData.has(KEY_IS_MOVIE) -> {
+                if (showData.optInt(KEY_IS_MOVIE) == 1) {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_movie)
+                } else {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_tv_show)
+                }
+            }
+
+            showData.has(KEY_NAME) || showData.has(KEY_TITLE) -> {
+                if (showData.has(KEY_NAME)) {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_tv_show)
+                } else {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_movie)
+                }
+            }
+
+            showData.has(IS_MOVIE) -> {
+                if (showData.optInt(IS_MOVIE) != 1) {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_tv_show)
+                } else {
+                    holder.typeIconView?.setImageResource(R.drawable.ic_movie)
+                }
+            }
+
+            else -> {
+                holder.typeIconView?.visibility = View.GONE
+            }
         }
 
         if (showData.has(IS_MOVIE) && showData.optInt(IS_MOVIE) != 1) {
             holder.itemView.setOnLongClickListener {
 
                 bottomSheetDialog = BottomSheetDialog(context)
-                bottomSheetBinding = BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
+                bottomSheetBinding =
+                    BottomSheetSeasonEpisodeBinding.inflate(LayoutInflater.from(context))
                 bottomSheetBinding!!.episodeTitle.visibility = View.VISIBLE
                 bottomSheetBinding!!.episodeSliderLayout.visibility = View.VISIBLE
                 val chipGroupSeasons = bottomSheetBinding!!.chipGroupSeasons
@@ -265,14 +327,19 @@ class ShowBaseAdapter(
                 val seasons = getSeasonsFromTmdbDatabase(tvShowId)
 
                 if (totalEpisodes == 0) {
-                    Toast.makeText(context, context.getString(R.string.no_episodes_found), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.no_episodes_found),
+                        Toast.LENGTH_SHORT
+                    ).show()
                     return@setOnLongClickListener true
                 }
 
                 episodeSlider.apply {
                     valueFrom = 0f
                     valueTo = totalEpisodes.toFloat()
-                    value = watchedEpisodesCount.coerceIn(valueFrom.toInt(), valueTo.toInt()).toFloat()
+                    value =
+                        watchedEpisodesCount.coerceIn(valueFrom.toInt(), valueTo.toInt()).toFloat()
                     stepSize = 1f
                 }
 
@@ -289,7 +356,8 @@ class ShowBaseAdapter(
                 fun updateChipsVisibility() {
                     chipGroupSeasons.children.forEachIndexed { index, view ->
                         if (view != showMoreChip) {
-                            view.visibility = if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
+                            view.visibility =
+                                if (isExpanded || index < maxVisibleChips) View.VISIBLE else View.GONE
                         }
                     }
                 }
@@ -300,8 +368,12 @@ class ShowBaseAdapter(
                         text = context.getString(R.string.season_p, seasonNumber)
                         isCheckable = true
                         setOnClickListener {
-                            val episodes = getEpisodesForSeasonFromTmdbDatabase(showData.optInt(KEY_ID), seasonNumber)
-                            val watchedEpisodes = getWatchedEpisodesFromDb(showData.optInt(KEY_ID), seasonNumber)
+                            val episodes = getEpisodesForSeasonFromTmdbDatabase(
+                                showData.optInt(KEY_ID),
+                                seasonNumber
+                            )
+                            val watchedEpisodes =
+                                getWatchedEpisodesFromDb(showData.optInt(KEY_ID), seasonNumber)
                             currentEpisodeAdapter = EpisodeSavedAdapter(
                                 episodes,
                                 watchedEpisodes.toMutableList(),
@@ -329,14 +401,18 @@ class ShowBaseAdapter(
                     updateChipsVisibility()
                 }
 
-                if (showData.has("number") && showData.has("season") ) {
+                if (showData.has("number") && showData.has("season")) {
                     val seasonNumber = showData.optInt("season", 1)
                     val episodeNumber = showData.optInt("number", 1)
                     showInitialEpisode(tvShowId, seasonNumber, episodeNumber)
 
                 } else if (nextEpisode != null) {
                     val (seasonNumberN, episodeNumberN) = nextEpisode
-                    showInitialEpisode(showData.optInt(KEY_ID), seasonNumberN ?: 1, episodeNumberN ?: 1)
+                    showInitialEpisode(
+                        showData.optInt(KEY_ID),
+                        seasonNumberN ?: 1,
+                        episodeNumberN ?: 1
+                    )
 
                 } else {
                     bottomSheetBinding?.episodeName?.visibility = View.GONE
@@ -369,7 +445,8 @@ class ShowBaseAdapter(
                     if (episodesToMark < totalMarkedEpisodes) {
                         // Need to remove episodes
                         for (seasonNumber in seasonsS.reversed()) {
-                            val watchedEpisodesR = getWatchedEpisodesFromDb(tvShowId, seasonNumber).sorted()
+                            val watchedEpisodesR =
+                                getWatchedEpisodesFromDb(tvShowId, seasonNumber).sorted()
                             val episodesToRemove = mutableListOf<Int>()
 
                             for (episodeNumber in watchedEpisodesR.reversed()) {
@@ -382,23 +459,36 @@ class ShowBaseAdapter(
                             }
 
                             if (episodesToRemove.isNotEmpty()) {
-                                dbHelper.removeEpisodeNumber(tvShowId, seasonNumber, episodesToRemove)
+                                dbHelper.removeEpisodeNumber(
+                                    tvShowId,
+                                    seasonNumber,
+                                    episodesToRemove
+                                )
                                 markedEpisodes[seasonNumber] = episodesToRemove
                             }
                         }
 
-                        Toast.makeText(context,
-                            context.getString(R.string.marked_episodes_as_unwatched, episodesMarked), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(
+                                R.string.marked_episodes_as_unwatched,
+                                episodesMarked
+                            ), Toast.LENGTH_SHORT
+                        ).show()
                     } else {
                         // Add episodes
                         episodesMarked = totalMarkedEpisodes
                         for (seasonNumber in seasonsS) {
-                            val episodesInSeason = getEpisodesForSeasonFromTmdbDatabase(tvShowId, seasonNumber)
+                            val episodesInSeason =
+                                getEpisodesForSeasonFromTmdbDatabase(tvShowId, seasonNumber)
                             val watchedEpisodesA = getWatchedEpisodesFromDb(tvShowId, seasonNumber)
                             val markedEpisodesInSeason = mutableListOf<Int>()
 
                             for (episodeNumber in episodesInSeason) {
-                                if (episodesMarked < episodesToMark && !watchedEpisodesA.contains(episodeNumber)) {
+                                if (episodesMarked < episodesToMark && !watchedEpisodesA.contains(
+                                        episodeNumber
+                                    )
+                                ) {
                                     dbHelper.addEpisodeNumber(
                                         tvShowId,
                                         seasonNumber,
@@ -418,11 +508,13 @@ class ShowBaseAdapter(
                         // Show a toast message for added episodes
                         val episodesAdded = episodesMarked - totalMarkedEpisodes
                         if (episodesAdded > 0) {
-                            Toast.makeText(context,
+                            Toast.makeText(
+                                context,
                                 context.getString(
                                     R.string.marked_episodes_as_watched,
                                     episodesAdded
-                                ), Toast.LENGTH_SHORT).show()
+                                ), Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
 
@@ -438,8 +530,10 @@ class ShowBaseAdapter(
                         val seasonText = chip.text.toString()
                         val currentSeason = seasonText.replace(Regex("[^0-9]"), "").toInt()
 
-                        val allEpisodesInCurrentSeason = getEpisodesForSeasonFromTmdbDatabase(tvShowId, currentSeason)
-                        val watchedEpisodesAfterUpdate = getWatchedEpisodesFromDb(tvShowId, currentSeason)
+                        val allEpisodesInCurrentSeason =
+                            getEpisodesForSeasonFromTmdbDatabase(tvShowId, currentSeason)
+                        val watchedEpisodesAfterUpdate =
+                            getWatchedEpisodesFromDb(tvShowId, currentSeason)
 
                         allEpisodesInCurrentSeason.forEach { episodeNumber ->
                             currentEpisodeAdapter?.updateEpisodeWatched(
@@ -479,10 +573,16 @@ class ShowBaseAdapter(
         }
     }
 
-    override fun onEpisodeWatchedStatusChanged(tvShowId: Int, seasonNumber: Int, episodeNumber: Int, isWatched: Boolean) {
-        bottomSheetBinding?.let{
-            if(it.chipEpS.text == "S${seasonNumber}:E${episodeNumber}"){
-                it.addToWatched.icon = AppCompatResources.getDrawable(context,
+    override fun onEpisodeWatchedStatusChanged(
+        tvShowId: Int,
+        seasonNumber: Int,
+        episodeNumber: Int,
+        isWatched: Boolean
+    ) {
+        bottomSheetBinding?.let {
+            if (it.chipEpS.text == "S${seasonNumber}:E${episodeNumber}") {
+                it.addToWatched.icon = AppCompatResources.getDrawable(
+                    context,
                     if (isWatched) R.drawable.ic_visibility else R.drawable.ic_visibility_off
                 )
             }
@@ -500,12 +600,14 @@ class ShowBaseAdapter(
 
         MovieDatabaseHelper(context).use { db ->
             val isEpWatched = db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))
-            bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context,
+            bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(
+                context,
                 if (isEpWatched) R.drawable.ic_visibility else R.drawable.ic_visibility_off
             )
 
             bottomSheetBinding?.addToWatched?.setOnClickListener {
-                val isCurrentlyWatched = db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))
+                val isCurrentlyWatched =
+                    db.isEpisodeInDatabase(tvShowId, seasonNumber, listOf(episodeNumber))
                 val newWatchedStatus = !isCurrentlyWatched
 
                 if (isCurrentlyWatched) {
@@ -513,7 +615,8 @@ class ShowBaseAdapter(
                 } else {
                     db.addEpisodeNumber(tvShowId, seasonNumber, listOf(episodeNumber), currentDate)
                 }
-                bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(context,
+                bottomSheetBinding?.addToWatched?.icon = AppCompatResources.getDrawable(
+                    context,
                     if (newWatchedStatus) R.drawable.ic_visibility else R.drawable.ic_visibility_off
                 )
 
@@ -562,7 +665,7 @@ class ShowBaseAdapter(
         episodeOverview: TextView,
         episodeAirDate: TextView,
         episodeImageView: ImageView,
-        loadHdImage : Boolean,
+        loadHdImage: Boolean,
         apiKey: String
     ) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -573,7 +676,7 @@ class ShowBaseAdapter(
                     .build()
 
                 val response = client.newCall(request).execute()
-                val jsonResponse = response.body?.string()?.let { JSONObject(it) }
+                val jsonResponse = response.body.string().let { JSONObject(it) }
 
                 Log.d("efdfdgf", jsonResponse.toString())
                 if (jsonResponse != null) {
@@ -600,9 +703,10 @@ class ShowBaseAdapter(
                         }
                     }
 
-                    var formattedAirDate : String = dateToFormat
+                    var formattedAirDate: String = dateToFormat
                     if (parsedDate != null) {
-                        val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+                        val localFormat =
+                            DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
                         formattedAirDate = localFormat.format(parsedDate)
                     }
 
@@ -622,7 +726,13 @@ class ShowBaseAdapter(
                             episodeAirDate.visibility = View.VISIBLE
                         } else {
                             episodeImageView.visibility = View.VISIBLE
-                            episodeImageView.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outlineVariant, null))
+                            episodeImageView.setBackgroundColor(
+                                ResourcesCompat.getColor(
+                                    context.resources,
+                                    R.color.md_theme_outlineVariant,
+                                    null
+                                )
+                            )
                             episodeName.visibility = View.GONE
                             episodeOverview.visibility = View.GONE
                             episodeAirDate.visibility = View.GONE
@@ -680,7 +790,13 @@ class ShowBaseAdapter(
             null, null, null
         )
         val episodes = if (cursor.moveToFirst()) {
-            parseEpisodesForSeasonTmdb(cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)), seasonNumber)
+            parseEpisodesForSeasonTmdb(
+                cursor.getString(
+                    cursor.getColumnIndexOrThrow(
+                        TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB
+                    )
+                ), seasonNumber
+            )
         } else {
             emptyList()
         }
@@ -705,7 +821,8 @@ class ShowBaseAdapter(
             cursor.use { c ->
                 if (c.moveToFirst()) {
                     do {
-                        val episodeNumber = c.getInt(c.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER))
+                        val episodeNumber =
+                            c.getInt(c.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER))
                         watchedEpisodes.add(episodeNumber)
                     } while (c.moveToNext())
                 }
@@ -817,6 +934,7 @@ class ShowBaseAdapter(
         val deleteButton = gridBinding?.deleteButton ?: binding!!.deleteButton
         val categoryColorView = gridBinding?.categoryColor ?: binding?.categoryColor
         val watchedProgressView = gridBinding?.watchedProgress ?: binding?.watchedProgress
+        val typeIconView = gridBinding?.typeIcon ?: binding?.typeIcon
     }
 
     companion object {
