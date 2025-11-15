@@ -87,12 +87,12 @@
 
                         <ImageView
                             android:id="@+id/typeIcon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
                             android:layout_gravity="bottom|end"
                             android:src="@drawable/ic_movie"
-                            android:visibility="gone"
-                            android:layout_margin="5dp"/>
+                            android:padding="3dp"
+                            android:background="@drawable/background_70"/>
                     </FrameLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
