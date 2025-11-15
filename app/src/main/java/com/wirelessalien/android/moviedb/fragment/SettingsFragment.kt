@@ -530,13 +530,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             (requireActivity() as SettingsActivity).mTabsPreferenceChanged = true
         }
         if (key == ThemeHelper.AMOLED_THEME_PREFERENCE) {
-            preferences.edit { putBoolean(PREF_THEME_CHANGED, true) }
             requireActivity().recreate()
         }
-    }
-
-    companion object {
-        const val RESULT_THEME_CHANGED = 1002
-        const val PREF_THEME_CHANGED = "pref_theme_changed"
     }
 }

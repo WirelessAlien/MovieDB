@@ -24,8 +24,6 @@ import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
-import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivitySettingsBinding
 import com.wirelessalien.android.moviedb.fragment.SettingsFragment
@@ -33,16 +31,9 @@ import com.wirelessalien.android.moviedb.helper.ThemeHelper
 
 class SettingsActivity : AppCompatActivity() {
     var mTabsPreferenceChanged = false
-    private var mThemeChanged = false
     private lateinit var binding: ActivitySettingsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.applyAmoledTheme(this)
-
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        mThemeChanged = preferences.getBoolean(SettingsFragment.PREF_THEME_CHANGED, false)
-        if (mThemeChanged) {
-            preferences.edit { putBoolean(SettingsFragment.PREF_THEME_CHANGED, false) }
-        }
 
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
@@ -63,12 +54,7 @@ class SettingsActivity : AppCompatActivity() {
 
         OnBackPressedDispatcher().addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (mTabsPreferenceChanged) {
-                    setResult(MainActivity.RESULT_SETTINGS_PAGER_CHANGED)
-                } else if (mThemeChanged) {
-                    setResult(SettingsFragment.RESULT_THEME_CHANGED)
-                }
-                finish()
+                finishActivity()
             }
         })
     }
@@ -76,5 +62,12 @@ class SettingsActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressedDispatcher.onBackPressed()
         return true
+    }
+
+    private fun finishActivity() {
+        if (mTabsPreferenceChanged) {
+            setResult(MainActivity.RESULT_SETTINGS_PAGER_CHANGED)
+        }
+        finish()
     }
 }
