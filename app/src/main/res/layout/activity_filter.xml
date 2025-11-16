@@ -126,6 +126,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/nestedSortingSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_nested_sorting"
+                android:padding="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/nested_sorting_explanation"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="8dp"
+                android:textAppearance="?attr/textAppearanceBodySmall"/>
+
             <View
                 android:id="@+id/categoryViewSeparator"
                 android:layout_width="match_parent"

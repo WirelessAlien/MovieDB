@@ -97,6 +97,7 @@ public class FilterActivity extends AppCompatActivity {
     public static final String FILTER_WITH_KEYWORDS = "filter_with_keywords";
     public static final String FILTER_WITHOUT_KEYWORDS = "filter_without_keywords";
     public static final String CATEGORY_ORDER = "category_order";
+    public static final String FILTER_NESTED_SORT = "filter_nested_sort";
     private ArrayList<Integer> withGenres = new ArrayList<>();
     private ArrayList<Integer> withoutGenres = new ArrayList<>();
     private CategoryAdapter categoryAdapter;
@@ -438,6 +439,8 @@ public class FilterActivity extends AppCompatActivity {
         prefsEditor.putString(FILTER_WITH_KEYWORDS, withKeywords.getText().toString());
         prefsEditor.putString(FILTER_WITHOUT_KEYWORDS, withoutKeywords.getText().toString());
 
+        com.google.android.material.materialswitch.MaterialSwitch nestedSortingSwitch = findViewById(R.id.nestedSortingSwitch);
+        prefsEditor.putBoolean(FILTER_NESTED_SORT, nestedSortingSwitch.isChecked());
 
         prefsEditor.apply();
     }
@@ -636,6 +639,9 @@ public class FilterActivity extends AppCompatActivity {
             EditText withoutKeywordsView = findViewById(R.id.withoutKeywords);
             withoutKeywordsView.setText(withoutKeywords);
         }
+
+        com.google.android.material.materialswitch.MaterialSwitch nestedSortingSwitch = findViewById(R.id.nestedSortingSwitch);
+        nestedSortingSwitch.setChecked(sharedPreferences.getBoolean(FILTER_NESTED_SORT, false));
     }
 
     /**

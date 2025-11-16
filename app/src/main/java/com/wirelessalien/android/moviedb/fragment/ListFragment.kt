@@ -44,6 +44,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
@@ -1148,214 +1149,108 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val sharedPreferences =
             requireActivity().getSharedPreferences(FilterActivity.FILTER_PREFERENCES, Context.MODE_PRIVATE)
 
+        val listToFilter = if (mSearchView) mSearchShowArrayList else mShowArrayList
+
         // Filter by show type (movie or TV)
         val showMovie = FilterActivity.convertStringToArrayList(
             sharedPreferences.getString(FilterActivity.FILTER_SHOW_MOVIE, null), ", "
         )
         if (showMovie != null && (!showMovie.contains("movie") || !showMovie.contains("tv"))) {
-            if (mSearchView) {
-                mSearchShowArrayList.removeIf { showObject: JSONObject ->
-                    val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
-                    showMovie.contains("movie") && isTV || showMovie.contains("tv") && !isTV
-                }
-            } else {
-                mShowArrayList.removeIf { showObject: JSONObject ->
-                    val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
-                    showMovie.contains("movie") && isTV || showMovie.contains("tv") && !isTV
-                }
+            listToFilter.removeIf { showObject: JSONObject ->
+                val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
+                (showMovie.contains("movie") && isTV) || (showMovie.contains("tv") && !isTV)
             }
         }
 
-        // Sort the ArrayList based on the chosen order.
-        var sortPreference: String?
-        if (sharedPreferences.getString(FilterActivity.FILTER_SORT, null)
-                .also { sortPreference = it } != null
-        ) {
-            when (sortPreference) {
-                "best_rated" -> {
-                    val comparator = compareByDescending<JSONObject> {
-                        it.optBoolean(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING)
-                    }.thenByDescending {
-                        if (it.optBoolean(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING)) {
-                            it.optDouble(ShowBaseAdapter.KEY_RATING, -1.0)
-                        } else {
-                            Double.NEGATIVE_INFINITY
-                        }
-                    }.thenBy {
-                        it.optString(ShowBaseAdapter.KEY_TITLE)
-                    }
-                    if (mSearchView) {
-                        mSearchShowArrayList.sortWith(comparator)
-                    } else {
-                        mShowArrayList.sortWith(comparator)
-                    }
-                }
+        // --- Sorting Logic ---
+        val sortPreference = sharedPreferences.getString(FilterActivity.FILTER_SORT, null)
+        val nestedSortEnabled = sharedPreferences.getBoolean(FilterActivity.FILTER_NESTED_SORT, false)
 
-                "release_date" -> {
-                    if (mSearchView) {
-                        mSearchShowArrayList.sortWith(compareByDescending { getDateFromString(it.optString(ShowBaseAdapter.KEY_RELEASE_DATE)) })
-                    } else {
-                        mShowArrayList.sortWith(compareByDescending { getDateFromString(it.optString(ShowBaseAdapter.KEY_RELEASE_DATE)) })
-                    }
+        // Create category comparator
+        val categoryOrderJson = sharedPreferences.getString(FilterActivity.CATEGORY_ORDER, null)
+        val categoryComparator: java.util.Comparator<JSONObject>? = if (categoryOrderJson != null) {
+            try {
+                val type = object : TypeToken<List<CategoryDTO>>() {}.type
+                val categoryOrder: List<CategoryDTO> = Gson().fromJson(categoryOrderJson, type)
+                val categoryMap = categoryOrder.mapIndexed { index, categoryDTO -> categoryDTO.tag to index }.toMap()
+                compareBy {
+                    val category = it.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES)
+                    val categoryTag = DetailActivity.getCategoryName(category)
+                    categoryMap[categoryTag] ?: Int.MAX_VALUE
                 }
-
-                "alphabetic_order" -> {
-                    if (mSearchView) {
-                        mSearchShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            firstObject.optString(ShowBaseAdapter.KEY_TITLE)
-                                .compareTo(
-                                    secondObject.optString(ShowBaseAdapter.KEY_TITLE),
-                                    ignoreCase = true
-                                )
-                        }
-                    } else {
-                        mShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            firstObject.optString(ShowBaseAdapter.KEY_TITLE)
-                                .compareTo(
-                                    secondObject.optString(ShowBaseAdapter.KEY_TITLE),
-                                    ignoreCase = true
-                                )
-                        }
-                    }
-                }
-
-                "start_date_order" -> {
-                    val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
-                    if (mSearchView) {
-                        mSearchShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            val firstDate: Date?
-                            val secondDate: Date?
-                            try {
-                                val firstDateString =
-                                    firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
-                                val secondDateString =
-                                    secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
-                                firstDate = if (firstDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(firstDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                                secondDate = if (secondDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(secondDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                            } catch (e: ParseException) {
-                                e.printStackTrace()
-                                return@sortWith 0
-                            }
-                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
-                            if (secondDate == null) return@sortWith -1
-                            firstDate.compareTo(secondDate) * -1
-                        }
-                    } else {
-                        mShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            val firstDate: Date?
-                            val secondDate: Date?
-                            try {
-                                val firstDateString =
-                                    firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
-                                val secondDateString =
-                                    secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE)
-                                firstDate = if (firstDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(firstDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                                secondDate = if (secondDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(secondDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                            } catch (e: ParseException) {
-                                e.printStackTrace()
-                                return@sortWith 0
-                            }
-                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
-                            if (secondDate == null) return@sortWith -1
-                            firstDate.compareTo(secondDate) * -1
-                        }
-                    }
-                }
-
-                "finish_date_order" -> {
-                    val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
-                    if (mSearchView) {
-                        mSearchShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            val firstDate: Date?
-                            val secondDate: Date?
-                            try {
-                                val firstDateString =
-                                    firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
-                                val secondDateString =
-                                    secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
-                                firstDate = if (firstDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(firstDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                                secondDate = if (secondDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(secondDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                            } catch (e: ParseException) {
-                                e.printStackTrace()
-                                return@sortWith 0
-                            }
-                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
-                            if (secondDate == null) return@sortWith -1
-                            firstDate.compareTo(secondDate) * -1
-                        }
-                    } else {
-                        mShowArrayList.sortWith { firstObject: JSONObject, secondObject: JSONObject ->
-                            val firstDate: Date?
-                            val secondDate: Date?
-                            try {
-                                val firstDateString =
-                                    firstObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
-                                val secondDateString =
-                                    secondObject.optString(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE)
-                                firstDate = if (firstDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(firstDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                                secondDate = if (secondDateString.isNotEmpty()) {
-                                    simpleDateFormat.parse(secondDateString)
-                                } else {
-                                    Date(Long.MIN_VALUE)
-                                }
-                            } catch (e: ParseException) {
-                                e.printStackTrace()
-                                return@sortWith 0
-                            }
-                            if (firstDate == null) return@sortWith if (secondDate == null) 0 else 1
-                            if (secondDate == null) return@sortWith -1
-                            firstDate.compareTo(secondDate) * -1
-                        }
-                    }
-                }
-                "watch_category" -> {
-                    val categoryOrderJson = sharedPreferences.getString(FilterActivity.CATEGORY_ORDER, null)
-                    if (categoryOrderJson != null) {
-                        val type = object : TypeToken<List<CategoryDTO>>() {}.type
-                        val categoryOrder: List<CategoryDTO> = Gson().fromJson(categoryOrderJson, type)
-                        val categoryMap = categoryOrder.mapIndexed { index, categoryDTO -> categoryDTO.tag to index }.toMap()
-
-                        val comparator = compareBy<JSONObject> {
-                            val category = it.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES)
-                            val categoryTag = DetailActivity.getCategoryName(category)
-                            categoryMap[categoryTag] ?: Int.MAX_VALUE
-                        }
-                        if (mSearchView) {
-                            mSearchShowArrayList.sortWith(comparator)
-                        } else {
-                            mShowArrayList.sortWith(comparator)
-                        }
-                    }
-                }
+            } catch (e: Exception) {
+                null // Handle potential Gson parsing errors
             }
+        } else {
+            null
+        }
+
+        // Create primary sort comparator based on preference
+        val primaryComparator: java.util.Comparator<JSONObject>? = sortPreference?.let {
+            when (it) {
+                "best_rated" -> compareByDescending<JSONObject> { obj ->
+                    obj.optBoolean(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING)
+                }.thenByDescending { obj ->
+                    if (obj.optBoolean(ShowBaseAdapter.KEY_HAS_PERSONAL_RATING)) {
+                        obj.optDouble(ShowBaseAdapter.KEY_RATING, -1.0)
+                    } else {
+                        Double.NEGATIVE_INFINITY
+                    }
+                }.thenBy { obj ->
+                    obj.optString(ShowBaseAdapter.KEY_TITLE)
+                }
+
+                "release_date" -> compareByDescending { obj ->
+                    getDateFromString(obj.optString(ShowBaseAdapter.KEY_RELEASE_DATE))
+                }
+
+                "alphabetic_order" -> compareBy(String.CASE_INSENSITIVE_ORDER) { obj ->
+                    obj.optString(ShowBaseAdapter.KEY_TITLE)
+                }
+
+                "start_date_order", "finish_date_order" -> java.util.Comparator { o1, o2 ->
+                    val dateField = if (it == "start_date_order") {
+                        MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE
+                    } else {
+                        MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE
+                    }
+                    val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
+                    fun parseDate(obj: JSONObject): Date {
+                        val dateString = obj.optString(dateField)
+                        return if (dateString.isNotEmpty()) {
+                            try {
+                                simpleDateFormat.parse(dateString) ?: Date(Long.MIN_VALUE)
+                            } catch (e: ParseException) {
+                                Date(Long.MIN_VALUE)
+                            }
+                        } else {
+                            Date(Long.MIN_VALUE)
+                        }
+                    }
+
+                    val date1 = parseDate(o1)
+                    val date2 = parseDate(o2)
+                    date2.compareTo(date1) // Descending order
+                }
+
+                "watch_category" -> categoryComparator
+                else -> null
+            }
+        }
+
+        // Combine comparators if nested sorting is enabled
+        var finalComparator: java.util.Comparator<JSONObject>? = primaryComparator
+        if (nestedSortEnabled && categoryComparator != null && sortPreference != "watch_category") {
+            finalComparator = if (primaryComparator != null) {
+                categoryComparator.then(primaryComparator)
+            } else {
+                categoryComparator
+            }
+        }
+
+        // Apply the final sort
+        if (finalComparator != null) {
+            listToFilter.sortWith(finalComparator)
         }
 
         // Filter by selected categories
@@ -1365,39 +1260,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 null
             ), ", "
         )
-        if (mSearchView && selectedCategories != null) {
-            val iterator = mSearchShowArrayList.iterator()
-            while (iterator.hasNext()) {
-                val columnWatched = iterator.next()
-                    .optInt(MovieDatabaseHelper.COLUMN_CATEGORIES)
-                var shouldKeep = false
-                for (i in selectedCategories.indices) {
-                    if (columnWatched == DetailActivity.getCategoryNumber(selectedCategories[i])) {
-                        shouldKeep = true
-                        break
-                    }
-                }
-                if (!shouldKeep) {
-                    iterator.remove()
-                }
-            }
-        } else if (selectedCategories != null) {
-            val iterator = mShowArrayList.iterator()
-            while (iterator.hasNext()) {
-                val columnWatched = iterator.next()
-                    .optInt(MovieDatabaseHelper.COLUMN_CATEGORIES)
-                var shouldKeep = false
-                for (i in selectedCategories.indices) {
-                    if (columnWatched == DetailActivity.getCategoryNumber(selectedCategories[i])) {
-                        shouldKeep = true
-                        break
-                    }
-                }
-                if (!shouldKeep) {
-                    iterator.remove()
+        if (selectedCategories != null) {
+            listToFilter.removeIf {
+                val columnWatched = it.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES)
+                selectedCategories.none { category ->
+                    columnWatched == DetailActivity.getCategoryNumber(category)
                 }
             }
         }
+
 
         // Filter by genres to include
         val withGenres = FilterActivity.convertStringToIntegerArrayList(
@@ -1407,28 +1278,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             ), ", "
         )
         if (withGenres != null && withGenres.isNotEmpty()) {
-            if (mSearchView) {
-                val iterator = mSearchShowArrayList.iterator()
-                while (iterator.hasNext()) {
-                    val showObject = iterator.next()
-                    val idList = FilterActivity.convertStringToIntegerArrayList(
-                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                    )
-                    if (!idList.containsAll(withGenres)) {
-                        iterator.remove()
-                    }
-                }
-            } else {
-                val iterator = mShowArrayList.iterator()
-                while (iterator.hasNext()) {
-                    val showObject = iterator.next()
-                    val idList = FilterActivity.convertStringToIntegerArrayList(
-                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                    )
-                    if (!idList.containsAll(withGenres)) {
-                        iterator.remove()
-                    }
-                }
+            listToFilter.removeIf {
+                val idList = FilterActivity.convertStringToIntegerArrayList(
+                    it.optString(ShowBaseAdapter.KEY_GENRES), ","
+                )
+                !idList.containsAll(withGenres)
             }
         }
 
@@ -1440,28 +1294,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             ), ", "
         )
         if (withoutGenres != null && withoutGenres.isNotEmpty()) {
-            if (mSearchView) {
-                val iterator = mSearchShowArrayList.iterator()
-                while (iterator.hasNext()) {
-                    val showObject = iterator.next()
-                    val idList = FilterActivity.convertStringToIntegerArrayList(
-                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                    )
-                    if (idList.any { withoutGenres.contains(it) }) {
-                        iterator.remove()
-                    }
-                }
-            } else {
-                val iterator = mShowArrayList.iterator()
-                while (iterator.hasNext()) {
-                    val showObject = iterator.next()
-                    val idList = FilterActivity.convertStringToIntegerArrayList(
-                        showObject.optString(ShowBaseAdapter.KEY_GENRES), ","
-                    )
-                    if (idList.any { withoutGenres.contains(it) }) {
-                        iterator.remove()
-                    }
-                }
+            listToFilter.removeIf {
+                val idList = FilterActivity.convertStringToIntegerArrayList(
+                    it.optString(ShowBaseAdapter.KEY_GENRES), ","
+                )
+                idList.any { id -> withoutGenres.contains(id) }
             }
         }
 
@@ -1968,7 +1805,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
         if (binding.chipGroup.checkedChipId == -1) {
             val allChip = binding.chipGroup.findViewById<Chip>(R.id.chipAll)
-            if (allChip != null && allChip.visibility == View.VISIBLE) {
+            if (allChip != null && allChip.isVisible) {
                 allChip.isChecked = true
             } else {
                 for (chipInfo in chipInfos) {

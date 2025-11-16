@@ -436,4 +436,6 @@
     <string name="add_season_to_watched">Add Season to Watched</string>
     <string name="omdb_api_key_summary_provided">OMDB api key is available, you can override it.</string>
     <string name="manage_chips">Configure Chips</string>
+    <string name="enable_nested_sorting">Enable nested sorting</string>
+    <string name="nested_sorting_explanation">When enabled, your media will first be sorted by category (e.g., Watching, Watched), and then sorted again by the other option you\'ve selected (like Release Date or Best Rated).</string>
 </resources>
