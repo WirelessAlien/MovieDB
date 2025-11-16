@@ -42,6 +42,7 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.core.content.edit
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
@@ -298,6 +299,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         binding.chipAll.isEnabled = enabled
         binding.chipUpcoming.isEnabled = enabled
         binding.chipWatching.isEnabled = enabled
+        binding.chipWatched.isEnabled = enabled
+        binding.chipPlanToWatch.isEnabled = enabled
     }
 
     private suspend fun loadInitialData() {
@@ -497,7 +500,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private fun showQuickAccessBottomSheet() {
-        preferences.edit().putBoolean("quick_access_dialog_shown", true).apply()
+        preferences.edit { putBoolean("quick_access_dialog_shown", true) }
         val binding = FragmentSavedSetupBinding.inflate(LayoutInflater.from(requireContext()))
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(binding.root)
@@ -543,8 +546,26 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     var watchingShows = withContext(Dispatchers.IO) {
                         getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_WATCHING)
                     }
-                    watchingShows = sortWatchingShows(watchingShows)
+                    watchingShows = sortShowsByDate(watchingShows, "key_sort_watching_by_date")
                     mShowAdapter.updateData(watchingShows)
+                    setChipsEnabled(true)
+                }
+                binding.chipWatched.isChecked -> {
+                    setChipsEnabled(false)
+                    var watchedShows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_WATCHED)
+                    }
+                    watchedShows = sortShowsByDate(watchedShows, "key_sort_watched_by_date")
+                    mShowAdapter.updateData(watchedShows)
+                    setChipsEnabled(true)
+                }
+                binding.chipPlanToWatch.isChecked -> {
+                    setChipsEnabled(false)
+                    var planToWatchShows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
+                    }
+                    planToWatchShows = sortShowsByDate(planToWatchShows, "key_sort_plan_to_watch_by_date")
+                    mShowAdapter.updateData(planToWatchShows)
                     setChipsEnabled(true)
                 }
             }
@@ -553,8 +574,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    private fun sortWatchingShows(shows: ArrayList<JSONObject>): ArrayList<JSONObject> {
-        val sortEnabled = preferences.getBoolean("key_sort_watching_by_date", true)
+    private fun sortShowsByDate(shows: ArrayList<JSONObject>, preferenceKey: String): ArrayList<JSONObject> {
+        val sortEnabled = preferences.getBoolean(preferenceKey, true)
         if (sortEnabled) {
             shows.sortWith { o1, o2 ->
                 val date1 = getSortDate(o1)
@@ -935,23 +956,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         binding.chipAll.isChecked = true
         binding.chipUpcoming.isChecked = false
         binding.chipWatching.isChecked = false
+        binding.chipWatched.isChecked = false
+        binding.chipPlanToWatch.isChecked = false
 
         binding.chipAll.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, listOf(binding.chipUpcoming, binding.chipWatching)) {
-                activityBinding.fab.visibility = View.VISIBLE
-                activityBinding.fab2.visibility = View.VISIBLE
-                activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
-                activityBinding.fab.setOnClickListener {
-                    val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
-                    intent.putExtra("categories", true)
-                    intent.putExtra("most_popular", false)
-                    intent.putExtra("dates", false)
-                    intent.putExtra("keywords", false)
-                    intent.putExtra("startDate", true)
-                    intent.putExtra("finishDate", true)
-                    intent.putExtra("account", false)
-                    filterActivityResultLauncher.launch(intent)
-                }
+            handleChipChange(isChecked, listOf(binding.chipUpcoming, binding.chipWatching, binding.chipWatched, binding.chipPlanToWatch)) {
+                updateFab(true)
                 mShowAdapter.updateData(mShowArrayList)
 
                 if (!mSearchView) {
@@ -974,7 +984,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         binding.chipWatching.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming)) {
                 if (preferences.getBoolean("key_show_continue_watching", true)) {
-                    activityBinding.fab.visibility = View.GONE
+                    updateFab(true)
                 } else {
                     activityBinding.fab.visibility = View.VISIBLE
                     activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
@@ -991,9 +1001,59 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         watchingShows.add(show)
                     }
                 }
-                watchingShows = sortWatchingShows(watchingShows)
+                watchingShows = sortShowsByDate(watchingShows, "key_sort_watching_by_date")
                 mShowAdapter.updateData(watchingShows)
             }
+        }
+
+        binding.chipWatched.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming, binding.chipWatching, binding.chipPlanToWatch)) {
+                updateFab(true)
+                var watchedShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                        watchedShows.add(show)
+                    }
+                }
+                watchedShows = sortShowsByDate(watchedShows, "key_sort_watched_by_date")
+                mShowAdapter.updateData(watchedShows)
+            }
+        }
+
+        binding.chipPlanToWatch.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming, binding.chipWatching, binding.chipWatched)) {
+                updateFab(true)
+                var planToWatchShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH) {
+                        planToWatchShows.add(show)
+                    }
+                }
+                planToWatchShows = sortShowsByDate(planToWatchShows, "key_sort_plan_to_watch_by_date")
+                mShowAdapter.updateData(planToWatchShows)
+            }
+        }
+    }
+
+    private fun updateFab(show: Boolean) {
+        if (show) {
+            activityBinding.fab.visibility = View.VISIBLE
+            activityBinding.fab2.visibility = View.VISIBLE
+            activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
+            activityBinding.fab.setOnClickListener {
+                val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
+                intent.putExtra("categories", true)
+                intent.putExtra("most_popular", false)
+                intent.putExtra("dates", false)
+                intent.putExtra("keywords", false)
+                intent.putExtra("startDate", true)
+                intent.putExtra("finishDate", true)
+                intent.putExtra("account", false)
+                filterActivityResultLauncher.launch(intent)
+            }
+        } else {
+            activityBinding.fab.visibility = View.GONE
+            activityBinding.fab2.visibility = View.GONE
         }
     }
 
@@ -1762,7 +1822,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                response.body?.string()?.let { onResponse(it) }
+                response.body.string()?.let { onResponse(it) }
             }
         } catch (e: IOException) {
             e.printStackTrace()
