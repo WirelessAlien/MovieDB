@@ -157,6 +157,7 @@ class TrendingPagerAdapter(private val mShowArrayList: ArrayList<JSONObject>?) :
             holder.binding.movieTitle.translationX = maskRect.left
             holder.binding.date.translationX = maskRect.left
             holder.binding.trendingText.translationX = maskRect.left
+            holder.binding.typeText.translationX = maskRect.left
             holder.binding.movieTitle.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
             holder.binding.date.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)
             holder.binding.trendingText.alpha = AnimationUtils.lerp(1f, 0f, 0f, 80f, maskRect.left)

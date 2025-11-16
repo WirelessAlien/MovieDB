@@ -203,25 +203,6 @@ class HomeFragment : BaseFragment() {
         val adapter = TrendingPagerAdapter(ArrayList())
         binding.trendingViewPager.adapter = adapter
 
-        binding.trendingViewPager.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    val centerView = snapHelper.findSnapView(layoutManager)
-                    if (centerView != null && centerView != centeredView) {
-                        centeredView?.let {
-                            val movieImage = it.findViewById<ImageView>(R.id.movieImage)
-                            val zoomOut = AnimationUtils.loadAnimation(requireContext(), R.anim.zoom_out)
-                            movieImage.startAnimation(zoomOut)
-                        }
-                        val movieImage = centerView.findViewById<ImageView>(R.id.movieImage)
-                        val zoomIn = AnimationUtils.loadAnimation(requireContext(), R.anim.zoom_in)
-                        movieImage.startAnimation(zoomIn)
-                        centeredView = centerView
-                    }
-                }
-            }
-        })
     }
 
     override fun onResume() {
