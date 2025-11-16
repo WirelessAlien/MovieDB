@@ -1019,7 +1019,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
         binding.chipGroup.findViewById<Chip>(R.id.chipWatched)?.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, getOtherChips(R.id.chipWatched)) {
-                updateFab(true)
+                updateFab(false)
                 var watchedShows = ArrayList<JSONObject>()
                 for (show in mShowArrayList) {
                     if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHED) {
@@ -1033,7 +1033,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
         binding.chipGroup.findViewById<Chip>(R.id.chipPlanToWatch)?.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, getOtherChips(R.id.chipPlanToWatch)) {
-                updateFab(true)
+                updateFab(false)
                 var planToWatchShows = ArrayList<JSONObject>()
                 for (show in mShowArrayList) {
                     if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH) {
