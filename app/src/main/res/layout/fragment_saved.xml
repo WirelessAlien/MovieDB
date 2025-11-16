@@ -32,63 +32,78 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollIndicators="none"
+            android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:scrollbars="none">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroup"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleSelection="true"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAll"
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/all"
-                    android:tag="all"
-                    android:checkable="true"
-                    style="@style/Widget.Material3.Chip.Filter" />
+                    app:singleSelection="true"
+                    android:layout_marginEnd="16dp"
+                    android:orientation="horizontal">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipWatching"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/all"
+                        android:tag="all"
+                        android:checkable="true"
+                        style="@style/Widget.Material3.Chip.Filter" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipPlanToWatch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="plan_to_watch"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:checkable="true"
+                        android:text="@string/plan_to_watch" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipWatching"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="watching"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:checkable="true"
+                        android:text="@string/watching" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipWatched"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="watched"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:checkable="true"
+                        android:text="@string/watched" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipUpcoming"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="upcoming"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:checkable="true"
+                        android:text="@string/upcoming" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <ImageButton
+                    android:id="@+id/settings_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:tag="watching"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:checkable="true"
-                    android:text="@string/watching" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipWatched"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="watched"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:checkable="true"
-                    android:text="@string/watched" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPlanToWatch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="plan_to_watch"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:checkable="true"
-                    android:text="@string/plan_to_watch" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipUpcoming"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:tag="upcoming"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:checkable="true"
-                    android:text="@string/upcoming" />
-            </com.google.android.material.chip.ChipGroup>
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/manage_chips"
+                    android:src="@drawable/ic_settings" />
+            </LinearLayout>
         </HorizontalScrollView>
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -104,7 +119,7 @@
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:layout_marginTop="-5dp"
-                android:scrollbars="none"/>
+                android:scrollbars="none" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     </LinearLayout>
 

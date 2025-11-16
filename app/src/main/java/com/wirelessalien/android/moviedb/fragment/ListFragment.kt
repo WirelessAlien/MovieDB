@@ -72,6 +72,7 @@ import com.wirelessalien.android.moviedb.activity.ImportActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.data.CategoryDTO
+import com.wirelessalien.android.moviedb.data.ChipInfo
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.DialogEpisodeDataExpBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
@@ -126,6 +127,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private lateinit var filterActivityResultLauncher: ActivityResultLauncher<Intent>
     private lateinit var binding: FragmentSavedBinding
     private lateinit var activityBinding: ActivityMainBinding
+    private lateinit var chipInfos: MutableList<ChipInfo>
+    private val gson = Gson()
 
     override fun onAdapterDataChangedListener() {
         updateShowViewAdapter()
@@ -199,6 +202,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         showShowList(fragmentView)
 
         setupMediaTypeChips()
+        binding.settingsButton.setOnClickListener {
+            val dialog = ChipManagementDialogFragment(chipInfos) { updatedChips ->
+                saveChipOrder(updatedChips)
+                applyChipOrder()
+            }
+            dialog.show(parentFragmentManager, "ChipManagementDialog")
+        }
 
         return fragmentView
     }
@@ -953,14 +963,14 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private fun setupMediaTypeChips() {
-        binding.chipAll.isChecked = true
-        binding.chipUpcoming.isChecked = false
-        binding.chipWatching.isChecked = false
-        binding.chipWatched.isChecked = false
-        binding.chipPlanToWatch.isChecked = false
+        loadChipOrder()
+        applyChipOrder()
+        setChipListeners()
+    }
 
-        binding.chipAll.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, listOf(binding.chipUpcoming, binding.chipWatching, binding.chipWatched, binding.chipPlanToWatch)) {
+    private fun setChipListeners() {
+        binding.chipGroup.findViewById<Chip>(R.id.chipAll)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipAll)) {
                 updateFab(true)
                 mShowAdapter.updateData(mShowArrayList)
 
@@ -973,16 +983,16 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
-        binding.chipUpcoming.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipWatching)) {
+        binding.chipGroup.findViewById<Chip>(R.id.chipUpcoming)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipUpcoming)) {
                 activityBinding.fab.visibility = View.GONE
                 activityBinding.fab2.visibility = View.GONE
                 mShowAdapter.updateData(mUpcomingArrayList)
             }
         }
 
-        binding.chipWatching.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming)) {
+        binding.chipGroup.findViewById<Chip>(R.id.chipWatching)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipWatching)) {
                 if (preferences.getBoolean("key_show_continue_watching", true)) {
                     updateFab(true)
                 } else {
@@ -1006,8 +1016,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
-        binding.chipWatched.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming, binding.chipWatching, binding.chipPlanToWatch)) {
+        binding.chipGroup.findViewById<Chip>(R.id.chipWatched)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipWatched)) {
                 updateFab(true)
                 var watchedShows = ArrayList<JSONObject>()
                 for (show in mShowArrayList) {
@@ -1020,8 +1030,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
-        binding.chipPlanToWatch.setOnCheckedChangeListener { _, isChecked ->
-            handleChipChange(isChecked, listOf(binding.chipAll, binding.chipUpcoming, binding.chipWatching, binding.chipWatched)) {
+        binding.chipGroup.findViewById<Chip>(R.id.chipPlanToWatch)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipPlanToWatch)) {
                 updateFab(true)
                 var planToWatchShows = ArrayList<JSONObject>()
                 for (show in mShowArrayList) {
@@ -1822,7 +1832,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                response.body.string()?.let { onResponse(it) }
+                response.body.string().let { onResponse(it) }
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -1911,5 +1921,60 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         fun databaseUpdate() {
             mDatabaseUpdate = true
         }
+    }
+
+    private fun loadChipOrder() {
+        val json = preferences.getString("chip_order", null)
+        if (json != null) {
+            val type = object : TypeToken<MutableList<ChipInfo>>() {}.type
+            chipInfos = gson.fromJson(json, type)
+        } else {
+            chipInfos = mutableListOf(
+                ChipInfo(R.id.chipAll, getString(R.string.all), "all", true),
+                ChipInfo(R.id.chipWatching, getString(R.string.watching), "watching", true),
+                ChipInfo(R.id.chipWatched, getString(R.string.watched), "watched", true),
+                ChipInfo(
+                    R.id.chipPlanToWatch,
+                    getString(R.string.plan_to_watch),
+                    "plan_to_watch",
+                    true
+                ),
+                ChipInfo(R.id.chipUpcoming, getString(R.string.upcoming), "upcoming", true)
+            )
+        }
+    }
+
+    private fun saveChipOrder(chips: List<ChipInfo>) {
+        val json = gson.toJson(chips)
+        preferences.edit {
+            putString("chip_order", json)
+        }
+    }
+
+    private fun applyChipOrder() {
+        binding.chipGroup.removeAllViews()
+        for (chipInfo in chipInfos) {
+            val chip = Chip(requireContext()).apply {
+                id = chipInfo.id
+                text = chipInfo.name
+                tag = chipInfo.tag
+                isCheckable = true
+                visibility = if (chipInfo.isVisible) View.VISIBLE else View.GONE
+
+            }
+            binding.chipGroup.addView(chip)
+        }
+        setChipListeners()
+    }
+
+    private fun getOtherChips(chipId: Int): List<Chip> {
+        val otherChips = mutableListOf<Chip>()
+        for (i in 0 until binding.chipGroup.childCount) {
+            val chip = binding.chipGroup.getChildAt(i) as Chip
+            if (chip.id != chipId) {
+                otherChips.add(chip)
+            }
+        }
+        return otherChips
     }
 }
