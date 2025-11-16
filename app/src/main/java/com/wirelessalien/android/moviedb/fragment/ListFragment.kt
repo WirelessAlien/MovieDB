@@ -994,7 +994,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         binding.chipGroup.findViewById<Chip>(R.id.chipWatching)?.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, getOtherChips(R.id.chipWatching)) {
                 if (preferences.getBoolean("key_show_continue_watching", true)) {
-                    updateFab(true)
+                    activityBinding.fab.visibility = View.GONE
                 } else {
                     activityBinding.fab.visibility = View.VISIBLE
                     activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
@@ -1965,6 +1965,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             binding.chipGroup.addView(chip)
         }
         setChipListeners()
+
+        if (binding.chipGroup.checkedChipId == -1) {
+            val allChip = binding.chipGroup.findViewById<Chip>(R.id.chipAll)
+            if (allChip != null && allChip.visibility == View.VISIBLE) {
+                allChip.isChecked = true
+            } else {
+                for (chipInfo in chipInfos) {
+                    if (chipInfo.isVisible) {
+                        binding.chipGroup.findViewById<Chip>(chipInfo.id)?.isChecked = true
+                        break
+                    }
+                }
+            }
+        }
     }
 
     private fun getOtherChips(chipId: Int): List<Chip> {
