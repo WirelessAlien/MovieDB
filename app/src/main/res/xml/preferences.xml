@@ -57,7 +57,7 @@
         app:iconSpaceReserved="false">
 
         <androidx.preference.SwitchPreferenceCompat
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="key_show_save_dialog"
             android:title="@string/title_show_save_dialog"
             android:summary="@string/display_saved_dialog_summary"

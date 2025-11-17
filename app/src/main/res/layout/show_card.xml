@@ -106,6 +106,7 @@
                     android:layout_gravity="bottom|end"
                     android:src="@drawable/ic_movie"
                     android:padding="3dp"
+                    android:visibility="gone"
                     android:background="@drawable/background_70"/>
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
