@@ -19,7 +19,7 @@
   -->
 
 <resources>
-    <color name="color_70">#26000000</color>
+    <color name="color_70">#33000000</color>
     <color name="dividerColor">#E0E0E0</color>
     <color name="md_theme_primary">#A1CAFD</color>
     <color name="md_theme_onPrimary">#003259</color>

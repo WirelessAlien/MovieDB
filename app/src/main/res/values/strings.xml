@@ -312,7 +312,7 @@
     <string name="summary_sort_watching_by_date">Sort watching media by last watched date in \"Saved\" tab</string>
     <string name="source_code_faq_bug_report">Source code, faq, bug report…</string>
     <string name="amoled_theme">AMOLED theme</string>
-    <string name="amoled_theme_summary">Use a pitch-black background theme (for AMOLED display). Reopen the app complete change.</string>
+    <string name="amoled_theme_summary">Use a pitch-black background theme (for AMOLED display). Reopen the app to apply complete change.</string>
     <string name="no_data_available">No data available</string>
     <string name="watch_category">Watch Category</string>
     <string name="drag_handle">Drag Indicator</string>
@@ -434,7 +434,7 @@
     <string name="videos">Videos</string>
     <string name="no_videos_available">No videos available</string>
     <string name="add_season_to_watched">Add Season to Watched</string>
-    <string name="omdb_api_key_summary_provided">OMDB api key is available, you can override it.</string>
+    <string name="omdb_api_key_summary_provided">OMDB api key is available, you can use you own key also.</string>
     <string name="manage_chips">Configure Chips</string>
     <string name="enable_nested_sorting">Enable nested sorting</string>
     <string name="nested_sorting_explanation">When enabled, your media will first be sorted by category (e.g., Watching, Watched), and then sorted again by the other option you\'ve selected (like Release Date or Best Rated).</string>
