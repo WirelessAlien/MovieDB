@@ -307,11 +307,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     }
 
     private fun setChipsEnabled(enabled: Boolean) {
-        binding.chipAll.isEnabled = enabled
-        binding.chipUpcoming.isEnabled = enabled
-        binding.chipWatching.isEnabled = enabled
-        binding.chipWatched.isEnabled = enabled
-        binding.chipPlanToWatch.isEnabled = enabled
+        for (i in 0 until binding.chipGroup.childCount) {
+            val chip = binding.chipGroup.getChildAt(i) as Chip
+            chip.isEnabled = enabled
+        }
+        binding.settingsButton.isEnabled = enabled
     }
 
     private suspend fun loadInitialData() {

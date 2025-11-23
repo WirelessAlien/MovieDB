@@ -19,7 +19,7 @@
   -->
 
 <resources>
-    <color name="color_70">#33FFFFFF</color>
+    <color name="color_70">#99FFFFFF</color>
     <color name="dividerColor">#E0E0E0</color>
     <color name="colorRed">#FF0000</color>
     <color name="shimmer_color">#dddddd</color>
