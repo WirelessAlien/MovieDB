@@ -46,8 +46,8 @@ android {
         applicationId = "com.wirelessalien.android.moviedb"
         minSdk = 24
         targetSdk = 35
-        versionCode = 23
-        versionName = "4.2.4"
+        versionCode = 24
+        versionName = "4.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OMDB_API_KEY", "\"$omdbApiKey\"")
