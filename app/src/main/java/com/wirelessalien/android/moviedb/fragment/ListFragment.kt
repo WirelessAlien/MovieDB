@@ -521,11 +521,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private fun refreshData() {
         CoroutineScope(Dispatchers.Main).launch {
             // Refresh data based on the selected chip
-            when {
-                binding.chipAll.isChecked -> {
+            when (binding.chipGroup.checkedChipId) {
+                R.id.chipAll -> {
                     updateShowViewAdapter()
                 }
-                binding.chipUpcoming.isChecked -> {
+                R.id.chipUpcoming -> {
                     setChipsEnabled(false)
                     mShowArrayList.clear()
                     mShowAdapter.notifyDataSetChanged()
@@ -551,7 +551,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
                 }
 
-                binding.chipWatching.isChecked -> {
+                R.id.chipWatching -> {
                     setChipsEnabled(false)
                     // Refresh Watching shows
                     var watchingShows = withContext(Dispatchers.IO) {
@@ -561,7 +561,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     mShowAdapter.updateData(watchingShows)
                     setChipsEnabled(true)
                 }
-                binding.chipWatched.isChecked -> {
+                R.id.chipWatched -> {
                     setChipsEnabled(false)
                     var watchedShows = withContext(Dispatchers.IO) {
                         getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_WATCHED)
@@ -570,7 +570,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     mShowAdapter.updateData(watchedShows)
                     setChipsEnabled(true)
                 }
-                binding.chipPlanToWatch.isChecked -> {
+                R.id.chipPlanToWatch -> {
                     setChipsEnabled(false)
                     var planToWatchShows = withContext(Dispatchers.IO) {
                         getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH)
@@ -625,36 +625,40 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
         activityBinding.toggleButtonGroup.root.visibility = View.GONE
 
-        if (binding.chipUpcoming.isChecked) {
-            // Hide the FAB if the "Upcoming" chip is checked
-            activityBinding.fab.visibility = View.GONE
-            activityBinding.fab2.visibility = View.GONE
-        } else if (binding.chipWatching.isChecked) {
-            if (preferences.getBoolean("key_show_continue_watching", true)) {
+        when (binding.chipGroup.checkedChipId) {
+            R.id.chipUpcoming -> {
+                // Hide the FAB if the "Upcoming" chip is checked
                 activityBinding.fab.visibility = View.GONE
-            } else {
+                activityBinding.fab2.visibility = View.GONE
+            }
+            R.id.chipWatching -> {
+                if (preferences.getBoolean("key_show_continue_watching", true)) {
+                    activityBinding.fab.visibility = View.GONE
+                } else {
+                    activityBinding.fab.visibility = View.VISIBLE
+                    activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+                }
+                activityBinding.fab.setOnClickListener {
+                    val upNextFragment = UpNextFragment()
+                    upNextFragment.show(parentFragmentManager, "UpNextFragment")
+                }
+            }
+            else -> {
+                // Otherwise, show and configure the FAB (your original logic)
+                activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
                 activityBinding.fab.visibility = View.VISIBLE
-                activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
-            }
-            activityBinding.fab.setOnClickListener {
-                val upNextFragment = UpNextFragment()
-                upNextFragment.show(parentFragmentManager, "UpNextFragment")
-            }
-        } else {
-            // Otherwise, show and configure the FAB (your original logic)
-            activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
-            activityBinding.fab.visibility = View.VISIBLE
-            activityBinding.fab.isEnabled = true
-            activityBinding.fab.setOnClickListener {
-                val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
-                intent.putExtra("categories", true)
-                intent.putExtra("most_popular", false)
-                intent.putExtra("dates", false)
-                intent.putExtra("keywords", false)
-                intent.putExtra("startDate", true)
-                intent.putExtra("finishDate", true)
-                intent.putExtra("account", false)
-                filterActivityResultLauncher.launch(intent)
+                activityBinding.fab.isEnabled = true
+                activityBinding.fab.setOnClickListener {
+                    val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
+                    intent.putExtra("categories", true)
+                    intent.putExtra("most_popular", false)
+                    intent.putExtra("dates", false)
+                    intent.putExtra("keywords", false)
+                    intent.putExtra("startDate", true)
+                    intent.putExtra("finishDate", true)
+                    intent.putExtra("account", false)
+                    filterActivityResultLauncher.launch(intent)
+                }
             }
         }
     }
