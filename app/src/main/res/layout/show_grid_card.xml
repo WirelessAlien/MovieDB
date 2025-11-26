@@ -122,16 +122,6 @@
                         android:layout_marginEnd="1dp"
                         android:visibility="gone"
                         android:layout_gravity="bottom"/>
-
-                    <ImageView
-                        android:id="@+id/typeIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_gravity="bottom|end"
-                        android:src="@drawable/ic_movie"
-                        android:padding="3dp"
-                        android:visibility="gone"
-                        android:background="@drawable/background_70"/>
                 </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -142,30 +132,45 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/cardView2"
                 android:ellipsize="marquee"
-                android:paddingStart="4dip"
-                android:paddingEnd="4dip"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
                 android:text="Title"
                 android:layout_centerVertical="true"
-                android:paddingTop="4dip"
-                android:paddingBottom="4dip"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
                 android:singleLine="true"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/date"
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:id="@+id/rlt"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/title"
-                android:ellipsize="marquee"
-                android:paddingStart="4dip"
-                android:paddingEnd="4dip"
-                android:layout_centerVertical="true"
-                android:text="02/04/2004"
-                android:textSize="12sp"
-                android:paddingBottom="4dip"
-                android:singleLine="true"
-                android:textStyle="bold"
-                android:alpha="0.8"/>
+                android:padding="4dp">
+
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="marquee"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@id/typeIcon"
+                    android:text="02/04/2004"
+                    android:textSize="12sp"
+                    android:singleLine="true"
+                    android:textStyle="bold"
+                    android:alpha="0.8"/>
+
+                <ImageView
+                    android:id="@+id/typeIcon"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_movie"
+                    android:visibility="gone"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
         </RelativeLayout>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

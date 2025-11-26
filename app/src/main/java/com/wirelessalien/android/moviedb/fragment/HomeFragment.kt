@@ -500,6 +500,9 @@ class HomeFragment : BaseFragment() {
                             if (!isAdded || view == null || !recyclerView.isAttachedToWindow) return@postOnAnimation
 
                             val layoutManager = recyclerView.layoutManager as? CarouselLayoutManager ?: return@postOnAnimation
+                            if (layoutManager.childCount == 0) {
+                                return@postOnAnimation
+                            }
                             val snapView = snapHelper.findSnapView(layoutManager) ?: return@postOnAnimation
 
                             val movieImage = snapView.findViewById<ImageView>(R.id.movieImage)

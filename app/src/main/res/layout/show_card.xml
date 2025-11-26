@@ -98,16 +98,6 @@
                     android:visibility="gone"
                     android:layout_gravity="top|center_horizontal"
                     android:padding="8dp"/>
-
-                <ImageView
-                    android:id="@+id/typeIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="bottom|end"
-                    android:src="@drawable/ic_movie"
-                    android:padding="3dp"
-                    android:visibility="gone"
-                    android:background="@drawable/background_70"/>
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -171,15 +161,34 @@
                 android:layout_marginTop="5dp"
                 android:layout_below="@id/rating"/>
 
-            <TextView
-                android:id="@+id/date"
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:id="@+id/rlt"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="3dp"
-                android:textStyle="bold"
-                android:textSize="12sp"/>
+                android:padding="3dp">
+
+                <ImageView
+                    android:id="@+id/typeIcon"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_movie"
+                    android:visibility="gone"
+                    android:layout_toStartOf="@id/date" />
+
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="5dp"
+                    android:ellipsize="marquee"
+                    android:layout_centerVertical="true"
+                    android:textStyle="bold"
+                    android:layout_alignParentEnd="true"
+                    android:textSize="12sp"/>
+            </RelativeLayout>
         </RelativeLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -42,11 +42,13 @@
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="10dp"
                 style="@style/Widget.Material3.CardView.Elevated">
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/imagePercentLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:layout_constraintDimensionRatio="H,1:1.4">
+
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
@@ -84,19 +86,10 @@
                             app:icon="@drawable/ic_close"
                             android:visibility="gone"
                             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
-
-                        <ImageView
-                            android:id="@+id/typeIcon"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_gravity="bottom|end"
-                            android:src="@drawable/ic_movie"
-                            android:padding="3dp"
-                            android:visibility="gone"
-                            android:background="@drawable/background_70"/>
                     </FrameLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
+
             <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
@@ -112,25 +105,36 @@
                 android:singleLine="true"
                 android:textStyle="bold" />
 
-
-            <TextView
-                android:id="@+id/date"
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:id="@+id/rlt"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/title"
-                android:ellipsize="marquee"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp"
-                android:layout_centerVertical="true"
+                android:padding="4dp">
 
-                android:text="02/04/2004"
-                android:textSize="12sp"
-                android:paddingBottom="4dp"
-                android:singleLine="true"
-                android:textStyle="bold"
-                android:alpha="0.8"/>
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="marquee"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@id/typeIcon"
+                    android:text="02/04/2004"
+                    android:textSize="12sp"
+                    android:singleLine="true"
+                    android:textStyle="bold"
+                    android:alpha="0.8"/>
+
+                <ImageView
+                    android:id="@+id/typeIcon"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_movie"
+                    android:visibility="gone"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
         </RelativeLayout>
-
     </com.google.android.material.card.MaterialCardView>
-
 </RelativeLayout>
