@@ -1,0 +1,7 @@
+fix #122
+add #120 (add a media differentiator icon)
+add amoled black theme #119
+add #118 (add a few new quick filter to Saved tab, the filters are modifiable)
+add nested sorting for catefories in Saved tab
+a few small fix and improvement
+update Gradle, dependencies, sdk
