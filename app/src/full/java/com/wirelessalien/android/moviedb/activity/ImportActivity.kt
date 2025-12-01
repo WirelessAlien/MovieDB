@@ -87,7 +87,8 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
                 Toast.makeText(this, getString(R.string.file_picked_success), Toast.LENGTH_SHORT).show()
                 try {
                     val inputStream = contentResolver.openInputStream(archiveFileUri!!)
-                    val cacheFile = File(cacheDir, getArchiveFileName(archiveFileUri))
+                    val fileName = getArchiveFileName(archiveFileUri) ?: "imported_file"
+                    val cacheFile = File(cacheDir, fileName)
                     val fileOutputStream = FileOutputStream(cacheFile)
                     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                     var length: Int
@@ -96,6 +97,21 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
                     }
                     fileOutputStream.close()
                     inputStream.close()
+
+                    // Check if file has extension, if not try to detect it
+                    if (!cacheFile.name.endsWith(".db", true) && !cacheFile.name.endsWith(".csv", true)) {
+                        if (isSQLite(cacheFile)) {
+                            val newFile = File(cacheDir, "$fileName.db")
+                            cacheFile.renameTo(newFile)
+                        } else {
+                            val mimeType = contentResolver.getType(archiveFileUri)
+                            if (mimeType != null && (mimeType == "text/csv" || mimeType == "text/comma-separated-values")) {
+                                val newFile = File(cacheDir, "$fileName.csv")
+                                cacheFile.renameTo(newFile)
+                            }
+                        }
+                    }
+
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
@@ -288,6 +304,20 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
             }
         }
         return result
+    }
+
+    private fun isSQLite(file: File): Boolean {
+        return try {
+            java.io.FileInputStream(file).use { fis ->
+                val header = ByteArray(16)
+                if (fis.read(header) != 16) return false
+                val expected = "SQLite format 3\u0000".toByteArray()
+                header.contentEquals(expected)
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            false
+        }
     }
 
     override fun onAdapterDataChangedListener() {
