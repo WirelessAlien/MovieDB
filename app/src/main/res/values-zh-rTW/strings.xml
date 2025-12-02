@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="import_cancel">取消</string>
-    <string name="hint_search">搜尋…</string>
+    <string name="hint_search">搜尋</string>
     <string name="cancel">取消</string>
     <string name="ok">確定</string>
     <string name="donate">捐款</string>
