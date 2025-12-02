@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="import_cancel">取消</string>
-    <string name="hint_search">搜尋</string>
+    <string name="hint_search">搜尋…</string>
     <string name="cancel">取消</string>
     <string name="ok">確定</string>
     <string name="donate">捐款</string>
     <string name="about_movie_db">關於</string>
     <string name="search">搜尋</string>
+    <string name="no_permission_dialog_ok">確定</string>
+    <string name="no_permission_dialog_cancel">取消</string>
+    <string name="advanced">進階</string>
+    <string name="title_account">帳戶</string>
+    <string name="account_data_tab_title">帳戶</string>
+    <string name="action_account">帳戶</string>
+    <string name="done">完成</string>
 </resources>
