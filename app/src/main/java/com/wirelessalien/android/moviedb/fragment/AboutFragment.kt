@@ -100,11 +100,11 @@ class AboutFragment : DialogFragment() {
         }
 
         binding.privacyPolicyLink.setOnClickListener {
-            openUrl("https://showcase-app.blogspot.com/2024/11/privacy-policy.html")
+            openUrl("https://sites.google.com/view/privacy-policy-showcase/home")
         }
 
         binding.shareIcon.setOnClickListener {
-            val githubUrl = "https://github.com/WirelessAlien/MovieDB"
+            val githubUrl = "https://play.google.com/store/apps/details?id=com.wirelessalien.android.moviedb.full"
             val shareIntent = Intent(Intent.ACTION_SEND)
             shareIntent.type = "text/plain"
             shareIntent.putExtra(Intent.EXTRA_TEXT, githubUrl)
