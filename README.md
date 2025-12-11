@@ -72,15 +72,20 @@ The app allows you to filter shows based on genre, release dates, and more. Deta
 
 You can download and install ShowCase from the following sources:
 
-| Source                                                                                                | Link                                                                                                                               | Notes                                     |
-| :---------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------- |
- **GitHub Releases** | [<img src="https://img.shields.io/github/v/release/WirelessAlien/MovieDB?label=Latest%20Release&style=for-the-badge" alt="GitHub release"/>](https://github.com/WirelessAlien/MovieDB/releases/latest) | Standard version & ShowCase Plus (with GDrive backup) |
-**F-Droid**                 | [<img src="https://img.shields.io/f-droid/v/com.wirelessalien.android.moviedb.svg?style=for-the-badge" alt="F-Droid"/>](https://f-droid.org/packages/com.wirelessalien.android.moviedb/) | Standard version, no GDrive backup      |
+| Source            | Link                                                                                                                                               | Notes                                                     |
+| :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| **GitHub Releases** | [<img src="https://img.shields.io/github/v/release/WirelessAlien/MovieDB?label=Latest%20Release&style=for-the-badge" alt="GitHub release"/>](https://github.com/WirelessAlien/MovieDB/releases/latest) | Standard version & ShowCase Plus (with GDrive backup)     |
+| **F-Droid**          | [<img src="https://img.shields.io/f-droid/v/com.wirelessalien.android.moviedb.svg?style=for-the-badge" alt="F-Droid"/>](https://f-droid.org/packages/com.wirelessalien.android.moviedb/) | Standard version, no GDrive backup                        |
+| **Google Play**      | [<img src="https://img.shields.io/badge/Play%20Store-Download-black?style=for-the-badge&logo=googleplay" alt="Play Store"/>](https://play.google.com/store/apps/details?id=com.wirelessalien.android.moviedb.full) | Paid version (supports the developer)                     |
 
-### ShowCase Plus Note
 
 > [!IMPORTANT]
-> The **ShowCase Plus** version includes a feature for backing up your local database to Google Drive. This version is available exclusively from the [GitHub Releases](https://github.com/WirelessAlien/MovieDB/releases/latest) page and is not available on F-Droid due to its inclusion of proprietary Google services. Learn more about the different app versions on the [project wiki](https://github.com/WirelessAlien/MovieDB/wiki/App-Version).
+> The **ShowCase Plus** version includes a feature for backing up your local database to Google Drive. This version is available exclusively from the [GitHub Releases](https://github.com/WirelessAlien/MovieDB/releases/latest) page and is not available on F-Droid due to its inclusion of proprietary Google services.  
+>
+> The **Google Play** version is a **paid edition** of the app. The same app is available for free on GitHub Release — purchasing it on Play Store is simply an additional way to **support the developer**.  
+>
+> Learn more about the different app versions on the [project wiki](https://github.com/WirelessAlien/MovieDB/wiki/App-Version).
+
 
 ---
 
