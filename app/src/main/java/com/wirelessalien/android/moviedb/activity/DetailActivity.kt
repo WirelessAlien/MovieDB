@@ -3596,7 +3596,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             // Get the date from the MaterialDatePicker.
             val calendar = Calendar.getInstance()
             calendar.timeInMillis = selection!!
-            val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
             val dateFormat = sdf.format(calendar.time)
 
             // Save the date to the database and update the view

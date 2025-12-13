@@ -503,7 +503,11 @@ class HomeFragment : BaseFragment() {
                             if (layoutManager.childCount == 0) {
                                 return@postOnAnimation
                             }
-                            val snapView = snapHelper.findSnapView(layoutManager) ?: return@postOnAnimation
+                            val snapView = try {
+                                snapHelper.findSnapView(layoutManager) ?: return@postOnAnimation
+                            } catch (e: Exception) {
+                                return@postOnAnimation
+                            }
 
                             val movieImage = snapView.findViewById<ImageView>(R.id.movieImage)
                             movieImage?.let {

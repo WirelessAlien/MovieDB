@@ -877,6 +877,13 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
     }
 
+    fun updateMovieCategory(movieId: Int, category: Int) {
+        val db = this.writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_CATEGORIES, category)
+        db.update(TABLE_MOVIES, values, "$COLUMN_MOVIES_ID = ?", arrayOf(movieId.toString()))
+    }
+
     fun getEpisodeDetails(movieId: Int, seasonNumber: Int, episodeNumber: Int): EpisodeDbDetails? {
         val db = this.readableDatabase
         val columns = arrayOf(COLUMN_EPISODE_RATING, COLUMN_EPISODE_WATCH_DATE, COLUMN_EPISODE_REVIEW)

@@ -227,6 +227,10 @@ class UpNextFragment : BottomSheetDialogFragment() {
 
             val nextEpisode = getNextEpisodeAfter(showId, seasonNumber, episodeNumber)
 
+            if (nextEpisode == null) {
+                dbHelper.updateMovieCategory(showId, MovieDatabaseHelper.CATEGORY_WATCHED)
+            }
+
             withContext(Dispatchers.Main) {
                 if (nextEpisode != null) {
                     val position = adapter.upNextList.indexOfFirst {
