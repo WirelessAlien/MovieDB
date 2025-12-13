@@ -497,6 +497,17 @@ class EpisodeAdapter(
 
             binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
 
+            // Initialize step size from SharedPreferences
+            var currentStepSize = defaultSharedPreferences.getFloat("rating_step_size", 0.1f)
+            binding.episodeRatingSlider.stepSize = currentStepSize
+
+            binding.btnChangeStepSize.setOnClickListener {
+                currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
+                defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                binding.episodeRatingSlider.stepSize = currentStepSize
+                Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
+            }
+
             // Fetch episode details from the database
             try {
                 MovieDatabaseHelper(context).use { db ->

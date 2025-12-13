@@ -2913,6 +2913,17 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
             }
 
+            // Initialize step size from SharedPreferences
+            var currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
+            binding.showRating.stepSize = currentStepSize
+
+            binding.btnChangeStepSize.setOnClickListener {
+                currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
+                preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                binding.showRating.stepSize = currentStepSize
+                Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
+            }
+
             // Listen to changes to the ShowRating Slider.
             binding.showRating.addOnChangeListener { _, value, fromUser ->
                 if (fromUser) {
