@@ -541,6 +541,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             showSyncProviderActionsDialog()
         }
 
+        binding.typeChip.text = if (isMovie) getString(R.string.movie) else getString(R.string.show)
+
         binding.watchListButtonTmdb.setOnClickListener {
             lifecycleScope.launch {
                 if (accountId != null) {
@@ -3066,6 +3068,60 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.saveBtn.isEnabled = false
             }
 
+            binding.copyStartToEndBtn.setOnClickListener {
+                val startDateText = binding.startDateButton.text.toString()
+                if (startDateText != getString(R.string.change_start_date_2)) {
+                    binding.endDateButton.text = startDateText
+
+                    val movieValues = ContentValues()
+                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, startDateText)
+
+                    database = databaseHelper.writableDatabase
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
+
+                    // Format and show in detail view
+                    try {
+                        val dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val parsedDate = dbDateFormat.parse(startDateText)
+                        if (parsedDate != null) {
+                            val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(parsedDate)
+                            binding.movieFinishDate.text = getString(R.string.finish_date, formattedDate)
+                        }
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
+
+                    updateCopyDateButtonsVisibility()
+                }
+            }
+
+            binding.copyEndToStartBtn.setOnClickListener {
+                val endDateText = binding.endDateButton.text.toString()
+                if (endDateText != getString(R.string.change_finish_date_2)) {
+                    binding.startDateButton.text = endDateText
+
+                    val movieValues = ContentValues()
+                    movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, endDateText)
+
+                    database = databaseHelper.writableDatabase
+                    database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
+
+                    // Format and show in detail view
+                    try {
+                        val dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val parsedDate = dbDateFormat.parse(endDateText)
+                        if (parsedDate != null) {
+                            val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(parsedDate)
+                            binding.movieStartDate.text = getString(R.string.start_date, formattedDate)
+                        }
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
+
+                    updateCopyDateButtonsVisibility()
+                }
+            }
+
             updateEditShowDetails()
             binding.showDetails.visibility = View.GONE
             binding.editShowDetails.visibility = View.VISIBLE
@@ -3093,6 +3149,51 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     updateEpisodeFragments()
                 }
             }
+        }
+    }
+
+    private fun updateCopyDateButtonsVisibility() {
+        val startDateText = binding.startDateButton.text.toString()
+        val endDateText = binding.endDateButton.text.toString()
+        val defaultStartText = getString(R.string.change_start_date_2)
+        val defaultEndText = getString(R.string.change_finish_date_2)
+
+        val hasStartDate = startDateText != defaultStartText
+        val hasEndDate = endDateText != defaultEndText
+
+        if (hasStartDate && !hasEndDate) {
+            binding.copyStartToEndBtn.visibility = View.VISIBLE
+            binding.copyEndToStartBtn.visibility = View.GONE
+            try {
+                val dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+                val parsedDate = dbDateFormat.parse(startDateText)
+                if (parsedDate != null) {
+                    val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(parsedDate)
+                    binding.copyStartToEndBtn.text = formattedDate
+                } else {
+                    binding.copyStartToEndBtn.text = startDateText
+                }
+            } catch (e: Exception) {
+                binding.copyStartToEndBtn.text = startDateText
+            }
+        } else if (hasEndDate && !hasStartDate) {
+            binding.copyEndToStartBtn.visibility = View.VISIBLE
+            binding.copyStartToEndBtn.visibility = View.GONE
+            try {
+                val dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+                val parsedDate = dbDateFormat.parse(endDateText)
+                if (parsedDate != null) {
+                    val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(parsedDate)
+                    binding.copyEndToStartBtn.text = formattedDate
+                } else {
+                    binding.copyEndToStartBtn.text = endDateText
+                }
+            } catch (e: Exception) {
+                binding.copyEndToStartBtn.text = endDateText
+            }
+        } else {
+            binding.copyStartToEndBtn.visibility = View.GONE
+            binding.copyEndToStartBtn.visibility = View.GONE
         }
     }
 
@@ -3482,6 +3583,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         val watchedEpisode = databaseHelper.getSeenEpisodesCount(movieId)
 
         binding.movieEpisodes.text = getString(R.string.episodes_seen, watchedEpisode, totalEpisodes)
+        updateCopyDateButtonsVisibility()
         databaseUpdate()
     }
 
@@ -3511,6 +3613,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.movieFinishDate.text = getString(R.string.finish_date, currentDate)
             }
             database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
+            updateCopyDateButtonsVisibility()
             dialog.dismiss()
         }
 
@@ -3639,6 +3742,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId,
                 null
             )
+            updateCopyDateButtonsVisibility()
         }
     }
 

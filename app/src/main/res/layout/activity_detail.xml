@@ -123,13 +123,33 @@
                         android:scrollbars="none"
                         android:scrollIndicators="none">
 
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/genreChipGroup"
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:singleLine="true"
-                            app:singleSelection="false"
-                            app:chipSpacing="5dp"/>
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/typeChip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                style="@style/Widget.Material3.Chip.Assist.Elevated"
+                                android:layout_marginEnd="8dp"
+                                android:checkable="false"
+                                android:text="Movie"
+                                app:chipCornerRadius="8dp"
+                                app:closeIconEnabled="false"
+                                app:chipIconEnabled="false"
+                                app:textEndPadding="2dp"
+                                app:textStartPadding="2dp"/>
+
+                            <com.google.android.material.chip.ChipGroup
+                                android:id="@+id/genreChipGroup"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:singleLine="true"
+                                app:singleSelection="false"
+                                app:chipSpacing="5dp"/>
+                        </LinearLayout>
                     </HorizontalScrollView>
 
                     <com.google.android.flexbox.FlexboxLayout
@@ -231,33 +251,61 @@
                             android:layout_marginTop="5dp"
                             android:orientation="horizontal">
 
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/startDateButton"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:orientation="vertical"
                                 android:layout_columnWeight="1"
                                 android:layout_gravity="fill"
-                                app:cornerRadius="10dp"
-                                android:layout_marginEnd="5dp"
-                                android:drawableEnd="@drawable/ic_calendar"
-                                android:drawablePadding="5dip"
-                                android:onClick="showDateSelectionDialog"
-                                android:tag="start_date" />
+                                android:layout_marginEnd="5dp">
 
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/endDateButton"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/startDateButton"
+                                    style="@style/Widget.Material3.Button.OutlinedButton"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:cornerRadius="10dp"
+                                    android:drawableEnd="@drawable/ic_calendar"
+                                    android:drawablePadding="5dip"
+                                    android:onClick="showDateSelectionDialog"
+                                    android:tag="start_date" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/copyEndToStartBtn"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/same_as_end_date"
+                                    android:visibility="gone" />
+                            </LinearLayout>
+
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:orientation="vertical"
                                 android:layout_columnWeight="1"
                                 android:layout_gravity="fill"
-                                android:layout_marginStart="5dp"
-                                app:cornerRadius="10dp"
-                                android:drawableEnd="@drawable/ic_calendar"
-                                android:drawablePadding="5dp"
-                                android:onClick="showDateSelectionDialog"
-                                android:tag="end_date" />
+                                android:layout_marginStart="5dp">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/endDateButton"
+                                    style="@style/Widget.Material3.Button.OutlinedButton"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:cornerRadius="10dp"
+                                    android:drawableEnd="@drawable/ic_calendar"
+                                    android:drawablePadding="5dp"
+                                    android:onClick="showDateSelectionDialog"
+                                    android:tag="end_date" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/copyStartToEndBtn"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/same_as_start_date"
+                                    android:visibility="gone" />
+                            </LinearLayout>
                         </GridLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
