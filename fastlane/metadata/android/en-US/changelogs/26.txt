@@ -1,0 +1,4 @@
+fix #130, #131
+improve rating input
+improve home page card ui (for all size of device)
+small fix and improvements

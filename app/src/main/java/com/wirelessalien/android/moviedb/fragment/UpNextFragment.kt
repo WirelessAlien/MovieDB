@@ -220,7 +220,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
     }
 
     private fun markEpisodeAsWatched(showId: Int, seasonNumber: Int, episodeNumber: Int) {
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
         lifecycleScope.launch(Dispatchers.IO) {
             dbHelper.addEpisodeNumber(showId, seasonNumber, listOf(episodeNumber), currentDate)
@@ -229,6 +229,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
 
             if (nextEpisode == null) {
                 dbHelper.updateMovieCategory(showId, MovieDatabaseHelper.CATEGORY_WATCHED)
+                dbHelper.updateMovieFinishDate(showId, currentDate)
             }
 
             withContext(Dispatchers.Main) {

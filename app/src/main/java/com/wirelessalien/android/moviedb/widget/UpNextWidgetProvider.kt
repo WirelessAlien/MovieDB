@@ -32,6 +32,7 @@ import android.widget.Toast
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -173,8 +174,30 @@ class UpNextWidgetProvider : AppWidgetProvider() {
 
     private fun markEpisodeAsWatched(context: Context, showId: Int, seasonNumber: Int, episodeNumber: Int) {
         val dbHelper = MovieDatabaseHelper(context)
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         dbHelper.addEpisodeNumber(showId, seasonNumber, listOf(episodeNumber), currentDate)
+
+        if (!hasNextEpisode(context, showId, seasonNumber, episodeNumber)) {
+            dbHelper.updateMovieCategory(showId, MovieDatabaseHelper.CATEGORY_WATCHED)
+            dbHelper.updateMovieFinishDate(showId, currentDate)
+        }
+    }
+
+    private fun hasNextEpisode(context: Context, showId: Int, seasonNumber: Int, episodeNumber: Int): Boolean {
+        val tmdbHelper = TmdbDetailsDatabaseHelper(context)
+        val seasons = tmdbHelper.getSeasonsForShow(showId).sorted()
+        tmdbHelper.close()
+
+        val nextSeason = seasons.find { it > seasonNumber }
+        if (nextSeason != null) {
+            return true
+        }
+
+        val tmdbHelper2 = TmdbDetailsDatabaseHelper(context)
+        val episodes = tmdbHelper2.getEpisodesForSeason(showId, seasonNumber).sorted()
+        tmdbHelper2.close()
+
+        return episodes.any { it > episodeNumber }
     }
 
     companion object {

@@ -877,11 +877,30 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
     }
 
-    fun updateMovieCategory(movieId: Int, category: Int) {
+    fun updateMovieCategory(movieId: Int, category: Int, isMovie: Boolean = false) {
         val db = this.writableDatabase
         val values = ContentValues()
         values.put(COLUMN_CATEGORIES, category)
-        db.update(TABLE_MOVIES, values, "$COLUMN_MOVIES_ID = ?", arrayOf(movieId.toString()))
+        val type = if (isMovie) 1 else 0
+        db.update(
+            TABLE_MOVIES,
+            values,
+            "$COLUMN_MOVIES_ID = ? AND $COLUMN_MOVIE = ?",
+            arrayOf(movieId.toString(), type.toString())
+        )
+    }
+
+    fun updateMovieFinishDate(movieId: Int, finishDate: String, isMovie: Boolean = false) {
+        val db = this.writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_PERSONAL_FINISH_DATE, finishDate)
+        val type = if (isMovie) 1 else 0
+        db.update(
+            TABLE_MOVIES,
+            values,
+            "$COLUMN_MOVIES_ID = ? AND $COLUMN_MOVIE = ?",
+            arrayOf(movieId.toString(), type.toString())
+        )
     }
 
     fun getEpisodeDetails(movieId: Int, seasonNumber: Int, episodeNumber: Int): EpisodeDbDetails? {
