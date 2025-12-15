@@ -1768,7 +1768,25 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val json = preferences.getString("chip_order", null)
         if (json != null) {
             val type = object : TypeToken<MutableList<ChipInfo>>() {}.type
-            chipInfos = gson.fromJson(json, type)
+            val loadedChips: MutableList<ChipInfo> = gson.fromJson(json, type)
+
+            // Update IDs to match current R.id values
+            val currentIdMap = mapOf(
+                "all" to R.id.chipAll,
+                "watching" to R.id.chipWatching,
+                "watched" to R.id.chipWatched,
+                "plan_to_watch" to R.id.chipPlanToWatch,
+                "upcoming" to R.id.chipUpcoming
+            )
+
+            chipInfos = loadedChips.map { chip ->
+                val newId = currentIdMap[chip.tag]
+                if (newId != null && newId != chip.id) {
+                    chip.copy(id = newId)
+                } else {
+                    chip
+                }
+            }.toMutableList()
         } else {
             chipInfos = mutableListOf(
                 ChipInfo(R.id.chipAll, getString(R.string.all), "all", true),
