@@ -618,4 +618,6 @@
     <string name="summary_api_region">APIデータの領域(システム領域へのデフォルト)を設定します.</string>
     <string name="summary_api_timezone">APIデータのタイムゾーン(システムタイムゾーンのデフォルト)を設定します.</string>
     <string name="nested_sorting_explanation">有効にすると、最初にカテゴリ(例、監視、監視)でソートされ、選択した他のオプション(リリース日やベスト評価など)で再びソートされます.</string>
+    <string name="in_history">ウォッチ済</string>
+    <string name="start_date2">開始日:</string>
 </resources>
