@@ -553,4 +553,6 @@
     <string name="summary_sort_watching_by_date">На вкладке \"Сохраненные\" смотрите медиа</string>
     <string name="show_next_episode_to_watch_summary">Отобразить следующий эпизод, чтобы посмотреть в виде деталей, а не в последний эфир.</string>
     <string name="amoled_theme_summary">Используйте теневую-черную фоновую тему (для AMOLED-дисплея). Откройте приложение, чтобы применить полное изменение.</string>
+    <string name="in_history">Просмотренные</string>
+    <string name="start_date2">Дата начала:</string>
 </resources>
