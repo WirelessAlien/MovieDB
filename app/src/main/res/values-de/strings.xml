@@ -610,4 +610,19 @@
     <string name="backup_settings">Backup-Einstellungen</string>
     <string name="certification">Zertifizierung</string>
     <string name="runtime">Laufzeit</string>
+    <string name="in_history">Schon gesehen</string>
+    <string name="start_date2">Startdatum:</string>
+    <string name="show">Anzeigen</string>
+    <string name="no">Nein</string>
+    <string name="yes">Ja</string>
+    <string name="all">Alle</string>
+    <string name="notifications">Benachrichtigung</string>
+    <string name="downloading_update">Update wird heruntergeladen...</string>
+    <string name="update">Aktualisieren</string>
+    <string name="update_available">Aktualisierung verfügbar</string>
+    <string name="update_channel_name">Aktualisieren</string>
+    <string name="download">Herunterladen</string>
+    <string name="downloading">Lädt herunter</string>
+    <string name="download_completed">Herunterladen abgeschlossen.</string>
+    <string name="update_available2">Aktualisierung verfügbar</string>
 </resources>
