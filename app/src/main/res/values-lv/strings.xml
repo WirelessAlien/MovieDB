@@ -172,4 +172,11 @@
     <string name="episodes">Epizodes:</string>
     <string name="export">Izgūt</string>
     <string name="other">Pārējie</string>
+    <string name="in_history">Noskatīts</string>
+    <string name="notifications">Paziņojums</string>
+    <plurals name="minutes">
+        <item quantity="zero">%1$d minūtes</item>
+        <item quantity="one"></item>
+        <item quantity="other">%1$d minūtes</item>
+    </plurals>
 </resources>
