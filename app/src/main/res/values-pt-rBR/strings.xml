@@ -629,4 +629,5 @@
     <string name="backup_to_google_drive">Backup para o Google Drive</string>
     <string name="authorize_google_drive">Autorizar Google Drive</string>
     <string name="restore_database_from_google_drive">Restaurar Banco de Dados do Google Drive</string>
+    <string name="in_history">Assistido</string>
 </resources>
