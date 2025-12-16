@@ -628,4 +628,6 @@
     <string name="summary_api_region">הגדר את האזור של נתוני ה-API (אחר כך ברירת מחדל לאזור המערכת).</string>
     <string name="backup_failed">לא יכול לגבות את מסד הנתונים: X31X</string>
     <string name="nested_sorting_explanation">כאשר ניתן, אמצעי התקשורת שלך יסווגו לראשונה על ידי קטגוריה (למשל, צפייה, צפה), ולאחר מכן ממיין שוב על ידי האפשרות האחרת שבחרת (כמו תאריך שחרור או הטוב ביותר Rated).</string>
+    <string name="start_date2">תאריך התחלה:</string>
+    <string name="in_history">סיימתי</string>
 </resources>
