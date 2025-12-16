@@ -620,4 +620,9 @@
         <item quantity="other">%d λεπτά</item>
     </plurals>
     <string name="backup_failed">Δεν θα μπορούσε να επιβεβαιώσει τη βάση δεδομένων: %1$s</string>
+    <string name="season_episode_p">Κ:%1$d Ε:%2$d %3$s</string>
+    <string name="next_episode_upcoming_label">Προσεχώς</string>
+    <string name="notifications">Ειδοποίηση</string>
+    <string name="in_history">Παρακολούθησα</string>
+    <string name="start_date2">Ημερομηνία έναρξης:</string>
 </resources>
