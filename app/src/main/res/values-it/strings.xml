@@ -627,4 +627,7 @@
     <string name="drive_access_failed">Non poteva accedere Google Drive</string>
     <string name="csv_import_explanation">Come importare:\n1. Selezionare il file CSV.\n2. Se il vostro CSV utilizza un delimitatore diverso da una virgola (,), inseritelo nel campo \"simbolo del differenziatore\" (ad esempio, ; o |). Premere Invio per applicare.\n3. Mappa le colonne dal tuo CSV ai campi del database dell\'app. \'TMDB ID\' è richiesto per la corrispondenza.\n4. Se il CSV non dispone di una colonna che specifica se un elemento è un film o un programma TV, selezionare un tipo predefinito sotto le mappe (è necessario).\n5. Fare clic su \'Start Import\'. L\'importazione si svolgerà sullo sfondo.</string>
     <string name="nested_sorting_explanation">Quando abilitato, i tuoi media saranno ordinati per categoria (ad esempio, Guardando, Guardato), e poi ordinati di nuovo dall\'altra opzione che hai selezionato (come Data di rilascio o Miglior Tariffato).</string>
+    <string name="downloading">Download</string>
+    <string name="in_history">Visto</string>
+    <string name="start_date2">Data di inizio:</string>
 </resources>
