@@ -20,9 +20,9 @@
 
 
 <resources>
-    <string name="app_name" translatable="false">ShowCase Plus</string>
+    <string name="app_name_p" translatable="false">ShowCase Plus</string>
     <string name="app_name" translatable="false">ShowCase</string>
-    <string name="search_title_ext">Search in ShowCase Plus</string>
+    <string name="search_title_ext_p">Search in ShowCase Plus</string>
     <string name="search_title_ext">Search in ShowCase</string>
   
 
