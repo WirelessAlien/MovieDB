@@ -641,11 +641,24 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             dialog.setContentView(dialogViewBinding.root)
             dialog.show()
 
-            val ratingBar = dialogViewBinding.ratingSlider
+            val ratingSlider = dialogViewBinding.ratingSlider
             val submitButton = dialogViewBinding.btnSubmit
             val cancelButton = dialogViewBinding.btnCancel
             val deleteButton = dialogViewBinding.btnDelete
             val movieTitle = dialogViewBinding.tvTitle
+            val changeStepSizeButton = dialogViewBinding.btnChangeStepSize
+
+            // Initialize step size from SharedPreferences
+            var currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
+            ratingSlider.stepSize = currentStepSize
+
+            changeStepSizeButton.setOnClickListener {
+                currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
+                preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                ratingSlider.stepSize = currentStepSize
+                Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
+            }
+
             movieTitle.text = showTitle
             lifecycleScope.launch {
                 val typeCheck = if (isMovie) "movie" else "tv"
@@ -656,12 +669,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 val previousRating = getAccountState.rating
-                ratingBar.value = previousRating.toFloat()
+                ratingSlider.value = previousRating.toFloat()
 
                 submitButton.setOnClickListener {
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
-                        val rating = round(ratingBar.value.toDouble())
+                        val rating = round(ratingSlider.value.toDouble())
                         withContext(Dispatchers.IO) {
                             AddRating(movieId, rating, type, mActivity).addRating()
                         }
@@ -1483,6 +1496,18 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         val ratedAt = dialogViewBinding.ratedDate
         val progressIndicator = dialogViewBinding.progressIndicator
         val selectDateButton = dialogViewBinding.btnSelectDate
+        val changeStepSizeButton = dialogViewBinding.btnChangeStepSize
+
+        // Initialize step size from SharedPreferences
+        var currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
+        ratingSlider.stepSize = currentStepSize
+
+        changeStepSizeButton.setOnClickListener {
+            currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
+            preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+            ratingSlider.stepSize = currentStepSize
+            Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
+        }
 
         movieTitle.text = showTitle
         progressIndicator.visibility = View.VISIBLE

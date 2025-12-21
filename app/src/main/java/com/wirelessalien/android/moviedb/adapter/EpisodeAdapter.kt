@@ -108,7 +108,9 @@ class EpisodeAdapter(
     //    private var isInCollection: Boolean = false
     private var isInWatchList: Boolean = false
     private var isInRating: Boolean = false
-    private lateinit var defaultSharedPreferences: SharedPreferences
+    private val defaultSharedPreferences: SharedPreferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(context)
+    }
 
     init {
         CoroutineScope(Dispatchers.Main).launch {
@@ -167,7 +169,6 @@ class EpisodeAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodeViewHolder {
         val binding = EpisodeItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         clientId = ConfigHelper.getConfigValue(context, "client_id")?:""
         when (defaultSharedPreferences.getString("sync_provider", "local")) {
 
@@ -600,6 +601,17 @@ class EpisodeAdapter(
                 episode.name
             )
 
+            // Initialize step size from SharedPreferences
+            var currentStepSize = defaultSharedPreferences.getFloat("rating_step_size", 0.1f)
+            binding.ratingSlider.stepSize = currentStepSize
+
+            binding.btnChangeStepSize.setOnClickListener {
+                currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
+                defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                binding.ratingSlider.stepSize = currentStepSize
+                Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
+            }
+
             Handler(Looper.getMainLooper())
             binding.btnSubmit.setOnClickListener {
                 CoroutineScope(Dispatchers.Main).launch {
@@ -946,6 +958,17 @@ class EpisodeAdapter(
         dialog.show()
 
         binding.tvTitle.text = context.getString(R.string.episode_title_format, showTitle, seasonNumber, episode.episodeNumber, episode.name)
+
+        // Initialize step size from SharedPreferences
+        var currentStepSize = defaultSharedPreferences.getFloat("rating_step_size", 0.1f)
+        binding.ratingSlider.stepSize = currentStepSize
+
+        binding.btnChangeStepSize.setOnClickListener {
+            currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
+            defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+            binding.ratingSlider.stepSize = currentStepSize
+            Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
+        }
 
         binding.progressIndicator.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {

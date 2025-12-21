@@ -46,16 +46,33 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <com.google.android.material.slider.Slider
-        android:id="@+id/ratingSlider"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:valueFrom="0.0"
-        android:valueTo="10.0"
-        android:stepSize="1.0"
-        android:value="0.0"
-        app:labelBehavior="visible"
-        android:layout_margin="16dp" />
+        android:layout_margin="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnChangeStepSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.Button.IconButton"
+            app:icon="@drawable/ic_change_circle"
+            android:layout_alignParentEnd="true"
+            android:layout_alignBottom="@id/ratingSlider"/>
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/ratingSlider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0.0"
+            android:valueTo="10.0"
+            android:stepSize="1.0"
+            android:value="0.0"
+            android:layout_toStartOf="@id/btnChangeStepSize"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            app:labelBehavior="visible"/>
+    </RelativeLayout>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progressIndicator"

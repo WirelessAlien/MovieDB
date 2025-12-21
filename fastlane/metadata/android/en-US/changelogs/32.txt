@@ -1,0 +1,2 @@
+A few small fix
+Add French translation strings
