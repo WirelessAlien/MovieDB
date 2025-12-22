@@ -615,4 +615,14 @@
     <string name="add_to_collection">Add to Collection</string>
     <string name="add_details">اضافه کردن جزئیات</string>
     <string name="mark_as_watched">مارک به عنوان Watched</string>
+    <string name="season_episode_p">فصل:%1$d قسمت:%2$d %3$s</string>
+    <string name="review1">نقد و بررسی</string>
+    <string name="next_episode_upcoming_label">در آینده</string>
+    <string name="downloading">درحال بارگیری</string>
+    <plurals name="minutes">
+        <item quantity="one">%1$d دقیقه</item>
+        <item quantity="other">%1$d دقیقه</item>
+    </plurals>
+    <string name="in_history">تماشا شده</string>
+    <string name="season1">فصل</string>
 </resources>
