@@ -52,4 +52,7 @@
     <string name="failed_to_remove_media_from_list">無法將媒體從清單中移除</string>
     <string name="list_created_successfully">已建立清單</string>
     <string name="failed_to_create_list">無法建立清單</string>
+    <string name="save">儲存</string>
+    <string name="notifications">通知</string>
+    <string name="downloading">下載</string>
 </resources>
