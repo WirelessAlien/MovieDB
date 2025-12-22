@@ -623,4 +623,6 @@
     <string name="authorize_google_drive">Authoriseert Google Drive</string>
     <string name="restore_database_from_google_drive">Restore Database van Google Drive</string>
     <string name="backup_settings">Versterking Setting</string>
+    <string name="in_history">Gezien</string>
+    <string name="start_date2">Startdatum:</string>
 </resources>
