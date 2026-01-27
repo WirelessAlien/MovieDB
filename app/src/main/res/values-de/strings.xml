@@ -100,7 +100,7 @@
     <string name="added_to_favourites">Zu den Favoriten hinzugefügt</string>
     <string name="episodes_removed">Alle Folgen als angeschaut markiert</string>
     <string name="load_hd_images">Hochaufgelöste Bilder laden</string>
-    <string name="lists_state_info_title">Listen Info</string>
+    <string name="lists_state_info_title">Listen-Info</string>
     <string name="rated">Bewertet</string>
     <string name="share">ShowCase teilen</string>
     <string name="attribution">Beitrag</string>
@@ -197,7 +197,7 @@
     <string name="episode_airing_today">Folge %1$s (%2$s) wird heute ausgestrahlt!</string>
     <string name="movie_released_today">%1$s wird heute veröffentlicht!</string>
     <string name="episodes_added">Alle Folgen als ungeschaut markiert</string>
-    <string name="error_occurred_in_list_data">Liste Daten nicht abrufen</string>
+    <string name="error_occurred_in_list_data">Die Listendaten konnte nicht abgerufen werden</string>
     <string name="login_failed">Etwas ging schief. Bitte melden Sie sich erneut an.</string>
     <string name="list_state_info">Die TMDB API fehlt eine direkte Methode, den Verfügbarkeitszustand (d.h. ob ein Film verfügbar ist oder nicht) für alle Listen in einer einzigen Anfrage abzurufen. Folglich muss jeder Film jeder Liste überprüft werden, was ineffizient ist. Listenzustände werden daher in einer Offline-Datenbank nach dem Abrufen von Daten von TMDB verwaltet. Wenn ein Benutzer einen Film aus einer Liste hinzufügt oder entfernt, wird diese Aktion sowohl in TMDB als auch in unserer Datenbank aufgezeichnet. Wenn jedoch ein Benutzer seine Listen außerhalb der App ändert (z.B. auf der TMDB-Website), wird die App diese Änderungen nicht beachten. Um die Daten zu aktualisieren, können Benutzer ihre Listen manuell über den bereitgestellten Button aktualisieren.</string>
     <string name="runtime_minutes">%1$d Minuten</string>
@@ -269,7 +269,7 @@
     <string name="load_hd_image_summary">Bilder der Filmplakate, Folgen und Besetzung werden mit höherer Auflösung (780+) geladen.</string>
     <string name="movie">Film</string>
     <string name="tv_show">TV-Sendung</string>
-    <string name="just_watch_attribution">Diese App verwendet JustWatch-Daten, um \'Wo zu sehen?\' info.</string>
+    <string name="just_watch_attribution">Diese App verwendet Daten von \'JustWatch\', um Informationen für \'Wo zu sehen?\' bereitzustellen.</string>
     <string name="donate">Spenden</string>
     <string name="overview_not_available">Übersicht nicht zur Folge hinzugefügt. Wenn verfügbar, wird dies ausgeführt.</string>
     <string name="search_engine_key_summary">Suchmaschine zum Suchen von Filmen aus der App (Standard ist Google)</string>
