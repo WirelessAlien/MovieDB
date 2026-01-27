@@ -10,7 +10,7 @@
     <string name="cast_movie_title">Teil der Besetzung in</string>
     <string name="crew_movie_title">Teil des Stabs in</string>
     <string name="movie_added">Film hinzugefügt</string>
-    <string name="series_added">Serie hinzugefügt</string>
+    <string name="series_added">Es wurde hinzugefügt</string>
     <string name="start_date_unknown">Startdatum: Nicht gesetzt</string>
     <string name="finish_date_unknown">Enddatum: Nicht gesetzt</string>
     <string name="episodes_seen">Episoden gesehen: %1$d/%2$d</string>
@@ -145,7 +145,7 @@
     <string name="finish_date">Abgeschlossen am: %1$s</string>
     <string name="times_watched">Gesehen: %1$d Mal</string>
     <string name="in_the_theater_right_now">In den Kinos</string>
-    <string name="series_tab_title">Serien</string>
+    <string name="series_tab_title">Serie</string>
     <string name="choose_file">Wählen Sie eine Import-Datei:</string>
     <string name="title_shows_in_grid">Sendungen als Raster anzeigen</string>
     <string name="summary_hide_tabs">Starten Sie die App neu, um die Änderungen anzuwenden.</string>
