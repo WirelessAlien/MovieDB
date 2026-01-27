@@ -4,7 +4,7 @@
     <string name="no_permission_dialog_cancel">Abbrechen</string>
     <string name="genres">Genres</string>
     <string name="advanced">Erweitert</string>
-    <string name="title_show_cast">Besetzung anzeigen</string>
+    <string name="title_show_cast">Show cast</string>
     <string name="title_show_crew">Stab anzeigen</string>
     <string name="ok">OK</string>
     <string name="cast_movie_title">Teil der Besetzung in</string>
@@ -46,8 +46,8 @@
     <string name="action_import">Importieren</string>
     <string name="action_save">Speichern</string>
     <string name="title_general">Allgemein</string>
-    <string name="title_show_recommendations">Empfehlungen anzeigen</string>
-    <string name="title_show_save_dialog">Speichern-Dialog anzeigen</string>
+    <string name="title_show_recommendations">Show recommendations</string>
+    <string name="title_show_save_dialog">Show save dialog</string>
     <string name="title_persistent_filtering">Dauerhafter Filter</string>
     <string name="title_show_representation">Darstellung anzeigen</string>
     <string name="title_grid_size">Rastergröße</string>
