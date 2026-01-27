@@ -239,7 +239,7 @@
     <string name="enable_auto_backup">Autobackup aktivieren</string>
     <string name="database_backup">Datenbank-Backup</string>
     <string name="filter_people_list">Filter Personenliste</string>
-    <string name="import_movie_database">Filmdatenbank importieren</string>
+    <string name="import_movie_database">Liste</string>
     <string name="seasons">Jahreszeiten</string>
     <string name="account_id_fail_try_login_again">Konnte keine Konto-ID abrufen. Versuchen Sie sich wieder anzumelden.</string>
     <string name="no_trailer_available">Kein Anhänger verfügbar</string>
@@ -281,7 +281,7 @@
     <string name="export_channel_description">Meldung für automatisierte Datenbanksicherung</string>
     <string name="database_backup_successful">Datenbanksicherung abgeschlossen.</string>
     <string name="database_backup_failed">Konnte die Datenbank nicht sichern. Versuchen Sie, wieder Zugriff auf den Ordner zu gewähren.</string>
-    <string name="season_number">S: %1$d</string>
+    <string name="season_number">Link mit Hilfe von</string>
     <string name="not_watched">Nicht geschaut</string>
     <string name="i_am_watching">Jetzt zu sehen!</string>
     <string name="list_add">Zur Liste hinzufügen</string>
