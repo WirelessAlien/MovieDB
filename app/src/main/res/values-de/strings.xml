@@ -107,7 +107,7 @@
     <string name="trailer">Trailer</string>
     <string name="no_browser_available">Keine App kann diese Anfrage verarbeiten. Bitte installieren Sie einen Webbrowser.</string>
     <string name="rate_movie">Bewerten</string>
-    <string name="done">Erledigt</string>
+    <string name="done">KAPITEL</string>
     <string name="loading_in_progress">Bitte warten Sie, der Ladevorgang ist noch im Gange…</string>
     <string name="save_to_database">Speichern der Datenbank</string>
     <string name="error_adding_episode_to_database">Fehler beim Hinzufügen von Episoden in der Datenbank</string>
