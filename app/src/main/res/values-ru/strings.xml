@@ -9,8 +9,8 @@
     <string name="crew_movie_title">В составе съемочной группы</string>
     <string name="movie_added">Фильм добавлен</string>
     <string name="series_added">Сериал добавлен</string>
-    <string name="start_date_unknown">Дата начала: Не задана</string>
-    <string name="finish_date_unknown">Дата завершения: Не задана</string>
+    <string name="start_date_unknown">Дата начала: Не установлена</string>
+    <string name="finish_date_unknown">Дата завершения: Не установлена</string>
     <string name="episodes_seen">Просмотрено эпизодов: %1$d/%2$d</string>
     <string name="rating">"Оценка: "</string>
     <string name="change_start_date_2">"Дата начала: "</string>
@@ -18,7 +18,7 @@
     <string name="change_watched_times">"Просмотрено раз: "</string>
     <string name="cast_title">Актеры</string>
     <string name="crew_title">Съемочная группа</string>
-    <string name="recommendations_title">Ронекомендации</string>
+    <string name="recommendations_title">Рекомендации</string>
     <string name="category_picker">Выберите подходящую категорию</string>
     <string name="show_category">"Категория: "</string>
     <string name="sort_by">Сортировать по</string>
@@ -206,8 +206,8 @@
     <string name="directory_path">Путь: %1$s</string>
     <string name="no_browser_available">Приложение не может обработать этот запрос. Пожалуйста, установите веб-браузер.</string>
     <string name="rate_movie">Оценить</string>
-    <string name="edit">Изменить</string>
-    <string name="episode_rating_tmdb_not_set">Оценка (TMDB): Не задана</string>
+    <string name="edit">Редактировать</string>
+    <string name="episode_rating_tmdb_not_set">Оценка (TMDB): Не установлена</string>
     <string name="episode_rating_db_not_set">Оценка (БД): Не установлена</string>
     <string name="watched_on">Просмотрено:</string>
     <string name="rating_db">Оценка (БД):</string>
@@ -477,7 +477,7 @@
     <string name="start_date_3">Дата начала</string>
     <string name="enable_nested_sorting">Включить вложенную сортировку</string>
     <plurals name="years">
-        <item quantity="one"/>
+        <item quantity="one"></item>
         <item quantity="few">%d лет</item>
         <item quantity="many">%d лет</item>
         <item quantity="other">%d лет</item>
@@ -485,7 +485,7 @@
     <string name="search_title_ext_p">Поиск в ShowCase Plus</string>
     <string name="same_as_start_date">Такая же как дата начала</string>
     <plurals name="months">
-        <item quantity="one"/>
+        <item quantity="one"></item>
         <item quantity="few">%d месяцев</item>
         <item quantity="many">%d месяцев</item>
         <item quantity="other">%d месяцев</item>
@@ -493,26 +493,26 @@
     <string name="guest_stars">Гостевые звезды</string>
     <string name="no_csv_export_option_selected">Выберите опцию экспорта CSV</string>
     <plurals name="days">
-        <item quantity="one"/>
-        <item quantity="few">%d дней</item>
+        <item quantity="one"></item>
+        <item quantity="few">%d день</item>
         <item quantity="many">%d дней</item>
         <item quantity="other">%d дней</item>
     </plurals>
     <string name="failed_to_update_list">Не удалось обновить список</string>
     <string name="list_update_success">Список успешно обновлен</string>
     <plurals name="hours">
-        <item quantity="one"/>
-        <item quantity="few">%d</item>
-        <item quantity="many">%d</item>
-        <item quantity="other">%d</item>
+        <item quantity="one"></item>
+        <item quantity="few">%d час</item>
+        <item quantity="many">%d часов</item>
+        <item quantity="other">%d часов</item>
     </plurals>
     <string name="language">Язык</string>
     <string name="backdrops">Фоны</string>
     <plurals name="minutes">
-        <item quantity="one"/>
-        <item quantity="few">%d</item>
-        <item quantity="many">%d</item>
-        <item quantity="other">%d</item>
+        <item quantity="one"></item>
+        <item quantity="few">%d минута</item>
+        <item quantity="many">%d минут</item>
+        <item quantity="other">%d минут</item>
     </plurals>
     <string name="backup_to_google_drive">Резервное копирование в Google Drive</string>
     <string name="authorize_google_drive">Авторизовать Google Drive</string>
