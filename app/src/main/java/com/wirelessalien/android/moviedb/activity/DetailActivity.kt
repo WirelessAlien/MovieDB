@@ -471,6 +471,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 )
                 binding.fabSave.text = getString(R.string.saved_tab_title)
                 added = true
+                binding.fabSave.visibility = View.GONE
             }
         }
 
@@ -1170,10 +1171,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 menuInflater.inflate(R.menu.menu_link, menu)
             }
 
+            override fun onPrepareMenu(menu: Menu) {
+                val removeMenuItem = menu.findItem(R.id.action_remove)
+                removeMenuItem?.isVisible = added
+            }
+
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 val id = menuItem.itemId
 
-                if (id == R.id.action_link)
+                if (id == R.id.action_link) {
                     if (isMovie) {
                         val url = "https://www.themoviedb.org/movie/$movieId"
                         launchUrl(this@DetailActivity, url)
@@ -1181,10 +1187,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         val url = "https://www.themoviedb.org/tv/$movieId"
                         launchUrl(this@DetailActivity, url)
                     }
+                    return true
+                } else if (id == R.id.action_remove) {
+                    showDeleteConfirmationDialog()
+                    return true
+                }
                 return false
             }
 
         }, this, Lifecycle.State.RESUMED)
+    }
+
+    private fun showDeleteConfirmationDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.confirm_deletion)
+            .setMessage(R.string.confirm_delete_message)
+            .setPositiveButton(R.string.yes) { _, _ ->
+                databaseHelper.deleteMovie(movieId)
+                databaseHelper.deleteEpisodesForMovie(movieId)
+                added = false
+                databaseUpdate()
+                finish()
+            }
+            .setNegativeButton(R.string.no, null)
+            .show()
     }
 
     private fun showSyncProviderActionsDialog() {
@@ -1210,7 +1236,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         binding.favouriteButtonTmdb.visibility = View.VISIBLE
         binding.addToListTmdb.visibility = View.VISIBLE
         binding.watchListButtonTmdb.visibility = View.VISIBLE
-        if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
+        if (preferences.getBoolean("force_local_sync", false) && !added) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
     }
 
     private fun tktBtnsVisible() {
@@ -1224,7 +1250,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         binding.favouriteButtonTmdb.visibility = View.GONE
         binding.addToListTmdb.visibility = View.GONE
         binding.watchListButtonTmdb.visibility = View.GONE
-        if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
+        if (preferences.getBoolean("force_local_sync", false) && !added) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
     }
 
     private fun localBtnsVisible() {
@@ -1238,7 +1264,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         binding.favouriteButtonTmdb.visibility = View.GONE
         binding.addToListTmdb.visibility = View.GONE
         binding.watchListButtonTmdb.visibility = View.GONE
-        binding.fabSave.visibility = View.VISIBLE
+        if (!added) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
     }
 
     private fun launchUrl(context: Context, url: String) {
@@ -2248,6 +2274,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
             // Inform the user of the addition to the database
             added = true
+            binding.fabSave.visibility = View.GONE
+            invalidateOptionsMenu()
             binding.fabSave.icon = ContextCompat.getDrawable(this, R.drawable.ic_star)
             binding.fabSave.text = getString(R.string.saved_tab_title)
             if (isMovie) {
