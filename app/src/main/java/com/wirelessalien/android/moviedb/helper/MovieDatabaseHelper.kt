@@ -1321,7 +1321,6 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val placeholders = tagIds.joinToString(",") { "?" }
         val args = ArrayList<String>()
         tagIds.forEach { args.add(it.toString()) }
-        args.add(tagIds.size.toString())
 
         val query = """
             SELECT m.* 
@@ -1329,7 +1328,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
             INNER JOIN $TABLE_MOVIE_TAGS mt ON m.$COLUMN_MOVIES_ID = mt.$COLUMN_MT_MOVIE_ID AND m.$COLUMN_MOVIE = mt.$COLUMN_MT_IS_MOVIE
             WHERE mt.$COLUMN_MT_TAG_ID IN ($placeholders)
             GROUP BY m.$COLUMN_ID
-            HAVING COUNT(DISTINCT mt.$COLUMN_MT_TAG_ID) = ?
+            HAVING COUNT(DISTINCT mt.$COLUMN_MT_TAG_ID) = ${tagIds.size}
         """
 
         val movies = ArrayList<JSONObject>()
