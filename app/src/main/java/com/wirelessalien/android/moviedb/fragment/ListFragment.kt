@@ -914,6 +914,22 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                 mShowArrayList = showArrayList
 
+                filterAdapterByChip(binding.chipGroup.checkedChipId)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
+                setChipsEnabled(true)
+            }
+        }
+    }
+
+    private fun filterAdapterByChip(chipId: Int) {
+        when (chipId) {
+            R.id.chipAll -> {
+                updateFab(true)
                 mShowAdapter.updateData(mShowArrayList)
 
                 if (!mSearchView) {
@@ -923,13 +939,55 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
                     mScrollPosition?.let { mShowView.scrollToPosition(it) }
                 }
+            }
+            R.id.chipUpcoming -> {
+                activityBinding.fab.visibility = View.GONE
+                activityBinding.fab2.visibility = View.GONE
+                mShowAdapter.updateData(mUpcomingArrayList)
+            }
+            R.id.chipWatching -> {
+                if (preferences.getBoolean("key_show_continue_watching", true)) {
+                    activityBinding.fab.visibility = View.GONE
+                } else {
+                    activityBinding.fab.visibility = View.VISIBLE
+                    activityBinding.fab.setImageResource(R.drawable.ic_next_plan)
+                }
+                activityBinding.fab2.visibility = View.GONE
+                activityBinding.fab.setOnClickListener {
+                    val upNextFragment = UpNextFragment()
+                    upNextFragment.show(parentFragmentManager, "UpNextFragment")
+                }
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                binding.shimmerFrameLayout1.visibility = View.GONE
-                binding.shimmerFrameLayout1.stopShimmer()
-                setChipsEnabled(true)
+                var watchingShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHING) {
+                        watchingShows.add(show)
+                    }
+                }
+                watchingShows = sortShowsByDate(watchingShows, "key_sort_watching_by_date")
+                mShowAdapter.updateData(watchingShows)
+            }
+            R.id.chipWatched -> {
+                updateFab(false)
+                var watchedShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                        watchedShows.add(show)
+                    }
+                }
+                watchedShows = sortShowsByDate(watchedShows, "key_sort_watched_by_date")
+                mShowAdapter.updateData(watchedShows)
+            }
+            R.id.chipPlanToWatch -> {
+                updateFab(false)
+                var planToWatchShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH) {
+                        planToWatchShows.add(show)
+                    }
+                }
+                planToWatchShows = sortShowsByDate(planToWatchShows, "key_sort_plan_to_watch_by_date")
+                mShowAdapter.updateData(planToWatchShows)
             }
         }
     }

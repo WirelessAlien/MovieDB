@@ -65,9 +65,20 @@ class UpNextFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = UpNextAdapter(requireContext(), upNextList) { showId, seasonNumber, episodeNumber ->
+        adapter = UpNextAdapter(requireContext(), upNextList, { showId, seasonNumber, episodeNumber ->
             markEpisodeAsWatched(showId, seasonNumber, episodeNumber)
-        }
+        }, { showId ->
+            val item = upNextList.find { it.showId == showId }
+            if (item != null) {
+                val intent = android.content.Intent(requireContext(), com.wirelessalien.android.moviedb.activity.DetailActivity::class.java)
+                val movieObject = JSONObject()
+                movieObject.put("id", item.showId)
+                movieObject.put("name", item.showName)
+                intent.putExtra("movieObject", movieObject.toString())
+                intent.putExtra("isMovie", false)
+                startActivity(intent)
+            }
+        })
         binding.recyclerViewUpNext.adapter = adapter
         binding.recyclerViewUpNext.layoutManager = LinearLayoutManager(requireContext())
     }

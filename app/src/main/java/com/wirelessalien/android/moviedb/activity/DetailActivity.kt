@@ -656,6 +656,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             changeStepSizeButton.setOnClickListener {
                 currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
                 preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                val newValue = kotlin.math.round(ratingSlider.value / currentStepSize) * currentStepSize
+                if (newValue != ratingSlider.value) {
+                    ratingSlider.value = newValue
+                }
                 ratingSlider.stepSize = currentStepSize
                 Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
             }
@@ -2975,6 +2979,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.btnChangeStepSize.setOnClickListener {
                 currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
                 preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                val newValue = kotlin.math.round(binding.showRating.value / currentStepSize) * currentStepSize
+                if (newValue != binding.showRating.value) {
+                    binding.showRating.value = newValue
+                }
                 binding.showRating.stepSize = currentStepSize
                 Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
             }

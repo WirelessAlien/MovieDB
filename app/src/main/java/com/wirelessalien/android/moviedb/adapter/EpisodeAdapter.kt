@@ -505,6 +505,10 @@ class EpisodeAdapter(
             binding.btnChangeStepSize.setOnClickListener {
                 currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
                 defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                val newValue = kotlin.math.round(binding.episodeRatingSlider.value / currentStepSize) * currentStepSize
+                if (newValue != binding.episodeRatingSlider.value) {
+                    binding.episodeRatingSlider.value = newValue
+                }
                 binding.episodeRatingSlider.stepSize = currentStepSize
                 Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
             }
@@ -608,6 +612,10 @@ class EpisodeAdapter(
             binding.btnChangeStepSize.setOnClickListener {
                 currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
                 defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                val newValue = kotlin.math.round(binding.ratingSlider.value / currentStepSize) * currentStepSize
+                if (newValue != binding.ratingSlider.value) {
+                    binding.ratingSlider.value = newValue
+                }
                 binding.ratingSlider.stepSize = currentStepSize
                 Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
             }
@@ -966,6 +974,10 @@ class EpisodeAdapter(
         binding.btnChangeStepSize.setOnClickListener {
             currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
             defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+            val newValue = kotlin.math.round(binding.ratingSlider.value / currentStepSize) * currentStepSize
+            if (newValue != binding.ratingSlider.value) {
+                binding.ratingSlider.value = newValue
+            }
             binding.ratingSlider.stepSize = currentStepSize
             Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
         }

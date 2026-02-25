@@ -30,7 +30,8 @@ import com.wirelessalien.android.moviedb.databinding.ItemUpNextBinding
 class UpNextAdapter(
     private val context: Context,
     var upNextList: MutableList<UpNextItem>,
-    private val onEpisodeWatched: (Int, Int, Int) -> Unit
+    private val onEpisodeWatched: (Int, Int, Int) -> Unit,
+    private val onItemClicked: (Int) -> Unit
 ) : RecyclerView.Adapter<UpNextAdapter.UpNextViewHolder>() {
 
     inner class UpNextViewHolder(val binding: ItemUpNextBinding) : RecyclerView.ViewHolder(binding.root)
@@ -51,6 +52,10 @@ class UpNextAdapter(
                 item.episodeNumber,
                 item.episodeTitle
             )
+
+            root.setOnClickListener {
+                onItemClicked(item.showId)
+            }
 
             btnMarkWatched.setOnClickListener {
                 onEpisodeWatched(item.showId, item.seasonNumber, item.episodeNumber)
