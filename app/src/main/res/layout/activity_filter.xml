@@ -305,11 +305,28 @@
             android:orientation="horizontal">
         </com.google.android.material.chip.ChipGroup>
 
+        <TextView
+            android:id="@+id/tagsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/genreButtons"
+            android:layout_margin="5dp"
+            android:text="@string/tags"
+            android:textStyle="bold" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/tagButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tagsText"
+            android:orientation="horizontal">
+        </com.google.android.material.chip.ChipGroup>
+
         <View
             android:id="@+id/genreViewSeparator"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_below="@id/genreButtons"
+            android:layout_below="@id/tagButtons"
             android:layout_marginBottom="10dp"
             android:layout_marginTop="10dp"
             android:background="?android:attr/listDivider" />

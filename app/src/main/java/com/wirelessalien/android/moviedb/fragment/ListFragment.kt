@@ -72,9 +72,12 @@ import com.wirelessalien.android.moviedb.activity.FilterActivity
 import com.wirelessalien.android.moviedb.activity.ImportActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.activity.TaggedListActivity
 import com.wirelessalien.android.moviedb.data.CategoryDTO
 import com.wirelessalien.android.moviedb.data.ChipInfo
+import com.wirelessalien.android.moviedb.data.Tag
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.BottomSheetTagsBinding
 import com.wirelessalien.android.moviedb.databinding.DialogEpisodeDataExpBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
 import com.wirelessalien.android.moviedb.databinding.DialogSwitchBinding
@@ -83,6 +86,10 @@ import com.wirelessalien.android.moviedb.databinding.FragmentSavedBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentSavedSetupBinding
 import com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.JustifyContent
+import com.google.android.flexbox.FlexWrap
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
@@ -293,6 +300,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                     R.id.action_fetch_tmdb_data -> {
                         showTmdbDetailsExplanationDialog()
+                        true
+                    }
+
+                    R.id.action_tags -> {
+                        showTagsBottomSheet()
                         true
                     }
                     else -> false
@@ -508,6 +520,55 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             tmdbDialog.dismiss()
             updateShowViewAdapter()
         }
+    }
+
+    private fun showTagsBottomSheet() {
+        val binding = BottomSheetTagsBinding.inflate(LayoutInflater.from(requireContext()))
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(binding.root)
+
+        val layoutManager = FlexboxLayoutManager(context)
+        layoutManager.flexDirection = FlexDirection.ROW
+        layoutManager.justifyContent = JustifyContent.FLEX_START
+        layoutManager.flexWrap = FlexWrap.WRAP
+        binding.tagsRecyclerView.layoutManager = layoutManager
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val tags = mDatabaseHelper.getAllTags()
+            withContext(Dispatchers.Main) {
+                binding.tagsRecyclerView.adapter = TagsAdapter(tags)
+            }
+        }
+
+        dialog.show()
+    }
+
+    inner class TagsAdapter(private val tags: List<Tag>) :
+        RecyclerView.Adapter<TagsAdapter.ViewHolder>() {
+
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val chip: Chip = view as Chip
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.chip_item, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val tag = tags[position]
+            holder.chip.text = tag.name
+            holder.chip.setOnClickListener {
+                val intent = Intent(requireContext(), TaggedListActivity::class.java).apply {
+                    putExtra("tag_id", tag.id)
+                    putExtra("tag_name", tag.name)
+                }
+                startActivity(intent)
+            }
+        }
+
+        override fun getItemCount() = tags.size
     }
 
     private fun showQuickAccessBottomSheet() {
@@ -1224,6 +1285,40 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
+        // Filter by tags to include
+        val withTags = FilterActivity.convertStringToArrayList(
+            sharedPreferences.getString("filter_with_tags", null), ", "
+        )
+        if (withTags != null && withTags.isNotEmpty()) {
+            listToFilter.removeIf { showObject ->
+                val tagsArray = showObject.optJSONArray("tags")
+                val itemTags = mutableListOf<String>()
+                if (tagsArray != null) {
+                    for (i in 0 until tagsArray.length()) {
+                        itemTags.add(tagsArray.getString(i))
+                    }
+                }
+                !itemTags.containsAll(withTags)
+            }
+        }
+
+        // Filter by tags to exclude
+        val withoutTags = FilterActivity.convertStringToArrayList(
+            sharedPreferences.getString("filter_without_tags", null), ", "
+        )
+        if (withoutTags != null && withoutTags.isNotEmpty()) {
+            listToFilter.removeIf { showObject ->
+                val tagsArray = showObject.optJSONArray("tags")
+                val itemTags = mutableListOf<String>()
+                if (tagsArray != null) {
+                    for (i in 0 until tagsArray.length()) {
+                        itemTags.add(tagsArray.getString(i))
+                    }
+                }
+                itemTags.any { tag -> withoutTags.contains(tag) }
+            }
+        }
+
         // --- Sorting Logic ---
         val sortPreference = sharedPreferences.getString(FilterActivity.FILTER_SORT, null)
         val nestedSortEnabled = sharedPreferences.getBoolean(FilterActivity.FILTER_NESTED_SORT, false)
@@ -1454,6 +1549,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private fun convertDatabaseListToArrayList(cursor: Cursor): ArrayList<JSONObject> {
         val dbShowsArrayList = ArrayList<JSONObject>()
         val showEpisodesMap = mutableMapOf<Int, MutableMap<Int, JSONArray>>()
+        val tagsMap = mDatabaseHelper.getAllMovieTagsMap()
 
         if (cursor.isClosed) {
             Log.e("ListFragment", "Cursor is closed, cannot convert database list to array list.")
@@ -1518,6 +1614,16 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                         // Initialize seasons object
                         put(SEASONS, JSONObject())
+
+                        val isMovie = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE))
+                        val key = "${movieId.toLong()}_$isMovie"
+                        val tags = tagsMap[key]
+                        if (tags != null) {
+                            val tagsArray = JSONArray()
+                            tags.forEach { tagsArray.put(it) }
+                            put("tags", tagsArray)
+                        }
+
                     } catch (je: JSONException) {
                         je.printStackTrace()
                     }

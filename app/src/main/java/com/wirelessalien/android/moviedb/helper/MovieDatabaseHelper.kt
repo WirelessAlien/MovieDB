@@ -98,6 +98,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
 
     suspend fun getJSONExportString(database: SQLiteDatabase): String = withContext(Dispatchers.IO) {
         val moviesArray = JSONArray()
+        val tagsMap = getAllMovieTagsMap()
 
         // Get all movies
         val moviesCsr = database.query(
@@ -128,7 +129,16 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
 
                 // Get episodes for this movie
                 val movieId = moviesCursor.getLong(moviesCursor.getColumnIndexOrThrow(COLUMN_MOVIES_ID))
+                val isMovie = moviesCursor.getInt(moviesCursor.getColumnIndexOrThrow(COLUMN_MOVIE))
                 movieObject.put("episodes", getEpisodesForMovie(movieId, database))
+
+                val key = "${movieId}_$isMovie"
+                val tags = tagsMap[key]
+                if (tags != null) {
+                    val tagsArray = JSONArray()
+                    tags.forEach { tagsArray.put(it) }
+                    movieObject.put("tags", tagsArray)
+                }
 
                 moviesArray.put(movieObject)
             }
@@ -174,6 +184,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
 
     suspend fun getCSVExportString(database: SQLiteDatabase, moviesOnly: Boolean): String = withContext(Dispatchers.IO) {
         val csvBuilder = StringBuilder()
+        val tagsMap = getAllMovieTagsMap()
 
         val query = if (moviesOnly) {
             """
@@ -228,7 +239,8 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val csr = database.rawQuery(query, null)
 
         csr.use { cursor ->
-            val headers = cursor.columnNames
+            val headers = cursor.columnNames.toMutableList()
+            headers.add("tags")
             csvBuilder.append(headers.joinToString(",")).append("\n")
 
             // Write data rows
@@ -251,11 +263,53 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     }
                     value
                 }
-                csvBuilder.append(row).append("\n")
+                
+                // Add tags
+                val tmdbIdIndex = cursor.getColumnIndex("tmdb_id")
+                val isMovieIndex = cursor.getColumnIndex("is_movie")
+                val tagsString = if (tmdbIdIndex >= 0 && isMovieIndex >= 0) {
+                    val movieId = cursor.getLong(tmdbIdIndex)
+                    val isMovie = cursor.getInt(isMovieIndex)
+                    val key = "${movieId}_$isMovie"
+                    val tags = tagsMap[key]?.joinToString("|") ?: ""
+                    if (tags.contains(",") || tags.contains("\"") || tags.contains("\n")) {
+                         "\"${tags.replace("\"", "\"\"")}\""
+                    } else {
+                        tags
+                    }
+                } else {
+                    ""
+                }
+                
+                csvBuilder.append(row).append(",").append(tagsString).append("\n")
             }
         }
 
         csvBuilder.toString()
+    }
+
+    fun getAllMovieTagsMap(): Map<String, List<String>> {
+        val db = this.readableDatabase
+        val map = HashMap<String, MutableList<String>>()
+        val query = "SELECT mt.$COLUMN_MT_MOVIE_ID, t.$COLUMN_TAG_NAME, mt.$COLUMN_MT_IS_MOVIE " +
+                "FROM $TABLE_MOVIE_TAGS mt " +
+                "INNER JOIN $TABLE_TAGS t ON mt.$COLUMN_MT_TAG_ID = t.$COLUMN_TAG_ID"
+
+        val cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()) {
+            val movieId = cursor.getLong(0)
+            val tagName = cursor.getString(1)
+            val isMovie = cursor.getInt(2)
+
+            val key = "${movieId}_$isMovie"
+
+            if (!map.containsKey(key)) {
+                map[key] = ArrayList()
+            }
+            map[key]?.add(tagName)
+        }
+        cursor.close()
+        return map
     }
 
     /**

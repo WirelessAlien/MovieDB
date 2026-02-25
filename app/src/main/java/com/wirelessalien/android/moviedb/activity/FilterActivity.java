@@ -56,8 +56,10 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.wirelessalien.android.moviedb.data.CategoryDTO;
+import com.wirelessalien.android.moviedb.data.Tag;
 import com.wirelessalien.android.moviedb.R;
 import com.wirelessalien.android.moviedb.adapter.CategoryAdapter;
+import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper;
 import com.wirelessalien.android.moviedb.helper.ThemeHelper;
 
 import org.json.JSONArray;
@@ -98,8 +100,12 @@ public class FilterActivity extends AppCompatActivity {
     public static final String FILTER_WITHOUT_KEYWORDS = "filter_without_keywords";
     public static final String CATEGORY_ORDER = "category_order";
     public static final String FILTER_NESTED_SORT = "filter_nested_sort";
+    public static final String FILTER_WITH_TAGS = "filter_with_tags";
+    public static final String FILTER_WITHOUT_TAGS = "filter_without_tags";
     private ArrayList<Integer> withGenres = new ArrayList<>();
     private ArrayList<Integer> withoutGenres = new ArrayList<>();
+    private ArrayList<String> withTags = new ArrayList<>();
+    private ArrayList<String> withoutTags = new ArrayList<>();
     private CategoryAdapter categoryAdapter;
     private List<CategoryDTO> categoryList;
 
@@ -310,6 +316,41 @@ public class FilterActivity extends AppCompatActivity {
             je.printStackTrace();
         }
 
+        // Initialize Tags
+        try (MovieDatabaseHelper dbHelper = new MovieDatabaseHelper(this)) {
+            List<Tag> tags = dbHelper.getAllTags();
+            ChipGroup tagsChipGroup = findViewById(R.id.tagButtons);
+            for (Tag tag : tags) {
+                Chip chip = new Chip(this);
+                chip.setText(tag.getName());
+                chip.setTag(tag.getName());
+                chip.setCheckable(true);
+                chip.setOnClickListener(v -> {
+                    Chip tagChip = (Chip) v;
+                    String tagName = tagChip.getText().toString();
+
+                    if (withTags.contains(tagName)) {
+                        withTags.remove(tagName);
+                        withoutTags.add(tagName);
+
+                        tagChip.setChipBackgroundColorResource(R.color.colorRed);
+                        tagChip.setCloseIconResource(R.drawable.ic_close);
+                    } else if (withoutTags.contains(tagName)) {
+                        withoutTags.remove(tagName);
+
+                        tagChip.setChipBackgroundColorResource(android.R.color.transparent);
+                        tagChip.setCloseIconVisible(false);
+                    } else {
+                        withTags.add(tagName);
+
+                        tagChip.setChipBackgroundColorResource(R.color.md_theme_primary);
+                        tagChip.setCloseIconResource(R.drawable.ic_check);
+                    }
+                });
+                tagsChipGroup.addView(chip);
+            }
+        }
+
         // Add back button to the activity.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -408,6 +449,9 @@ public class FilterActivity extends AppCompatActivity {
         prefsEditor.putString(FILTER_WITH_GENRES, withGenres.toString());
 
         prefsEditor.putString(FILTER_WITHOUT_GENRES, withoutGenres.toString());
+
+        prefsEditor.putString(FILTER_WITH_TAGS, withTags.toString());
+        prefsEditor.putString(FILTER_WITHOUT_TAGS, withoutTags.toString());
 
         prefsEditor.putString(FILTER_SORT, getSelectedRadioButton(
                 findViewById(R.id.sortSelection)
@@ -539,6 +583,11 @@ public class FilterActivity extends AppCompatActivity {
         withGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITH_GENRES, null), ", ");
         withoutGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITHOUT_GENRES, null), ", ");
 
+        withTags = convertStringToArrayList(sharedPreferences.getString(FILTER_WITH_TAGS, null), ", ");
+        if (withTags == null) withTags = new ArrayList<>();
+        withoutTags = convertStringToArrayList(sharedPreferences.getString(FILTER_WITHOUT_TAGS, null), ", ");
+        if (withoutTags == null) withoutTags = new ArrayList<>();
+
         // Select the criterion to sort by.
         String sortTag = sharedPreferences.getString(FILTER_SORT, null);
         // Select the default button.
@@ -622,6 +671,32 @@ public class FilterActivity extends AppCompatActivity {
                     genreChip.setChipBackgroundColorResource(R.color.colorRed);
                     genreChip.setCloseIconResource(R.drawable.ic_close);
                     genreChip.setCloseIconVisible(true);
+                }
+            }
+        }
+
+        // If any tags were included last time
+        if (withTags != null) {
+            ChipGroup tagsChipGroup = findViewById(R.id.tagButtons);
+            for (String tag : withTags) {
+                Chip tagChip = tagsChipGroup.findViewWithTag(tag);
+                if (tagChip != null) {
+                    tagChip.setChipBackgroundColorResource(R.color.md_theme_primary);
+                    tagChip.setCloseIconResource(R.drawable.ic_check);
+                    tagChip.setCloseIconVisible(true);
+                }
+            }
+        }
+
+        // If any tags were excluded last time
+        if (withoutTags != null) {
+            ChipGroup tagsChipGroup = findViewById(R.id.tagButtons);
+            for (String tag : withoutTags) {
+                Chip tagChip = tagsChipGroup.findViewWithTag(tag);
+                if (tagChip != null) {
+                    tagChip.setChipBackgroundColorResource(R.color.colorRed);
+                    tagChip.setCloseIconResource(R.drawable.ic_close);
+                    tagChip.setCloseIconVisible(true);
                 }
             }
         }
