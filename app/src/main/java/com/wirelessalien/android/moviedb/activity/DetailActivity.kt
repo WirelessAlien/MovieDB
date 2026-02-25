@@ -120,6 +120,7 @@ import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.AddRating
+import com.wirelessalien.android.moviedb.data.Tag
 import com.wirelessalien.android.moviedb.tmdb.account.AddToFavourites
 import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlist
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteRating
@@ -459,6 +460,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         databaseHelper = MovieDatabaseHelper(applicationContext)
         database = databaseHelper.writableDatabase
         databaseHelper.onCreate(database)
+
+        initializeTags()
 
         // Check if the show is already in the database.
         val cursor = databaseHelper.getMovieCursor(movieId)
@@ -2644,6 +2647,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
             }
 
+            updateTagsView()
+
             if (movieObject.has("popularity")) {
                 val popularity = movieObject.optDouble("popularity")
                 val formattedPopularity = NumberFormat.getNumberInstance(Locale.getDefault()).format(popularity)
@@ -3183,7 +3188,24 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
             }
 
+            binding.addTagInputLayout.setEndIconOnClickListener {
+                val newTagName = binding.newTagInput.text.toString().trim()
+                if (newTagName.isNotEmpty()) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val tagId = databaseHelper.addTag(newTagName)
+                        // Automatically add the new tag to the movie
+                        databaseHelper.addMovieTag(movieId, tagId, isMovie)
+                        withContext(Dispatchers.Main) {
+                            binding.newTagInput.text?.clear()
+                            updateEditTagsView()
+                            updateTagsView()
+                        }
+                    }
+                }
+            }
+
             updateEditShowDetails()
+            updateEditTagsView()
             binding.showDetails.visibility = View.GONE
             binding.editShowDetails.visibility = View.VISIBLE
 
@@ -3561,6 +3583,63 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private fun parseSeasonsTmdb(seasonsString: String): List<Int> {
         val regex = Regex("""(\d+)\{.*?\}""")
         return regex.findAll(seasonsString).map { it.groupValues[1].toInt() }.toList()
+    }
+
+    private fun initializeTags() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            databaseHelper.initializePredefinedTags()
+        }
+    }
+
+    private fun updateTagsView() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val tags = databaseHelper.getTagsForMovie(movieId, isMovie)
+            withContext(Dispatchers.Main) {
+                binding.tagsChipGroup.removeAllViews()
+                val inflater = LayoutInflater.from(this@DetailActivity)
+                for (tag in tags) {
+                    val chip = inflater.inflate(R.layout.genre_chip_item, binding.tagsChipGroup, false) as Chip
+                    chip.text = tag.name
+                    chip.setOnClickListener {
+                        val intent = Intent(this@DetailActivity, TaggedListActivity::class.java)
+                        intent.putExtra("tag_id", tag.id)
+                        intent.putExtra("tag_name", tag.name)
+                        startActivity(intent)
+                    }
+                    binding.tagsChipGroup.addView(chip)
+                }
+                binding.tagsChipGroup.visibility = if (tags.isNotEmpty()) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun updateEditTagsView() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val allTags = databaseHelper.getAllTags()
+            val movieTags = databaseHelper.getTagsForMovie(movieId, isMovie)
+            val movieTagIds = movieTags.map { it.id }.toSet()
+
+            withContext(Dispatchers.Main) {
+                binding.editTagsChipGroup.removeAllViews()
+                for (tag in allTags) {
+                    val chip = Chip(this@DetailActivity)
+                    chip.text = tag.name
+                    chip.isCheckable = true
+                    chip.isChecked = movieTagIds.contains(tag.id)
+                    chip.setOnCheckedChangeListener { _, isChecked ->
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            if (isChecked) {
+                                databaseHelper.addMovieTag(movieId, tag.id, isMovie)
+                            } else {
+                                databaseHelper.removeMovieTag(movieId, tag.id, isMovie)
+                            }
+                            updateTagsView()
+                        }
+                    }
+                    binding.editTagsChipGroup.addView(chip)
+                }
+            }
+        }
     }
 
     private fun updateEditShowDetails() {

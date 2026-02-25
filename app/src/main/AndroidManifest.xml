@@ -140,6 +140,10 @@
             android:theme="@style/AppTheme">
         </activity>
 
+        <activity android:name=".activity.TaggedListActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
         <activity android:name=".activity.CastActivity"
             android:theme="@style/AppTheme">
         </activity>

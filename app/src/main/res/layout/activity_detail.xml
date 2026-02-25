@@ -152,6 +152,15 @@
                         </LinearLayout>
                     </HorizontalScrollView>
 
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/tagsChipGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:singleLine="false"
+                        app:singleSelection="false"
+                        app:chipSpacing="5dp"/>
+
                     <com.google.android.flexbox.FlexboxLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -417,6 +426,45 @@
                                 android:gravity="center_vertical"
                                 android:inputType="text|textMultiLine"/>
                         </com.google.android.material.textfield.TextInputLayout>
+
+                        <TextView
+                            android:id="@+id/tagsTextH"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:layout_gravity="center_horizontal"
+                            android:text="@string/tags"/>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="fill"
+                            app:boxCornerRadiusTopStart="10dp"
+                            app:boxCornerRadiusBottomEnd="10dp"
+                            app:boxCornerRadiusBottomStart="10dp"
+                            app:boxCornerRadiusTopEnd="10dp"
+                            app:endIconMode="custom"
+                            app:endIconDrawable="@drawable/ic_add"
+                            app:endIconContentDescription="@string/add_tag"
+                            android:id="@+id/addTagInputLayout"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+                            android:layout_marginTop="5dp"
+                            android:hint="@string/add_new_tag">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/newTagInput"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:inputType="text"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/editTagsChipGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            app:chipSpacing="5dp"/>
                     </GridLayout>
                 </LinearLayout>
             </RelativeLayout>

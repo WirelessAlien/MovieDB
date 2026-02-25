@@ -770,4 +770,7 @@
     <string name="runtime">Runtime</string>
     <string name="popularity">Popularity</string>
     <string name="language">Language</string>
+    <string name="tags">Tags</string>
+    <string name="add_tag">Add Tag</string>
+    <string name="add_new_tag">Add new tag</string>
 </resources>

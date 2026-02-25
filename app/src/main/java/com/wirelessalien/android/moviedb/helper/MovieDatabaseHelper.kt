@@ -39,6 +39,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.ExportActivity
 import com.wirelessalien.android.moviedb.data.EpisodeDbDetails
+import com.wirelessalien.android.moviedb.data.Tag
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper.getExportDirectory
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import kotlinx.coroutines.CoroutineScope
@@ -704,6 +705,19 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 COLUMN_EPISODE_WATCH_DATE + " TEXT, " +
                 COLUMN_EPISODE_REVIEW + " TEXT);"
         database.execSQL(CREATE_EPISODES_TABLE)
+
+        val CREATE_TAGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TAGS + "(" +
+                COLUMN_TAG_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_TAG_NAME + " TEXT NOT NULL UNIQUE);"
+        database.execSQL(CREATE_TAGS_TABLE)
+
+        val CREATE_MOVIE_TAGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MOVIE_TAGS + "(" +
+                COLUMN_MT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_MT_MOVIE_ID + " INTEGER NOT NULL, " +
+                COLUMN_MT_TAG_ID + " INTEGER NOT NULL, " +
+                COLUMN_MT_IS_MOVIE + " INTEGER NOT NULL DEFAULT 1, " +
+                "FOREIGN KEY($COLUMN_MT_TAG_ID) REFERENCES $TABLE_TAGS($COLUMN_TAG_ID) ON DELETE CASCADE);"
+        database.execSQL(CREATE_MOVIE_TAGS_TABLE)
     }
 
     override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -816,6 +830,36 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 val ALTER_EPISODES_TABLE =
                     "ALTER TABLE $TABLE_EPISODES ADD COLUMN $COLUMN_EPISODE_REVIEW TEXT;"
                 database.execSQL(ALTER_EPISODES_TABLE)
+            }
+        }
+        if (oldVersion < 16) {
+            val CREATE_TAGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TAGS + "(" +
+                    COLUMN_TAG_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_TAG_NAME + " TEXT NOT NULL UNIQUE);"
+            database.execSQL(CREATE_TAGS_TABLE)
+
+            val CREATE_MOVIE_TAGS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MOVIE_TAGS + "(" +
+                    COLUMN_MT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_MT_MOVIE_ID + " INTEGER NOT NULL, " +
+                    COLUMN_MT_TAG_ID + " INTEGER NOT NULL, " +
+                    COLUMN_MT_IS_MOVIE + " INTEGER NOT NULL DEFAULT 1, " +
+                    "FOREIGN KEY($COLUMN_MT_TAG_ID) REFERENCES $TABLE_TAGS($COLUMN_TAG_ID) ON DELETE CASCADE);"
+            database.execSQL(CREATE_MOVIE_TAGS_TABLE)
+        }
+        if (oldVersion < 17) {
+            if (isColumnExists(database, TABLE_MOVIE_TAGS, COLUMN_MT_IS_MOVIE)) {
+               
+                try {
+                    val cursor = database.rawQuery("SELECT * FROM $TABLE_MOVIE_TAGS LIMIT 1", null)
+                    cursor.close()
+                    // Table exists, check for column
+                    if (!isColumnExists(database, TABLE_MOVIE_TAGS, COLUMN_MT_IS_MOVIE)) {
+                        val ALTER_MOVIE_TAGS_TABLE = "ALTER TABLE $TABLE_MOVIE_TAGS ADD COLUMN $COLUMN_MT_IS_MOVIE INTEGER NOT NULL DEFAULT 1;"
+                        database.execSQL(ALTER_MOVIE_TAGS_TABLE)
+                    }
+                } catch (e: Exception) {
+                    // Table might not exist yet if upgrading from < 16, handled by < 16 block calling onCreate or explicit SQL
+                }
             }
         }
         onCreate(database)
@@ -1085,7 +1129,17 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         const val databaseFileName = "movies.db"
         private const val DATABASE_FILE_NAME = "movies"
         private const val DATABASE_FILE_EXT = ".db"
-        private const val DATABASE_VERSION = 15
+        private const val DATABASE_VERSION = 17
+
+        const val TABLE_TAGS = "tags"
+        const val COLUMN_TAG_ID = "tag_id"
+        const val COLUMN_TAG_NAME = "tag_name"
+
+        const val TABLE_MOVIE_TAGS = "movie_tags"
+        const val COLUMN_MT_ID = "mt_id"
+        const val COLUMN_MT_MOVIE_ID = "movie_id"
+        const val COLUMN_MT_TAG_ID = "tag_id"
+        const val COLUMN_MT_IS_MOVIE = "is_movie"
     }
 
     override fun close() {
@@ -1181,5 +1235,145 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
             "$COLUMN_MOVIES_ID = ?",
             arrayOf(movieId.toString())
         )
+    }
+
+    fun addTag(name: String): Long {
+        val db = this.writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_TAG_NAME, name)
+        return try {
+            db.insertOrThrow(TABLE_TAGS, null, values)
+        } catch (e: Exception) {
+            // return its ID
+            val cursor = db.query(TABLE_TAGS, arrayOf(COLUMN_TAG_ID), "$COLUMN_TAG_NAME = ?", arrayOf(name), null, null, null)
+            var id: Long = -1
+            if (cursor.moveToFirst()) {
+                id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_TAG_ID))
+            }
+            cursor.close()
+            id
+        }
+    }
+
+    fun addMovieTag(movieId: Int, tagId: Long, isMovie: Boolean) {
+        val db = this.writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_MT_MOVIE_ID, movieId)
+        values.put(COLUMN_MT_TAG_ID, tagId)
+        values.put(COLUMN_MT_IS_MOVIE, if (isMovie) 1 else 0)
+        
+        val cursor = db.query(
+            TABLE_MOVIE_TAGS, 
+            null, 
+            "$COLUMN_MT_MOVIE_ID = ? AND $COLUMN_MT_TAG_ID = ? AND $COLUMN_MT_IS_MOVIE = ?", 
+            arrayOf(movieId.toString(), tagId.toString(), if (isMovie) "1" else "0"), 
+            null, null, null
+        )
+        if (cursor.count == 0) {
+            db.insert(TABLE_MOVIE_TAGS, null, values)
+        }
+        cursor.close()
+    }
+
+    fun removeMovieTag(movieId: Int, tagId: Long, isMovie: Boolean) {
+        val db = this.writableDatabase
+        db.delete(
+            TABLE_MOVIE_TAGS, 
+            "$COLUMN_MT_MOVIE_ID = ? AND $COLUMN_MT_TAG_ID = ? AND $COLUMN_MT_IS_MOVIE = ?", 
+            arrayOf(movieId.toString(), tagId.toString(), if (isMovie) "1" else "0")
+        )
+    }
+
+    fun getTagsForMovie(movieId: Int, isMovie: Boolean): List<Tag> {
+        val db = this.readableDatabase
+        val tags = ArrayList<Tag>()
+        val query = "SELECT t.$COLUMN_TAG_ID, t.$COLUMN_TAG_NAME FROM $TABLE_TAGS t " +
+                "INNER JOIN $TABLE_MOVIE_TAGS mt ON t.$COLUMN_TAG_ID = mt.$COLUMN_MT_TAG_ID " +
+                "WHERE mt.$COLUMN_MT_MOVIE_ID = ? AND mt.$COLUMN_MT_IS_MOVIE = ?"
+        val cursor = db.rawQuery(query, arrayOf(movieId.toString(), if (isMovie) "1" else "0"))
+        while (cursor.moveToNext()) {
+            tags.add(Tag(cursor.getLong(0), cursor.getString(1)))
+        }
+        cursor.close()
+        return tags
+    }
+
+    fun getAllTags(): List<Tag> {
+        val db = this.readableDatabase
+        val tags = ArrayList<Tag>()
+        val cursor = db.query(TABLE_TAGS, null, null, null, null, null, "$COLUMN_TAG_NAME ASC")
+        while (cursor.moveToNext()) {
+            tags.add(Tag(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_TAG_ID)), cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TAG_NAME))))
+        }
+        cursor.close()
+        return tags
+    }
+
+    fun initializePredefinedTags() {
+        addTag("Owned")
+    }
+
+    fun getMoviesForTags(tagIds: List<Long>): List<JSONObject> {
+        val db = this.readableDatabase
+        
+        if (tagIds.isEmpty()) return ArrayList()
+
+        val placeholders = tagIds.joinToString(",") { "?" }
+        val args = ArrayList<String>()
+        tagIds.forEach { args.add(it.toString()) }
+        args.add(tagIds.size.toString())
+
+        val query = """
+            SELECT m.* 
+            FROM $TABLE_MOVIES m
+            INNER JOIN $TABLE_MOVIE_TAGS mt ON m.$COLUMN_MOVIES_ID = mt.$COLUMN_MT_MOVIE_ID AND m.$COLUMN_MOVIE = mt.$COLUMN_MT_IS_MOVIE
+            WHERE mt.$COLUMN_MT_TAG_ID IN ($placeholders)
+            GROUP BY m.$COLUMN_ID
+            HAVING COUNT(DISTINCT mt.$COLUMN_MT_TAG_ID) = ?
+        """
+
+        val movies = ArrayList<JSONObject>()
+        val moviesCursor = db.rawQuery(query, args.toTypedArray())
+        
+        if (moviesCursor.moveToFirst()) {
+             val colId = moviesCursor.getColumnIndexOrThrow(COLUMN_MOVIES_ID)
+             val colTitle = moviesCursor.getColumnIndexOrThrow(COLUMN_TITLE)
+             val colImage = moviesCursor.getColumnIndexOrThrow(COLUMN_IMAGE)
+             val colPoster = moviesCursor.getColumnIndexOrThrow(COLUMN_ICON)
+             val colRating = moviesCursor.getColumnIndexOrThrow(COLUMN_RATING)
+             val colPersonalRating = moviesCursor.getColumnIndexOrThrow(COLUMN_PERSONAL_RATING)
+             val colSummary = moviesCursor.getColumnIndexOrThrow(COLUMN_SUMMARY)
+             val colGenres = moviesCursor.getColumnIndexOrThrow(COLUMN_GENRES_IDS)
+             val colCategories = moviesCursor.getColumnIndexOrThrow(COLUMN_CATEGORIES)
+             val colMovie = moviesCursor.getColumnIndexOrThrow(COLUMN_MOVIE)
+             val colRelease = moviesCursor.getColumnIndexOrThrow(COLUMN_RELEASE_DATE)
+             val colStartDate = moviesCursor.getColumnIndexOrThrow(COLUMN_PERSONAL_START_DATE)
+             val colFinishDate = moviesCursor.getColumnIndexOrThrow(COLUMN_PERSONAL_FINISH_DATE)
+
+             do {
+                 val movie = JSONObject()
+                 movie.put("id", moviesCursor.getInt(colId))
+                 movie.put(if (moviesCursor.getInt(colMovie) == 1) "title" else "name", moviesCursor.getString(colTitle))
+                 movie.put("backdrop_path", moviesCursor.getString(colImage))
+                 movie.put("poster_path", moviesCursor.getString(colPoster))
+                 movie.put("vote_average", moviesCursor.getDouble(colRating))
+                 if (!moviesCursor.isNull(colPersonalRating)) {
+                     movie.put("personal_rating", moviesCursor.getDouble(colPersonalRating))
+                     movie.put("has_personal_rating", true)
+                 }
+                 movie.put("overview", moviesCursor.getString(colSummary))
+                 movie.put("genre_ids", moviesCursor.getString(colGenres))
+                 movie.put("watched", moviesCursor.getInt(colCategories))
+                 movie.put("is_movie", moviesCursor.getInt(colMovie))
+                 movie.put("release_date", moviesCursor.getString(colRelease))
+                 movie.put("personal_start_date", moviesCursor.getString(colStartDate))
+                 movie.put("personal_finish_date", moviesCursor.getString(colFinishDate))
+                 
+                 movies.add(movie)
+             } while (moviesCursor.moveToNext())
+        }
+        moviesCursor.close()
+        
+        return movies
     }
 }
