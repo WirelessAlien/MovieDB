@@ -477,40 +477,40 @@
     <string name="start_date_3">Дата начала</string>
     <string name="enable_nested_sorting">Включить вложенную сортировку</string>
     <plurals name="years">
-        <item quantity="one"></item>
-        <item quantity="few">%d лет</item>
+        <item quantity="one">%d год</item>
+        <item quantity="few">%d года</item>
         <item quantity="many">%d лет</item>
         <item quantity="other">%d лет</item>
     </plurals>
     <string name="search_title_ext_p">Поиск в ShowCase Plus</string>
     <string name="same_as_start_date">Такая же как дата начала</string>
     <plurals name="months">
-        <item quantity="one"></item>
-        <item quantity="few">%d месяцев</item>
+        <item quantity="one">%d месяц</item>
+        <item quantity="few">%d месяца</item>
         <item quantity="many">%d месяцев</item>
         <item quantity="other">%d месяцев</item>
     </plurals>
     <string name="guest_stars">Гостевые звезды</string>
     <string name="no_csv_export_option_selected">Выберите опцию экспорта CSV</string>
     <plurals name="days">
-        <item quantity="one"></item>
-        <item quantity="few">%d день</item>
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
         <item quantity="many">%d дней</item>
         <item quantity="other">%d дней</item>
     </plurals>
     <string name="failed_to_update_list">Не удалось обновить список</string>
     <string name="list_update_success">Список успешно обновлен</string>
     <plurals name="hours">
-        <item quantity="one"></item>
-        <item quantity="few">%d час</item>
+        <item quantity="one">%d час</item>
+        <item quantity="few">%d часа</item>
         <item quantity="many">%d часов</item>
         <item quantity="other">%d часов</item>
     </plurals>
     <string name="language">Язык</string>
     <string name="backdrops">Фоны</string>
     <plurals name="minutes">
-        <item quantity="one"></item>
-        <item quantity="few">%d минута</item>
+        <item quantity="one">%d минута</item>
+        <item quantity="few">%d минуты</item>
         <item quantity="many">%d минут</item>
         <item quantity="other">%d минут</item>
     </plurals>
