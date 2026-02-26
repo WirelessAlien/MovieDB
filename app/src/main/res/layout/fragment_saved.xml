@@ -87,6 +87,24 @@
                         android:text="@string/watched" />
 
                     <com.google.android.material.chip.Chip
+                        android:id="@+id/chipOnHold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="on_hold"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:checkable="true"
+                        android:text="@string/on_hold" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDropped"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="dropped"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:checkable="true"
+                        android:text="@string/dropped" />
+
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/chipUpcoming"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

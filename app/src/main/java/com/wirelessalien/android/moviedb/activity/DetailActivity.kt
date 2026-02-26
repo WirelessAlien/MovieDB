@@ -214,6 +214,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private lateinit var preferences: SharedPreferences
     private var showNextEpisodePref: Boolean = false
+    private var hideFetchedRatings: Boolean = false
     private var currentPosterPath: String? = null
     private var currentBackdropPath: String? = null
 
@@ -232,6 +233,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         WindowCompat.setDecorFitsSystemWindows(window, false)
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         showNextEpisodePref = preferences.getBoolean(PREFS_SHOW_NEXT_EPISODE, false)
+        hideFetchedRatings = preferences.getBoolean("key_hide_fetched_ratings", false)
         apiKey = getConfigValue(applicationContext, "api_key")
         apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
         tktApiKey = getConfigValue(applicationContext, "client_id")
@@ -2599,8 +2601,16 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             ) {
                 val voteAverage = movieObject.optDouble("vote_average").toFloat()
                 val localizedTen = String.format(Locale.getDefault(), "%d", 10)
-                binding.rating.text =
-                    String.format(Locale.getDefault(), "%.2f/%s", voteAverage, localizedTen)
+                val ratingText = String.format(Locale.getDefault(), "%.2f/%s", voteAverage, localizedTen)
+
+                if (hideFetchedRatings) {
+                    binding.rating.text = getString(R.string.tap_to_reveal)
+                    binding.rating.setOnClickListener {
+                        binding.rating.text = ratingText
+                    }
+                } else {
+                    binding.rating.text = ratingText
+                }
             }
 
             // If the overview (summary) is different in the new dataset, change it.
@@ -4346,6 +4356,20 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.recyclerViewReviews.visibility = View.GONE
                 return
             }
+
+            if (hideFetchedRatings) {
+                binding.recyclerViewReviews.visibility = View.GONE
+                binding.reviewText.setOnClickListener {
+                    if (binding.recyclerViewReviews.visibility == View.VISIBLE) {
+                        binding.recyclerViewReviews.visibility = View.GONE
+                    } else {
+                        binding.recyclerViewReviews.visibility = View.VISIBLE
+                    }
+                }
+            } else {
+                binding.recyclerViewReviews.visibility = View.VISIBLE
+            }
+
         } catch (e: JSONException) {
             e.printStackTrace()
             binding.allReviewBtn.visibility = View.GONE
@@ -4555,9 +4579,29 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         val rottenTomatoesRating = formatRottenTomatoesRating(ratings["Rotten Tomatoes"], numberFormat)
         val metacriticRating = formatMetacriticRating(ratings["Metacritic"], numberFormat)
 
-        binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
-        binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
-        binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+        if (hideFetchedRatings) {
+            binding.imdbRatingChip.text = getString(R.string.tap_to_reveal)
+            binding.imdbRatingChip.setOnClickListener {
+                binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
+                setExternalIdClickListener()
+            }
+
+            binding.rottenTomatoesRatingChip.text = getString(R.string.tap_to_reveal)
+            binding.rottenTomatoesRatingChip.setOnClickListener {
+                binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
+                setRottenTomatoesClickListener()
+            }
+
+            binding.metacriticRatingChip.text = getString(R.string.tap_to_reveal)
+            binding.metacriticRatingChip.setOnClickListener {
+                binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+                setMetacriticClickListener()
+            }
+        } else {
+            binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
+            binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
+            binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+        }
     }
 
     private fun formatImdbRating(raw: String?, numberFormat: NumberFormat): String {
@@ -4584,6 +4628,31 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             "${numberFormat.format(value)}/${numberFormat.format(100)}"
         } catch (e: Exception) {
             "${numberFormat.format(0)}/${numberFormat.format(100)}"
+        }
+    }
+
+    private fun setExternalIdClickListener() {
+        binding.imdbRatingChip.setOnClickListener {
+            val url: String = if (imdbId == "null" || imdbId.isNullOrEmpty()) {
+                "https://www.imdb.com/find/?q=$movieTitle $movieYear"
+            } else {
+                "https://www.imdb.com/title/$imdbId"
+            }
+            launchUrl(context, url)
+        }
+    }
+
+    private fun setRottenTomatoesClickListener() {
+        val rottenTomatoesUrl = "https://www.rottentomatoes.com/search?search=$movieTitle $movieYear"
+        binding.rottenTomatoesRatingChip.setOnClickListener {
+            launchUrl(context, rottenTomatoesUrl)
+        }
+    }
+
+    private fun setMetacriticClickListener() {
+        val metacriticUrl = "https://www.metacritic.com/search/$movieTitle"
+        binding.metacriticRatingChip.setOnClickListener {
+            launchUrl(context, metacriticUrl)
         }
     }
 

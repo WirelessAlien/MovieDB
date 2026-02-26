@@ -343,9 +343,17 @@ class EpisodeAdapter(
             holder.binding.date.text = episode.airDate
         }
         holder.binding.runtime.text = context.getString(R.string.runtime_minutes, episode.runtime)
-        holder.binding.averageRating.text = context.getString(
+        val ratingText = context.getString(
             R.string.average_rating, episode.voteAverage, String.format(Locale.getDefault(), "%d", 10)
         )
+        if (defaultSharedPreferences.getBoolean("key_hide_fetched_ratings", false)) {
+            holder.binding.averageRating.text = context.getString(R.string.tap_to_reveal)
+            holder.binding.averageRating.setOnClickListener {
+                holder.binding.averageRating.text = ratingText
+            }
+        } else {
+            holder.binding.averageRating.text = ratingText
+        }
         Picasso.get()
             .load("https://image.tmdb.org/t/p/" + imageSize + episode.posterPath)
             .placeholder(R.color.md_theme_surface)

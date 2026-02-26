@@ -773,4 +773,7 @@
     <string name="tags">Tags</string>
     <string name="add_tag">Add Tag</string>
     <string name="add_new_tag">Add new tag</string>
+    <string name="hide_fetched_ratings">Hide Fetched Ratings</string>
+    <string name="hide_fetched_ratings_summary">Hide fetched ratings and reviews of media. Tap to reveal.</string>
+    <string name="tap_to_reveal">Reveal</string>
 </resources>

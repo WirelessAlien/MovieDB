@@ -631,6 +631,24 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     mShowAdapter.updateData(watchedShows)
                     setChipsEnabled(true)
                 }
+                R.id.chipOnHold -> {
+                    setChipsEnabled(false)
+                    var onHoldShows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_ON_HOLD)
+                    }
+                    // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date") // can be added
+                    mShowAdapter.updateData(onHoldShows)
+                    setChipsEnabled(true)
+                }
+                R.id.chipDropped -> {
+                    setChipsEnabled(false)
+                    var droppedShows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_DROPPED)
+                    }
+                    // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date") // can be added
+                    mShowAdapter.updateData(droppedShows)
+                    setChipsEnabled(true)
+                }
                 R.id.chipPlanToWatch -> {
                     setChipsEnabled(false)
                     var planToWatchShows = withContext(Dispatchers.IO) {
@@ -1039,6 +1057,28 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 watchedShows = sortShowsByDate(watchedShows, "key_sort_watched_by_date")
                 mShowAdapter.updateData(watchedShows)
             }
+            R.id.chipOnHold -> {
+                updateFab(false)
+                var onHoldShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_ON_HOLD) {
+                        onHoldShows.add(show)
+                    }
+                }
+                // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date")
+                mShowAdapter.updateData(onHoldShows)
+            }
+            R.id.chipDropped -> {
+                updateFab(false)
+                var droppedShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_DROPPED) {
+                        droppedShows.add(show)
+                    }
+                }
+                // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date")
+                mShowAdapter.updateData(droppedShows)
+            }
             R.id.chipPlanToWatch -> {
                 updateFab(false)
                 var planToWatchShows = ArrayList<JSONObject>()
@@ -1151,6 +1191,34 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
                 watchedShows = sortShowsByDate(watchedShows, "key_sort_watched_by_date")
                 mShowAdapter.updateData(watchedShows)
+            }
+        }
+
+        binding.chipGroup.findViewById<Chip>(R.id.chipOnHold)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipOnHold)) {
+                updateFab(false)
+                var onHoldShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_ON_HOLD) {
+                        onHoldShows.add(show)
+                    }
+                }
+                // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date")
+                mShowAdapter.updateData(onHoldShows)
+            }
+        }
+
+        binding.chipGroup.findViewById<Chip>(R.id.chipDropped)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipDropped)) {
+                updateFab(false)
+                var droppedShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_DROPPED) {
+                        droppedShows.add(show)
+                    }
+                }
+                // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date")
+                mShowAdapter.updateData(droppedShows)
             }
         }
 
@@ -1939,6 +2007,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 "all" to R.id.chipAll,
                 "watching" to R.id.chipWatching,
                 "watched" to R.id.chipWatched,
+                "on_hold" to R.id.chipOnHold,
+                "dropped" to R.id.chipDropped,
                 "plan_to_watch" to R.id.chipPlanToWatch,
                 "upcoming" to R.id.chipUpcoming
             )
@@ -1956,6 +2026,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 ChipInfo(R.id.chipAll, getString(R.string.all), "all", true),
                 ChipInfo(R.id.chipWatching, getString(R.string.watching), "watching", true),
                 ChipInfo(R.id.chipWatched, getString(R.string.watched), "watched", true),
+                ChipInfo(R.id.chipOnHold, getString(R.string.on_hold), "on_hold", true),
+                ChipInfo(R.id.chipDropped, getString(R.string.dropped), "dropped", true),
                 ChipInfo(
                     R.id.chipPlanToWatch,
                     getString(R.string.plan_to_watch),
