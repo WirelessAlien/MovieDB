@@ -636,7 +636,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     var onHoldShows = withContext(Dispatchers.IO) {
                         getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_ON_HOLD)
                     }
-                    // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date") // can be added
+                    // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date") // Add pref if needed
                     mShowAdapter.updateData(onHoldShows)
                     setChipsEnabled(true)
                 }
@@ -645,7 +645,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     var droppedShows = withContext(Dispatchers.IO) {
                         getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_DROPPED)
                     }
-                    // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date") // can be added
+                    // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date") // Add pref if needed
                     mShowAdapter.updateData(droppedShows)
                     setChipsEnabled(true)
                 }
@@ -2021,6 +2021,21 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     chip
                 }
             }.toMutableList()
+
+            // Check for newly added ones
+            val existingTags = chipInfos.map { it.tag }.toSet()
+            if (!existingTags.contains("on_hold")) {
+                chipInfos.add(
+                    chipInfos.size - 2, // Add before plan_to_watch and upcoming
+                    ChipInfo(R.id.chipOnHold, getString(R.string.on_hold), "on_hold", true)
+                )
+            }
+            if (!existingTags.contains("dropped")) {
+                chipInfos.add(
+                    chipInfos.size - 2, // Add before plan_to_watch and upcoming
+                    ChipInfo(R.id.chipDropped, getString(R.string.dropped), "dropped", true)
+                )
+            }
         } else {
             chipInfos = mutableListOf(
                 ChipInfo(R.id.chipAll, getString(R.string.all), "all", true),
