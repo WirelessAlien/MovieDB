@@ -136,7 +136,6 @@
                                 android:layout_marginEnd="8dp"
                                 android:checkable="false"
                                 android:text="Movie"
-                                app:chipCornerRadius="8dp"
                                 app:closeIconEnabled="false"
                                 app:chipIconEnabled="false"
                                 app:textEndPadding="2dp"
@@ -484,7 +483,6 @@
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/edit_icon_description"
                 android:layout_below="@+id/movieDetails"
-                app:cornerRadius="10dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="10dp"
@@ -718,7 +716,6 @@
                 android:layout_marginEnd="12dp"
                 android:layout_marginBottom="10dp"
                 android:layout_below="@id/movieDetailsRl"
-                app:cornerRadius="10dp"
                 android:visibility="gone"
                 app:icon="@drawable/ic_star_border"
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
@@ -739,7 +736,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/history"
-                    app:cornerRadius="10dp"
                     app:iconPadding="5dp"
                     app:icon="@drawable/ic_history"
                     android:layout_alignParentStart="true"
@@ -751,7 +747,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:icon="@drawable/ic_bookmark"
-                    app:cornerRadius="10dp"
                     android:layout_toStartOf="@id/btnAddToTraktFavorite"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:visibility="gone"/>
@@ -763,14 +758,12 @@
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_favorite"
                     android:layout_toStartOf="@id/btnAddTraktRating"
-                    app:cornerRadius="10dp"
                     android:visibility="gone"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnAddTraktRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:cornerRadius="10dp"
                     android:layout_toStartOf="@id/btnAddToTraktCollection"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_thumb_up"
@@ -782,7 +775,6 @@
                     android:layout_height="wrap_content"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_collection"
-                    app:cornerRadius="10dp"
                     android:layout_alignParentEnd="true"
                     android:visibility="gone"/>
             </RelativeLayout>
@@ -794,7 +786,6 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginTop="10dp"
-                app:cornerRadius="10dp"
                 android:layout_below="@id/linearLayout"
                 style="@style/Widget.Material3.Button.TonalButton"
                 app:icon="@drawable/ic_list_add"
@@ -813,7 +804,6 @@
                     android:id="@+id/addToListTmdb"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:cornerRadius="10dp"
                     app:iconPadding="5dp"
                     app:icon="@drawable/ic_list_add"
                     android:layout_alignParentStart="true"
@@ -828,7 +818,6 @@
                     android:layout_toStartOf="@id/favouriteButtonTmdb"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_bookmark"
-                    app:cornerRadius="10dp"
                     android:visibility="gone"
                     android:contentDescription="@string/watchlist" />
 
@@ -839,7 +828,6 @@
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:layout_toStartOf="@id/ratingBtnTmdb"
                     android:visibility="gone"
-                    app:cornerRadius="10dp"
                     app:icon="@drawable/ic_favorite"
                     android:contentDescription="@string/add_to_favourite" />
 
@@ -849,7 +837,6 @@
                     android:layout_height="wrap_content"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:visibility="gone"
-                    app:cornerRadius="10dp"
                     app:icon="@drawable/ic_thumb_up"
                     android:layout_alignParentEnd="true"
                     android:contentDescription="@string/add_rating" />
@@ -860,7 +847,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_margin="16dp"
-                app:cardCornerRadius="10dp"
                 android:visibility="gone"
                 android:layout_below="@id/linearLayout2"
                 app:cardElevation="4dp">
@@ -890,7 +876,6 @@
                         android:id="@+id/collection_details_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cornerRadius="10dp"
                         style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_alignParentBottom="true"
                         android:text="@string/view_collection"/>
@@ -936,7 +921,6 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/videos"
-                    app:chipCornerRadius="8dp"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -947,7 +931,6 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
-                    app:chipCornerRadius="8dp"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -957,7 +940,6 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="IMDb: 0/10"
-                    app:chipCornerRadius="8dp"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
@@ -968,7 +950,6 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="R. Tomatoes: 0%"
-                    app:chipCornerRadius="8dp"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
@@ -979,7 +960,6 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="Metacritic: 0/100"
-                    app:chipCornerRadius="8dp"
                     app:chipIcon="@drawable/ic_link"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
             </com.google.android.flexbox.FlexboxLayout>
@@ -1041,7 +1021,6 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
-                app:cornerRadius="10dp"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_below="@id/episodeViewPager"
                 android:contentDescription="@string/seasons"
@@ -1138,7 +1117,6 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="16dp"
-                app:cornerRadius="10dp"
                 android:layout_below="@+id/recyclerViewReviews"
                 android:text="@string/show_more"
                 android:contentDescription="@string/review1"
@@ -1285,7 +1263,6 @@
         android:layout_margin="16dp"
         app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerMedium"
         app:layout_anchor="@id/movieImage"
-        app:innerCornerSize="10dp"
         app:layout_anchorGravity="bottom|end"
         android:contentDescription="@string/sync_provider"
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
