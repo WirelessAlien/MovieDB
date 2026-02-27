@@ -113,7 +113,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/ok"
-            app:cornerRadius="10dp"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_marginTop="16dp"/>
         </LinearLayout>

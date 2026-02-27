@@ -55,7 +55,6 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
-        app:cornerRadius="10dp"
         app:icon="@drawable/ic_visibility_off"
         android:contentDescription="@string/mark_as_watched"/>
 </RelativeLayout>

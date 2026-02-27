@@ -48,7 +48,6 @@
             app:icon="@drawable/ic_swap"
             android:contentDescription="@string/account_swap"
             style="@style/Widget.Material3.Button.IconButton"
-            app:cornerRadius="10dp"
             tools:ignore="RelativeOverlap" />
     </RelativeLayout>
 
@@ -82,7 +81,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-        app:cornerRadius="10dp"
         android:layout_marginBottom="16dp"
         android:text="@string/login" />
 
@@ -92,7 +90,6 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_gravity="center"
-        app:cornerRadius="10dp"
         android:layout_marginBottom="16dp"
         android:text="@string/sign_up" />
 
@@ -102,7 +99,6 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_gravity="center"
-        app:cornerRadius="10dp"
         android:layout_marginBottom="16dp"
         android:visibility="gone"
         android:text="@string/logout" />

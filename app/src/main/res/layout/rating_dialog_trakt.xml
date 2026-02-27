@@ -88,7 +88,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/select_a_date"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_margin="16dp"/>
 
@@ -125,7 +124,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:cornerRadius="10dp"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             android:text="@string/delete" />
 
@@ -134,7 +132,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:cornerRadius="10dp"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             android:text="@string/save" />
 
@@ -143,7 +140,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:cornerRadius="10dp"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             android:text="@string/cancel" />
     </LinearLayout>

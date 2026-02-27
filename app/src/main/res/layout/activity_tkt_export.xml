@@ -94,7 +94,6 @@
                 android:id="@+id/export_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cornerRadius="10dp"
                 android:text="@string/export" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
@@ -108,7 +107,6 @@
                 android:id="@+id/backupBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:cornerRadius="10dp"
                 android:layout_marginTop="10dp"
                 android:text="@string/auto_backup_directory_selection"/>
 
@@ -152,7 +150,6 @@
                 android:id="@+id/import_tmdb"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cornerRadius="10dp"
                 android:layout_marginTop="16dp"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:text="@string/import_tmdb"/>

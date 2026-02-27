@@ -107,7 +107,6 @@
         android:id="@+id/btnWatchingNow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:text="@string/i_am_watching"
         android:layout_marginTop="10dp"/>
@@ -116,7 +115,6 @@
         android:id="@+id/btnWatchedNow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:text="@string/watched_now"
         android:layout_marginTop="10dp"/>
@@ -125,7 +123,6 @@
         android:id="@+id/btnWatchedAtRelease"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:text="@string/watched_at_release"
         android:layout_marginTop="10dp"/>
@@ -135,7 +132,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/select_date"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_marginTop="10dp"/>
 
@@ -160,7 +156,6 @@
         android:id="@+id/btnSave"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:visibility="gone"
         android:text="@string/save"

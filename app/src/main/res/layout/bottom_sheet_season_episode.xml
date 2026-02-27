@@ -59,8 +59,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                        app:icon="@drawable/ic_visibility"
-                        app:cornerRadius="10dp"/>
+                        app:icon="@drawable/ic_visibility"/>
                 </RelativeLayout>
             </LinearLayout>
 
@@ -155,7 +154,6 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                    app:cornerRadius="10dp"
                     android:layout_marginEnd="16dp"
                     android:layout_centerVertical="true"
                     app:icon="@drawable/ic_done_2"/>
@@ -181,7 +179,6 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
                 android:visibility="gone"
-                app:cornerRadius="10dp"
                 android:enabled="false" />
 
             <androidx.recyclerview.widget.RecyclerView

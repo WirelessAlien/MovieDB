@@ -136,7 +136,6 @@
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:text="@string/create_list"
         android:id="@+id/createListBtn"/>

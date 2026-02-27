@@ -85,7 +85,6 @@
             android:layout_height="wrap_content"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             app:icon="@drawable/ic_sourcecode"
-            app:cornerRadius="10dp"
             android:contentDescription="@string/source_code"/>
 
         <com.google.android.material.button.MaterialButton
@@ -94,7 +93,6 @@
             android:layout_height="wrap_content"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             app:icon="@drawable/ic_copyright"
-            app:cornerRadius="10dp"
             android:contentDescription="@string/license"/>
 
         <com.google.android.material.button.MaterialButton
@@ -103,7 +101,6 @@
             android:layout_height="wrap_content"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             app:icon="@drawable/ic_help"
-            app:cornerRadius="10dp"
             android:contentDescription="@string/faq"/>
 
         <com.google.android.material.button.MaterialButton
@@ -112,14 +109,12 @@
             android:layout_height="wrap_content"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             app:icon="@drawable/ic_bug_report"
-            app:cornerRadius="10dp"
             android:contentDescription="@string/report_an_issue"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/shareIcon"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cornerRadius="10dp"
             app:icon="@drawable/ic_share"
             style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
             android:contentDescription="@string/share"/>
@@ -130,7 +125,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/donate"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_marginTop="20dp" />
 

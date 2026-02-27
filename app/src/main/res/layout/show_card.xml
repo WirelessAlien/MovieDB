@@ -35,7 +35,6 @@
         android:layout_gravity="top|end"
         card_view:icon="@drawable/ic_close"
         android:visibility="gone"
-        card_view:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
 
     <LinearLayout
