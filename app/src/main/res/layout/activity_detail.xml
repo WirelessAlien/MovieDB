@@ -152,16 +152,8 @@
                         </LinearLayout>
                     </HorizontalScrollView>
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/tagsChipGroup"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        app:singleLine="false"
-                        app:singleSelection="false"
-                        app:chipSpacing="5dp"/>
-
                     <com.google.android.flexbox.FlexboxLayout
+                        android:id="@+id/tagsLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="-8dp"
@@ -214,7 +206,25 @@
                             android:layout_height="wrap_content"
                             app:drawableLeftCompat="@drawable/ic_dot"
                             android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tagsText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:drawableLeftCompat="@drawable/ic_dot"
+                            android:layout_centerVertical="true"
+                            android:text="@string/tags_label"
+                            android:visibility="gone" />
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/tagsChipGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:singleLine="false"
+                            app:chipSpacing="5dp"
+                            android:visibility="gone"/>
                     </com.google.android.flexbox.FlexboxLayout>
+
                 </LinearLayout>
 
                 <LinearLayout

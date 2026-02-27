@@ -3608,7 +3608,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.tagsChipGroup.removeAllViews()
                 val inflater = LayoutInflater.from(this@DetailActivity)
                 for (tag in tags) {
-                    val chip = inflater.inflate(R.layout.genre_chip_item, binding.tagsChipGroup, false) as Chip
+                    val chip = inflater.inflate(R.layout.chip_choice_item, binding.tagsChipGroup, false) as Chip
                     chip.text = tag.name
                     chip.setOnClickListener {
                         val intent = Intent(this@DetailActivity, TaggedListActivity::class.java)
@@ -3618,7 +3618,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                     binding.tagsChipGroup.addView(chip)
                 }
-                binding.tagsChipGroup.visibility = if (tags.isNotEmpty()) View.VISIBLE else View.GONE
+                if (tags.isNotEmpty()) {
+                    binding.tagsChipGroup.visibility = View.VISIBLE
+                    binding.tagsText.visibility = View.VISIBLE
+                } else {
+                    binding.tagsChipGroup.visibility = View.GONE
+                    binding.tagsText.visibility = View.GONE
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
@@ -18,27 +19,15 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.MaterialComponents.Chip.Choice"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/tags_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="@string/tags"
-        android:textSize="20sp"
-        android:layout_marginTop="20dp"
-        android:textStyle="bold" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/tagsRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:clipToPadding="false"/>
-</LinearLayout>
+    android:checkable="false"
+    android:text="Drama"
+    app:chipCornerRadius="8dp"
+    app:closeIconEnabled="false"
+    app:chipIconEnabled="false"
+    app:textEndPadding="2dp"
+    app:textStartPadding="2dp" />
