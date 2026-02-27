@@ -64,7 +64,6 @@
                     android:layout_height="wrap_content"
                     android:text="@string/add_tag"
                     app:chipIcon="@drawable/ic_add"/>
-                    
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
