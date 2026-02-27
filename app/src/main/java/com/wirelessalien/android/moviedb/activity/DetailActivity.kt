@@ -3620,10 +3620,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
                 if (tags.isNotEmpty()) {
                     binding.tagsChipGroup.visibility = View.VISIBLE
-                    binding.tagsText.visibility = View.VISIBLE
                 } else {
                     binding.tagsChipGroup.visibility = View.GONE
-                    binding.tagsText.visibility = View.GONE
                 }
             }
         }

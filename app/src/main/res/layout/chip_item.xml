@@ -24,6 +24,7 @@
     style="@style/Widget.Material3.Chip.Assist"
     android:layout_margin="5dp"
     android:clickable="false"
+    android:chipSpacing="5dp"
     android:checkable="false">
 
 </com.google.android.material.chip.Chip>
