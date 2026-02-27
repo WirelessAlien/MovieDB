@@ -36,7 +36,7 @@ class GetAccountState(
 ) {
     var isInFavourites = false
     var isInWatchlist = false
-    var rating = 0
+    var rating = 0.0
     private val accessToken: String?
 
     init {
@@ -62,12 +62,12 @@ class GetAccountState(
                 if (!jsonResponse.isNull("rated")) {
                     val rated = jsonResponse["rated"]
                     if (rated is JSONObject) {
-                        rating = round(rated.getDouble("value")).toInt()
+                        rating = rated.getDouble("value")
                     } else if (rated is Boolean && !rated) {
-                        rating = 0
+                        rating = 0.0
                     }
                 } else {
-                    rating = 0
+                    rating = 0.0
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -777,4 +777,5 @@
     <string name="hide_fetched_ratings">Hide Fetched Ratings</string>
     <string name="hide_fetched_ratings_summary">Hide fetched ratings and reviews of media. Tap to reveal.</string>
     <string name="tap_to_reveal">Reveal</string>
+    <string name="tag_format">Tags: %s</string>
 </resources>

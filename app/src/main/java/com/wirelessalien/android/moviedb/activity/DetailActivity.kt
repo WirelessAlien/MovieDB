@@ -519,7 +519,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                             R.drawable.ic_favorite_border
                         )
                     }
-                    if (ratingValue != 0.0.toInt()) {
+                    if (ratingValue != 0.0) {
                         binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_thumb_up
@@ -679,7 +679,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 val previousRating = getAccountState.rating
-                ratingSlider.value = previousRating.toFloat()
+                if (previousRating != 0.0) {
+                    if (previousRating.toFloat() % currentStepSize > 0.0001) {
+                        currentStepSize = 0.1f
+                        preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                        ratingSlider.stepSize = currentStepSize
+                    }
+                    val roundedValue = kotlin.math.round(previousRating.toFloat() / currentStepSize) * currentStepSize
+                    ratingSlider.value = roundedValue
+                }
 
                 submitButton.setOnClickListener {
                     lifecycleScope.launch {
@@ -2970,6 +2978,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 database.close()
             }
 
+            // Initialize step size from SharedPreferences
+            var currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
+
             // Listen to changes to the EditText.
             binding.timesWatched.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
                 if (!hasFocus && binding.timesWatched.text.toString().isNotEmpty()) {
@@ -2987,8 +2998,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
             }
 
-            // Initialize step size from SharedPreferences
-            var currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
             binding.showRating.stepSize = currentStepSize
 
             binding.btnChangeStepSize.setOnClickListener {
@@ -3214,7 +3223,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
             }
 
-            updateEditShowDetails()
+            updateEditShowDetails(currentStepSize)
             updateEditTagsView()
             binding.showDetails.visibility = View.GONE
             binding.editShowDetails.visibility = View.VISIBLE
@@ -3605,25 +3614,45 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         lifecycleScope.launch(Dispatchers.IO) {
             val tags = databaseHelper.getTagsForMovie(movieId, isMovie)
             withContext(Dispatchers.Main) {
-                binding.tagsChipGroup.removeAllViews()
-                val inflater = LayoutInflater.from(this@DetailActivity)
-                for (tag in tags) {
-                    val chip = inflater.inflate(R.layout.chip_choice_item, binding.tagsChipGroup, false) as Chip
-                    chip.text = tag.name
-                    chip.setOnClickListener {
+                // Remove existing dynamic tag views
+                val viewsToRemove = mutableListOf<View>()
+                for (i in 0 until binding.tagsLayout.childCount) {
+                    val child = binding.tagsLayout.getChildAt(i)
+                    if (child.tag == "dynamic_tag") {
+                        viewsToRemove.add(child)
+                    }
+                }
+                for (view in viewsToRemove) {
+                    binding.tagsLayout.removeView(view)
+                }
+
+                // Add new tag views
+                tags.forEachIndexed { index, tag ->
+                    val textView = TextView(this@DetailActivity)
+                    if (index == 0) {
+                        textView.text = getString(R.string.tag_format, tag.name)
+                    } else {
+                        textView.text = tag.name
+                    }
+                    textView.tag = "dynamic_tag"
+                    textView.layoutParams = FlexboxLayout.LayoutParams(
+                        FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                        FlexboxLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    textView.gravity = android.view.Gravity.CENTER_VERTICAL
+                    val drawable = ContextCompat.getDrawable(this@DetailActivity, R.drawable.ic_dot)
+                    textView.setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null)
+                    textView.compoundDrawablePadding = TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 4f, resources.displayMetrics
+                    ).toInt()
+
+                    textView.setOnClickListener {
                         val intent = Intent(this@DetailActivity, TaggedListActivity::class.java)
                         intent.putExtra("tag_id", tag.id)
                         intent.putExtra("tag_name", tag.name)
                         startActivity(intent)
                     }
-                    binding.tagsChipGroup.addView(chip)
-                }
-                if (tags.isNotEmpty()) {
-                    binding.tagsChipGroup.visibility = View.VISIBLE
-                    binding.tagsText.visibility = View.VISIBLE
-                } else {
-                    binding.tagsChipGroup.visibility = View.GONE
-                    binding.tagsText.visibility = View.GONE
+                    binding.tagsLayout.addView(textView)
                 }
             }
         }
@@ -3658,7 +3687,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
     }
 
-    private fun updateEditShowDetails() {
+    private fun updateEditShowDetails(initialStepSize: Float) {
+        var currentStepSize = initialStepSize
         database = databaseHelper.writableDatabase
         databaseHelper.getMovieCursor(movieId).use { cursor ->
             if (cursor.count > 0) {
@@ -3729,7 +3759,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                 }
                 if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) != "") {
-                    binding.showRating.value = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).toFloat()
+                    val rating = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).toFloat()
+                    if (rating % currentStepSize > 0.0001) {
+                        currentStepSize = 0.1f
+                        preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                        binding.showRating.stepSize = currentStepSize
+                    }
+                    binding.showRating.value = rating
                 }
                 if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) != "") {
                     binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
@@ -3796,7 +3832,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
                 }
                 database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
-                updateEditShowDetails()
+                val currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
+                updateEditShowDetails(currentStepSize)
                 dialog.dismiss()
             }
         }

@@ -206,23 +206,7 @@
                             app:drawableLeftCompat="@drawable/ic_dot"
                             android:visibility="gone" />
 
-                        <TextView
-                            android:id="@+id/tagsText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:drawableLeftCompat="@drawable/ic_dot"
-                            android:layout_centerVertical="true"
-                            android:text="@string/tags_label"
-                            android:visibility="gone" />
                     </com.google.android.flexbox.FlexboxLayout>
-                  
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/tagsChipGroup"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:singleLine="false"
-                        app:chipSpacing="5dp"
-                        android:visibility="gone"/> 
                 </LinearLayout>
 
                 <LinearLayout

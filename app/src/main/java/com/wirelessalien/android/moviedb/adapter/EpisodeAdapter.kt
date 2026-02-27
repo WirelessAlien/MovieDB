@@ -116,7 +116,7 @@ class EpisodeAdapter(
         CoroutineScope(Dispatchers.Main).launch {
             val getAccountStateTvSeason = GetAccountStateTvSeason(tvShowId, seasonNumber, context, object : GetAccountStateTvSeason.OnDataFetchedListener {
                 override fun onDataFetched(episodeRatings: Map<Int, Double>?) {
-                    this@EpisodeAdapter.episodeRatings = episodeRatings?.mapValues { (_, value) -> round(value).toInt().toDouble() } ?: emptyMap()
+                    this@EpisodeAdapter.episodeRatings = episodeRatings ?: emptyMap()
                     notifyDataSetChanged()
                 }
             })
@@ -528,8 +528,13 @@ class EpisodeAdapter(
                     if (details != null) {
                         binding.dateTextView.text = Editable.Factory.getInstance().newEditable(details.watchDate)
                         if (details.rating?.toDouble() != 0.0 && details.rating != null) {
-                            val rating1 = if (details.rating > 10.0) 10.0 else details.rating
-                            binding.episodeRatingSlider.value = rating1.toFloat()
+                            val rating1 = (if (details.rating > 10.0) 10.0 else details.rating).toFloat()
+                            if (rating1 % currentStepSize > 0.0001) {
+                                currentStepSize = 0.1f
+                                defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                                binding.episodeRatingSlider.stepSize = currentStepSize
+                            }
+                            binding.episodeRatingSlider.value = rating1
                         }
                         binding.episodeReview.setText(details.review)
                     }
@@ -626,6 +631,17 @@ class EpisodeAdapter(
                 }
                 binding.ratingSlider.stepSize = currentStepSize
                 Toast.makeText(context, "Step size: $currentStepSize", Toast.LENGTH_SHORT).show()
+            }
+
+            val ratingValue = episodeRatings[episode.episodeNumber] ?: 0.0
+            if (ratingValue != 0.0) {
+                if (ratingValue.toFloat() % currentStepSize > 0.0001) {
+                    currentStepSize = 0.1f
+                    defaultSharedPreferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                    binding.ratingSlider.stepSize = currentStepSize
+                }
+                val roundedValue = kotlin.math.round(ratingValue.toFloat() / currentStepSize) * currentStepSize
+                binding.ratingSlider.value = roundedValue
             }
 
             Handler(Looper.getMainLooper())
