@@ -779,4 +779,8 @@
     <string name="hide_fetched_ratings_summary">Hide fetched ratings and reviews of media. Tap to reveal.</string>
     <string name="tap_to_reveal">Reveal</string>
     <string name="tag_format">Tags: %s</string>
+    <string name="finish_date_3">Finish Date</string>
+    <string name="episode_seen">Episode Seen</string>
+    <string name="my_rating">My Rating</string>
+    <string name="time_watched">Time Watched</string>
 </resources>

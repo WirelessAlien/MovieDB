@@ -185,7 +185,8 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="START DATE"
+                                    android:text="@string/start_date_3"
+                                    android:textAllCaps="true"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -211,7 +212,7 @@
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_done_2"
+                                android:src="@drawable/ic_calendar"
                                 android:layout_marginEnd="12dp"
                                 app:tint="?attr/colorPrimary" />
 
@@ -223,7 +224,8 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="FINISH DATE"
+                                    android:text="@string/finish_date_3"
+                                    android:textAllCaps="true"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -261,7 +263,8 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="REWATCHES"
+                                    android:text="@string/time_watched"
+                                    android:textAllCaps="true"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -299,7 +302,8 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="MY RATING"
+                                    android:text="@string/my_rating"
+                                    android:textAllCaps="true"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -319,7 +323,6 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginBottom="16dp"
                             android:orientation="horizontal"
                             android:visibility="gone"
                             android:gravity="center_vertical">
@@ -327,7 +330,7 @@
                             <ImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_list"
+                                android:src="@drawable/ic_visibility_off"
                                 android:layout_marginEnd="12dp"
                                 app:tint="?attr/colorPrimary" />
 
@@ -339,7 +342,8 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="EPISODES SEEN"
+                                    android:text="@string/episode_seen"
+                                    android:textAllCaps="true"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -352,14 +356,12 @@
                                     android:textStyle="bold" />
                             </LinearLayout>
                         </LinearLayout>
-
                     </GridLayout>
 
                     <com.google.android.flexbox.FlexboxLayout
                         android:id="@+id/tagsLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="-8dp"
                         android:layout_marginBottom="8dp"
                         app:flexDirection="row"
                         app:flexWrap="wrap">
@@ -373,17 +375,17 @@
                         android:layout_marginBottom="16dp"
                         android:visibility="gone"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+                        style="@style/Widget.Material3.CardView.Elevated">
                         
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="16dp"
+                            android:padding="8dp"
                             android:orientation="horizontal">
                             
                             <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
                                 android:layout_marginEnd="12dp"
                                 android:src="@drawable/ic_edit"
                                 app:tint="?attr/colorOnSurfaceVariant" />
