@@ -120,7 +120,6 @@ import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.AddRating
-import com.wirelessalien.android.moviedb.data.Tag
 import com.wirelessalien.android.moviedb.tmdb.account.AddToFavourites
 import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlist
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteRating
@@ -152,6 +151,7 @@ import kotlin.math.abs
 import kotlin.math.round
 import androidx.core.net.toUri
 import androidx.core.view.isGone
+import androidx.core.view.isVisible
 
 /**
  * This class provides all the details about the shows.
@@ -685,7 +685,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
                         ratingSlider.stepSize = currentStepSize
                     }
-                    val roundedValue = kotlin.math.round(previousRating.toFloat() / currentStepSize) * currentStepSize
+                    val roundedValue = round(previousRating.toFloat() / currentStepSize) * currentStepSize
                     ratingSlider.value = roundedValue
                 }
 
@@ -2070,7 +2070,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     }
 
     private fun saveTotalEpisodes(totalEpisodes: Int) {
-        val sharedPreferences = getSharedPreferences("totalEpisodes", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("totalEpisodes", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putInt("totalEpisodes_$movieId", totalEpisodes)
         editor.commit()
@@ -3623,22 +3623,11 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     binding.tagsLayout.removeView(view)
                 }
 
-                // Add new tag views
                 tags.forEach { tag ->
-                    val chip = com.google.android.material.chip.Chip(this@DetailActivity)
+                    val chip = layoutInflater.inflate(R.layout.chip_choice_item, binding.tagsLayout, false) as com.google.android.material.chip.Chip
+
                     chip.text = tag.name
                     chip.tag = "dynamic_tag"
-                    chip.isCheckable = false
-                    
-                    val layoutParams = FlexboxLayout.LayoutParams(
-                        FlexboxLayout.LayoutParams.WRAP_CONTENT,
-                        FlexboxLayout.LayoutParams.WRAP_CONTENT
-                    )
-                    val margin = TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 4f, resources.displayMetrics
-                    ).toInt()
-                    layoutParams.setMargins(margin, margin, margin, margin)
-                    chip.layoutParams = layoutParams
 
                     chip.setOnClickListener {
                         val intent = Intent(this@DetailActivity, TaggedListActivity::class.java)
@@ -3646,6 +3635,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         intent.putExtra("tag_name", tag.name)
                         startActivity(intent)
                     }
+
                     binding.tagsLayout.addView(chip)
                 }
             }
@@ -4397,7 +4387,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             if (hideFetchedRatings) {
                 binding.recyclerViewReviews.visibility = View.GONE
                 binding.reviewText.setOnClickListener {
-                    if (binding.recyclerViewReviews.visibility == View.VISIBLE) {
+                    if (binding.recyclerViewReviews.isVisible) {
                         binding.recyclerViewReviews.visibility = View.GONE
                     } else {
                         binding.recyclerViewReviews.visibility = View.VISIBLE
