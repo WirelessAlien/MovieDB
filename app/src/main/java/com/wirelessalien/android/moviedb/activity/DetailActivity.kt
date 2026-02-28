@@ -2086,7 +2086,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         withContext(Dispatchers.Main) {
             if (seenEpisode != 0) {
                 binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes ?: 0)
-                binding.movieEpisodes.visibility = View.VISIBLE
+                binding.movieEpisodesLayout.visibility = View.VISIBLE
             }
         }
     }
@@ -2428,9 +2428,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (personalRating > 0) {
                     val localizedTen = String.format(Locale.getDefault(), "%d", 10)
                     binding.movieRating.text = getString(R.string.rating_format, personalRating, localizedTen)
-                    binding.movieRating.visibility = View.VISIBLE
                 } else {
-                    binding.movieRating.visibility = View.GONE
+                    binding.movieRating.text = getString(R.string.my_rating_unknown)
                 }
 
                 var dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -2590,14 +2589,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                     seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
                     binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
-                    binding.movieEpisodes.visibility = View.VISIBLE
+                    binding.movieEpisodesLayout.visibility = View.VISIBLE
                 }
 
                 // Make all the views visible (if the show is in the database).
-                binding.movieStartDate.visibility = View.VISIBLE
-                binding.movieFinishDate.visibility = View.VISIBLE
-                binding.movieRewatched.visibility = View.VISIBLE
-                binding.movieReviewText.visibility = View.VISIBLE
+                binding.personalStatsLayout.visibility = View.VISIBLE
+                if (binding.movieReviewText.text.isNotEmpty() && binding.movieReviewText.text != getString(R.string.no_reviews)) {
+                    binding.movieReviewCard.visibility = View.VISIBLE
+                }
 
                 // Make it possible to change the values.
                 binding.editIcon.visibility = View.VISIBLE
@@ -3025,7 +3024,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
                     binding.movieRating.text =
                         getString(R.string.rating_format, value, localizedTen)
-                    binding.movieRating.visibility = View.VISIBLE
                 }
             }
 
@@ -3308,9 +3306,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (personalRating > 0) {
                     val localizedTen = String.format(Locale.getDefault(), "%d", 10)
                     binding.movieRating.text = getString(R.string.rating_format, personalRating, localizedTen)
-                    binding.movieRating.visibility = View.VISIBLE
                 } else {
-                    binding.movieRating.visibility = View.GONE
+                    binding.movieRating.text = getString(R.string.my_rating_unknown)
                 }
 
                 var dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -3461,14 +3458,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (!isMovie) {
                     seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
                     binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
-                    binding.movieEpisodes.visibility = View.VISIBLE
+                    binding.movieEpisodesLayout.visibility = View.VISIBLE
                 }
 
                 // Make all the views visible (if the show is in the database).
-                binding.movieStartDate.visibility = View.VISIBLE
-                binding.movieFinishDate.visibility = View.VISIBLE
-                binding.movieRewatched.visibility = View.VISIBLE
-                binding.movieReviewText.visibility = View.VISIBLE
+                binding.personalStatsLayout.visibility = View.VISIBLE
+                if (binding.movieReviewText.text.isNotEmpty() && binding.movieReviewText.text != getString(R.string.no_reviews)) {
+                    binding.movieReviewCard.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -3627,32 +3624,29 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 // Add new tag views
-                tags.forEachIndexed { index, tag ->
-                    val textView = TextView(this@DetailActivity)
-                    if (index == 0) {
-                        textView.text = getString(R.string.tag_format, tag.name)
-                    } else {
-                        textView.text = tag.name
-                    }
-                    textView.tag = "dynamic_tag"
-                    textView.layoutParams = FlexboxLayout.LayoutParams(
+                tags.forEach { tag ->
+                    val chip = com.google.android.material.chip.Chip(this@DetailActivity)
+                    chip.text = tag.name
+                    chip.tag = "dynamic_tag"
+                    chip.isCheckable = false
+                    
+                    val layoutParams = FlexboxLayout.LayoutParams(
                         FlexboxLayout.LayoutParams.WRAP_CONTENT,
                         FlexboxLayout.LayoutParams.WRAP_CONTENT
                     )
-                    textView.gravity = android.view.Gravity.CENTER_VERTICAL
-                    val drawable = ContextCompat.getDrawable(this@DetailActivity, R.drawable.ic_dot)
-                    textView.setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null)
-                    textView.compoundDrawablePadding = TypedValue.applyDimension(
+                    val margin = TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_DIP, 4f, resources.displayMetrics
                     ).toInt()
+                    layoutParams.setMargins(margin, margin, margin, margin)
+                    chip.layoutParams = layoutParams
 
-                    textView.setOnClickListener {
+                    chip.setOnClickListener {
                         val intent = Intent(this@DetailActivity, TaggedListActivity::class.java)
                         intent.putExtra("tag_id", tag.id)
                         intent.putExtra("tag_name", tag.name)
                         startActivity(intent)
                     }
-                    binding.tagsLayout.addView(textView)
+                    binding.tagsLayout.addView(chip)
                 }
             }
         }
