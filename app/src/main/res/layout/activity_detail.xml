@@ -156,7 +156,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="14dp"
                         android:columnCount="2"
                         android:rowCount="3"
                         android:visibility="gone">
@@ -166,7 +166,6 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginBottom="16dp"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
 
@@ -205,7 +204,6 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginBottom="16dp"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
 
@@ -244,7 +242,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginTop="16dp"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
 
@@ -283,7 +281,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
-                            android:layout_marginBottom="16dp"
+                            android:layout_marginTop="16dp"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
 
@@ -375,31 +373,19 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
+                        app:cardCornerRadius="10dp"
                         android:visibility="gone"
                         app:cardElevation="0dp"
                         style="@style/Widget.Material3.CardView.Elevated">
-                        
-                        <LinearLayout
+
+                        <TextView
+                            android:id="@+id/movieReviewText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="12dp"
-                            android:orientation="horizontal">
-                            
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:layout_marginEnd="12dp"
-                                android:src="@drawable/ic_edit"
-                                app:tint="?attr/colorOnSurfaceVariant" />
-                            
-                            <TextView
-                                android:id="@+id/movieReviewText"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textStyle="italic"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textSize="14sp" />
-                        </LinearLayout>
+                            android:padding="14dp"
+                            android:textStyle="italic"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="14sp" />
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
