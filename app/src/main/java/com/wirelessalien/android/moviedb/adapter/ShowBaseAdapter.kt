@@ -125,6 +125,9 @@ class ShowBaseAdapter(
             val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w500"
+            Picasso.get().cancelRequest(holder.showImage)
+            holder.showImage.setImageDrawable(null)
+            
             if (showData.getString(KEY_POSTER) == "null") {
                 holder.showImage.setBackgroundColor(
                     ResourcesCompat.getColor(
@@ -714,6 +717,9 @@ class ShowBaseAdapter(
                         episodeName.text = name
                         episodeOverview.text = overview
                         episodeAirDate.text = formattedAirDate
+
+                        Picasso.get().cancelRequest(episodeImageView)
+                        episodeImageView.setImageDrawable(null)
 
                         if (stillPath.isNotEmpty() && stillPath != "null") {
                             val imageSize = if (loadHdImage) "w780" else "w500"

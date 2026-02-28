@@ -4415,8 +4415,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 bottomSheetDialog.setContentView(bottomSheetBinding.root)
 
                 val videoList = mutableListOf<JSONObject>()
+                var trailerIndex = -1
                 for (i in 0 until videos!!.length()) {
-                    videoList.add(videos!!.getJSONObject(i))
+                    val video = videos!!.getJSONObject(i)
+                    if (trailerIndex == -1 && video.optString("type").equals("Trailer", ignoreCase = true)) {
+                        trailerIndex = i
+                        videoList.add(0, video)
+                    } else {
+                        videoList.add(video)
+                    }
                 }
 
                 val videoAdapter = VideoAdapter(videoList) { video ->

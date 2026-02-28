@@ -85,6 +85,10 @@ class ShowPagingAdapter(
             val defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w500"
+            
+            Picasso.get().cancelRequest(holder.showImage)
+            holder.showImage.setImageDrawable(null)
+
             if (showData.getString(KEY_POSTER) == "null") {
                 holder.showImage.setBackgroundColor(
                     ResourcesCompat.getColor(
