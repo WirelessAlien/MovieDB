@@ -187,6 +187,7 @@
                                     android:text="@string/start_date_3"
                                     android:textAllCaps="true"
                                     android:textSize="10sp"
+                                    android:maxLines="1"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
 
@@ -194,6 +195,7 @@
                                     android:id="@+id/movieStartDate"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:maxLines="1"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -224,6 +226,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/finish_date_3"
                                     android:textAllCaps="true"
+                                    android:maxLines="1"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -233,6 +236,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:textSize="14sp"
+                                    android:maxLines="1"
                                     android:textStyle="bold" />
                             </LinearLayout>
                         </LinearLayout>
@@ -263,6 +267,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/time_watched"
                                     android:textAllCaps="true"
+                                    android:maxLines="1"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -271,6 +276,7 @@
                                     android:id="@+id/movieRewatched"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:maxLines="1"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -302,6 +308,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/my_rating"
                                     android:textAllCaps="true"
+                                    android:maxLines="1"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -310,6 +317,7 @@
                                     android:id="@+id/movieRating"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:maxLines="1"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -322,6 +330,7 @@
                             android:layout_height="wrap_content"
                             android:layout_columnWeight="1"
                             android:orientation="horizontal"
+                            android:layout_marginTop="16dp"
                             android:visibility="gone"
                             android:gravity="center_vertical">
 
@@ -342,6 +351,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/episode_seen"
                                     android:textAllCaps="true"
+                                    android:maxLines="1"
                                     android:textSize="10sp"
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorPrimary" />
@@ -350,6 +360,7 @@
                                     android:id="@+id/movieEpisodes"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
+                                    android:maxLines="1"
                                     android:textSize="14sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -373,8 +384,7 @@
                         android:layout_marginBottom="16dp"
                         app:cardCornerRadius="10dp"
                         android:visibility="gone"
-                        app:cardElevation="0dp"
-                        style="@style/Widget.Material3.CardView.Elevated">
+                        app:cardElevation="0dp">
 
                         <TextView
                             android:id="@+id/movieReviewText"
