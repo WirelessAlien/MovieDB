@@ -132,7 +132,7 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
                 val apiKey = getConfigValue(applicationContext, "api_key")
                 val client = OkHttpClient()
                 val request = Request.Builder()
-                    .url("https://api.themoviedb.org/3/tv/episode_group/?api_key=")
+                    .url("https://api.themoviedb.org/3/tv/episode_group/$groupId?api_key=$apiKey")
                     .build()
                 val response = client.newCall(request).execute()
                 val bodyString = response.body?.string()
