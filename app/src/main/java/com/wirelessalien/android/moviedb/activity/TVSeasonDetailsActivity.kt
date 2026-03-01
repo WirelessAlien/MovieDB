@@ -33,6 +33,15 @@ import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import org.json.JSONObject
 import java.util.Locale
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
+import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONArray
+import android.view.View
 
 class TVSeasonDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTvSeasonDetailsBinding
@@ -54,30 +63,87 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         val traktId = intent.getIntExtra("traktId", -1)
         val tmdbObjectString = intent.getStringExtra("tmdbObject")
         val tmdbObject = JSONObject(tmdbObjectString?:"{}")
-        binding.viewPager.adapter = object : FragmentStateAdapter(this) {
-            override fun createFragment(position: Int): Fragment {
-                return newInstance(tvShowId, position, showName, traktId, tmdbObject)
-            }
+        
+        val isGroup = intent.getBooleanExtra("isGroup", false)
+        val groupId = intent.getStringExtra("groupId")
+        val groupName = intent.getStringExtra("groupName")
 
-            override fun getItemCount(): Int {
-                return numSeasons + 1
+        if (isGroup && groupId != null) {
+            supportActionBar?.title = groupName
+            
+            lifecycleScope.launch {
+                val groupDetailsJson = fetchGroupDetails(groupId)
+                
+                if (groupDetailsJson != null) {
+                    val groupsArray = groupDetailsJson.optJSONArray("groups") ?: JSONArray()
+                    val numGroups = groupsArray.length()
+                    
+                    binding.viewPager.adapter = object : FragmentStateAdapter(this@TVSeasonDetailsActivity) {
+                        override fun createFragment(position: Int): Fragment {
+                            val fragment = newInstance(tvShowId, position, showName, traktId, tmdbObject)
+                            fragment.arguments?.putBoolean("isGroup", true)
+                            fragment.arguments?.putString("groupEpisodesJson", groupsArray.optJSONObject(position)?.optJSONArray("episodes")?.toString() ?: "[]")
+                            return fragment
+                        }
+
+                        override fun getItemCount(): Int {
+                            return numGroups
+                        }
+                    }
+                    
+                    TabLayoutMediator(
+                        binding.tabLayout, binding.viewPager
+                    ) { tab: TabLayout.Tab, position: Int ->
+                        tab.text = groupsArray.optJSONObject(position)?.optString("name", "Group " + (position + 1))
+                    }.attach()
+                }
             }
+        } else {
+            binding.viewPager.adapter = object : FragmentStateAdapter(this) {
+                override fun createFragment(position: Int): Fragment {
+                    return newInstance(tvShowId, position, showName, traktId, tmdbObject)
+                }
+    
+                override fun getItemCount(): Int {
+                    return numSeasons + 1
+                }
+            }
+            binding.viewPager.setCurrentItem(seasonNumber, false)
+            TabLayoutMediator(
+                binding.tabLayout, binding.viewPager
+            ) { tab: TabLayout.Tab, position: Int ->
+                val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
+                tab.text = if (position == 0) {
+                    getString(R.string.specials)
+                } else {
+                    getString(R.string.season) + " " + numberFormat.format(position)
+                }
+            }.attach()
         }
-        binding.viewPager.setCurrentItem(seasonNumber, false)
-        TabLayoutMediator(
-            binding.tabLayout, binding.viewPager
-        ) { tab: TabLayout.Tab, position: Int ->
-            val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
-            tab.text = if (position == 0) {
-                getString(R.string.specials)
-            } else {
-                getString(R.string.season) + " " + numberFormat.format(position)
-            }
-        }.attach()
     }
 
     fun getBinding(): ActivityTvSeasonDetailsBinding {
         return binding
+    }
+
+    private suspend fun fetchGroupDetails(groupId: String): JSONObject? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val apiKey = getConfigValue(applicationContext, "api_key")
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("https://api.themoviedb.org/3/tv/episode_group/?api_key=")
+                    .build()
+                val response = client.newCall(request).execute()
+                val bodyString = response.body?.string()
+                if (response.isSuccessful && !bodyString.isNullOrEmpty()) {
+                    return@withContext JSONObject(bodyString)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            null
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

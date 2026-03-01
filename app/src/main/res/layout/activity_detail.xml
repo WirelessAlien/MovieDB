@@ -1185,24 +1185,42 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/episodeText"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/allEpisodeBtn"
+        
+            <RelativeLayout
+                android:id="@+id/episodeButtonsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/episodeViewPager"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_below="@id/episodeViewPager"
-                android:contentDescription="@string/seasons"
-                android:text="@string/show_more"/>
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/allEpisodeBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toStartOf="@+id/episodeGroupBtn"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginEnd="10dp"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:contentDescription="@string/seasons"
+                    android:text="@string/show_more"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/episodeGroupBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    app:icon="@drawable/ic_list"
+                    android:contentDescription="Episode Groups"/>
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/castTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/allEpisodeBtn"
+                android:layout_below="@id/episodeButtonsContainer"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/cast_title"

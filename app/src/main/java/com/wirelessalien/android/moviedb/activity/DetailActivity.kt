@@ -810,8 +810,43 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         if (isMovie) {
             binding.episodeViewPager.visibility = View.GONE
+            binding.episodeButtonsContainer.visibility = View.GONE
             binding.allEpisodeBtn.visibility = View.GONE
             binding.episodeText.visibility = View.GONE
+        }
+
+        binding.episodeGroupBtn.setOnClickListener {
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
+            
+            lifecycleScope.launch {
+                val traktAccessToken = preferences.getString("trakt_access_token", null)
+                val traktId = if (traktAccessToken != null) {
+                    fetchTraktId(movieId, imdbId)
+                } else {
+                    null
+                }
+                
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
+                
+                val bottomSheet = com.wirelessalien.android.moviedb.fragment.EpisodeGroupBottomSheet()
+                val bundle = Bundle().apply {
+                    putInt("tvShowId", movieId)
+                    putString("tvShowName", showName)
+                    putString("tmdbObject", movieDataObject.toString())
+                    
+                    if (traktId != null) {
+                        putInt("traktId", traktId)
+                    }
+                    
+                    val groups = movieDataObject.optJSONObject("episode_groups")?.optJSONArray("results")?.toString() ?: "[]"
+                    putString("episodeGroupsJson", groups)
+                    
+                }
+                bottomSheet.arguments = bundle
+                bottomSheet.show(supportFragmentManager, "EpisodeGroupBottomSheet")
+            }
         }
 
         binding.allEpisodeBtn.setOnClickListener {
@@ -2856,6 +2891,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     if (mutedColor != Color.TRANSPARENT) {
                         binding.fab.backgroundTintList = colorStateList
                         binding.allEpisodeBtn.backgroundTintList = colorStateList
+                        binding.episodeGroupBtn.backgroundTintList = colorStateList
                         binding.editIcon.backgroundTintList = colorStateList
                         binding.fabSave.backgroundTintList = colorStateList
                         binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
@@ -4486,7 +4522,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         lifecycleScope.launch {
             try {
                 val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords,reviews" else "content_ratings,external_ids,videos,keywords,reviews"
+                val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords,reviews" else "content_ratings,external_ids,videos,keywords,reviews,episode_groups"
                 val baseUrl = "https://api.themoviedb.org/3/$type/$movieId?append_to_response=$additionalEndpoint"
                 val urlWithLanguage = baseUrl + getLanguageParameter(applicationContext)
 
@@ -4502,6 +4538,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                 withContext(Dispatchers.Main) {
                     onPostExecute(movieData)
+                    
+                    val groupsArray = movieData.optJSONObject("episode_groups")?.optJSONArray("results")
+                    if (!isMovie && groupsArray != null && groupsArray.length() > 0) {
+                        binding.episodeGroupBtn.visibility = View.VISIBLE
+                    } else {
+                        binding.episodeGroupBtn.visibility = View.GONE
+                    }
                 }
 
                 withContext(Dispatchers.IO) {
