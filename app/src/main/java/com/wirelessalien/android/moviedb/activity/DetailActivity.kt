@@ -477,6 +477,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.fabSave.text = getString(R.string.saved_tab_title)
                 added = true
                 binding.fabSave.visibility = View.GONE
+                updatePersonalDetailsViews()
             }
         }
 
@@ -2828,17 +2829,32 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     val companiesList = mutableListOf<com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem>()
                     for (i in 0 until productionCompanies.length()) {
                         val company = productionCompanies.getJSONObject(i)
-                        companiesList.add(
-                            com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem(
-                                logoPath = company.optString("logo_path"),
-                                name = company.optString("name"),
-                                country = company.optString("origin_country")
+                        val logoPath = company.optString("logo_path")
+                        val name = company.optString("name")
+                        val country = company.optString("origin_country")
+                        
+                        val hasLogo = logoPath.isNotEmpty() && logoPath != "null"
+                        val hasName = name.isNotEmpty() && name != "null"
+                        val hasCountry = country.isNotEmpty() && country != "null"
+                        
+                        if ((hasLogo && hasName) || (hasName && hasCountry)) {
+                            companiesList.add(
+                                com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem(
+                                    logoPath = logoPath,
+                                    name = name,
+                                    country = country
+                                )
                             )
-                        )
+                        }
                     }
-                    adapter.updateCompanies(companiesList)
-                    binding.productionCompaniesRv.visibility = View.VISIBLE
-                    binding.productionCompaniesText.visibility = View.VISIBLE
+                    if (companiesList.isNotEmpty()) {
+                        adapter.updateCompanies(companiesList)
+                        binding.productionCompaniesRv.visibility = View.VISIBLE
+                        binding.productionCompaniesText.visibility = View.VISIBLE
+                    } else {
+                        binding.productionCompaniesRv.visibility = View.GONE
+                        binding.productionCompaniesText.visibility = View.GONE
+                    }
                 } else {
                     binding.productionCompaniesRv.visibility = View.GONE
                     binding.productionCompaniesText.visibility = View.GONE
