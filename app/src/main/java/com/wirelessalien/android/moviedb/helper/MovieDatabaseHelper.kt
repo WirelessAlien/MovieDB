@@ -1309,6 +1309,18 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
     }
 
+    fun updateTag(tagId: Long, newName: String): Int {
+        val db = this.writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_TAG_NAME, newName)
+        return db.update(TABLE_TAGS, values, "$COLUMN_TAG_ID = ?", arrayOf(tagId.toString()))
+    }
+
+    fun deleteTag(tagId: Long): Int {
+        val db = this.writableDatabase
+        return db.delete(TABLE_TAGS, "$COLUMN_TAG_ID = ?", arrayOf(tagId.toString()))
+    }
+
     fun addMovieTag(movieId: Int, tagId: Long, isMovie: Boolean) {
         val db = this.writableDatabase
         val values = ContentValues()

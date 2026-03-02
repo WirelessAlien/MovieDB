@@ -328,6 +328,8 @@
     <string name="posters">Posters</string>
     <string name="more">more</string>
     <string name="release_details">Release Details</string>
+    <string name="edit_tag">Edit Tag</string>
+    <string name="click_again_to_delete">Click again to confirm delete</string>
     <string name="no_release_dates_found">No release dates found for your region.</string>
 
     <string-array name="media_types">

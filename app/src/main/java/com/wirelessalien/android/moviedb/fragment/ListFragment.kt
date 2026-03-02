@@ -39,6 +39,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
@@ -64,6 +65,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.google.android.material.textfield.TextInputEditText
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.CsvImportActivity
 import com.wirelessalien.android.moviedb.activity.DetailActivity
@@ -101,6 +103,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -525,6 +528,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private fun showTagsBottomSheet() {
         val binding = BottomSheetTagsBinding.inflate(LayoutInflater.from(requireContext()))
         val dialog = BottomSheetDialog(requireContext())
+        currentTagsDialog = dialog
         dialog.setContentView(binding.root)
 
         val layoutManager = FlexboxLayoutManager(context)
@@ -566,9 +570,71 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
                 startActivity(intent)
             }
+            holder.chip.setOnLongClickListener {
+                showEditTagDialog(tag)
+                true
+            }
         }
 
         override fun getItemCount() = tags.size
+    }
+
+    private var currentTagsDialog: BottomSheetDialog? = null
+
+    private fun showEditTagDialog(tag: Tag) {
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_tag, null)
+        val renameInput = view.findViewById<TextInputEditText>(R.id.renameInput)
+        renameInput.setText(tag.name)
+        renameInput.setSelection(renameInput.text?.length ?: 0)
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.edit_tag))
+            .setView(view)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                val newName = renameInput.text.toString().trim()
+                if (newName.isNotEmpty() && newName != tag.name) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        mDatabaseHelper.updateTag(tag.id, newName)
+                        withContext(Dispatchers.Main) {
+                            currentTagsDialog?.dismiss()
+                            showTagsBottomSheet()
+                            updateShowViewAdapter()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setNeutralButton(getString(R.string.delete), null)
+            .create()
+
+        dialog.setOnShowListener {
+            val deleteButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL)
+            var deleteClickedOnce = false
+
+            deleteButton.setOnClickListener {
+                if (deleteClickedOnce) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        mDatabaseHelper.deleteTag(tag.id)
+                        withContext(Dispatchers.Main) {
+                            dialog.dismiss()
+                            currentTagsDialog?.dismiss()
+                            showTagsBottomSheet()
+                            updateShowViewAdapter()
+                        }
+                    }
+                } else {
+                    deleteClickedOnce = true
+                    Toast.makeText(requireContext(), getString(R.string.click_again_to_delete), Toast.LENGTH_SHORT).show()
+                    
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(2000)
+                        deleteClickedOnce = false
+                    }
+                }
+            }
+        }
+
+        dialog.show()
     }
 
     private fun showQuickAccessBottomSheet() {
