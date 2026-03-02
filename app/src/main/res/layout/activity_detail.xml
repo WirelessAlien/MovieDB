@@ -79,9 +79,9 @@
                         android:layout_height="wrap_content"
                         android:background="#99000000"
                         android:gravity="center"
-                        android:padding="8dp"
+                        android:padding="6dp"
                         android:textColor="@android:color/white"
-                        android:textSize="10sp"
+                        android:textSize="12sp"
                         android:visibility="gone"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -1422,9 +1422,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/otherDetailsLayout"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="10dp"
                 android:text="@string/production_companies"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
 
@@ -1434,6 +1433,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/productionCompaniesText"
                 android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
                 android:visibility="gone" />
