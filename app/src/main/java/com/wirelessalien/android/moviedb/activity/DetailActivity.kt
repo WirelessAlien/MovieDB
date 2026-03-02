@@ -693,31 +693,38 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
                         val rating = round(ratingSlider.value.toDouble())
+                        val addRating = AddRating(movieId, rating, type, mActivity)
                         withContext(Dispatchers.IO) {
-                            AddRating(movieId, rating, type, mActivity).addRating()
+                            addRating.addRating()
+                        }
+                        if (addRating.isSuccessful()) {
+                            binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
+                                context,
+                                R.drawable.ic_thumb_up
+                            )
+                            binding.ratingBtnTmdb.text = getString(R.string.number, rating.toInt())
                         }
                         submitButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
-                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
-                            context,
-                            R.drawable.ic_thumb_up
-                        )
                     }
                 }
 
                 deleteButton.setOnClickListener {
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
+                        val deleteRating = DeleteRating(movieId, type, mActivity)
                         withContext(Dispatchers.IO) {
-                            DeleteRating(movieId, type, mActivity).deleteRating()
+                            deleteRating.deleteRating()
+                        }
+                        if (deleteRating.isSuccessful()) {
+                            binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
+                                context,
+                                R.drawable.ic_thumb_up_border
+                            )
+                            binding.ratingBtnTmdb.text = ""
                         }
                         deleteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
-                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
-                            context,
-                            R.drawable.ic_thumb_up_border
-                        )
-                        binding.ratingBtnTmdb.text = ""
                     }
                 }
 

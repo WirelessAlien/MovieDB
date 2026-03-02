@@ -71,8 +71,14 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         if (isGroup && groupId != null) {
             supportActionBar?.title = groupName
             
+            binding.shimmerFrameLayout.visibility = View.VISIBLE
+            binding.shimmerFrameLayout.startShimmer()
+            
             lifecycleScope.launch {
                 val groupDetailsJson = fetchGroupDetails(groupId)
+                
+                binding.shimmerFrameLayout.stopShimmer()
+                binding.shimmerFrameLayout.visibility = View.GONE
                 
                 if (groupDetailsJson != null) {
                     val groupsArray = groupDetailsJson.optJSONArray("groups") ?: JSONArray()
