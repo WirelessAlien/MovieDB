@@ -58,12 +58,35 @@
                 app:cardCornerRadius="10dp"
                 app:layout_collapseMode="parallax">
 
-                <ImageView
-                    android:id="@+id/moviePoster"
-                    android:layout_width="125dp"
-                    android:layout_height="200dp"
-                    android:contentDescription="@string/image_description"
-                    android:scaleType="fitXY" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/moviePoster"
+                        android:layout_width="125dp"
+                        android:layout_height="200dp"
+                        android:contentDescription="@string/image_description"
+                        android:scaleType="fitXY"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+
+                    <TextView
+                        android:id="@+id/categoryColor"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:background="#99000000"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.appbar.MaterialToolbar
@@ -1393,6 +1416,28 @@
                     android:textSize="14sp" />
             </GridLayout>
 
+            <TextView
+                android:id="@+id/productionCompaniesText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/otherDetailsLayout"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/production_companies"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/productionCompaniesRv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/productionCompaniesText"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone" />
+
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/keywordsLayout"
                 android:layout_width="match_parent"
@@ -1400,7 +1445,7 @@
                 android:paddingStart="11dp"
                 android:paddingEnd="11dp"
                 android:layout_marginBottom="20dp"
-                android:layout_below="@id/otherDetailsLayout"
+                android:layout_below="@id/productionCompaniesRv"
                 app:flexWrap="wrap"
                 app:justifyContent="flex_start"/>
         </RelativeLayout>

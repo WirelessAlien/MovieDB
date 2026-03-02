@@ -916,6 +916,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     this,
                     R.drawable.ic_star_border
                 )
+                binding.categoryColor.visibility = View.GONE
                 databaseUpdate()
                 binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 finish()
@@ -2817,6 +2818,35 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
                 binding.countryDataText.text = countries.toString()
             }
+            if (movieObject.has("production_companies")) {
+                val productionCompanies = movieObject.getJSONArray("production_companies")
+                if (productionCompanies.length() > 0) {
+                    val adapter = com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter(this@DetailActivity)
+                    binding.productionCompaniesRv.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@DetailActivity, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
+                    binding.productionCompaniesRv.adapter = adapter
+                    
+                    val companiesList = mutableListOf<com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem>()
+                    for (i in 0 until productionCompanies.length()) {
+                        val company = productionCompanies.getJSONObject(i)
+                        companiesList.add(
+                            com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem(
+                                logoPath = company.optString("logo_path"),
+                                name = company.optString("name"),
+                                country = company.optString("origin_country")
+                            )
+                        )
+                    }
+                    adapter.updateCompanies(companiesList)
+                    binding.productionCompaniesRv.visibility = View.VISIBLE
+                    binding.productionCompaniesText.visibility = View.VISIBLE
+                } else {
+                    binding.productionCompaniesRv.visibility = View.GONE
+                    binding.productionCompaniesText.visibility = View.GONE
+                }
+            } else {
+                binding.productionCompaniesRv.visibility = View.GONE
+                binding.productionCompaniesText.visibility = View.GONE
+            }
             val formattedRevenue: String = if (movieObject.has("revenue")) {
                 val revenue = movieObject.optLong("revenue")
                 formatCurrency(revenue)
@@ -3513,6 +3543,18 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (binding.movieReviewText.text.isNotEmpty() && binding.movieReviewText.text != getString(R.string.no_reviews)) {
                     binding.movieReviewCard.visibility = View.VISIBLE
                 }
+
+                // Show category in poster
+                val categoryNumber = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES))
+                val categoriesArray = resources.getStringArray(R.array.categories)
+                if (categoryNumber >= 0 && categoryNumber < categoriesArray.size) {
+                    binding.categoryColor.text = categoriesArray[categoryNumber]
+                    binding.categoryColor.visibility = View.VISIBLE
+                } else {
+                    binding.categoryColor.visibility = View.GONE
+                }
+            } else {
+                binding.categoryColor.visibility = View.GONE
             }
         }
     }
