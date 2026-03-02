@@ -526,7 +526,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         )
                         binding.ratingBtnTmdb.text = ratingValue.toString()
                         binding.ratingBtnTmdb.iconPadding = TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP, 5f, resources.displayMetrics
+                            TypedValue.COMPLEX_UNIT_DIP, 2f, resources.displayMetrics
                         ).toInt()
                     } else {
                         binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
@@ -703,6 +703,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                                 R.drawable.ic_thumb_up
                             )
                             binding.ratingBtnTmdb.text = getString(R.string.number, rating.toInt())
+                            binding.ratingBtnTmdb.iconPadding = TypedValue.applyDimension(
+                                TypedValue.COMPLEX_UNIT_DIP, 2f, resources.displayMetrics
+                            ).toInt()
                         }
                         submitButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
@@ -722,6 +725,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                                 R.drawable.ic_thumb_up_border
                             )
                             binding.ratingBtnTmdb.text = ""
+                            binding.ratingBtnTmdb.iconPadding = 0
                         }
                         deleteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
