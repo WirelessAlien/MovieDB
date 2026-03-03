@@ -64,7 +64,6 @@ class ProductionCompanyAdapter(
                 binding.companyLogo.visibility = View.VISIBLE
                 Picasso.get()
                     .load("https://image.tmdb.org/t/p/w154${company.logoPath}")
-                    .fit()
                     .into(binding.companyLogo)
             } else {
                 binding.companyLogo.visibility = View.GONE

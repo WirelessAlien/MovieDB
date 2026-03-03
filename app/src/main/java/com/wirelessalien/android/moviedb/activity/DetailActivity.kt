@@ -4486,20 +4486,25 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.allReviewBtn.visibility = View.GONE
                 binding.reviewText.visibility = View.GONE
                 binding.recyclerViewReviews.visibility = View.GONE
+                binding.revealReviewCard.visibility = View.GONE
                 return
             }
 
             if (hideFetchedRatings) {
                 binding.recyclerViewReviews.visibility = View.GONE
-                binding.reviewText.setOnClickListener {
-                    if (binding.recyclerViewReviews.isVisible) {
-                        binding.recyclerViewReviews.visibility = View.GONE
-                    } else {
-                        binding.recyclerViewReviews.visibility = View.VISIBLE
+                binding.allReviewBtn.visibility = View.GONE
+                binding.revealReviewCard.visibility = View.VISIBLE
+                
+                binding.revealReviewCard.setOnClickListener {
+                    binding.revealReviewCard.visibility = View.GONE
+                    binding.recyclerViewReviews.visibility = View.VISIBLE
+                    if (resultsArray.length() > 3) {
+                        binding.allReviewBtn.visibility = View.VISIBLE
                     }
                 }
             } else {
                 binding.recyclerViewReviews.visibility = View.VISIBLE
+                binding.revealReviewCard.visibility = View.GONE
             }
 
         } catch (e: JSONException) {
@@ -4507,6 +4512,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.allReviewBtn.visibility = View.GONE
             binding.reviewText.visibility = View.GONE
             binding.recyclerViewReviews.visibility = View.GONE
+            binding.revealReviewCard.visibility = View.GONE
         }
     }
 
