@@ -498,8 +498,8 @@
     <string name="genres">Genres</string>
     <string name="advanced">Advanced</string>
     <string name="keyword_text">Exclude and include keywords by putting their IDs in the respective text box below.\n * Use , (comma) to indicate you mean both keywords.\n * Use | (pipe) to indicate you want one or the other.</string>
-    <string name="with_keywords_hint">Include media with the keywords…</string>
-    <string name="without_keywords_hint">Exclude media with the keywords…</string>
+    <string name="with_keywords_hint">Include</string>
+    <string name="without_keywords_hint">Exclude</string>
 
     <string name="movie_tab_title">Movies</string>
     <string name="series_tab_title">Shows</string>

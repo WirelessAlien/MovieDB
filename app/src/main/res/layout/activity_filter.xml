@@ -523,23 +523,53 @@
                 android:layout_margin="5dp"
                 android:text="@string/keyword_text" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/withKeywords"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/withKeywordsLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/keywordText"
-                android:layout_margin="10dp"
-                android:hint="@string/with_keywords_hint"
-                android:inputType="text" />
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_gravity="fill"
+                app:boxCornerRadiusTopStart="10dp"
+                app:boxCornerRadiusBottomEnd="10dp"
+                app:boxCornerRadiusBottomStart="10dp"
+                app:boxCornerRadiusTopEnd="10dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/withoutKeywords"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/withKeywords"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/with_keywords_hint"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/withoutKeywordsLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/withKeywords"
-                android:layout_margin="10dp"
-                android:hint="@string/without_keywords_hint"
-                android:inputType="text" />
+                android:layout_below="@id/withKeywordsLayout"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_gravity="fill"
+                app:boxCornerRadiusTopStart="10dp"
+                app:boxCornerRadiusBottomEnd="10dp"
+                app:boxCornerRadiusBottomStart="10dp"
+                app:boxCornerRadiusTopEnd="10dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/withoutKeywords"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/without_keywords_hint"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
         </RelativeLayout>
     </RelativeLayout>
 </ScrollView>
