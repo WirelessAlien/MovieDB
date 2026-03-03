@@ -276,6 +276,20 @@ public class FilterActivity extends AppCompatActivity {
             advancedTitle.setVisibility(View.GONE);
         }
 
+        if (!intent.getBooleanExtra("origin_country", false)) {
+            LinearLayout originCountryLayout = findViewById(R.id.originCountryLayout);
+            View countryViewSeparator = findViewById(R.id.countryViewSeparator);
+
+            originCountryLayout.setVisibility(View.GONE);
+            countryViewSeparator.setVisibility(View.GONE);
+        }
+
+        if (!intent.getBooleanExtra("watch_provider", false)) {
+            LinearLayout watchProviderLayout = findViewById(R.id.watchProviderLayout);
+
+            watchProviderLayout.setVisibility(View.GONE);
+        }
+
         if (!intent.getBooleanExtra("tags", false)) {
             TextView tagsText = findViewById(R.id.tagsText);
             ChipGroup tagButtons = findViewById(R.id.tagButtons);

@@ -161,7 +161,10 @@ class ShowFragment : BaseFragment() {
     private var filterRequestContract: ActivityResultContract<Intent, Boolean> =
         object : ActivityResultContract<Intent, Boolean>() {
             override fun createIntent(context: Context, input: Intent): Intent {
-                return Intent(context, FilterActivity::class.java).putExtra("mode", mListType)
+                return Intent(context, FilterActivity::class.java)
+                    .putExtra("mode", mListType)
+                    .putExtra("origin_country", true)
+                    .putExtra("watch_provider", true)
             }
 
             override fun parseResult(resultCode: Int, intent: Intent?): Boolean {

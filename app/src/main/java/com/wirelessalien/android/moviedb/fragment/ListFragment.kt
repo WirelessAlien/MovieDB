@@ -198,6 +198,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             intent.putExtra("account", false)
             intent.putExtra("account", false)
             intent.putExtra("tags", true)
+            intent.putExtra("origin_country", false)
+            intent.putExtra("watch_provider", false)
             filterActivityResultLauncher.launch(intent)
         }
 
@@ -804,6 +806,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     intent.putExtra("finishDate", true)
                     intent.putExtra("account", false)
                     intent.putExtra("tags", true)
+                    intent.putExtra("origin_country", false)
+                    intent.putExtra("watch_provider", false)
                     filterActivityResultLauncher.launch(intent)
                 }
             }
@@ -1320,6 +1324,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 intent.putExtra("finishDate", true)
                 intent.putExtra("account", false)
                 intent.putExtra("tags", true)
+                intent.putExtra("origin_country", false)
+                intent.putExtra("watch_provider", false)
                 filterActivityResultLauncher.launch(intent)
             }
         } else {
