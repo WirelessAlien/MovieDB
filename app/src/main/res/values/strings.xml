@@ -790,7 +790,9 @@
     <string name="vote_count_hint">e.g. 10000</string>
     <string name="origin_country">Origin Country</string>
     <string name="search_for_country">Search for country</string>
-    <string name="use_and_logic_for_countries">Use AND logic for countries</string>
+    <string name="use_and_logic_for_countries">Require all selected countries</string>
+    <string name="countries_logic_explanation">When enabled, only media from ALL selected origin countries will be shown.</string>
     <string name="watch_providers">Watch Providers</string>
-    <string name="use_and_logic_for_watch_providers">Use AND logic for watch providers</string>
+    <string name="use_and_logic_for_watch_providers">Require all selected watch providers</string>
+    <string name="watch_providers_logic_explanation">When enabled, only media available on ALL selected watch providers will be shown.</string>
 </resources>

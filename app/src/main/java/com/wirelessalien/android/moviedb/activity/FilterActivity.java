@@ -508,6 +508,7 @@ public class FilterActivity extends AppCompatActivity {
                         JSONObject responseObj = new JSONObject(result);
                         JSONArray providersArray = responseObj.getJSONArray("results");
                         ChipGroup chipGroup = findViewById(R.id.watchProviderChipGroup);
+                        List<Chip> providerChips = new ArrayList<>();
                         for (int i = 0; i < providersArray.length(); i++) {
                             JSONObject providerObj = providersArray.getJSONObject(i);
                             String providerId = providerObj.getString("provider_id");
@@ -530,6 +531,27 @@ public class FilterActivity extends AppCompatActivity {
                                 }
                             });
                             chipGroup.addView(chip);
+                            providerChips.add(chip);
+                            
+                            if (i >= 15) {
+                                chip.setVisibility(View.GONE);
+                            }
+                        }
+
+                        if (providersArray.length() > 15) {
+                            Chip toggleChip = new Chip(FilterActivity.this);
+                            toggleChip.setText(R.string.show_more);
+                            toggleChip.setCheckable(false);
+                            toggleChip.setChipBackgroundColorResource(R.color.md_theme_primary);
+                            toggleChip.setTextColor(getResources().getColor(android.R.color.white));
+                            toggleChip.setOnClickListener(v -> {
+                                boolean isShowingMore = toggleChip.getText().toString().equals(getString(R.string.show_less));
+                                for (int i = 15; i < providerChips.size(); i++) {
+                                    providerChips.get(i).setVisibility(isShowingMore ? View.GONE : View.VISIBLE);
+                                }
+                                toggleChip.setText(isShowingMore ? R.string.show_more : R.string.show_less);
+                            });
+                            chipGroup.addView(toggleChip);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
