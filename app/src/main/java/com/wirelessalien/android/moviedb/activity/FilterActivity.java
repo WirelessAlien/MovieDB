@@ -42,8 +42,10 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.ArrayAdapter;
 
 import androidx.activity.OnBackPressedCallback;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -81,6 +83,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Map;
+import java.util.HashMap;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import android.os.AsyncTask;
 
 /**
  * This class handles all the different sorting and filtering on the shows.
@@ -99,16 +108,24 @@ public class FilterActivity extends AppCompatActivity {
     public static final String FILTER_WITHOUT_GENRES = "filter_without_genres";
     public static final String FILTER_WITH_KEYWORDS = "filter_with_keywords";
     public static final String FILTER_WITHOUT_KEYWORDS = "filter_without_keywords";
+    public static final String FILTER_VOTE_COUNT = "filter_vote_count";
     public static final String CATEGORY_ORDER = "category_order";
     public static final String FILTER_NESTED_SORT = "filter_nested_sort";
     public static final String FILTER_WITH_TAGS = "filter_with_tags";
     public static final String FILTER_WITHOUT_TAGS = "filter_without_tags";
+    public static final String FILTER_COUNTRIES = "filter_countries";
+    public static final String FILTER_COUNTRY_AND_LOGIC = "filter_country_and_logic";
+    public static final String FILTER_WATCH_PROVIDERS = "filter_watch_providers";
+    public static final String FILTER_WATCH_PROVIDER_LOGIC = "filter_watch_provider_logic";
     private ArrayList<Integer> withGenres = new ArrayList<>();
     private ArrayList<Integer> withoutGenres = new ArrayList<>();
     private ArrayList<String> withTags = new ArrayList<>();
     private ArrayList<String> withoutTags = new ArrayList<>();
     private CategoryAdapter categoryAdapter;
     private List<CategoryDTO> categoryList;
+    private ArrayList<String> selectedCountries = new ArrayList<>();
+    private Map<String, String> countryMap = new HashMap<>();
+    private ArrayList<String> selectedWatchProviders = new ArrayList<>();
 
     /**
      * Uses Integer.parseInt on all characters in the string (except for splitArg).
@@ -369,6 +386,157 @@ public class FilterActivity extends AppCompatActivity {
 
         // Retrieve preferences from the last time.
         retrieveFilterPreferences();
+        
+        loadCountries();
+        
+        loadWatchProviders(mode);
+    }
+    
+    private void loadCountries() {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                try {
+                    String apiKey = com.wirelessalien.android.moviedb.helper.ConfigHelper.INSTANCE.getConfigValue(getApplicationContext(), "api_key");
+                    URL url = new URL("https://api.themoviedb.org/3/configuration/countries?api_key=" + apiKey);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+                    reader.close();
+                    return result.toString();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                if (result != null) {
+                    try {
+                        JSONArray countriesArray = new JSONArray(result);
+                        List<String> countryNames = new ArrayList<>();
+                        for (int i = 0; i < countriesArray.length(); i++) {
+                            JSONObject countryObj = countriesArray.getJSONObject(i);
+                            String iso = countryObj.getString("iso_3166_1");
+                            String name = countryObj.getString("english_name");
+                            countryMap.put(name, iso);
+                            countryNames.add(name);
+                        }
+                        
+                        MaterialAutoCompleteTextView autoComplete = findViewById(R.id.countryAutoComplete);
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(FilterActivity.this, android.R.layout.simple_dropdown_item_1line, countryNames);
+                        autoComplete.setAdapter(adapter);
+                        
+                        autoComplete.setOnItemClickListener((parent, view, position, id) -> {
+                            String selectedName = (String) parent.getItemAtPosition(position);
+                            String selectedIso = countryMap.get(selectedName);
+                            if (selectedIso != null && !selectedCountries.contains(selectedIso)) {
+                                selectedCountries.add(selectedIso);
+                                addCountryChip(selectedName, selectedIso);
+                            }
+                            autoComplete.setText("");
+                        });
+                        
+                        // Restore previously selected countries (we need to match ISO back to Name to display properly, but for simplicity we'll just show the ISO if name isn't found easily, though we can search the map)
+                        ChipGroup countryChipGroup = findViewById(R.id.countryChipGroup);
+                        countryChipGroup.removeAllViews();
+                        for (String iso : selectedCountries) {
+                            String name = iso; // Fallback
+                            for (Map.Entry<String, String> entry : countryMap.entrySet()) {
+                                if (entry.getValue().equals(iso)) {
+                                    name = entry.getKey();
+                                    break;
+                                }
+                            }
+                            addCountryChip(name, iso);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.execute();
+    }
+
+    private void addCountryChip(String name, String iso) {
+        ChipGroup chipGroup = findViewById(R.id.countryChipGroup);
+        Chip chip = new Chip(this);
+        chip.setText(name);
+        chip.setCloseIconVisible(true);
+        chip.setOnCloseIconClickListener(v -> {
+            chipGroup.removeView(chip);
+            selectedCountries.remove(iso);
+        });
+        chipGroup.addView(chip);
+    }
+    
+    private void loadWatchProviders(String mode) {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                try {
+                    String apiKey = com.wirelessalien.android.moviedb.helper.ConfigHelper.INSTANCE.getConfigValue(getApplicationContext(), "api_key");
+                    String region = Locale.getDefault().getCountry();
+                    String endpoint = (mode != null && mode.equals("tv")) ? "tv" : "movie";
+                    URL url = new URL("https://api.themoviedb.org/3/watch/providers/" + endpoint + "?api_key=" + apiKey + "&watch_region=" + region);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+                    reader.close();
+                    return result.toString();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                if (result != null) {
+                    try {
+                        JSONObject responseObj = new JSONObject(result);
+                        JSONArray providersArray = responseObj.getJSONArray("results");
+                        ChipGroup chipGroup = findViewById(R.id.watchProviderChipGroup);
+                        for (int i = 0; i < providersArray.length(); i++) {
+                            JSONObject providerObj = providersArray.getJSONObject(i);
+                            String providerId = providerObj.getString("provider_id");
+                            String providerName = providerObj.getString("provider_name");
+                            
+                            Chip chip = new Chip(FilterActivity.this);
+                            chip.setText(providerName);
+                            chip.setTag(providerId);
+                            chip.setCheckable(true);
+                            if (selectedWatchProviders.contains(providerId)) {
+                                chip.setChecked(true);
+                            }
+                            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                                if (isChecked) {
+                                    if (!selectedWatchProviders.contains(providerId)) {
+                                        selectedWatchProviders.add(providerId);
+                                    }
+                                } else {
+                                    selectedWatchProviders.remove(providerId);
+                                }
+                            });
+                            chipGroup.addView(chip);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.execute();
     }
 
     private void initializeCategoryList() {
@@ -488,12 +656,22 @@ public class FilterActivity extends AppCompatActivity {
 
         EditText withKeywords = findViewById(R.id.withKeywords);
         EditText withoutKeywords = findViewById(R.id.withoutKeywords);
+        EditText voteCountMin = findViewById(R.id.voteCountMin);
 
         prefsEditor.putString(FILTER_WITH_KEYWORDS, withKeywords.getText().toString());
         prefsEditor.putString(FILTER_WITHOUT_KEYWORDS, withoutKeywords.getText().toString());
+        prefsEditor.putString(FILTER_VOTE_COUNT, voteCountMin.getText().toString());
 
         com.google.android.material.materialswitch.MaterialSwitch nestedSortingSwitch = findViewById(R.id.nestedSortingSwitch);
         prefsEditor.putBoolean(FILTER_NESTED_SORT, nestedSortingSwitch.isChecked());
+
+        prefsEditor.putString(FILTER_COUNTRIES, selectedCountries.toString());
+        com.google.android.material.materialswitch.MaterialSwitch countryLogicSwitch = findViewById(R.id.countryLogicSwitch);
+        prefsEditor.putBoolean(FILTER_COUNTRY_AND_LOGIC, countryLogicSwitch.isChecked());
+
+        prefsEditor.putString(FILTER_WATCH_PROVIDERS, selectedWatchProviders.toString());
+        com.google.android.material.materialswitch.MaterialSwitch watchProviderLogicSwitch = findViewById(R.id.watchProviderLogicSwitch);
+        prefsEditor.putBoolean(FILTER_WATCH_PROVIDER_LOGIC, watchProviderLogicSwitch.isChecked());
 
         prefsEditor.apply();
     }
@@ -724,8 +902,26 @@ public class FilterActivity extends AppCompatActivity {
             withoutKeywordsView.setText(withoutKeywords);
         }
 
+        String voteCountMin;
+        if ((voteCountMin = sharedPreferences.getString(FILTER_VOTE_COUNT, null)) != null) {
+            EditText voteCountMinView = findViewById(R.id.voteCountMin);
+            voteCountMinView.setText(voteCountMin);
+        }
+
         com.google.android.material.materialswitch.MaterialSwitch nestedSortingSwitch = findViewById(R.id.nestedSortingSwitch);
         nestedSortingSwitch.setChecked(sharedPreferences.getBoolean(FILTER_NESTED_SORT, false));
+
+        selectedCountries = convertStringToArrayList(sharedPreferences.getString(FILTER_COUNTRIES, null), ", ");
+        if (selectedCountries == null) selectedCountries = new ArrayList<>();
+        
+        com.google.android.material.materialswitch.MaterialSwitch countryLogicSwitch = findViewById(R.id.countryLogicSwitch);
+        countryLogicSwitch.setChecked(sharedPreferences.getBoolean(FILTER_COUNTRY_AND_LOGIC, false));
+
+        selectedWatchProviders = convertStringToArrayList(sharedPreferences.getString(FILTER_WATCH_PROVIDERS, null), ", ");
+        if (selectedWatchProviders == null) selectedWatchProviders = new ArrayList<>();
+        
+        com.google.android.material.materialswitch.MaterialSwitch watchProviderLogicSwitch = findViewById(R.id.watchProviderLogicSwitch);
+        watchProviderLogicSwitch.setChecked(sharedPreferences.getBoolean(FILTER_WATCH_PROVIDER_LOGIC, false));
     }
 
     /**

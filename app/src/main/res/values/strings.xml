@@ -786,4 +786,11 @@
     <string name="episode_seen">Episode Seen</string>
     <string name="my_rating">My Rating</string>
     <string name="time_watched">Time Watched</string>
+    <string name="vote_count_min">Vote Count (Minimum)</string>
+    <string name="vote_count_hint">e.g. 10000</string>
+    <string name="origin_country">Origin Country</string>
+    <string name="search_for_country">Search for country</string>
+    <string name="use_and_logic_for_countries">Use AND logic for countries</string>
+    <string name="watch_providers">Watch Providers</string>
+    <string name="use_and_logic_for_watch_providers">Use AND logic for watch providers</string>
 </resources>

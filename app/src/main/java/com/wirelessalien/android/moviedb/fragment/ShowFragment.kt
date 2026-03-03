@@ -301,6 +301,37 @@ class ShowFragment : BaseFragment() {
         ) {
             filterParameter += "&without_keywords=$withoutKeywords"
         }
+        
+        var voteCountMin: String
+        if (sharedPreferences.getString(FilterActivity.FILTER_VOTE_COUNT, "")
+                .also { voteCountMin = it!! } != ""
+        ) {
+            filterParameter += "&vote_count.gte=$voteCountMin"
+        }
+        
+        val selectedCountries = FilterActivity.convertStringToArrayList(
+            sharedPreferences.getString(FilterActivity.FILTER_COUNTRIES, null), ", "
+        )
+        if (selectedCountries != null && selectedCountries.isNotEmpty()) {
+            val useAndLogic = sharedPreferences.getBoolean(FilterActivity.FILTER_COUNTRY_AND_LOGIC, false)
+            val separator = if (useAndLogic) "," else "|"
+            filterParameter += "&with_origin_country=" + selectedCountries.joinToString(separator)
+        }
+
+        val selectedWatchProviders = FilterActivity.convertStringToArrayList(
+            sharedPreferences.getString(FilterActivity.FILTER_WATCH_PROVIDERS, null), ", "
+        )
+        if (selectedWatchProviders != null && selectedWatchProviders.isNotEmpty()) {
+            val useAndLogic = sharedPreferences.getBoolean(FilterActivity.FILTER_WATCH_PROVIDER_LOGIC, false)
+            val separator = if (useAndLogic) "," else "|"
+            filterParameter += "&with_watch_providers=" + selectedWatchProviders.joinToString(separator)
+            
+            // Watch region is required when filtering by watch providers
+            if (!filterParameter.contains("watch_region=")) {
+                filterParameter += "&" + BaseActivity.getRegionParameter2(requireContext())
+            }
+        }
+        
         filterChanged = true
         loadInitialData()
     }
