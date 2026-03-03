@@ -41,6 +41,7 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
+import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -256,6 +257,14 @@ public class FilterActivity extends AppCompatActivity {
 
             separator.setVisibility(View.GONE);
             advancedTitle.setVisibility(View.GONE);
+        }
+
+        if (!intent.getBooleanExtra("tags", false)) {
+            TextView tagsText = findViewById(R.id.tagsText);
+            ChipGroup tagButtons = findViewById(R.id.tagButtons);
+            
+            tagsText.setVisibility(View.GONE);
+            tagButtons.setVisibility(View.GONE);
         }
 
         SharedPreferences sharedPreferences = getSharedPreferences("GenreList", Context.MODE_PRIVATE);

@@ -197,6 +197,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             intent.putExtra("finishDate", true)
             intent.putExtra("account", false)
             intent.putExtra("account", false)
+            intent.putExtra("tags", true)
             filterActivityResultLauncher.launch(intent)
         }
 
@@ -802,6 +803,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     intent.putExtra("startDate", true)
                     intent.putExtra("finishDate", true)
                     intent.putExtra("account", false)
+                    intent.putExtra("tags", true)
                     filterActivityResultLauncher.launch(intent)
                 }
             }
@@ -1317,6 +1319,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 intent.putExtra("startDate", true)
                 intent.putExtra("finishDate", true)
                 intent.putExtra("account", false)
+                intent.putExtra("tags", true)
                 filterActivityResultLauncher.launch(intent)
             }
         } else {
