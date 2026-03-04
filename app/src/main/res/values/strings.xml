@@ -795,4 +795,6 @@
     <string name="watch_providers">Watch Providers</string>
     <string name="use_and_logic_for_watch_providers">Require all selected watch providers</string>
     <string name="watch_providers_logic_explanation">When enabled, only media available on ALL selected watch providers will be shown.</string>
+
+    <string name="app_language">App language</string>
 </resources>

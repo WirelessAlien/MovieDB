@@ -26,6 +26,15 @@
         android:title="@string/title_general"
         app:iconSpaceReserved="false">
 
+        <ListPreference
+            android:key="key_app_language"
+            android:title="@string/app_language"
+            android:summary="%s"
+            android:entries="@array/app_language_entries"
+            android:entryValues="@array/app_language_values"
+            android:defaultValue="system"
+            app:iconSpaceReserved="false" />
+
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="key_show_cast"
