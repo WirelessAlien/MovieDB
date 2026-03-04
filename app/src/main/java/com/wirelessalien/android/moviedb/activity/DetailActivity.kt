@@ -64,10 +64,12 @@ import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsServiceConnection
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.children
+import androidx.core.view.isGone
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
@@ -149,9 +151,6 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.abs
 import kotlin.math.round
-import androidx.core.net.toUri
-import androidx.core.view.isGone
-import androidx.core.view.isVisible
 
 /**
  * This class provides all the details about the shows.
@@ -662,7 +661,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             changeStepSizeButton.setOnClickListener {
                 currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
                 preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
-                val newValue = kotlin.math.round(ratingSlider.value / currentStepSize) * currentStepSize
+                val newValue = round(ratingSlider.value / currentStepSize) * currentStepSize
                 if (newValue != ratingSlider.value) {
                     ratingSlider.value = newValue
                 }
@@ -2823,7 +2822,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val productionCompanies = movieObject.getJSONArray("production_companies")
                 if (productionCompanies.length() > 0) {
                     val adapter = com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter(this@DetailActivity)
-                    binding.productionCompaniesRv.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@DetailActivity, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
+                    binding.productionCompaniesRv.layoutManager = LinearLayoutManager(this@DetailActivity, LinearLayoutManager.HORIZONTAL, false)
                     binding.productionCompaniesRv.adapter = adapter
                     
                     val companiesList = mutableListOf<com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem>()
@@ -3095,7 +3094,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.btnChangeStepSize.setOnClickListener {
                 currentStepSize = if (currentStepSize == 0.1f) 1.0f else 0.1f
                 preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
-                val newValue = kotlin.math.round(binding.showRating.value / currentStepSize) * currentStepSize
+                val newValue = round(binding.showRating.value / currentStepSize) * currentStepSize
                 if (newValue != binding.showRating.value) {
                     binding.showRating.value = newValue
                 }
@@ -3563,8 +3562,18 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 // Show category in poster
                 val categoryNumber = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES))
                 val categoriesArray = resources.getStringArray(R.array.categories)
-                if (categoryNumber >= 0 && categoryNumber < categoriesArray.size) {
-                    binding.categoryColor.text = categoriesArray[categoryNumber]
+
+                val categoryText = when (categoryNumber) {
+                    MovieDatabaseHelper.CATEGORY_WATCHING -> getString(R.string.category_watching)
+                    MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> getString(R.string.category_plan_to_watch)
+                    MovieDatabaseHelper.CATEGORY_WATCHED -> getString(R.string.category_watched)
+                    MovieDatabaseHelper.CATEGORY_ON_HOLD -> getString(R.string.category_on_hold)
+                    MovieDatabaseHelper.CATEGORY_DROPPED -> getString(R.string.category_dropped)
+                    else -> MovieDatabaseHelper.CATEGORY_WATCHING
+                }
+
+                if (categoryText != null) {
+                    binding.categoryColor.text = categoryText
                     binding.categoryColor.visibility = View.VISIBLE
                 } else {
                     binding.categoryColor.visibility = View.GONE
