@@ -797,4 +797,5 @@
     <string name="watch_providers_logic_explanation">When enabled, only media available on ALL selected watch providers will be shown.</string>
 
     <string name="app_language">App language</string>
+    <string name="episode_groups">Episode Groups</string>
 </resources>
