@@ -25,10 +25,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:checkable="false"
     android:clickable="true"
-    android:text="Test"
     app:textStartPadding="4dp"
     app:textEndPadding="4dp"
     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
     android:textAppearance="@style/TextAppearance.Material3.LabelSmall.Emphasized"
-    android:layout_marginEnd="16dp"
+    android:layout_marginEnd="12dp"
     android:focusable="true" />
