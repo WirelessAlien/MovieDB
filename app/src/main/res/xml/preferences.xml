@@ -26,6 +26,15 @@
         android:title="@string/title_general"
         app:iconSpaceReserved="false">
 
+        <ListPreference
+            android:key="key_app_language"
+            android:title="@string/app_language"
+            android:summary="%s"
+            android:entries="@array/app_language_entries"
+            android:entryValues="@array/app_language_values"
+            android:defaultValue="system"
+            app:iconSpaceReserved="false" />
+
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="key_show_cast"
@@ -161,6 +170,13 @@
             android:key="key_sort_watching_by_date"
             android:summary="@string/summary_sort_watching_by_date"
             android:title="@string/title_sort_watching_by_date"
+            app:iconSpaceReserved="false" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="key_hide_fetched_ratings"
+            android:summary="@string/hide_fetched_ratings_summary"
+            android:title="@string/hide_fetched_ratings"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 

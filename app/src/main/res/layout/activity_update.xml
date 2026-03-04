@@ -60,7 +60,6 @@
         android:id="@+id/download_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_marginTop="16dp"
         android:text="@string/download" />
@@ -78,7 +77,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.TonalButton"
         android:text="@string/install"
         android:visibility="gone" />
@@ -89,6 +87,5 @@
         android:layout_height="wrap_content"
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_marginTop="16dp"
-        app:cornerRadius="10dp"
         android:text="@string/close" />
 </LinearLayout>

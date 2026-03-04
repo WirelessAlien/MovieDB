@@ -121,6 +121,7 @@ class TVSeasonDetails(
             id = episodeJson.optInt("id"),
             airDate = episodeJson.optString("air_date", ""),
             episodeNumber = episodeJson.optInt("episode_number"),
+            seasonNumber = episodeJson.optInt("season_number", seasonNumber),
             name = episodeJson.optString("name", ""),
             overview = episodeJson.optString("overview", ""),
             runtime = episodeJson.optInt("runtime", 0),

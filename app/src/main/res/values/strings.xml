@@ -328,7 +328,10 @@
     <string name="posters">Posters</string>
     <string name="more">more</string>
     <string name="release_details">Release Details</string>
+    <string name="edit_tag">Edit Tag</string>
+    <string name="click_again_to_delete">Click again to confirm delete</string>
     <string name="no_release_dates_found">No release dates found for your region.</string>
+    <string name="production_companies">Production Companies</string>
 
     <string-array name="media_types">
         <item>digital</item>
@@ -450,13 +453,14 @@
     <string name="movie_added">Movie added</string>
     <string name="series_added">Show added</string>
     <string name="show_added_error">Could not add show to database</string>
-    <string name="start_date">Started on: %1$s</string>
-    <string name="start_date_unknown">Start date: Not set </string>
-    <string name="finish_date">Finished on: %1$s</string>
-    <string name="finish_date_unknown">Finish date: Not set </string>
-    <string name="times_watched">Times Watched: %1$d</string>
+    <string name="start_date">%1$s</string>
+    <string name="start_date_unknown">Not set</string>
+    <string name="finish_date">%1$s</string>
+    <string name="finish_date_unknown">Not set</string>
+    <string name="my_rating_unknown">Not set</string>
+    <string name="times_watched">%1$d</string>
     <string name="times_watched_default" translatable="false">1</string>
-    <string name="episodes_seen">Episodes seen: %1$d/%2$d</string>
+    <string name="episodes_seen">%1$d / %2$d</string>
     <string name="rating">"Rating: "</string>
     <string name="show_rating_default" translatable="false">0</string>
     <string name="change_start_date_2">"Start date: "</string>
@@ -494,8 +498,8 @@
     <string name="genres">Genres</string>
     <string name="advanced">Advanced</string>
     <string name="keyword_text">Exclude and include keywords by putting their IDs in the respective text box below.\n * Use , (comma) to indicate you mean both keywords.\n * Use | (pipe) to indicate you want one or the other.</string>
-    <string name="with_keywords_hint">Include media with the keywords…</string>
-    <string name="without_keywords_hint">Exclude media with the keywords…</string>
+    <string name="with_keywords_hint">Include</string>
+    <string name="without_keywords_hint">Exclude</string>
 
     <string name="movie_tab_title">Movies</string>
     <string name="series_tab_title">Shows</string>
@@ -684,7 +688,7 @@
     <string name="failed_to_download_image">Could not download image</string>
     <string name="error">"Error: "</string>
     <string name="failed_to_create_directory">Could not create directory</string>
-    <string name="reviews">Review: %1$s</string>
+    <string name="reviews">%1$s</string>
     <string name="no_reviews">Review: Not added</string>
     <string name="default_media_type">Default media type</string>
     <string name="show_shows_as_default_in_the_account_tab">Display \"Shows\" as default in the \'Account\' tab</string>
@@ -753,7 +757,7 @@
     <string name="certification_with_country" translatable="false">%1$s (%2$s)</string>
     <string name="items_count">Items: %1$d</string>
     <string name="refresh">Refresh</string>
-    <string name="rating_format">Rating: %.1f/%s</string>
+    <string name="rating_format">%.1f / %s</string>
     <string name="drive_access_failed">Could not access Google Drive</string>
     <string name="upload_in_progress">Uploading</string>
     <string name="could_not_import_backup">Could not import backup: %1$s</string>
@@ -770,4 +774,27 @@
     <string name="runtime">Runtime</string>
     <string name="popularity">Popularity</string>
     <string name="language">Language</string>
+    <string name="tags">Tags</string>
+    <string name="tags_label">" Tags: "</string>
+    <string name="add_tag">Add Tag</string>
+    <string name="add_new_tag">Add new tag</string>
+    <string name="hide_fetched_ratings">Hide Fetched Ratings</string>
+    <string name="hide_fetched_ratings_summary">Hide fetched ratings and reviews of media. Tap to reveal.</string>
+    <string name="tap_to_reveal">Reveal</string>
+    <string name="tag_format">Tags: %s</string>
+    <string name="finish_date_3">Finish Date</string>
+    <string name="episode_seen">Episode Seen</string>
+    <string name="my_rating">My Rating</string>
+    <string name="time_watched">Time Watched</string>
+    <string name="vote_count_min">Vote Count (Minimum)</string>
+    <string name="vote_count_hint">e.g. 10000</string>
+    <string name="origin_country">Origin Country</string>
+    <string name="search_for_country">Search for country</string>
+    <string name="use_and_logic_for_countries">Require all selected countries</string>
+    <string name="countries_logic_explanation">When enabled, only media from ALL selected origin countries will be shown.</string>
+    <string name="watch_providers">Watch Providers</string>
+    <string name="use_and_logic_for_watch_providers">Require all selected watch providers</string>
+    <string name="watch_providers_logic_explanation">When enabled, only media available on ALL selected watch providers will be shown.</string>
+
+    <string name="app_language">App language</string>
 </resources>

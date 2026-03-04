@@ -25,7 +25,6 @@
     android:layout_height="wrap_content"
     android:checkable="false"
     android:text="Drama"
-    app:chipCornerRadius="8dp"
     app:closeIconEnabled="false"
     app:chipIconEnabled="false"
     app:textEndPadding="2dp"

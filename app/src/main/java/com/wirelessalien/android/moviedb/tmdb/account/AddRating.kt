@@ -38,6 +38,7 @@ class AddRating(
     private val activity: Activity
 ) {
     private val accessToken: String?
+    private var successState: Boolean = false
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
@@ -71,6 +72,7 @@ class AddRating(
             e.printStackTrace()
         }
         val finalSuccess = success
+        successState = success
         activity.runOnUiThread {
             if (finalSuccess) {
                 Toast.makeText(activity, R.string.rating_added_successfully, Toast.LENGTH_SHORT).show()
@@ -78,5 +80,9 @@ class AddRating(
                 Toast.makeText(activity, R.string.failed_to_add_rating, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    fun isSuccessful(): Boolean {
+        return successState
     }
 }

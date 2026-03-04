@@ -50,4 +50,18 @@
         <item>friends</item>
         <item>public</item>
     </string-array>
+
+    <string-array name="app_language_entries">
+        <item>System Default</item>
+        <item>English</item>
+        <item>Español</item>
+        <item>Français</item>
+    </string-array>
+
+    <string-array name="app_language_values">
+        <item>system</item>
+        <item>en</item>
+        <item>es</item>
+        <item>fr</item>
+    </string-array>
 </resources>

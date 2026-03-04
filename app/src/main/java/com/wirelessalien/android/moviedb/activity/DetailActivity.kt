@@ -151,6 +151,7 @@ import kotlin.math.abs
 import kotlin.math.round
 import androidx.core.net.toUri
 import androidx.core.view.isGone
+import androidx.core.view.isVisible
 
 /**
  * This class provides all the details about the shows.
@@ -213,6 +214,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private lateinit var preferences: SharedPreferences
     private var showNextEpisodePref: Boolean = false
+    private var hideFetchedRatings: Boolean = false
     private var currentPosterPath: String? = null
     private var currentBackdropPath: String? = null
 
@@ -231,6 +233,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         WindowCompat.setDecorFitsSystemWindows(window, false)
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         showNextEpisodePref = preferences.getBoolean(PREFS_SHOW_NEXT_EPISODE, false)
+        hideFetchedRatings = preferences.getBoolean("key_hide_fetched_ratings", false)
         apiKey = getConfigValue(applicationContext, "api_key")
         apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
         tktApiKey = getConfigValue(applicationContext, "client_id")
@@ -460,6 +463,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         database = databaseHelper.writableDatabase
         databaseHelper.onCreate(database)
 
+        initializeTags()
+
         // Check if the show is already in the database.
         val cursor = databaseHelper.getMovieCursor(movieId)
         cursor.use { cursor1 ->
@@ -472,6 +477,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.fabSave.text = getString(R.string.saved_tab_title)
                 added = true
                 binding.fabSave.visibility = View.GONE
+                updatePersonalDetailsViews()
             }
         }
 
@@ -514,14 +520,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                             R.drawable.ic_favorite_border
                         )
                     }
-                    if (ratingValue != 0.0.toInt()) {
+                    if (ratingValue != 0.0) {
                         binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
                             context,
                             R.drawable.ic_thumb_up
                         )
                         binding.ratingBtnTmdb.text = ratingValue.toString()
                         binding.ratingBtnTmdb.iconPadding = TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP, 5f, resources.displayMetrics
+                            TypedValue.COMPLEX_UNIT_DIP, 2f, resources.displayMetrics
                         ).toInt()
                     } else {
                         binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
@@ -674,37 +680,56 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 val previousRating = getAccountState.rating
-                ratingSlider.value = previousRating.toFloat()
+                if (previousRating != 0.0) {
+                    if (previousRating.toFloat() % currentStepSize > 0.0001) {
+                        currentStepSize = 0.1f
+                        preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                        ratingSlider.stepSize = currentStepSize
+                    }
+                    val roundedValue = round(previousRating.toFloat() / currentStepSize) * currentStepSize
+                    ratingSlider.value = roundedValue
+                }
 
                 submitButton.setOnClickListener {
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
                         val rating = round(ratingSlider.value.toDouble())
+                        val addRating = AddRating(movieId, rating, type, mActivity)
                         withContext(Dispatchers.IO) {
-                            AddRating(movieId, rating, type, mActivity).addRating()
+                            addRating.addRating()
+                        }
+                        if (addRating.isSuccessful()) {
+                            binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
+                                context,
+                                R.drawable.ic_thumb_up
+                            )
+                            binding.ratingBtnTmdb.text = getString(R.string.number, rating.toInt())
+                            binding.ratingBtnTmdb.iconPadding = TypedValue.applyDimension(
+                                TypedValue.COMPLEX_UNIT_DIP, 2f, resources.displayMetrics
+                            ).toInt()
                         }
                         submitButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
-                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
-                            context,
-                            R.drawable.ic_thumb_up
-                        )
                     }
                 }
 
                 deleteButton.setOnClickListener {
                     lifecycleScope.launch {
                         val type = if (isMovie) "movie" else "tv"
+                        val deleteRating = DeleteRating(movieId, type, mActivity)
                         withContext(Dispatchers.IO) {
-                            DeleteRating(movieId, type, mActivity).deleteRating()
+                            deleteRating.deleteRating()
+                        }
+                        if (deleteRating.isSuccessful()) {
+                            binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
+                                context,
+                                R.drawable.ic_thumb_up_border
+                            )
+                            binding.ratingBtnTmdb.text = ""
+                            binding.ratingBtnTmdb.iconPadding = 0
                         }
                         deleteButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         dialog.dismiss()
-                        binding.ratingBtnTmdb.icon = ContextCompat.getDrawable(
-                            context,
-                            R.drawable.ic_thumb_up_border
-                        )
-                        binding.ratingBtnTmdb.text = ""
                     }
                 }
 
@@ -797,8 +822,43 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         if (isMovie) {
             binding.episodeViewPager.visibility = View.GONE
+            binding.episodeButtonsContainer.visibility = View.GONE
             binding.allEpisodeBtn.visibility = View.GONE
             binding.episodeText.visibility = View.GONE
+        }
+
+        binding.episodeGroupBtn.setOnClickListener {
+            binding.shimmerFrameLayout1.visibility = View.VISIBLE
+            binding.shimmerFrameLayout1.startShimmer()
+            
+            lifecycleScope.launch {
+                val traktAccessToken = preferences.getString("trakt_access_token", null)
+                val traktId = if (traktAccessToken != null) {
+                    fetchTraktId(movieId, imdbId)
+                } else {
+                    null
+                }
+                
+                binding.shimmerFrameLayout1.visibility = View.GONE
+                binding.shimmerFrameLayout1.stopShimmer()
+                
+                val bottomSheet = com.wirelessalien.android.moviedb.fragment.EpisodeGroupBottomSheet()
+                val bundle = Bundle().apply {
+                    putInt("tvShowId", movieId)
+                    putString("tvShowName", showName)
+                    putString("tmdbObject", movieDataObject.toString())
+                    
+                    if (traktId != null) {
+                        putInt("traktId", traktId)
+                    }
+                    
+                    val groups = movieDataObject.optJSONObject("episode_groups")?.optJSONArray("results")?.toString() ?: "[]"
+                    putString("episodeGroupsJson", groups)
+                    
+                }
+                bottomSheet.arguments = bundle
+                bottomSheet.show(supportFragmentManager, "EpisodeGroupBottomSheet")
+            }
         }
 
         binding.allEpisodeBtn.setOnClickListener {
@@ -857,6 +917,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     this,
                     R.drawable.ic_star_border
                 )
+                binding.categoryColor.visibility = View.GONE
                 databaseUpdate()
                 binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 finish()
@@ -2057,7 +2118,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     }
 
     private fun saveTotalEpisodes(totalEpisodes: Int) {
-        val sharedPreferences = getSharedPreferences("totalEpisodes", Context.MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("totalEpisodes", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putInt("totalEpisodes_$movieId", totalEpisodes)
         editor.commit()
@@ -2073,7 +2134,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         withContext(Dispatchers.Main) {
             if (seenEpisode != 0) {
                 binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes ?: 0)
-                binding.movieEpisodes.visibility = View.VISIBLE
+                binding.movieEpisodesLayout.visibility = View.VISIBLE
             }
         }
     }
@@ -2415,9 +2476,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (personalRating > 0) {
                     val localizedTen = String.format(Locale.getDefault(), "%d", 10)
                     binding.movieRating.text = getString(R.string.rating_format, personalRating, localizedTen)
-                    binding.movieRating.visibility = View.VISIBLE
                 } else {
-                    binding.movieRating.visibility = View.GONE
+                    binding.movieRating.text = getString(R.string.my_rating_unknown)
                 }
 
                 var dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -2577,14 +2637,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                     seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
                     binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
-                    binding.movieEpisodes.visibility = View.VISIBLE
+                    binding.movieEpisodesLayout.visibility = View.VISIBLE
                 }
 
                 // Make all the views visible (if the show is in the database).
-                binding.movieStartDate.visibility = View.VISIBLE
-                binding.movieFinishDate.visibility = View.VISIBLE
-                binding.movieRewatched.visibility = View.VISIBLE
-                binding.movieReviewText.visibility = View.VISIBLE
+                binding.personalStatsLayout.visibility = View.VISIBLE
+                if (binding.movieReviewText.text.isNotEmpty() && binding.movieReviewText.text != getString(R.string.no_reviews)) {
+                    binding.movieReviewCard.visibility = View.VISIBLE
+                }
 
                 // Make it possible to change the values.
                 binding.editIcon.visibility = View.VISIBLE
@@ -2596,8 +2656,16 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             ) {
                 val voteAverage = movieObject.optDouble("vote_average").toFloat()
                 val localizedTen = String.format(Locale.getDefault(), "%d", 10)
-                binding.rating.text =
-                    String.format(Locale.getDefault(), "%.2f/%s", voteAverage, localizedTen)
+                val ratingText = String.format(Locale.getDefault(), "%.2f/%s", voteAverage, localizedTen)
+
+                if (hideFetchedRatings) {
+                    binding.rating.text = getString(R.string.tap_to_reveal)
+                    binding.rating.setOnClickListener {
+                        binding.rating.text = ratingText
+                    }
+                } else {
+                    binding.rating.text = ratingText
+                }
             }
 
             // If the overview (summary) is different in the new dataset, change it.
@@ -2643,6 +2711,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     binding.genreChipGroup.addView(chip)
                 }
             }
+
+            updateTagsView()
 
             if (movieObject.has("popularity")) {
                 val popularity = movieObject.optDouble("popularity")
@@ -2749,6 +2819,50 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
                 binding.countryDataText.text = countries.toString()
             }
+            if (movieObject.has("production_companies")) {
+                val productionCompanies = movieObject.getJSONArray("production_companies")
+                if (productionCompanies.length() > 0) {
+                    val adapter = com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter(this@DetailActivity)
+                    binding.productionCompaniesRv.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@DetailActivity, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
+                    binding.productionCompaniesRv.adapter = adapter
+                    
+                    val companiesList = mutableListOf<com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem>()
+                    for (i in 0 until productionCompanies.length()) {
+                        val company = productionCompanies.getJSONObject(i)
+                        val logoPath = company.optString("logo_path")
+                        val name = company.optString("name")
+                        val country = company.optString("origin_country")
+                        
+                        val hasLogo = logoPath.isNotEmpty() && logoPath != "null"
+                        val hasName = name.isNotEmpty() && name != "null"
+                        val hasCountry = country.isNotEmpty() && country != "null"
+                        
+                        if ((hasLogo && hasName) || (hasName && hasCountry)) {
+                            companiesList.add(
+                                com.wirelessalien.android.moviedb.adapter.ProductionCompanyAdapter.CompanyItem(
+                                    logoPath = logoPath,
+                                    name = name,
+                                    country = country
+                                )
+                            )
+                        }
+                    }
+                    if (companiesList.isNotEmpty()) {
+                        adapter.updateCompanies(companiesList)
+                        binding.productionCompaniesRv.visibility = View.VISIBLE
+                        binding.productionCompaniesText.visibility = View.VISIBLE
+                    } else {
+                        binding.productionCompaniesRv.visibility = View.GONE
+                        binding.productionCompaniesText.visibility = View.GONE
+                    }
+                } else {
+                    binding.productionCompaniesRv.visibility = View.GONE
+                    binding.productionCompaniesText.visibility = View.GONE
+                }
+            } else {
+                binding.productionCompaniesRv.visibility = View.GONE
+                binding.productionCompaniesText.visibility = View.GONE
+            }
             val formattedRevenue: String = if (movieObject.has("revenue")) {
                 val revenue = movieObject.optLong("revenue")
                 formatCurrency(revenue)
@@ -2834,6 +2948,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     if (mutedColor != Color.TRANSPARENT) {
                         binding.fab.backgroundTintList = colorStateList
                         binding.allEpisodeBtn.backgroundTintList = colorStateList
+                        binding.episodeGroupBtn.backgroundTintList = colorStateList
                         binding.editIcon.backgroundTintList = colorStateList
                         binding.fabSave.backgroundTintList = colorStateList
                         binding.toolbar.setBackgroundColor(Color.TRANSPARENT)
@@ -2955,6 +3070,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 database.close()
             }
 
+            // Initialize step size from SharedPreferences
+            var currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
+
             // Listen to changes to the EditText.
             binding.timesWatched.onFocusChangeListener = OnFocusChangeListener { _: View?, hasFocus: Boolean ->
                 if (!hasFocus && binding.timesWatched.text.toString().isNotEmpty()) {
@@ -2972,8 +3090,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
             }
 
-            // Initialize step size from SharedPreferences
-            var currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
             binding.showRating.stepSize = currentStepSize
 
             binding.btnChangeStepSize.setOnClickListener {
@@ -3001,7 +3117,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     val localizedTen = String.format(Locale.getDefault(), "%.1f", 10.0f)
                     binding.movieRating.text =
                         getString(R.string.rating_format, value, localizedTen)
-                    binding.movieRating.visibility = View.VISIBLE
                 }
             }
 
@@ -3183,7 +3298,24 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
             }
 
-            updateEditShowDetails()
+            binding.addTagInputLayout.setEndIconOnClickListener {
+                val newTagName = binding.newTagInput.text.toString().trim()
+                if (newTagName.isNotEmpty()) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val tagId = databaseHelper.addTag(newTagName)
+                        // Automatically add the new tag to the movie
+                        databaseHelper.addMovieTag(movieId, tagId, isMovie)
+                        withContext(Dispatchers.Main) {
+                            binding.newTagInput.text?.clear()
+                            updateEditTagsView()
+                            updateTagsView()
+                        }
+                    }
+                }
+            }
+
+            updateEditShowDetails(currentStepSize)
+            updateEditTagsView()
             binding.showDetails.visibility = View.GONE
             binding.editShowDetails.visibility = View.VISIBLE
 
@@ -3267,9 +3399,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (personalRating > 0) {
                     val localizedTen = String.format(Locale.getDefault(), "%d", 10)
                     binding.movieRating.text = getString(R.string.rating_format, personalRating, localizedTen)
-                    binding.movieRating.visibility = View.VISIBLE
                 } else {
-                    binding.movieRating.visibility = View.GONE
+                    binding.movieRating.text = getString(R.string.my_rating_unknown)
                 }
 
                 var dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -3420,14 +3551,26 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (!isMovie) {
                     seenEpisode = databaseHelper.getSeenEpisodesCount(movieId)
                     binding.movieEpisodes.text = getString(R.string.episodes_seen, seenEpisode, totalEpisodes)
-                    binding.movieEpisodes.visibility = View.VISIBLE
+                    binding.movieEpisodesLayout.visibility = View.VISIBLE
                 }
 
                 // Make all the views visible (if the show is in the database).
-                binding.movieStartDate.visibility = View.VISIBLE
-                binding.movieFinishDate.visibility = View.VISIBLE
-                binding.movieRewatched.visibility = View.VISIBLE
-                binding.movieReviewText.visibility = View.VISIBLE
+                binding.personalStatsLayout.visibility = View.VISIBLE
+                if (binding.movieReviewText.text.isNotEmpty() && binding.movieReviewText.text != getString(R.string.no_reviews)) {
+                    binding.movieReviewCard.visibility = View.VISIBLE
+                }
+
+                // Show category in poster
+                val categoryNumber = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES))
+                val categoriesArray = resources.getStringArray(R.array.categories)
+                if (categoryNumber >= 0 && categoryNumber < categoriesArray.size) {
+                    binding.categoryColor.text = categoriesArray[categoryNumber]
+                    binding.categoryColor.visibility = View.VISIBLE
+                } else {
+                    binding.categoryColor.visibility = View.GONE
+                }
+            } else {
+                binding.categoryColor.visibility = View.GONE
             }
         }
     }
@@ -3563,7 +3706,78 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         return regex.findAll(seasonsString).map { it.groupValues[1].toInt() }.toList()
     }
 
-    private fun updateEditShowDetails() {
+    private fun initializeTags() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            databaseHelper.initializePredefinedTags()
+        }
+    }
+
+    private fun updateTagsView() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val tags = databaseHelper.getTagsForMovie(movieId, isMovie)
+            withContext(Dispatchers.Main) {
+                // Remove existing dynamic tag views
+                val viewsToRemove = mutableListOf<View>()
+                for (i in 0 until binding.tagsLayout.childCount) {
+                    val child = binding.tagsLayout.getChildAt(i)
+                    if (child.tag == "dynamic_tag") {
+                        viewsToRemove.add(child)
+                    }
+                }
+                for (view in viewsToRemove) {
+                    binding.tagsLayout.removeView(view)
+                }
+
+                tags.forEach { tag ->
+                    val chip = layoutInflater.inflate(R.layout.chip_choice_item, binding.tagsLayout, false) as com.google.android.material.chip.Chip
+
+                    chip.text = tag.name
+                    chip.tag = "dynamic_tag"
+
+                    chip.setOnClickListener {
+                        val intent = Intent(this@DetailActivity, TaggedListActivity::class.java)
+                        intent.putExtra("tag_id", tag.id)
+                        intent.putExtra("tag_name", tag.name)
+                        startActivity(intent)
+                    }
+
+                    binding.tagsLayout.addView(chip)
+                }
+            }
+        }
+    }
+
+    private fun updateEditTagsView() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val allTags = databaseHelper.getAllTags()
+            val movieTags = databaseHelper.getTagsForMovie(movieId, isMovie)
+            val movieTagIds = movieTags.map { it.id }.toSet()
+
+            withContext(Dispatchers.Main) {
+                binding.editTagsChipGroup.removeAllViews()
+                for (tag in allTags) {
+                    val chip = Chip(this@DetailActivity)
+                    chip.text = tag.name
+                    chip.isCheckable = true
+                    chip.isChecked = movieTagIds.contains(tag.id)
+                    chip.setOnCheckedChangeListener { _, isChecked ->
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            if (isChecked) {
+                                databaseHelper.addMovieTag(movieId, tag.id, isMovie)
+                            } else {
+                                databaseHelper.removeMovieTag(movieId, tag.id, isMovie)
+                            }
+                            updateTagsView()
+                        }
+                    }
+                    binding.editTagsChipGroup.addView(chip)
+                }
+            }
+        }
+    }
+
+    private fun updateEditShowDetails(initialStepSize: Float) {
+        var currentStepSize = initialStepSize
         database = databaseHelper.writableDatabase
         databaseHelper.getMovieCursor(movieId).use { cursor ->
             if (cursor.count > 0) {
@@ -3634,7 +3848,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                 }
                 if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)) != "") {
-                    binding.showRating.value = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).toFloat()
+                    val rating = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING)).toFloat()
+                    if (rating % currentStepSize > 0.0001) {
+                        currentStepSize = 0.1f
+                        preferences.edit().putFloat("rating_step_size", currentStepSize).apply()
+                        binding.showRating.stepSize = currentStepSize
+                    }
+                    binding.showRating.value = rating
                 }
                 if (!cursor.isNull(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) && cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) != "") {
                     binding.movieReview.setText(cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)))
@@ -3701,7 +3921,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     movieValues.put(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, dateText)
                 }
                 database.update(MovieDatabaseHelper.TABLE_MOVIES, movieValues, "${MovieDatabaseHelper.COLUMN_MOVIES_ID}=$movieId", null)
-                updateEditShowDetails()
+                val currentStepSize = preferences.getFloat("rating_step_size", 0.1f)
+                updateEditShowDetails(currentStepSize)
                 dialog.dismiss()
             }
         }
@@ -4265,13 +4486,33 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.allReviewBtn.visibility = View.GONE
                 binding.reviewText.visibility = View.GONE
                 binding.recyclerViewReviews.visibility = View.GONE
+                binding.revealReviewCard.visibility = View.GONE
                 return
             }
+
+            if (hideFetchedRatings) {
+                binding.recyclerViewReviews.visibility = View.GONE
+                binding.allReviewBtn.visibility = View.GONE
+                binding.revealReviewCard.visibility = View.VISIBLE
+                
+                binding.revealReviewCard.setOnClickListener {
+                    binding.revealReviewCard.visibility = View.GONE
+                    binding.recyclerViewReviews.visibility = View.VISIBLE
+                    if (resultsArray.length() > 3) {
+                        binding.allReviewBtn.visibility = View.VISIBLE
+                    }
+                }
+            } else {
+                binding.recyclerViewReviews.visibility = View.VISIBLE
+                binding.revealReviewCard.visibility = View.GONE
+            }
+
         } catch (e: JSONException) {
             e.printStackTrace()
             binding.allReviewBtn.visibility = View.GONE
             binding.reviewText.visibility = View.GONE
             binding.recyclerViewReviews.visibility = View.GONE
+            binding.revealReviewCard.visibility = View.GONE
         }
     }
 
@@ -4285,8 +4526,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 bottomSheetDialog.setContentView(bottomSheetBinding.root)
 
                 val videoList = mutableListOf<JSONObject>()
+                var trailerIndex = -1
                 for (i in 0 until videos!!.length()) {
-                    videoList.add(videos!!.getJSONObject(i))
+                    val video = videos!!.getJSONObject(i)
+                    if (trailerIndex == -1 && video.optString("type").equals("Trailer", ignoreCase = true)) {
+                        trailerIndex = i
+                        videoList.add(0, video)
+                    } else {
+                        videoList.add(video)
+                    }
                 }
 
                 val videoAdapter = VideoAdapter(videoList) { video ->
@@ -4349,7 +4597,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         lifecycleScope.launch {
             try {
                 val type = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-                val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords,reviews" else "content_ratings,external_ids,videos,keywords,reviews"
+                val additionalEndpoint = if (isMovie) "release_dates,external_ids,videos,keywords,reviews" else "content_ratings,external_ids,videos,keywords,reviews,episode_groups"
                 val baseUrl = "https://api.themoviedb.org/3/$type/$movieId?append_to_response=$additionalEndpoint"
                 val urlWithLanguage = baseUrl + getLanguageParameter(applicationContext)
 
@@ -4365,6 +4613,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                 withContext(Dispatchers.Main) {
                     onPostExecute(movieData)
+                    
+                    val groupsArray = movieData.optJSONObject("episode_groups")?.optJSONArray("results")
+                    if (!isMovie && groupsArray != null && groupsArray.length() > 0) {
+                        binding.episodeGroupBtn.visibility = View.VISIBLE
+                    } else {
+                        binding.episodeGroupBtn.visibility = View.GONE
+                    }
                 }
 
                 withContext(Dispatchers.IO) {
@@ -4476,9 +4731,29 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         val rottenTomatoesRating = formatRottenTomatoesRating(ratings["Rotten Tomatoes"], numberFormat)
         val metacriticRating = formatMetacriticRating(ratings["Metacritic"], numberFormat)
 
-        binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
-        binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
-        binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+        if (hideFetchedRatings) {
+            binding.imdbRatingChip.text = getString(R.string.tap_to_reveal)
+            binding.imdbRatingChip.setOnClickListener {
+                binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
+                setExternalIdClickListener()
+            }
+
+            binding.rottenTomatoesRatingChip.text = getString(R.string.tap_to_reveal)
+            binding.rottenTomatoesRatingChip.setOnClickListener {
+                binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
+                setRottenTomatoesClickListener()
+            }
+
+            binding.metacriticRatingChip.text = getString(R.string.tap_to_reveal)
+            binding.metacriticRatingChip.setOnClickListener {
+                binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+                setMetacriticClickListener()
+            }
+        } else {
+            binding.imdbRatingChip.text = getString(R.string.imdb, imdbRating)
+            binding.rottenTomatoesRatingChip.text = getString(R.string.r_tomatoes, rottenTomatoesRating)
+            binding.metacriticRatingChip.text = getString(R.string.metacritic, metacriticRating)
+        }
     }
 
     private fun formatImdbRating(raw: String?, numberFormat: NumberFormat): String {
@@ -4505,6 +4780,31 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             "${numberFormat.format(value)}/${numberFormat.format(100)}"
         } catch (e: Exception) {
             "${numberFormat.format(0)}/${numberFormat.format(100)}"
+        }
+    }
+
+    private fun setExternalIdClickListener() {
+        binding.imdbRatingChip.setOnClickListener {
+            val url: String = if (imdbId == "null" || imdbId.isNullOrEmpty()) {
+                "https://www.imdb.com/find/?q=$movieTitle $movieYear"
+            } else {
+                "https://www.imdb.com/title/$imdbId"
+            }
+            launchUrl(context, url)
+        }
+    }
+
+    private fun setRottenTomatoesClickListener() {
+        val rottenTomatoesUrl = "https://www.rottentomatoes.com/search?search=$movieTitle $movieYear"
+        binding.rottenTomatoesRatingChip.setOnClickListener {
+            launchUrl(context, rottenTomatoesUrl)
+        }
+    }
+
+    private fun setMetacriticClickListener() {
+        val metacriticUrl = "https://www.metacritic.com/search/$movieTitle"
+        binding.metacriticRatingChip.setOnClickListener {
+            launchUrl(context, metacriticUrl)
         }
     }
 

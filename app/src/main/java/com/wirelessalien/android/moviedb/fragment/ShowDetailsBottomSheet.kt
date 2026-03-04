@@ -244,9 +244,9 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
                 }
 
                 val ratingValue = getAccountState.rating
-                if (ratingValue != 0) {
+                if (ratingValue != 0.0) {
                     binding.bottomSheetTmdbRatingIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_thumb_up))
-                    binding.bottomSheetTmdbRatingText.text = getString(R.string.number, ratingValue)
+                    binding.bottomSheetTmdbRatingText.text = getString(R.string.number, ratingValue.toInt())
                 } else {
                     binding.bottomSheetTmdbRatingIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_thumb_up_border))
                 }

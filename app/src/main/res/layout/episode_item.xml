@@ -63,7 +63,6 @@
                     android:layout_gravity="bottom|end"
                     android:layout_marginEnd="10dp"
                     app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerMedium"
-                    app:innerCornerSize="10dp"
                     app:layout_anchorGravity="bottom|end"
                     android:contentDescription="@string/sync_provider">
 
@@ -255,7 +254,6 @@
                     android:layout_alignParentStart="true"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_visibility"
-                    app:cornerRadius="10dp"
                     android:visibility="gone"/>
 
                 <com.google.android.material.button.MaterialButton
@@ -267,7 +265,6 @@
                     android:layout_toEndOf="@id/btnWatchedToLocalDb"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:layout_margin="5dp"
-                    app:cornerRadius="10dp"
                     android:visibility="gone"/>
             </RelativeLayout>
 
@@ -279,7 +276,6 @@
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                 android:layout_margin="5dp"
                 app:icon="@drawable/ic_thumb_up"
-                app:cornerRadius="10dp"
                 android:visibility="gone"/>
 
             <RelativeLayout
@@ -296,8 +292,7 @@
                     app:iconPadding="5dp"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_history"
-                    android:visibility="gone"
-                    app:cornerRadius="10dp" />
+                    android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnAddToTraktWatchlist"
@@ -306,15 +301,13 @@
                     android:layout_toStartOf="@id/btnAddTraktRating"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_bookmark"
-                    android:visibility="gone"
-                    app:cornerRadius="10dp" />
+                    android:visibility="gone"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnAddTraktRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    app:cornerRadius="10dp"
                     android:layout_marginEnd="5dp"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:visibility="gone"
@@ -338,7 +331,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                app:cornerRadius="10dp"
                 app:icon="@drawable/ic_list_add"
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                 android:visibility="gone"

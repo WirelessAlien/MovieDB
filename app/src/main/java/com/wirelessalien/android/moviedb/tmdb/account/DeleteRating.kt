@@ -37,6 +37,7 @@ class DeleteRating(
     private val activity: Activity
 ) {
     private val accessToken: String?
+    private var successState: Boolean = false
 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
@@ -44,7 +45,7 @@ class DeleteRating(
     }
 
     suspend fun deleteRating() {
-        var success: Boolean
+        var success: Boolean = false
         val client = OkHttpClient()
         val request = Request.Builder()
             .url("https://api.themoviedb.org/3/$type/$movieId/rating")
@@ -62,6 +63,7 @@ class DeleteRating(
                     success = statusCode == 13
                 }
             }
+            successState = success
             activity.runOnUiThread {
                 if (success) {
                     Toast.makeText(activity, R.string.rating_delete_success, Toast.LENGTH_SHORT).show()
@@ -74,5 +76,9 @@ class DeleteRating(
         } catch (e: JSONException) {
             e.printStackTrace()
         }
+    }
+
+    fun isSuccessful(): Boolean {
+        return successState
     }
 }

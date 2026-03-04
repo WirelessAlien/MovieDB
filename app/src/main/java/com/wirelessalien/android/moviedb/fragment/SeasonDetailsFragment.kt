@@ -61,6 +61,33 @@ import java.util.Date
 import java.util.Locale
 
 class SeasonDetailsFragment : Fragment() {
+
+    companion object {
+        private const val ARG_TV_SHOW_ID = "tvShowId"
+        private const val ARG_SEASON_NUMBER = "seasonNumber"
+        private const val ARG_TV_SHOW_NAME = "tvShowName"
+        private const val ARG_TRAKT_ID = "traktId"
+        private const val ARG_TMDB_OBJECT = "tmdbObject"
+
+        fun newInstance(
+            tvShowId: Int,
+            seasonNumber: Int,
+            tvShowName: String?,
+            traktId: Int,
+            tmdbObject: JSONObject
+        ): SeasonDetailsFragment {
+            val fragment = SeasonDetailsFragment()
+            val args = Bundle()
+            args.putInt(ARG_TV_SHOW_ID, tvShowId)
+            args.putInt(ARG_SEASON_NUMBER, seasonNumber)
+            args.putString(ARG_TV_SHOW_NAME, tvShowName)
+            args.putInt(ARG_TRAKT_ID, traktId)
+            args.putString(ARG_TMDB_OBJECT, tmdbObject.toString())
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
     private var tvShowId = 0
     private var tvShowName: String = ""
     private var traktId = 0
@@ -323,25 +350,29 @@ class SeasonDetailsFragment : Fragment() {
                         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                             .format(Calendar.getInstance().time)
                         if (adapter != null) {
+                            val isGroup = arguments?.getBoolean("isGroup", false) ?: false
                             val episodes = adapter.episodes
                             val db = MovieDatabaseHelper(requireContext())
                             var allEpisodesInDatabase = true
                             for (episode in episodes) {
-                                if (!db.isEpisodeInDatabase(tvShowId, currentTabNumber, listOf(episode.episodeNumber))) {
+                                val sNum = if (isGroup) episode.seasonNumber else currentTabNumber
+                                if (!db.isEpisodeInDatabase(tvShowId, sNum, listOf(episode.episodeNumber))) {
                                     allEpisodesInDatabase = false
                                     break
                                 }
                             }
                             if (!allEpisodesInDatabase) {
                                 for (episode in episodes) {
-                                    if (!db.isEpisodeInDatabase(tvShowId, currentTabNumber, listOf(episode.episodeNumber))) {
-                                        db.addEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber), currentDate)
+                                    val sNum = if (isGroup) episode.seasonNumber else currentTabNumber
+                                    if (!db.isEpisodeInDatabase(tvShowId, sNum, listOf(episode.episodeNumber))) {
+                                        db.addEpisodeNumber(tvShowId, sNum, listOf(episode.episodeNumber), currentDate)
                                     }
                                 }
                                 Toast.makeText(requireContext(), R.string.episodes_removed, Toast.LENGTH_SHORT).show()
                             } else {
                                 for (episode in episodes) {
-                                    db.removeEpisodeNumber(tvShowId, currentTabNumber, listOf(episode.episodeNumber))
+                                    val sNum = if (isGroup) episode.seasonNumber else currentTabNumber
+                                    db.removeEpisodeNumber(tvShowId, sNum, listOf(episode.episodeNumber))
                                 }
                                 Toast.makeText(requireContext(), R.string.episodes_added, Toast.LENGTH_SHORT).show()
                             }
@@ -365,27 +396,67 @@ class SeasonDetailsFragment : Fragment() {
             binding.shimmerFrameLayout1.startShimmer()
 
             try {
-                val tvSeasonDetails = TVSeasonDetails(tvShowId, seasonNumber, requireContext())
-                val seasonDetails = tvSeasonDetails.fetchSeasonDetails()
-
-                if (seasonDetails != null) {
-                    val adapter = EpisodeAdapter(
+                val isGroup = arguments?.getBoolean("isGroup", false) ?: false
+                
+                if (isGroup) {
+                    val groupEpisodesJson = arguments?.getString("groupEpisodesJson", "[]") ?: "[]"
+                    val episodesArray = org.json.JSONArray(groupEpisodesJson)
+                    val episodes = mutableListOf<com.wirelessalien.android.moviedb.data.Episode>()
+                    for (i in 0 until episodesArray.length()) {
+                        val epObj = episodesArray.optJSONObject(i)
+                        if (epObj != null) {
+                            episodes.add(
+                                com.wirelessalien.android.moviedb.data.Episode(
+                                    id = epObj.optInt("id"),
+                                    airDate = epObj.optString("air_date", ""),
+                                    episodeNumber = epObj.optInt("episode_number"),
+                                    seasonNumber = epObj.optInt("season_number"),
+                                    name = epObj.optString("name", ""),
+                                    overview = epObj.optString("overview", ""),
+                                    runtime = epObj.optInt("runtime", 0),
+                                    posterPath = epObj.optString("still_path", ""),
+                                    voteAverage = epObj.optDouble("vote_average", 0.0)
+                                )
+                            )
+                        }
+                    }
+                    
+                    val adapter = com.wirelessalien.android.moviedb.adapter.EpisodeAdapter(
                         requireContext(),
-                        seasonDetails.episodes,
+                        episodes,
                         seasonNumber,
                         tvShowName,
                         tvShowId,
                         traktId,
                         tmdbObject
                     )
-                    binding.episodeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+                    binding.episodeRecyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
                     binding.episodeRecyclerView.adapter = adapter
-                    binding.episodeRecyclerView.visibility = View.VISIBLE
-                    binding.defaultMessage.root.visibility = View.GONE
+                    binding.episodeRecyclerView.visibility = android.view.View.VISIBLE
+                    binding.defaultMessage.root.visibility = android.view.View.GONE
                 } else {
-                    if (seasonNumber == 0) {
-                        binding.defaultMessage.root.visibility = View.VISIBLE
-                        binding.episodeRecyclerView.visibility = View.GONE
+                    val tvSeasonDetails = com.wirelessalien.android.moviedb.tmdb.TVSeasonDetails(tvShowId, seasonNumber, requireContext())
+                    val seasonDetails = tvSeasonDetails.fetchSeasonDetails()
+
+                    if (seasonDetails != null) {
+                        val adapter = EpisodeAdapter(
+                            requireContext(),
+                            seasonDetails.episodes,
+                            seasonNumber,
+                            tvShowName,
+                            tvShowId,
+                            traktId,
+                            tmdbObject
+                        )
+                        binding.episodeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+                        binding.episodeRecyclerView.adapter = adapter
+                        binding.episodeRecyclerView.visibility = View.VISIBLE
+                        binding.defaultMessage.root.visibility = View.GONE
+                    } else {
+                        if (seasonNumber == 0) {
+                            binding.defaultMessage.root.visibility = View.VISIBLE
+                            binding.episodeRecyclerView.visibility = View.GONE
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -419,29 +490,4 @@ class SeasonDetailsFragment : Fragment() {
 //        return exists
 //    }
 
-    companion object {
-        private const val ARG_TV_SHOW_ID = "tvShowId"
-        private const val ARG_SEASON_NUMBER = "seasonNumber"
-        private const val ARG_TV_SHOW_NAME = "tvShowName"
-        private const val ARG_TRAKT_ID = "traktId"
-        private const val ARG_TMDB_OBJECT = "tmdbObject"
-
-        fun newInstance(
-            tvShowId: Int,
-            seasonNumber: Int,
-            tvShowName: String?,
-            traktId: Int,
-            tmdbObject: JSONObject
-        ): SeasonDetailsFragment {
-            val fragment = SeasonDetailsFragment()
-            val args = Bundle()
-            args.putInt(ARG_TV_SHOW_ID, tvShowId)
-            args.putInt(ARG_SEASON_NUMBER, seasonNumber)
-            args.putString(ARG_TV_SHOW_NAME, tvShowName)
-            args.putInt(ARG_TRAKT_ID, traktId)
-            args.putString(ARG_TMDB_OBJECT, tmdbObject.toString())
-            fragment.arguments = args
-            return fragment
-        }
-    }
 }

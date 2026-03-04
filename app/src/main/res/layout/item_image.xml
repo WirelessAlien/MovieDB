@@ -52,7 +52,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="10dp"
-        app:cornerRadius="10dp"
         app:icon="@drawable/ic_download"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
 

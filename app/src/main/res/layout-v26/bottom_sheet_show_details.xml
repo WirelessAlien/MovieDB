@@ -67,8 +67,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         style="@style/Widget.Material3.Button"
-        android:text="@string/title_saved"
-        app:cornerRadius="10dp"/>
+        android:text="@string/title_saved"/>
 
     <LinearLayout
         android:id="@+id/bottom_sheet_tmdb_actions"
@@ -180,6 +179,5 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        app:cornerRadius="10dp"
         android:text="@string/show_more" />
 </LinearLayout>

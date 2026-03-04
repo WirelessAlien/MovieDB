@@ -35,7 +35,6 @@
         android:layout_gravity="top|end"
         app:icon="@drawable/ic_close"
         android:visibility="gone"
-        app:cornerRadius="10dp"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
 
     <LinearLayout

@@ -146,6 +146,10 @@ class ShowProgressTraktAdapter(
             val loadHDImage = defaultSharedPreferences.getBoolean(HD_IMAGE_SIZE, false)
             val imageSize = if (loadHDImage) "w780" else "w500"
             val posterPath = showData.optString(KEY_POSTER, "null")
+
+            Picasso.get().cancelRequest(holder.showImage)
+            holder.showImage.setImageDrawable(null)
+
             if (posterPath == "null") {
                 holder.showImage.setBackgroundColor(ResourcesCompat.getColor(context.resources, R.color.md_theme_outline, null))
             } else {
@@ -682,6 +686,9 @@ class ShowProgressTraktAdapter(
                         episodeName.text = name
                         episodeOverview.text = overview
                         episodeAirDate.text = formattedAirDate
+
+                        Picasso.get().cancelRequest(episodeImageView)
+                        episodeImageView.setImageDrawable(null)
 
                         if (stillPath.isNotEmpty() && stillPath != "null") {
                             val imageSize = if (loadHdImage) "w780" else "w500"

@@ -39,10 +39,13 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -114,6 +117,18 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
         updatePermissionPreferenceVisibility()
+
+        findPreference<ListPreference>("key_app_language")?.setOnPreferenceChangeListener { _, newValue ->
+            val languageCode = newValue as String
+            val appLocale = if (languageCode == "system") {
+                LocaleListCompat.getEmptyLocaleList()
+            } else {
+                LocaleListCompat.forLanguageTags(languageCode)
+            }
+            AppCompatDelegate.setApplicationLocales(appLocale)
+            true
+        }
+
         val aboutPreference = findPreference<Preference>("about_key")
         aboutPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             val fragmentManager = parentFragmentManager

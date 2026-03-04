@@ -39,6 +39,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
@@ -64,6 +65,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.google.android.material.textfield.TextInputEditText
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.CsvImportActivity
 import com.wirelessalien.android.moviedb.activity.DetailActivity
@@ -72,9 +74,12 @@ import com.wirelessalien.android.moviedb.activity.FilterActivity
 import com.wirelessalien.android.moviedb.activity.ImportActivity
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.activity.TaggedListActivity
 import com.wirelessalien.android.moviedb.data.CategoryDTO
 import com.wirelessalien.android.moviedb.data.ChipInfo
+import com.wirelessalien.android.moviedb.data.Tag
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
+import com.wirelessalien.android.moviedb.databinding.BottomSheetTagsBinding
 import com.wirelessalien.android.moviedb.databinding.DialogEpisodeDataExpBinding
 import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
 import com.wirelessalien.android.moviedb.databinding.DialogSwitchBinding
@@ -83,6 +88,10 @@ import com.wirelessalien.android.moviedb.databinding.FragmentSavedBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentSavedSetupBinding
 import com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.JustifyContent
+import com.google.android.flexbox.FlexWrap
 import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
@@ -94,6 +103,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -187,6 +197,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             intent.putExtra("finishDate", true)
             intent.putExtra("account", false)
             intent.putExtra("account", false)
+            intent.putExtra("tags", true)
+            intent.putExtra("origin_country", false)
+            intent.putExtra("watch_provider", false)
             filterActivityResultLauncher.launch(intent)
         }
 
@@ -293,6 +306,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                     R.id.action_fetch_tmdb_data -> {
                         showTmdbDetailsExplanationDialog()
+                        true
+                    }
+
+                    R.id.action_tags -> {
+                        showTagsBottomSheet()
                         true
                     }
                     else -> false
@@ -510,6 +528,118 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
+    private fun showTagsBottomSheet() {
+        val binding = BottomSheetTagsBinding.inflate(LayoutInflater.from(requireContext()))
+        val dialog = BottomSheetDialog(requireContext())
+        currentTagsDialog = dialog
+        dialog.setContentView(binding.root)
+
+        val layoutManager = FlexboxLayoutManager(context)
+        layoutManager.flexDirection = FlexDirection.ROW
+        layoutManager.justifyContent = JustifyContent.FLEX_START
+        layoutManager.flexWrap = FlexWrap.WRAP
+        binding.tagsRecyclerView.layoutManager = layoutManager
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val tags = mDatabaseHelper.getAllTags()
+            withContext(Dispatchers.Main) {
+                binding.tagsRecyclerView.adapter = TagsAdapter(tags)
+            }
+        }
+
+        dialog.show()
+    }
+
+    inner class TagsAdapter(private val tags: List<Tag>) :
+        RecyclerView.Adapter<TagsAdapter.ViewHolder>() {
+
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val chip: Chip = view as Chip
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.chip_item, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val tag = tags[position]
+            holder.chip.text = tag.name
+            holder.chip.setOnClickListener {
+                val intent = Intent(requireContext(), TaggedListActivity::class.java).apply {
+                    putExtra("tag_id", tag.id)
+                    putExtra("tag_name", tag.name)
+                }
+                startActivity(intent)
+            }
+            holder.chip.setOnLongClickListener {
+                showEditTagDialog(tag)
+                true
+            }
+        }
+
+        override fun getItemCount() = tags.size
+    }
+
+    private var currentTagsDialog: BottomSheetDialog? = null
+
+    private fun showEditTagDialog(tag: Tag) {
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_tag, null)
+        val renameInput = view.findViewById<TextInputEditText>(R.id.renameInput)
+        renameInput.setText(tag.name)
+        renameInput.setSelection(renameInput.text?.length ?: 0)
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.edit_tag))
+            .setView(view)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                val newName = renameInput.text.toString().trim()
+                if (newName.isNotEmpty() && newName != tag.name) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        mDatabaseHelper.updateTag(tag.id, newName)
+                        withContext(Dispatchers.Main) {
+                            currentTagsDialog?.dismiss()
+                            showTagsBottomSheet()
+                            updateShowViewAdapter()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setNeutralButton(getString(R.string.delete), null)
+            .create()
+
+        dialog.setOnShowListener {
+            val deleteButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL)
+            var deleteClickedOnce = false
+
+            deleteButton.setOnClickListener {
+                if (deleteClickedOnce) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        mDatabaseHelper.deleteTag(tag.id)
+                        withContext(Dispatchers.Main) {
+                            dialog.dismiss()
+                            currentTagsDialog?.dismiss()
+                            showTagsBottomSheet()
+                            updateShowViewAdapter()
+                        }
+                    }
+                } else {
+                    deleteClickedOnce = true
+                    Toast.makeText(requireContext(), getString(R.string.click_again_to_delete), Toast.LENGTH_SHORT).show()
+                    
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(2000)
+                        deleteClickedOnce = false
+                    }
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
     private fun showQuickAccessBottomSheet() {
         preferences.edit { putBoolean("quick_access_dialog_shown", true) }
         val binding = FragmentSavedSetupBinding.inflate(LayoutInflater.from(requireContext()))
@@ -568,6 +698,24 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
                     watchedShows = sortShowsByDate(watchedShows, "key_sort_watched_by_date")
                     mShowAdapter.updateData(watchedShows)
+                    setChipsEnabled(true)
+                }
+                R.id.chipOnHold -> {
+                    setChipsEnabled(false)
+                    var onHoldShows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_ON_HOLD)
+                    }
+                    // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date") // Add pref if needed
+                    mShowAdapter.updateData(onHoldShows)
+                    setChipsEnabled(true)
+                }
+                R.id.chipDropped -> {
+                    setChipsEnabled(false)
+                    var droppedShows = withContext(Dispatchers.IO) {
+                        getShowsFromDatabase(null, MovieDatabaseHelper.COLUMN_ID + " DESC", MovieDatabaseHelper.CATEGORY_DROPPED)
+                    }
+                    // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date") // Add pref if needed
+                    mShowAdapter.updateData(droppedShows)
                     setChipsEnabled(true)
                 }
                 R.id.chipPlanToWatch -> {
@@ -657,6 +805,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     intent.putExtra("startDate", true)
                     intent.putExtra("finishDate", true)
                     intent.putExtra("account", false)
+                    intent.putExtra("tags", true)
+                    intent.putExtra("origin_country", false)
+                    intent.putExtra("watch_provider", false)
                     filterActivityResultLauncher.launch(intent)
                 }
             }
@@ -978,6 +1129,28 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 watchedShows = sortShowsByDate(watchedShows, "key_sort_watched_by_date")
                 mShowAdapter.updateData(watchedShows)
             }
+            R.id.chipOnHold -> {
+                updateFab(false)
+                var onHoldShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_ON_HOLD) {
+                        onHoldShows.add(show)
+                    }
+                }
+                // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date")
+                mShowAdapter.updateData(onHoldShows)
+            }
+            R.id.chipDropped -> {
+                updateFab(false)
+                var droppedShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_DROPPED) {
+                        droppedShows.add(show)
+                    }
+                }
+                // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date")
+                mShowAdapter.updateData(droppedShows)
+            }
             R.id.chipPlanToWatch -> {
                 updateFab(false)
                 var planToWatchShows = ArrayList<JSONObject>()
@@ -1093,6 +1266,34 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
+        binding.chipGroup.findViewById<Chip>(R.id.chipOnHold)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipOnHold)) {
+                updateFab(false)
+                var onHoldShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_ON_HOLD) {
+                        onHoldShows.add(show)
+                    }
+                }
+                // onHoldShows = sortShowsByDate(onHoldShows, "key_sort_on_hold_by_date")
+                mShowAdapter.updateData(onHoldShows)
+            }
+        }
+
+        binding.chipGroup.findViewById<Chip>(R.id.chipDropped)?.setOnCheckedChangeListener { _, isChecked ->
+            handleChipChange(isChecked, getOtherChips(R.id.chipDropped)) {
+                updateFab(false)
+                var droppedShows = ArrayList<JSONObject>()
+                for (show in mShowArrayList) {
+                    if (show.optInt(MovieDatabaseHelper.COLUMN_CATEGORIES) == MovieDatabaseHelper.CATEGORY_DROPPED) {
+                        droppedShows.add(show)
+                    }
+                }
+                // droppedShows = sortShowsByDate(droppedShows, "key_sort_dropped_by_date")
+                mShowAdapter.updateData(droppedShows)
+            }
+        }
+
         binding.chipGroup.findViewById<Chip>(R.id.chipPlanToWatch)?.setOnCheckedChangeListener { _, isChecked ->
             handleChipChange(isChecked, getOtherChips(R.id.chipPlanToWatch)) {
                 updateFab(false)
@@ -1122,6 +1323,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 intent.putExtra("startDate", true)
                 intent.putExtra("finishDate", true)
                 intent.putExtra("account", false)
+                intent.putExtra("tags", true)
+                intent.putExtra("origin_country", false)
+                intent.putExtra("watch_provider", false)
                 filterActivityResultLauncher.launch(intent)
             }
         } else {
@@ -1221,6 +1425,40 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             listToFilter.removeIf { showObject: JSONObject ->
                 val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
                 (showMovie.contains("movie") && isTV) || (showMovie.contains("tv") && !isTV)
+            }
+        }
+
+        // Filter by tags to include
+        val withTags = FilterActivity.convertStringToArrayList(
+            sharedPreferences.getString("filter_with_tags", null), ", "
+        )
+        if (withTags != null && withTags.isNotEmpty()) {
+            listToFilter.removeIf { showObject ->
+                val tagsArray = showObject.optJSONArray("tags")
+                val itemTags = mutableListOf<String>()
+                if (tagsArray != null) {
+                    for (i in 0 until tagsArray.length()) {
+                        itemTags.add(tagsArray.getString(i))
+                    }
+                }
+                !itemTags.containsAll(withTags)
+            }
+        }
+
+        // Filter by tags to exclude
+        val withoutTags = FilterActivity.convertStringToArrayList(
+            sharedPreferences.getString("filter_without_tags", null), ", "
+        )
+        if (withoutTags != null && withoutTags.isNotEmpty()) {
+            listToFilter.removeIf { showObject ->
+                val tagsArray = showObject.optJSONArray("tags")
+                val itemTags = mutableListOf<String>()
+                if (tagsArray != null) {
+                    for (i in 0 until tagsArray.length()) {
+                        itemTags.add(tagsArray.getString(i))
+                    }
+                }
+                itemTags.any { tag -> withoutTags.contains(tag) }
             }
         }
 
@@ -1454,6 +1692,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private fun convertDatabaseListToArrayList(cursor: Cursor): ArrayList<JSONObject> {
         val dbShowsArrayList = ArrayList<JSONObject>()
         val showEpisodesMap = mutableMapOf<Int, MutableMap<Int, JSONArray>>()
+        val tagsMap = mDatabaseHelper.getAllMovieTagsMap()
 
         if (cursor.isClosed) {
             Log.e("ListFragment", "Cursor is closed, cannot convert database list to array list.")
@@ -1518,6 +1757,16 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                         // Initialize seasons object
                         put(SEASONS, JSONObject())
+
+                        val isMovie = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE))
+                        val key = "${movieId.toLong()}_$isMovie"
+                        val tags = tagsMap[key]
+                        if (tags != null) {
+                            val tagsArray = JSONArray()
+                            tags.forEach { tagsArray.put(it) }
+                            put("tags", tagsArray)
+                        }
+
                     } catch (je: JSONException) {
                         je.printStackTrace()
                     }
@@ -1833,6 +2082,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 "all" to R.id.chipAll,
                 "watching" to R.id.chipWatching,
                 "watched" to R.id.chipWatched,
+                "on_hold" to R.id.chipOnHold,
+                "dropped" to R.id.chipDropped,
                 "plan_to_watch" to R.id.chipPlanToWatch,
                 "upcoming" to R.id.chipUpcoming
             )
@@ -1845,11 +2096,28 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     chip
                 }
             }.toMutableList()
+
+            // Check for newly added ones
+            val existingTags = chipInfos.map { it.tag }.toSet()
+            if (!existingTags.contains("on_hold")) {
+                chipInfos.add(
+                    chipInfos.size - 2, // Add before plan_to_watch and upcoming
+                    ChipInfo(R.id.chipOnHold, getString(R.string.on_hold), "on_hold", true)
+                )
+            }
+            if (!existingTags.contains("dropped")) {
+                chipInfos.add(
+                    chipInfos.size - 2, // Add before plan_to_watch and upcoming
+                    ChipInfo(R.id.chipDropped, getString(R.string.dropped), "dropped", true)
+                )
+            }
         } else {
             chipInfos = mutableListOf(
                 ChipInfo(R.id.chipAll, getString(R.string.all), "all", true),
                 ChipInfo(R.id.chipWatching, getString(R.string.watching), "watching", true),
                 ChipInfo(R.id.chipWatched, getString(R.string.watched), "watched", true),
+                ChipInfo(R.id.chipOnHold, getString(R.string.on_hold), "on_hold", true),
+                ChipInfo(R.id.chipDropped, getString(R.string.dropped), "dropped", true),
                 ChipInfo(
                     R.id.chipPlanToWatch,
                     getString(R.string.plan_to_watch),

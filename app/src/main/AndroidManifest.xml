@@ -48,8 +48,18 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.MovieDB.Splash"
         android:name=".App"
+        android:localeConfig="@xml/locales_config"
         tools:ignore="GoogleAppIndexingWarning"
         tools:targetApi="s">
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
 
         <activity
             android:name=".activity.MainActivity"
@@ -137,6 +147,10 @@
         </activity>
 
         <activity android:name=".activity.DetailActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity android:name=".activity.TaggedListActivity"
             android:theme="@style/AppTheme">
         </activity>
 

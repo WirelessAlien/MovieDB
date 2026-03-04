@@ -22,6 +22,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     style="@style/Widget.Material3.Chip.Assist"
+    android:layout_margin="5dp"
     android:clickable="false"
     android:checkable="false">
 

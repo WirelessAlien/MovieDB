@@ -39,4 +39,10 @@
         android:orderInCategory="3"
         android:title="@string/csv_import"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_tags"
+        android:orderInCategory="4"
+        android:title="@string/tags"
+        app:showAsAction="never" />
 </menu>
