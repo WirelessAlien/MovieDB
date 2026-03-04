@@ -53,6 +53,7 @@ class VideoAdapter(
     class VideoViewHolder(private val binding: VideoItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(video: JSONObject) {
             binding.videoName.text = video.optString("name", "No name")
+            binding.videoName.isSelected = true
             binding.videoType.text = video.optString("type", "No type")
             val site = video.optString("site", "No site")
             binding.videoSite.text = site

@@ -46,7 +46,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true" />
 
         <TextView
             android:id="@+id/videoType"
