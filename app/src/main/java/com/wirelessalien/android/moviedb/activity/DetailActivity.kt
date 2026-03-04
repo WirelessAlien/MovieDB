@@ -3561,15 +3561,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                 // Show category in poster
                 val categoryNumber = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES))
-                val categoriesArray = resources.getStringArray(R.array.categories)
 
                 val categoryText = when (categoryNumber) {
-                    MovieDatabaseHelper.CATEGORY_WATCHING -> getString(R.string.category_watching)
-                    MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> getString(R.string.category_plan_to_watch)
-                    MovieDatabaseHelper.CATEGORY_WATCHED -> getString(R.string.category_watched)
-                    MovieDatabaseHelper.CATEGORY_ON_HOLD -> getString(R.string.category_on_hold)
-                    MovieDatabaseHelper.CATEGORY_DROPPED -> getString(R.string.category_dropped)
-                    else -> MovieDatabaseHelper.CATEGORY_WATCHING
+                    MovieDatabaseHelper.CATEGORY_WATCHING -> getString(R.string.watching)
+                    MovieDatabaseHelper.CATEGORY_PLAN_TO_WATCH -> getString(R.string.plan_to_watch)
+                    MovieDatabaseHelper.CATEGORY_WATCHED -> getString(R.string.watched)
+                    MovieDatabaseHelper.CATEGORY_ON_HOLD -> getString(R.string.on_hold)
+                    MovieDatabaseHelper.CATEGORY_DROPPED -> getString(R.string.dropped)
+                    else -> null
                 }
 
                 if (categoryText != null) {
