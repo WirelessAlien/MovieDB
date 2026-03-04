@@ -41,6 +41,7 @@ import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.util.Locale
 
 /**
  * This class contains some basic functionality that would
@@ -49,6 +50,7 @@ import java.io.IOException
 open class BaseFragment : Fragment() {
 
     private var apiKey: String? = null
+    private var apiReadAccessToken: String? = null
     lateinit var mShowView: RecyclerView
     lateinit var mShowAdapter: ShowBaseAdapter
     private lateinit var mShowPagingAdapter: ShowPagingAdapter
@@ -65,6 +67,7 @@ open class BaseFragment : Fragment() {
         super.onCreate(savedInstanceState)
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         apiKey = ConfigHelper.getConfigValue(requireContext().applicationContext, "api_key")
+        apiReadAccessToken = ConfigHelper.getConfigValue(requireContext().applicationContext, "api_read_access_token")
     }
 
     open fun doNetworkWork() {}
@@ -146,15 +149,52 @@ open class BaseFragment : Fragment() {
         }
     }
 
+    private fun hasGenreData(response: String?): Boolean {
+        if (response.isNullOrEmpty()) return false
+        return try {
+            val jsonObject = JSONObject(response)
+            val genres = jsonObject.optJSONArray("genres")
+            genres != null && genres.length() > 0
+        } catch (e: JSONException) {
+            false
+        }
+    }
+
     private suspend fun fetchGenreListFromNetwork(mGenreType: String): String? {
         return withContext(Dispatchers.IO) {
             val client = OkHttpClient()
-            val request = Request.Builder()
-                .url("https://api.themoviedb.org/3/genre/$mGenreType/list?api_key=$apiKey")
+            val localeLanguage = Locale.getDefault().toLanguageTag()
+            
+            // First attempt with the locale language
+            val localeRequest = Request.Builder()
+                .url("https://api.themoviedb.org/3/genre/$mGenreType/list?language=$localeLanguage")
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer $apiReadAccessToken")
                 .build()
 
             try {
-                val response = client.newCall(request).execute()
+                val response = client.newCall(localeRequest).execute()
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    if (hasGenreData(responseBody)) {
+                        return@withContext responseBody
+                    }
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+
+            // Fallback to English
+            val fallbackRequest = Request.Builder()
+                .url("https://api.themoviedb.org/3/genre/$mGenreType/list?language=en-US")
+                .get()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                .build()
+
+            try {
+                val response = client.newCall(fallbackRequest).execute()
                 if (response.isSuccessful) {
                     response.body?.string()
                 } else {
