@@ -1020,26 +1020,38 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
 
     fun addEpisodeNumber(movieId: Int, seasonNumber: Int, episodeNumbers: List<Int?>, watchDate: String?) {
         val db = this.writableDatabase
-        val values = ContentValues()
-        for (episodeNumber in episodeNumbers) {
-            values.put(COLUMN_MOVIES_ID, movieId)
-            values.put(COLUMN_SEASON_NUMBER, seasonNumber)
-            values.put(COLUMN_EPISODE_NUMBER, episodeNumber)
-            if (watchDate != null) {
-                values.put(COLUMN_EPISODE_WATCH_DATE, watchDate)
+        db.beginTransaction()
+        try {
+            val values = ContentValues()
+            for (episodeNumber in episodeNumbers) {
+                values.put(COLUMN_MOVIES_ID, movieId)
+                values.put(COLUMN_SEASON_NUMBER, seasonNumber)
+                values.put(COLUMN_EPISODE_NUMBER, episodeNumber)
+                if (watchDate != null) {
+                    values.put(COLUMN_EPISODE_WATCH_DATE, watchDate)
+                }
+                db.insert(TABLE_EPISODES, null, values)
             }
-            db.insert(TABLE_EPISODES, null, values)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
     fun removeEpisodeNumber(movieId: Int, seasonNumber: Int, episodeNumbers: List<Int>) {
         val db = this.writableDatabase
-        for (episodeNumber in episodeNumbers) {
-            db.delete(
-                TABLE_EPISODES,
-                "$COLUMN_MOVIES_ID = ? AND $COLUMN_SEASON_NUMBER = ? AND $COLUMN_EPISODE_NUMBER = ?",
-                arrayOf(movieId.toString(), seasonNumber.toString(), episodeNumber.toString())
-            )
+        db.beginTransaction()
+        try {
+            for (episodeNumber in episodeNumbers) {
+                db.delete(
+                    TABLE_EPISODES,
+                    "$COLUMN_MOVIES_ID = ? AND $COLUMN_SEASON_NUMBER = ? AND $COLUMN_EPISODE_NUMBER = ?",
+                    arrayOf(movieId.toString(), seasonNumber.toString(), episodeNumber.toString())
+                )
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
