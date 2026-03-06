@@ -191,11 +191,11 @@ class UpNextFragment : BottomSheetDialogFragment() {
             parseWatchedEpisodes(it)
         } ?: emptyMap()
 
-        val seasons = getSeasonsFromTmdbDatabase(showId)
-        if (seasons.isEmpty()) return null
+        val allEpisodesBySeason = getAllEpisodesBySeasonFromTmdbDatabase(showId)
+        if (allEpisodesBySeason.isEmpty()) return null
 
-        for (season in seasons.sorted()) {
-            val episodes = getEpisodesForSeasonFromTmdbDatabase(showId, season)
+        for (season in allEpisodesBySeason.keys.sorted()) {
+            val episodes = allEpisodesBySeason[season] ?: emptyList()
             val watchedInSeason = watchedEpisodes[season] ?: emptyList()
 
             for (episode in episodes.sorted()) {
@@ -292,7 +292,8 @@ class UpNextFragment : BottomSheetDialogFragment() {
         val showName = getShowName(showId) ?: return null
         val lastWatchedDate = dbHelper.readableDatabase.use { getLastWatchedDateForShow(it, showId) }
 
-        val episodes = getEpisodesForSeasonFromTmdbDatabase(showId, seasonNumber).sorted()
+        val allEpisodesBySeason = getAllEpisodesBySeasonFromTmdbDatabase(showId)
+        val episodes = allEpisodesBySeason[seasonNumber]?.sorted() ?: emptyList()
         val nextEpisodeInSeason = episodes.find { it > episodeNumber }
 
         if (nextEpisodeInSeason != null) {
@@ -306,11 +307,11 @@ class UpNextFragment : BottomSheetDialogFragment() {
             )
         }
 
-        val seasons = getSeasonsFromTmdbDatabase(showId).sorted()
+        val seasons = allEpisodesBySeason.keys.sorted()
         val nextSeason = seasons.find { it > seasonNumber }
 
         if (nextSeason != null) {
-            val nextEpisodeInNextSeason = getEpisodesForSeasonFromTmdbDatabase(showId, nextSeason).minOrNull()
+            val nextEpisodeInNextSeason = allEpisodesBySeason[nextSeason]?.minOrNull()
             if (nextEpisodeInNextSeason != null) {
                 return UpNextAdapter.UpNextItem(
                     showId,
@@ -344,7 +345,7 @@ class UpNextFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun getSeasonsFromTmdbDatabase(showId: Int): List<Int> {
+    private fun getAllEpisodesBySeasonFromTmdbDatabase(showId: Int): Map<Int, List<Int>> {
         val dbHelper = TmdbDetailsDatabaseHelper(requireContext())
         val db = dbHelper.readableDatabase
         val cursor = db.query(
@@ -354,44 +355,27 @@ class UpNextFragment : BottomSheetDialogFragment() {
             arrayOf(showId.toString()),
             null, null, null
         )
-        val seasons = if (cursor.moveToFirst()) {
-            parseSeasonsTmdb(cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)))
+        val result = if (cursor.moveToFirst()) {
+            val seasonsString = cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB))
+            val regex = Regex("""(\d+)\{([\d,]*)\}""")
+            val map = mutableMapOf<Int, List<Int>>()
+            regex.findAll(seasonsString).forEach { matchResult ->
+                val season = matchResult.groupValues[1].toInt()
+                val episodesStr = matchResult.groupValues[2]
+                val episodes = if (episodesStr.isNotEmpty()) {
+                    episodesStr.split(",").mapNotNull { it.toIntOrNull() }
+                } else {
+                    emptyList()
+                }
+                map[season] = episodes
+            }
+            map
         } else {
-            emptyList()
+            emptyMap()
         }
         cursor.close()
         db.close()
-        return seasons
+        return result
     }
 
-    private fun getEpisodesForSeasonFromTmdbDatabase(showId: Int, seasonNumber: Int): List<Int> {
-        val dbHelper = TmdbDetailsDatabaseHelper(requireContext())
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
-            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
-            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
-            arrayOf(showId.toString()),
-            null, null, null
-        )
-        val episodes = if (cursor.moveToFirst()) {
-            parseEpisodesForSeasonTmdb(cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)), seasonNumber)
-        } else {
-            emptyList()
-        }
-        cursor.close()
-        db.close()
-        return episodes
-    }
-
-    private fun parseSeasonsTmdb(seasonsString: String): List<Int> {
-        val regex = Regex("""(\d+)\{.*?\}""")
-        return regex.findAll(seasonsString).map { it.groupValues[1].toInt() }.toList()
-    }
-
-    private fun parseEpisodesForSeasonTmdb(seasonsString: String, seasonNumber: Int): List<Int> {
-        val regex = Regex("""$seasonNumber\{(\d+(,\d+)*)\}""")
-        val matchResult = regex.find(seasonsString) ?: return emptyList()
-        return matchResult.groupValues[1].split(",").map { it.toInt() }
-    }
 }

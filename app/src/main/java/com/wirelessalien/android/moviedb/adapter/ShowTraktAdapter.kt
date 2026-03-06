@@ -581,11 +581,12 @@ class ShowTraktAdapter(
     }
 
     private fun getNextEpisodeDetails(showId: Int, seasons: List<Int>, episodeSeason: String): Pair<Int?, Int?>? {
+        val allWatchedEpisodes = getAllWatchedEpisodesFromDb(showId)
 
         // Iterate through seasons and episodes to find the next unwatched one
         for (seasonNumber in seasons) {
             val episodes = parseEpisodesForSeasonTmdb(episodeSeason, seasonNumber)
-            val watchedEpisodes = getWatchedEpisodesFromDb(showId, seasonNumber)
+            val watchedEpisodes = allWatchedEpisodes[seasonNumber] ?: emptySet()
 
             for (episodeNumber in episodes) {
                 if (episodeNumber !in watchedEpisodes) {
@@ -595,6 +596,31 @@ class ShowTraktAdapter(
         }
 
         return null
+    }
+
+    private fun getAllWatchedEpisodesFromDb(showTraktId: Int): Map<Int, Set<Int>> {
+        val dbHelper = TraktDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
+            arrayOf(TraktDatabaseHelper.COL_SEASON_NUMBER, TraktDatabaseHelper.COL_EPISODE_NUMBER),
+            "${TraktDatabaseHelper.COL_SHOW_TRAKT_ID} = ?",
+            arrayOf(showTraktId.toString()),
+            null, null, null
+        )
+        val watchedEpisodes = mutableMapOf<Int, MutableSet<Int>>()
+        if (cursor.moveToFirst()) {
+            val seasonIndex = cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_SEASON_NUMBER)
+            val episodeIndex = cursor.getColumnIndexOrThrow(TraktDatabaseHelper.COL_EPISODE_NUMBER)
+            do {
+                val seasonNumber = cursor.getInt(seasonIndex)
+                val episodeNumber = cursor.getInt(episodeIndex)
+                watchedEpisodes.getOrPut(seasonNumber) { mutableSetOf() }.add(episodeNumber)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return watchedEpisodes
     }
 
     private fun isEpisodeWatched(showTraktId: Int, seasonNumber: Int, episodeNumber: Int): Boolean {
