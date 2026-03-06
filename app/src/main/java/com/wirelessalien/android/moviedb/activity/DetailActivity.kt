@@ -3184,6 +3184,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                 if (episodesToMark < totalMarkedEpisodes) {
                     // Need to remove episodes
+                    val seasonsAndEpisodesToRemove = mutableMapOf<Int, List<Int>>()
                     for (seasonNumber in seasonsS.reversed()) {
                         val watchedEpisodesR = (allWatchedEpisodes[seasonNumber] ?: emptyList()).sorted()
                         val episodesToRemove = mutableListOf<Int>()
@@ -3198,9 +3199,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         }
 
                         if (episodesToRemove.isNotEmpty()) {
-                            dbHelper.removeEpisodeNumber(movieId, seasonNumber, episodesToRemove)
+                            seasonsAndEpisodesToRemove[seasonNumber] = episodesToRemove
                             markedEpisodes[seasonNumber] = episodesToRemove
                         }
+                    }
+                    if (seasonsAndEpisodesToRemove.isNotEmpty()) {
+                        dbHelper.removeEpisodes(movieId, seasonsAndEpisodesToRemove)
                     }
 
                     Toast.makeText(context,
@@ -3208,6 +3212,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 } else {
                     // Add episodes
                     episodesMarked = totalMarkedEpisodes
+                    val seasonsAndEpisodesToAdd = mutableMapOf<Int, List<Int>>()
                     for (seasonNumber in seasonsS) {
                         val episodesInSeason = if (seasonsString.isNotEmpty()) parseEpisodesForSeasonTmdb(seasonsString, seasonNumber) else emptyList()
                         val watchedEpisodesA = allWatchedEpisodes[seasonNumber] ?: emptyList()
@@ -3223,12 +3228,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         }
 
                         if (episodesToAdd.isNotEmpty()) {
-                            dbHelper.addEpisodeNumber(movieId, seasonNumber, episodesToAdd, currentDate)
+                            seasonsAndEpisodesToAdd[seasonNumber] = episodesToAdd
                         }
 
                         if (markedEpisodesInSeason.isNotEmpty()) {
                             markedEpisodes[seasonNumber] = markedEpisodesInSeason
                         }
+                    }
+                    if (seasonsAndEpisodesToAdd.isNotEmpty()) {
+                        dbHelper.addEpisodes(movieId, seasonsAndEpisodesToAdd, currentDate)
                     }
 
                     // Show a toast message for added episodes
