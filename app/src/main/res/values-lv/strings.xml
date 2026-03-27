@@ -179,4 +179,5 @@
         <item quantity="one"/>
         <item quantity="other">%1$d minūtes</item>
     </plurals>
+    <string name="stats">Statuss</string>
 </resources>
