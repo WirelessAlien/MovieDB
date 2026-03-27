@@ -569,13 +569,13 @@
     <string name="notification_permission_not_granted">Permesso non concesso per posta notifica</string>
     <plurals name="years">
         <item quantity="one">%d anno</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d anni</item>
     </plurals>
     <string name="end_date_3">Data di fine</string>
     <plurals name="months">
         <item quantity="one">%d mese</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d mesi</item>
     </plurals>
     <string name="start_date_3">Data di inizio</string>
@@ -584,7 +584,7 @@
     <string name="failed_to_update_list">Non è riuscito ad aggiornare l\'elenco</string>
     <plurals name="hours">
         <item quantity="one">%d ora</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d ore</item>
     </plurals>
     <string name="no_csv_export_option_selected">Seleziona un\'opzione di esportazione CSV</string>
@@ -614,14 +614,14 @@
     <string name="restore_database_from_google_drive">Ripristinare Database da Google Drive</string>
     <plurals name="days">
         <item quantity="one">%d giorno</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d giorni</item>
     </plurals>
     <string name="same_as_end_date">Stesso della data di fine</string>
     <string name="certification">Certificazione</string>
     <plurals name="minutes">
         <item quantity="one">%d minuto</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d minuti</item>
     </plurals>
     <string name="drive_access_failed">Non poteva accedere Google Drive</string>
