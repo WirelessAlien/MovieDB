@@ -21,6 +21,7 @@ package com.wirelessalien.android.moviedb.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.databinding.VideoItemBinding
 import org.json.JSONObject
 import java.text.DateFormat
@@ -52,8 +53,18 @@ class VideoAdapter(
     class VideoViewHolder(private val binding: VideoItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(video: JSONObject) {
             binding.videoName.text = video.optString("name", "No name")
+            binding.videoName.isSelected = true
             binding.videoType.text = video.optString("type", "No type")
-            binding.videoSite.text = video.optString("site", "No site")
+            val site = video.optString("site", "No site")
+            binding.videoSite.text = site
+            val key = video.optString("key", "")
+            if (site.equals("YouTube", ignoreCase = true) && key.isNotEmpty()) {
+                val thumbnailUrl = "https://i.ytimg.com/vi/${key}/hqdefault.jpg"
+                Picasso.get().load(thumbnailUrl).into(binding.videoThumbnail)
+            } else {
+                binding.videoThumbnail.setImageDrawable(null)
+            }
+            
             val publishedAt = video.optString("published_at", "No date")
             binding.uploadDate.text = if (publishedAt != "No date") {
                 try {

@@ -56,6 +56,8 @@
         <item>English</item>
         <item>Español</item>
         <item>Français</item>
+        <item>Deutsch</item>
+        <item>Русский</item>
     </string-array>
 
     <string-array name="app_language_values">
@@ -63,5 +65,7 @@
         <item>en</item>
         <item>es</item>
         <item>fr</item>
+        <item>de</item>
+        <item>ru</item>
     </string-array>
 </resources>

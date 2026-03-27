@@ -3174,15 +3174,19 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val seasonsS = getSeasonsFromTmdbDatabase(movieId)
                 val markedEpisodes = mutableMapOf<Int, List<Int>>()
 
+                val allWatchedEpisodes = getAllWatchedEpisodesFromDb(movieId)
+                val seasonsString = getSeasonsStringFromTmdbDatabase(movieId)
+
                 // First, get total marked episodes across all seasons
                 val totalMarkedEpisodes = seasonsS.sumOf { seasonNumber ->
-                    getWatchedEpisodesFromDb(movieId, seasonNumber).size
+                    allWatchedEpisodes[seasonNumber]?.size ?: 0
                 }
 
                 if (episodesToMark < totalMarkedEpisodes) {
                     // Need to remove episodes
+                    val seasonsAndEpisodesToRemove = mutableMapOf<Int, List<Int>>()
                     for (seasonNumber in seasonsS.reversed()) {
-                        val watchedEpisodesR = getWatchedEpisodesFromDb(movieId, seasonNumber).sorted()
+                        val watchedEpisodesR = (allWatchedEpisodes[seasonNumber] ?: emptyList()).sorted()
                         val episodesToRemove = mutableListOf<Int>()
 
                         for (episodeNumber in watchedEpisodesR.reversed()) {
@@ -3195,9 +3199,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         }
 
                         if (episodesToRemove.isNotEmpty()) {
-                            dbHelper.removeEpisodeNumber(movieId, seasonNumber, episodesToRemove)
+                            seasonsAndEpisodesToRemove[seasonNumber] = episodesToRemove
                             markedEpisodes[seasonNumber] = episodesToRemove
                         }
+                    }
+                    if (seasonsAndEpisodesToRemove.isNotEmpty()) {
+                        dbHelper.removeEpisodes(movieId, seasonsAndEpisodesToRemove)
                     }
 
                     Toast.makeText(context,
@@ -3205,27 +3212,31 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 } else {
                     // Add episodes
                     episodesMarked = totalMarkedEpisodes
+                    val seasonsAndEpisodesToAdd = mutableMapOf<Int, List<Int>>()
                     for (seasonNumber in seasonsS) {
-                        val episodesInSeason = getEpisodesForSeasonFromTmdbDatabase(movieId, seasonNumber)
-                        val watchedEpisodesA = getWatchedEpisodesFromDb(movieId, seasonNumber)
+                        val episodesInSeason = if (seasonsString.isNotEmpty()) parseEpisodesForSeasonTmdb(seasonsString, seasonNumber) else emptyList()
+                        val watchedEpisodesA = allWatchedEpisodes[seasonNumber] ?: emptyList()
                         val markedEpisodesInSeason = mutableListOf<Int>()
+                        val episodesToAdd = mutableListOf<Int>()
 
                         for (episodeNumber in episodesInSeason) {
                             if (episodesMarked < episodesToMark && !watchedEpisodesA.contains(episodeNumber)) {
-                                dbHelper.addEpisodeNumber(
-                                    movieId,
-                                    seasonNumber,
-                                    listOf(episodeNumber),
-                                    currentDate
-                                )
+                                episodesToAdd.add(episodeNumber)
                                 markedEpisodesInSeason.add(episodeNumber)
                                 episodesMarked++
                             }
                         }
 
+                        if (episodesToAdd.isNotEmpty()) {
+                            seasonsAndEpisodesToAdd[seasonNumber] = episodesToAdd
+                        }
+
                         if (markedEpisodesInSeason.isNotEmpty()) {
                             markedEpisodes[seasonNumber] = markedEpisodesInSeason
                         }
+                    }
+                    if (seasonsAndEpisodesToAdd.isNotEmpty()) {
+                        dbHelper.addEpisodes(movieId, seasonsAndEpisodesToAdd, currentDate)
                     }
 
                     // Show a toast message for added episodes
@@ -3603,6 +3614,35 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         return episodes
     }
 
+    private fun getAllWatchedEpisodesFromDb(showTraktId: Int): Map<Int, List<Int>> {
+        val dbHelper = MovieDatabaseHelper(context)
+        return try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.query(
+                MovieDatabaseHelper.TABLE_EPISODES,
+                arrayOf(MovieDatabaseHelper.COLUMN_SEASON_NUMBER, MovieDatabaseHelper.COLUMN_EPISODE_NUMBER),
+                "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                arrayOf(showTraktId.toString()),
+                null, null, null
+            )
+
+            val watchedEpisodes = mutableMapOf<Int, MutableList<Int>>()
+            cursor.use { c ->
+                if (c.moveToFirst()) {
+                    do {
+                        val seasonNumber = c.getInt(c.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_SEASON_NUMBER))
+                        val episodeNumber = c.getInt(c.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_NUMBER))
+                        watchedEpisodes.getOrPut(seasonNumber) { mutableListOf() }.add(episodeNumber)
+                    } while (c.moveToNext())
+                }
+            }
+            watchedEpisodes
+        } catch (e: Exception) {
+            Log.e("ShowBaseAdapter", "Error getting all watched episodes from db", e)
+            emptyMap()
+        }
+    }
+
     private fun getWatchedEpisodesFromDb(showTraktId: Int, seasonNumber: Int): List<Int> {
         val dbHelper = MovieDatabaseHelper(context)
         return try {
@@ -3670,6 +3710,22 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         cursor.close()
         db.close()
         return seasons
+    }
+
+    private fun getSeasonsStringFromTmdbDatabase(showId: Int): String {
+        val dbHelper = TmdbDetailsDatabaseHelper(context)
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+            arrayOf(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB),
+            "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+            arrayOf(showId.toString()),
+            null, null, null
+        )
+        val seasonsString = if (cursor.moveToFirst()) cursor.getString(cursor.getColumnIndexOrThrow(TmdbDetailsDatabaseHelper.SEASONS_EPISODE_SHOW_TMDB)) ?: "" else ""
+        cursor.close()
+        db.close()
+        return seasonsString
     }
 
     private fun getTotalEpisodesFromTmdb(context: Context, movieId: Int): Int {

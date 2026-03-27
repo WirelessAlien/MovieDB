@@ -1,0 +1,5 @@
+Add in app language preference
+Modify the ui to remove media from database
+Add production company details foe media
+Multiple small fixes and improvements
+Add ru and de translation
