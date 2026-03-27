@@ -291,7 +291,7 @@
     <string name="next_episode_upcoming_label">வரவிருக்கும்</string>
     <string name="notifications">அறிவிப்பு</string>
     <plurals name="minutes">
-        <item quantity="one"></item>
+        <item quantity="one"/>
         <item quantity="other">%1$d நிமிடங்கள்</item>
     </plurals>
 </resources>
