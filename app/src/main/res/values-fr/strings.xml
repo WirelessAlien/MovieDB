@@ -34,7 +34,7 @@
     <string name="show_added_error">Erreur lors de l\'ajout à la base de donnée</string>
     <string name="episodes_seen">Épisodes vus : %1$d/%2$d</string>
     <string name="start_date">Date de début : %1$s</string>
-    <string name="start_date_unknown">Date de début : Non définie</string>
+    <string name="start_date_unknown">Date de début : Non définie</string>
     <string name="finish_date">Date de fin : %1$s</string>
     <string name="finish_date_unknown">Date de fin : Non définie</string>
     <string name="times_watched">Nombre de visionnages : %1$d</string>
@@ -260,7 +260,7 @@
     <string name="save_to_database">Enregistrer dans la base de données</string>
     <string name="choose_date">Choisissez une date</string>
     <string name="links">Liens</string>
-    <string name="reviews">Avis : %1$s</string>
+    <string name="reviews">Avis : %1$s</string>
     <string name="no_reviews">Avis : Non ajouté</string>
     <string name="default_media_type">Type de média par défaut</string>
     <string name="show_shows_as_default_in_the_account_tab">Afficher « Séries » par défaut dans l’onglet « Compte ».</string>
