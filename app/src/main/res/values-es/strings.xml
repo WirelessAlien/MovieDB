@@ -570,22 +570,22 @@
     <string name="no_release_dates_found">No se han encontrado fechas de lanzamiento para su región.</string>
     <plurals name="months">
         <item quantity="one">%d mes</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d months</item>
     </plurals>
     <plurals name="days">
         <item quantity="one">%d día</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d days</item>
     </plurals>
     <plurals name="hours">
         <item quantity="one">%d hour</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d hours</item>
     </plurals>
     <plurals name="minutes">
         <item quantity="one">%d minute</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%1$d minutos</item>
     </plurals>
     <string name="videos">Videos</string>
@@ -601,7 +601,7 @@
     <string name="search_title_ext">Buscar en ShowCase</string>
     <plurals name="years">
         <item quantity="one">%d año</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d years</item>
     </plurals>
     <string name="rating_format">Valoración: %.1f/%s</string>
