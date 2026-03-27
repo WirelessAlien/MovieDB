@@ -291,7 +291,6 @@
     <string name="mark_as_watched">Als geschaut markieren</string>
     <string name="progress">Fortschritt</string>
     <string name="collection">Sammlung</string>
-    <string name="search_title_ext">Suche in ShowCase</string>
     <string name="history">Verlauf</string>
     <string name="in_collection">Gesammelt</string>
     <string name="rated_at">Bewertet mit</string>
@@ -572,7 +571,6 @@
     <string name="nested_sorting_explanation">Wenn aktiviert, werden Ihre Medien zuerst nach Kategorie sortiert (z.B. Derzeit schauen, Geschaut), und dann nach der anderen Option sortiert, die Sie ausgewählt haben (wie Veröffentlichungsdatum oder am besten bewertet)).</string>
     <string name="same_as_start_date">Gleich wie Startdatum</string>
     <string name="same_as_end_date">Gleich wie Enddatum</string>
-    <string name="search_title_ext_p">Suche in ShowCase Plus</string>
     <plurals name="years">
         <item quantity="one">%d Jahr</item>
         <item quantity="other">%d Jahre</item>
