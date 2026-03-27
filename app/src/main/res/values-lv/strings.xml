@@ -176,7 +176,7 @@
     <string name="notifications">Paziņojums</string>
     <plurals name="minutes">
         <item quantity="zero">%1$d minūtes</item>
-        <item quantity="one"></item>
+        <item quantity="one"/>
         <item quantity="other">%1$d minūtes</item>
     </plurals>
 </resources>
