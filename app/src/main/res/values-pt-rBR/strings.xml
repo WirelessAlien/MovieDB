@@ -503,27 +503,27 @@
     <string name="search_title_ext">Procurar em ShowCase</string>
     <plurals name="years">
         <item quantity="one">%d anos</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d anos</item>
     </plurals>
     <plurals name="months">
         <item quantity="one">%d meses</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d meses</item>
     </plurals>
     <plurals name="days">
         <item quantity="one">%d dias</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d dias</item>
     </plurals>
     <plurals name="hours">
         <item quantity="one">%d horas</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d horas</item>
     </plurals>
     <plurals name="minutes">
         <item quantity="one">%d</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">%d</item>
     </plurals>
     <string name="not_watched">Não vigiado</string>
