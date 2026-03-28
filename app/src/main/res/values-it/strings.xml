@@ -441,7 +441,7 @@
     <string name="public_list">Pubblico</string>
     <string name="last_watched">Ultimo visto: %1$s</string>
     <string name="collected">Collezionato</string>
-    <string name="episode_title_format">%1$s (S:%2$d E:%3$d %4$s)</string>
+    <string name="episode_title_format">%1$s (S:%2$d E:%3$d %4$s</string>
     <string name="fetching_data">Ritiro dati..</string>
     <string name="select_options">Selezionare Opzioni</string>
     <string name="movie_collection">Collezione di film</string>
