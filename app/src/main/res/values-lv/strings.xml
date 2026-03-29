@@ -191,4 +191,5 @@
     <string name="start_date">%1$s</string>
     <string name="finish_date">%1$s</string>
     <string name="dropped">Pārtraukts</string>
+    <string name="reviews">%1$s</string>
 </resources>
