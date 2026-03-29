@@ -625,4 +625,31 @@
     </plurals>
     <string name="in_history">تماشا شده</string>
     <string name="season1">فصل</string>
+    <string name="edit_tag">دانلود فیلم Edit Tag</string>
+    <string name="click_again_to_delete">کلیک دوباره برای تایید حذف</string>
+    <string name="production_companies">شرکت های تولیدی</string>
+    <string name="my_rating_unknown">تنظیم نکردن</string>
+    <string name="tags">Tags</string>
+    <string name="tags_label">" برچسب ها: "</string>
+    <string name="add_tag">Add Tag</string>
+    <string name="add_new_tag">اضافه کردن برچسب جدید</string>
+    <string name="hide_fetched_ratings">دانلود بازی Hide Fetched Ratings</string>
+    <string name="hide_fetched_ratings_summary">رتبه بندی و بررسی رسانه ها را پنهان کنید. ضربه بزنید تا آشکار شود.</string>
+    <string name="tap_to_reveal">Reveal</string>
+    <string name="tag_format">برچسب ها: %s</string>
+    <string name="finish_date_3">پایان تاریخ</string>
+    <string name="episode_seen">قسمت Seen</string>
+    <string name="my_rating">رتبه بندی من</string>
+    <string name="time_watched">زمان تماشا</string>
+    <string name="vote_count_min">رای دادن شمارش (حداقل)</string>
+    <string name="vote_count_hint">به عنوان مثال ۱۰۰۰۰</string>
+    <string name="origin_country">کشور مبدا</string>
+    <string name="search_for_country">جستجو برای کشور</string>
+    <string name="use_and_logic_for_countries">همه کشورهای منتخب</string>
+    <string name="countries_logic_explanation">هنگامی که فعال می شود، تنها رسانه ها از تمام کشورهای مبدا انتخاب شده نمایش داده می شوند.</string>
+    <string name="watch_providers">Watch Providers</string>
+    <string name="use_and_logic_for_watch_providers">همه ارائه دهندگان ساعت انتخاب شده</string>
+    <string name="watch_providers_logic_explanation">هنگامی که فعال می شود، تنها رسانه های موجود در تمام ارائه دهندگان ساعت انتخاب شده نمایش داده می شوند.</string>
+    <string name="app_language">زبان برنامه</string>
+    <string name="episode_groups">گروه های</string>
 </resources>
