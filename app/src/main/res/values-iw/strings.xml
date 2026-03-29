@@ -656,4 +656,5 @@
     <string name="watch_providers_logic_explanation">כאשר ניתן, רק מדיה זמין על כל ספקי שעונים נבחרים יופיעו.</string>
     <string name="app_language">שפה</string>
     <string name="episode_groups">קבוצה</string>
+    <string name="add_tag">הוספת תגית</string>
 </resources>
