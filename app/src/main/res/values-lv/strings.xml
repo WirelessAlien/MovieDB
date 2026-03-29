@@ -106,8 +106,8 @@
     <string name="crew_movie_title">Daļa no personālu sastāva</string>
     <string name="series_added">Seriāls/Raidījums pievienots</string>
     <string name="show_added_error">Seriālu/raidījumu nevarēja pievienot datubāzei</string>
-    <string name="with_keywords_hint">Iekļaut seriālus/raidījumus ar atslēgvārdiem…</string>
-    <string name="without_keywords_hint">Neiekļaut seriālus/raidījumus ar atslēgvārdiem…</string>
+    <string name="with_keywords_hint">Iekļaut</string>
+    <string name="without_keywords_hint">Neiekļaut</string>
     <string name="title_show_crew">Rādīt personālu</string>
     <string name="crew_title">Personāls</string>
     <string name="title_show_save_dialog">Rādīt saglabāšanas dialogu</string>
@@ -173,11 +173,22 @@
     <string name="export">Izgūt</string>
     <string name="other">Pārējie</string>
     <string name="in_history">Noskatīts</string>
-    <string name="notifications">Paziņojums</string>
+    <string name="notifications">Paziņojumi</string>
     <plurals name="minutes">
-        <item quantity="zero">%1$d minūtes</item>
-        <item quantity="one"></item>
-        <item quantity="other">%1$d minūtes</item>
+        <item quantity="zero">%d minūtes</item>
+        <item quantity="one">%d minūte</item>
+        <item quantity="other">%d minūtes</item>
     </plurals>
-    <string name="stats">Statuss</string>
+    <string name="stats">Statistika</string>
+    <string name="add_to_watchlist">Pievienot skatīšanas sarakstam</string>
+    <string name="episode">Epizode</string>
+    <string name="select_a_time">Atlasiet laiku</string>
+    <string name="episodesL">Epizodes</string>
+    <string name="no_notifications">Nav paziņojumu</string>
+    <string name="failed_to_create_directory">Nevarēja izveidot mapi</string>
+    <string name="certification">Sertifikācija</string>
+    <string name="my_rating">Mans vērtējums</string>
+    <string name="start_date">%1$s</string>
+    <string name="finish_date">%1$s</string>
+    <string name="dropped">Pārtraukts</string>
 </resources>
