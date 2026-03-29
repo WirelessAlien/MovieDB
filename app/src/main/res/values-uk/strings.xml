@@ -657,4 +657,9 @@
     <string name="watch_providers_logic_explanation">Коли ввімкнено, будуть показані лише медіа, доступні на всіх вибраних провайдерах годинників.</string>
     <string name="app_language">Мова додатка</string>
     <string name="episode_groups">Епіодні групи</string>
+    <string name="downloading">Завантаження</string>
+    <string name="hint_search">Пошук</string>
+    <string name="donate">Пожертвувати</string>
+    <string name="about_movie_db">Про</string>
+    <string name="search">Пошук</string>
 </resources>
