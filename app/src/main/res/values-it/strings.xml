@@ -641,4 +641,20 @@
     <string name="origin_country">Paese d\'origine</string>
     <string name="vote_count_hint">es. 10000</string>
     <string name="vote_count_min">Numero di voti (minimo)</string>
+    <string name="edit_tag">Modifica</string>
+    <string name="click_again_to_delete">Clicca di nuovo per confermare cancella</string>
+    <string name="production_companies">Aziende di produzione</string>
+    <string name="my_rating_unknown">Non impostato</string>
+    <string name="tags">Tags</string>
+    <string name="tags_label">" Tag: "</string>
+    <string name="add_tag">Aggiungi il tag</string>
+    <string name="add_new_tag">Aggiungi nuovo tag</string>
+    <string name="hide_fetched_ratings">Nascondi valutazioni prese</string>
+    <string name="hide_fetched_ratings_summary">Nascondi valutazioni e recensioni dei media. Tocca per rivelare.</string>
+    <string name="tap_to_reveal">Rivelazione</string>
+    <string name="tag_format">Tags: %s</string>
+    <string name="finish_date_3">Data di arrivo</string>
+    <string name="episode_seen">Traduzione:</string>
+    <string name="my_rating">La mia valutazione</string>
+    <string name="time_watched">Tempo guardato</string>
 </resources>
