@@ -1423,8 +1423,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         )
         if (showMovie != null && (!showMovie.contains("movie") || !showMovie.contains("tv"))) {
             listToFilter.removeIf { showObject: JSONObject ->
-                val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
-                (showMovie.contains("movie") && isTV) || (showMovie.contains("tv") && !isTV)
+                val isMovie = showObject.optInt(IS_MOVIE) == 1
+                (showMovie.contains("movie") && !isMovie) || (showMovie.contains("tv") && isMovie)
             }
         }
 
