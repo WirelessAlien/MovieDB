@@ -60,11 +60,13 @@ import com.google.api.services.drive.DriveScopes
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import com.wirelessalien.android.moviedb.helper.WebDavHelper
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.helper.GoogleCredSignIn
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.work.DatabaseBackupWorker
 import com.wirelessalien.android.moviedb.work.GoogleDriveBackupWorker
+import com.wirelessalien.android.moviedb.work.WebDavBackupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -295,6 +297,62 @@ class ExportActivity : AppCompatActivity() {
             }
         }
 
+        // WebDAV Settings
+        val webDavPrefs = WebDavHelper.getEncryptedSharedPreferences(this)
+        val isWebDavEnabled = webDavPrefs.getBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, false)
+        binding.webDavEnabledSwitch.isChecked = isWebDavEnabled
+        binding.webDavSettingsLayout.visibility = if (isWebDavEnabled) View.VISIBLE else View.GONE
+
+        binding.webDavUrlET.setText(webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, ""))
+        binding.webDavUsernameET.setText(webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_USERNAME, ""))
+        binding.webDavPasswordET.setText(webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_PASSWORD, ""))
+
+        binding.webDavEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
+            webDavPrefs.edit().putBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, isChecked).apply()
+            binding.webDavSettingsLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
+            if (!isChecked) {
+                WorkManager.getInstance(this).cancelAllWorkByTag("WebDavBackupWorker")
+            }
+        }
+
+        binding.webDavSaveButton.setOnClickListener {
+            val url = binding.webDavUrlET.text.toString().trim()
+            val username = binding.webDavUsernameET.text.toString().trim()
+            val password = binding.webDavPasswordET.text.toString().trim()
+            webDavPrefs.edit()
+                .putString(WebDavHelper.KEY_WEBDAV_URL, url)
+                .putString(WebDavHelper.KEY_WEBDAV_USERNAME, username)
+                .putString(WebDavHelper.KEY_WEBDAV_PASSWORD, password)
+                .apply()
+            
+            if (binding.webDavEnabledSwitch.isChecked) {
+                scheduleWebDavBackup()
+            }
+            Toast.makeText(this, getString(R.string.webdav_settings_saved), Toast.LENGTH_SHORT).show()
+        }
+
+        binding.webDavTestConnectionButton.setOnClickListener {
+            val url = binding.webDavUrlET.text.toString().trim()
+            val username = binding.webDavUsernameET.text.toString().trim()
+            val password = binding.webDavPasswordET.text.toString().trim()
+            if (url.isEmpty()) {
+                Toast.makeText(this, getString(R.string.please_enter_webdav_url), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            binding.progressIndicator.visibility = View.VISIBLE
+            CoroutineScope(Dispatchers.IO).launch {
+                val success = WebDavHelper.testConnection(url, username, password)
+                withContext(Dispatchers.Main) {
+                    binding.progressIndicator.visibility = View.GONE
+                    if (success) {
+                        Toast.makeText(this@ExportActivity, getString(R.string.connection_successful), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@ExportActivity, getString(R.string.connection_failed), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
         binding.backupFrequencyETDrive.setOnClickListener {
             binding.backupFrequencyETDrive.showDropDown()
         }
@@ -461,7 +519,37 @@ class ExportActivity : AppCompatActivity() {
         )
     }
 
+    private fun scheduleWebDavBackup() {
+        val webDavPrefs = WebDavHelper.getEncryptedSharedPreferences(this)
+        val isWebDavEnabled = webDavPrefs.getBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, false)
+
+        if (isWebDavEnabled) {
+            val backupFileType = preferences.getString("backup_file_type", "DB")
+            val inputData = workDataOf("backupFileType" to backupFileType)
+            val frequency = preferences.getInt("backup_frequency", 1440)
+
+            val constraints = Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val exportWorkRequest = PeriodicWorkRequestBuilder<WebDavBackupWorker>(frequency.toLong(), TimeUnit.MINUTES)
+                .setInputData(inputData)
+                .setConstraints(constraints)
+                .addTag("WebDavBackupWorker")
+                .build()
+
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "WebDavBackupWorker",
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                exportWorkRequest
+            )
+        }
+    }
+
     private fun scheduleDatabaseExport() {
+        scheduleWebDavBackup()
+        
         val dbBackupDirectory = preferences.getString("db_backup_directory", null)
         if (dbBackupDirectory != null) {
             val directoryUri = Uri.parse(dbBackupDirectory)

@@ -799,4 +799,21 @@
 
     <string name="app_language">App language</string>
     <string name="episode_groups">Episode Groups</string>
+    <!-- WebDAV Sync & Backup -->
+    <string name="webdav_backup">WebDAV Backup</string>
+    <string name="enable_webdav_sync_backup">Enable WebDAV Sync/Backup</string>
+    <string name="webdav_server_url_hint">WebDAV Server URL (e.g. https://server.com/backup.db)</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="test_webdav_connection">Test WebDAV Connection</string>
+    <string name="save_webdav_settings">Save WebDAV Settings</string>
+    <string name="restore_database_from_webdav">Restore database from WebDAV</string>
+    <string name="webdav_settings_saved">WebDAV settings saved</string>
+    <string name="webdav_not_configured_or_enabled">WebDAV is not configured or enabled</string>
+    <string name="please_enter_webdav_url">Please enter WebDAV URL</string>
+    <string name="connection_successful">Connection successful!</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="failed_to_restore_database_from_webdav">Failed to restore database from WebDAV</string>
+    <string name="webdav_backup_failed">WebDAV Backup Failed</string>
+    <string name="webdav_backup_successful">WebDAV Backup Successful</string>
 </resources>

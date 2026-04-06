@@ -238,6 +238,84 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
+                android:id="@+id/backupToWebDav"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/webdav_backup"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:layout_marginTop="16dp"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/webDavEnabledSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_webdav_sync_backup" />
+
+            <LinearLayout
+                android:id="@+id/webDavSettingsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:hint="@string/webdav_server_url_hint">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/webDavUrlET"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textUri"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:hint="@string/username">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/webDavUsernameET"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:hint="@string/password">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/webDavPasswordET"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/webDavTestConnectionButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/test_webdav_connection" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/webDavSaveButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/save_webdav_settings" />
+            </LinearLayout>
+
+            <TextView
                 android:id="@+id/info_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

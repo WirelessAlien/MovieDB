@@ -80,6 +80,21 @@
                 android:layout_gravity="center"
                 android:layout_marginTop="30dp"
                 android:text="@string/import_people_database"/>
+                
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/import_webdav_db_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp"
+                android:text="@string/restore_database_from_webdav"/>
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progressIndicator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="5dp"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
