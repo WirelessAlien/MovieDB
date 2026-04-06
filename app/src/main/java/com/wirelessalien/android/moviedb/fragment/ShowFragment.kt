@@ -161,8 +161,14 @@ class ShowFragment : BaseFragment() {
     private var filterRequestContract: ActivityResultContract<Intent, Boolean> =
         object : ActivityResultContract<Intent, Boolean>() {
             override fun createIntent(context: Context, input: Intent): Intent {
+                val prefsName = if (mListType == SectionsPagerAdapter.MOVIE) {
+                    "filter_preferences_show_movie"
+                } else {
+                    "filter_preferences_show_tv"
+                }
                 return Intent(context, FilterActivity::class.java)
                     .putExtra("mode", mListType)
+                    .putExtra("prefs_name", prefsName)
                     .putExtra("origin_country", true)
                     .putExtra("watch_provider", true)
             }
@@ -184,8 +190,13 @@ class ShowFragment : BaseFragment() {
      * Filters the list of shows based on the preferences set in FilterActivity.
      */
     private fun filterShows() {
+        val prefsName = if (mListType == SectionsPagerAdapter.MOVIE) {
+            "filter_preferences_show_movie"
+        } else {
+            "filter_preferences_show_tv"
+        }
         val sharedPreferences = requireActivity().getSharedPreferences(
-            FilterActivity.FILTER_PREFERENCES,
+            prefsName,
             Context.MODE_PRIVATE
         )
 

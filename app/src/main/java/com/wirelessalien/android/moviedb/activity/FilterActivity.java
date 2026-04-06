@@ -127,6 +127,7 @@ public class FilterActivity extends AppCompatActivity {
     private Map<String, String> countryMap = new HashMap<>();
     private ArrayList<String> selectedWatchProviders = new ArrayList<>();
     private Map<String, String> watchProviderMap = new HashMap<>();
+    private String prefsName = FILTER_PREFERENCES;
 
     /**
      * Uses Integer.parseInt on all characters in the string (except for splitArg).
@@ -181,6 +182,12 @@ public class FilterActivity extends AppCompatActivity {
         ThemeHelper.INSTANCE.applyAmoledTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
+        
+        Intent intent = getIntent();
+        String customPrefsName = intent.getStringExtra("prefs_name");
+        if (customPrefsName != null && !customPrefsName.isEmpty()) {
+            prefsName = customPrefsName;
+        }
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             StringWriter crashLog = new StringWriter();
@@ -211,7 +218,6 @@ public class FilterActivity extends AppCompatActivity {
 
             android.os.Process.killProcess(android.os.Process.myPid());
         });
-        Intent intent = getIntent();
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -583,7 +589,7 @@ public class FilterActivity extends AppCompatActivity {
     }
 
     private void initializeCategoryList() {
-        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         String categoryOrderJson = sharedPreferences.getString(CATEGORY_ORDER, null);
         if (categoryOrderJson != null) {
             Type type = new TypeToken<List<CategoryDTO>>() {
@@ -662,7 +668,7 @@ public class FilterActivity extends AppCompatActivity {
      */
     private void saveFilterPreferences() {
         SharedPreferences sharedPreferences
-                = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+                = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
 
         // Save all settings
@@ -808,7 +814,7 @@ public class FilterActivity extends AppCompatActivity {
      */
     @SuppressLint("SetTextI18n")
     private void retrieveFilterPreferences() {
-        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
 
         withGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITH_GENRES, null), ", ");
         withoutGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITHOUT_GENRES, null), ", ");
@@ -1010,7 +1016,7 @@ public class FilterActivity extends AppCompatActivity {
         MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker();
         builder.setTitleText("Select a date");
 
-        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         final SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
 
         // Retrieve the date from SharedPreferences and set it in the DatePicker.
