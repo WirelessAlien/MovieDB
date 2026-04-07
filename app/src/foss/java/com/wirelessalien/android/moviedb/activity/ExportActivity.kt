@@ -268,6 +268,48 @@ class ExportActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.webdav_settings_saved), Toast.LENGTH_SHORT).show()
         }
 
+        // Setup WebDAV frequency selector
+        if (!webDavPrefs.contains("backup_frequency_webdav")) {
+            webDavPrefs.edit().putInt("backup_frequency_webdav", 1440).apply()
+        }
+        val webDavBackupFrequency = webDavPrefs.getInt("backup_frequency_webdav", 1440)
+        binding.backupFrequencyETWebDav.setText(
+            when (webDavBackupFrequency) {
+                15 -> "15 minutes"
+                30 -> "30 minutes"
+                60 -> "1 hour"
+                360 -> "6 hours"
+                720 -> "12 hours"
+                1440 -> "1 day"
+                10080 -> "1 week"
+                43200 -> "1 month"
+                else -> "1 day"
+            }, false
+        )
+        val webDavPredefinedValues = resources.getStringArray(R.array.backup_frequency_entries)
+        val webDavAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, webDavPredefinedValues)
+        binding.backupFrequencyETWebDav.setAdapter(webDavAdapter)
+        binding.backupFrequencyETWebDav.setOnClickListener {
+            binding.backupFrequencyETWebDav.showDropDown()
+        }
+        binding.backupFrequencyETWebDav.setOnItemClickListener { _, _, position, _ ->
+            val frequencyInMinutes = when (webDavPredefinedValues[position]) {
+                "15 minutes" -> 15
+                "30 minutes" -> 30
+                "1 hour" -> 60
+                "6 hours" -> 360
+                "12 hours" -> 720
+                "1 day" -> 1440
+                "1 week" -> 10080
+                "1 month" -> 43200
+                else -> 1440
+            }
+            webDavPrefs.edit().putInt("backup_frequency_webdav", frequencyInMinutes).apply()
+            if (binding.webDavEnabledSwitch.isChecked) {
+                scheduleWebDavBackup()
+            }
+        }
+
         binding.webDavTestConnectionButton.setOnClickListener {
             val url = binding.webDavUrlET.text.toString().trim()
             val username = binding.webDavUsernameET.text.toString().trim()
@@ -276,11 +318,11 @@ class ExportActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.please_enter_webdav_url), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            binding.exportProgress.visibility = View.VISIBLE
+            binding.webDavProgressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.IO).launch {
                 val success = WebDavHelper.testConnection(url, username, password)
                 withContext(Dispatchers.Main) {
-                    binding.exportProgress.visibility = View.GONE
+                    binding.webDavProgressIndicator.visibility = View.GONE
                     if (success) {
                         Toast.makeText(this@ExportActivity, getString(R.string.connection_successful), Toast.LENGTH_SHORT).show()
                     } else {
@@ -308,7 +350,7 @@ class ExportActivity : AppCompatActivity() {
         if (isWebDavEnabled) {
             val backupFileType = preferences.getString("backup_file_type", "DB")
             val inputData = workDataOf("backupFileType" to backupFileType)
-            val frequency = preferences.getInt("backup_frequency", 1440)
+            val frequency = webDavPrefs.getInt("backup_frequency_webdav", 1440)
 
             val constraints = Constraints.Builder()
                 .setRequiresBatteryNotLow(true)
