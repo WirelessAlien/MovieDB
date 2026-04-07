@@ -29,7 +29,7 @@
     <string name="best_rated">Bestbewertet</string>
     <string name="release_date">Erscheinungsdatum</string>
     <string name="categories">Kategorien</string>
-    <string name="watching">Schauend</string>
+    <string name="watching">Am Schauen</string>
     <string name="plan_to_watch">Anschauen geplant</string>
     <string name="watched">Angeschaut</string>
     <string name="on_hold">Zurückgestellt</string>
@@ -71,7 +71,7 @@
     <string name="save">Speichern</string>
     <string name="alphabetic_order">A–Z</string>
     <string name="movie_tab_title">Filme</string>
-    <string name="saved_tab_title">Gespeicherte</string>
+    <string name="saved_tab_title">Gespeichert</string>
     <string name="choose_export_file">Wählen Sie ein Export-Dateiformat:</string>
     <string name="file_not_found_exception">Die Datei konnte nicht gefunden werden</string>
     <string name="summary_persistent_filtering">Medien bei App-Start automatisch filtern</string>
@@ -152,7 +152,7 @@
     <string name="summary_api_language">Setzen Sie die Sprache der API-Daten (Standard ist die Systemsprache).</string>
     <string name="title_movies">Filme</string>
     <string name="title_series">Serien</string>
-    <string name="title_saved">Gespeicherte</string>
+    <string name="title_saved">Gespeichert</string>
     <string name="edit_icon_description">Schaltet den Modus \'Bearbeiten\' ein</string>
     <string name="file_picked_success">Datei ausgewählt</string>
     <string name="delete">Löschen</string>
@@ -245,7 +245,7 @@
     <string name="no_trailer_available">Kein Trailer verfügbar</string>
     <string name="select_a_date">Wählen Sie ein Datum</string>
     <string name="failed_to_retrieve_account_id">Konnte keine Konto-ID abrufen</string>
-    <string name="watching1">Schaue:%1$d</string>
+    <string name="watching1">Am Schauen:%1$d</string>
     <string name="watched1">Geschaut: %1$d</string>
     <string name="watch_summary">Zusammenfassung schauen</string>
     <string name="episode_number">E: %1$d</string>
@@ -325,7 +325,7 @@
     <string name="search_people">Nach Personen suchen</string>
     <string name="search_movies">Nach Filme suchen…</string>
     <string name="search_series">Nach Serien suchen…</string>
-    <string name="search_saved">Gespeicherte durchsuchen…</string>
+    <string name="search_saved">Gespeichert durchsuchen…</string>
     <string name="error_loading_data">Fehler</string>
     <string name="season_p">Staffel %1$d</string>
     <string name="media_details_not_found">Mediendetails nicht gefunden</string>
