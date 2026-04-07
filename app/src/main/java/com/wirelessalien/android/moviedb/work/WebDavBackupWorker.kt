@@ -44,7 +44,7 @@ class WebDavBackupWorker(appContext: Context, workerParams: WorkerParameters) :
             return Result.failure()
         }
 
-        val url = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, "") ?: ""
+        var url = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, "") ?: ""
         val username = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_USERNAME, "") ?: ""
         val password = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_PASSWORD, "") ?: ""
 
@@ -58,6 +58,12 @@ class WebDavBackupWorker(appContext: Context, workerParams: WorkerParameters) :
             "CSV (Movies and Shows)" -> "movies.csv"
             "CSV (All data)" -> "movies_with_episodes.csv"
             else -> "movies.db"
+        }
+
+        if (url.endsWith("/")) {
+            url += fileName
+        } else if (!url.endsWith(".db", true) && !url.endsWith(".json", true) && !url.endsWith(".csv", true)) {
+            url += "/$fileName"
         }
 
         val tempBackupFile = File(applicationContext.cacheDir, fileName)

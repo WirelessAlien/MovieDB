@@ -45,16 +45,49 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="16dp"
             android:orientation="vertical">
 
-            <ImageView
-                android:layout_width="92dp"
-                android:layout_height="92dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="60dp"
-                android:src="@drawable/ic_export_db"
-                android:importantForAccessibility="no" />
+            <LinearLayout
+                android:id="@+id/export_info_banner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="?attr/colorSurfaceVariant"
+                android:padding="16dp"
+                android:elevation="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/export_info"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    app:drawableStartCompat="@drawable/ic_info"
+                    android:drawablePadding="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_understand_info"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/i_understand" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="16dp"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="92dp"
+                    android:layout_height="92dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="20dp"
+                    android:src="@drawable/ic_export_db"
+                    android:importantForAccessibility="no" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -281,15 +314,7 @@
                     android:text="@string/save_webdav_settings" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/info_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/export_info"
-                android:textSize="16sp"
-                android:layout_marginTop="16dp"
-                android:drawablePadding="5dp"
-                app:drawableStartCompat="@drawable/ic_info" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -69,7 +69,19 @@ class ExportActivity : AppCompatActivity() {
     private var backupDirectoryUri: Uri? = null
     private var exportDirectoryUri: Uri? = null
     private lateinit var preferences: SharedPreferences
-    private val createFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri: Uri? ->
+    private val createFileLauncher = registerForActivityResult(object : ActivityResultContracts.CreateDocument("*/*") {
+        override fun createIntent(context: Context, input: String): Intent {
+            val intent = super.createIntent(context, input)
+            val mimeType = when {
+                input.endsWith(".json", true) -> "application/json"
+                input.endsWith(".csv", true) -> "text/csv"
+                input.endsWith(".db", true) -> "application/x-sqlite3"
+                else -> "application/octet-stream"
+            }
+            intent.type = mimeType
+            return intent
+        }
+    }) { uri: Uri? ->
         uri?.let {
             saveFileToUri(it, isJson, isCsv, isMovieOnly)
         }
@@ -108,6 +120,17 @@ class ExportActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
+        
+        val bannerLayout = findViewById<View>(R.id.export_info_banner)
+        val btnUnderstand = findViewById<View>(R.id.btn_understand_info)
+        if (preferences.getBoolean("export_info_understood", false)) {
+            bannerLayout.visibility = View.GONE
+        }
+        btnUnderstand.setOnClickListener {
+            preferences.edit().putBoolean("export_info_understood", true).apply()
+            bannerLayout.visibility = View.GONE
+        }
+
         val lastBackupTime = preferences.getLong("last_backup_time", 0)
         if (lastBackupTime > 0) {
             binding.lastBackupTime.visibility = android.view.View.VISIBLE

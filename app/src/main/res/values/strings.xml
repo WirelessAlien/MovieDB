@@ -656,6 +656,9 @@
     <string name="trailer">Trailer</string>
     <string name="selected_directory">Path:</string>
     <string name="export_info">The app allows for the exportation of files in \".db\", \".json\" and \".csv\" formats. Please note, however, that only the \".db\" format is supported for subsequent imports.</string>
+    <string name="import_info">Only .db format is supported for imports. .json files cannot be imported.</string>
+    <string name="json_import_not_supported">JSON imports are not supported. Please select a .db file.</string>
+    <string name="i_understand">I Understand</string>
     <string name="directory_path">Path: %1$s</string>
     <string name="no_browser_available">No app can handle this request. Please install a web browser.</string>
     <string name="rate_movie">Rate</string>

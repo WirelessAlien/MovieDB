@@ -57,6 +57,19 @@
                 android:src="@drawable/ic_import_db"
                 android:importantForAccessibility="no" />
 
+            <TextView
+                android:id="@+id/import_info_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/import_info"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:background="?attr/colorSurfaceVariant"
+                android:padding="12dp"
+                android:drawablePadding="8dp"
+                app:drawableStartCompat="@drawable/ic_info" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/pick_file_button"
                 android:layout_width="match_parent"

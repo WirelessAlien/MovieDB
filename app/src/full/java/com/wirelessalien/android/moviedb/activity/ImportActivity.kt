@@ -85,10 +85,16 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
         pickFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
                 val archiveFileUri = result.data!!.data
+                val fileName = getArchiveFileName(archiveFileUri) ?: "imported_file"
+                
+                if (fileName.endsWith(".json", true)) {
+                    Toast.makeText(this, getString(R.string.json_import_not_supported), Toast.LENGTH_LONG).show()
+                    return@registerForActivityResult
+                }
+                
                 Toast.makeText(this, getString(R.string.file_picked_success), Toast.LENGTH_SHORT).show()
                 try {
                     val inputStream = contentResolver.openInputStream(archiveFileUri!!)
-                    val fileName = getArchiveFileName(archiveFileUri) ?: "imported_file"
                     val cacheFile = File(cacheDir, fileName)
                     val fileOutputStream = FileOutputStream(cacheFile)
                     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -162,13 +168,27 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
     private fun downloadFromWebDav() {
         val webDavPrefs = WebDavHelper.getEncryptedSharedPreferences(this)
         val isWebDavEnabled = webDavPrefs.getBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, false)
-        val url = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, "") ?: ""
+        var url = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, "") ?: ""
         val username = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_USERNAME, "") ?: ""
         val password = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_PASSWORD, "") ?: ""
 
         if (!isWebDavEnabled || url.isEmpty()) {
             Toast.makeText(this, getString(R.string.webdav_not_configured_or_enabled), Toast.LENGTH_SHORT).show()
             return
+        }
+
+        val backupFileType = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this).getString("backup_file_type", "DB")
+        val fileName = when (backupFileType) {
+            "JSON" -> "movies.json"
+            "CSV (Movies and Shows)" -> "movies.csv"
+            "CSV (All data)" -> "movies_with_episodes.csv"
+            else -> "movies.db"
+        }
+
+        if (url.endsWith("/")) {
+            url += fileName
+        } else if (!url.endsWith(".db", true) && !url.endsWith(".json", true) && !url.endsWith(".csv", true)) {
+            url += "/$fileName"
         }
 
         binding.progressIndicator.visibility = View.VISIBLE
