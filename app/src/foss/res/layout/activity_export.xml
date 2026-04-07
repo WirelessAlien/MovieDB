@@ -81,238 +81,290 @@
                 android:layout_margin="16dp"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="92dp"
-                    android:layout_height="92dp"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="20dp"
-                    android:src="@drawable/ic_export_db"
-                    android:importantForAccessibility="no" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backup_file_type"
+                    android:layout_marginTop="16dp"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/backupFileTypeChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+                    
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_db"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/backup_type_db" />
+                        
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_json"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/backup_type_json" />
+                        
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_csv_movies"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/backup_type_csv_movies" />
+                        
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_csv_all"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/backup_type_csv_all" />
+                </com.google.android.material.chip.ChipGroup>
 
                 <TextView
-                    android:id="@+id/selected_directory_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/selected_directory"
-                    android:scrollHorizontally="true"
-                    android:textSize="16sp"
-                    android:ellipsize="end"
+                    android:text="@string/backup_frequency"
                     android:layout_marginTop="16dp"
-                    android:layout_marginBottom="16dp"/>
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
-                <ImageView
-                    android:id="@+id/edit_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/ic_edit"/>
-            </RelativeLayout>
-
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/exportProgress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:visibility="gone"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/export_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/export" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:text="@string/auto_backup"
-                android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/autoBackupSwitch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/enable_auto_backup"/>
-
-            <TextView
-                android:id="@+id/lastBackupTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/backupBtn"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
-                android:text="@string/auto_backup_directory_selection"/>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="fill"
-                android:layout_marginTop="16dp"
-                app:boxCornerRadiusTopStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusBottomEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
-                android:hint="@string/backup_file_type">
-
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/backupFileTypeET"
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/backupFrequencySlider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
-                    android:padding="10dp"
-                    android:gravity="center_vertical"
-                    android:inputType="none"
-                    android:focusable="false"
-                    android:clickable="true"
-                    android:imeOptions="actionDone"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginTop="8dp"
+                    android:valueFrom="0.0"
+                    android:valueTo="7.0"
+                    android:stepSize="1.0" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="fill"
-                android:layout_marginTop="16dp"
-                app:boxCornerRadiusTopStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusBottomEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
-                android:hint="@string/backup_frequency">
-
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/backupFrequencyET"
+                <TextView
+                    android:id="@+id/backupFrequencyText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
-                    android:padding="10dp"
-                    android:gravity="center_vertical"
-                    android:inputType="none"
-                    android:focusable="false"
-                    android:clickable="true"
-                    android:imeOptions="actionDone"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:gravity="center"
+                    xmlns:tools="http://schemas.android.com/tools"
+                    tools:text="1 day"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
-            <TextView
-                android:id="@+id/backupToWebDav"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/webdav_backup"
-                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                android:layout_marginTop="16dp"/>
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/webDavEnabledSwitch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/enable_webdav_sync_backup" />
-
-            <LinearLayout
-                android:id="@+id/webDavSettingsLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <com.google.android.material.textfield.TextInputLayout
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:hint="@string/webdav_server_url_hint">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/webDavUrlET"
+                    android:layout_marginTop="24dp"
+                    app:cardElevation="2dp">
+                    
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textUri"/>
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:padding="16dp"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/action_export"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                            android:layout_marginBottom="8dp"/>
 
-                <com.google.android.material.textfield.TextInputLayout
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/selected_directory_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/selected_directory"
+                                android:scrollHorizontally="true"
+                                android:textSize="16sp"
+                                android:ellipsize="end"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginBottom="16dp"/>
+
+                            <ImageView
+                                android:id="@+id/edit_icon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:src="@drawable/ic_edit"/>
+                        </RelativeLayout>
+
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/exportProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:visibility="gone"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/export_button"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/export" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:hint="@string/username">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/webDavUsernameET"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textEmailAddress"/>
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:hint="@string/password">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/webDavPasswordET"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textPassword"/>
-                </com.google.android.material.textfield.TextInputLayout>
-                
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="fill"
                     android:layout_marginTop="16dp"
-                    app:boxCornerRadiusTopStart="10dp"
-                    app:boxCornerRadiusTopEnd="10dp"
-                    app:boxCornerRadiusBottomEnd="10dp"
-                    app:boxCornerRadiusBottomStart="10dp"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
-                    android:hint="@string/backup_frequency">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/backupFrequencyETWebDav"
+                    app:cardElevation="2dp">
+                    
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:minHeight="48dp"
-                        android:padding="10dp"
-                        android:gravity="center_vertical"
-                        android:inputType="none"
-                        android:focusable="false"
-                        android:clickable="true"
-                        android:imeOptions="actionDone"/>
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:padding="16dp"
+                        android:orientation="vertical">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/webDavTestConnectionButton"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/auto_backup"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/autoBackupSwitch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/enable_auto_backup"/>
+
+                        <TextView
+                            android:id="@+id/lastBackupTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            android:layout_marginTop="8dp"
+                            android:visibility="gone"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/backupBtn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/auto_backup_directory_selection"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/test_webdav_connection" />
+                    android:layout_marginTop="16dp"
+                    app:cardElevation="2dp">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp"
+                        android:orientation="vertical">
 
-                <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/webDavProgressIndicator"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:visibility="gone"/>
+                        <TextView
+                            android:id="@+id/backupToWebDav"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/webdav_backup"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/webDavSaveButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/save_webdav_settings" />
-            </LinearLayout>
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/webDavEnabledSwitch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/enable_webdav_sync_backup" />
+
+                        <LinearLayout
+                            android:id="@+id/webDavSettingsLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <LinearLayout
+                                android:id="@+id/webDavInputFields"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/webDavUrlLayout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="10dp"
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                    android:hint="@string/webdav_server_url_hint">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/webDavUrlET"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:inputType="textUri"/>
+                                </com.google.android.material.textfield.TextInputLayout>
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/webDavUsernameLayout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="10dp"
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                    android:hint="@string/username">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/webDavUsernameET"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:inputType="textEmailAddress"/>
+                                </com.google.android.material.textfield.TextInputLayout>
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:id="@+id/webDavPasswordLayout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="10dp"
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                    android:hint="@string/password">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/webDavPasswordET"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:inputType="textPassword"/>
+                                </com.google.android.material.textfield.TextInputLayout>
+                            </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/webDavTestConnectionButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="@string/test_webdav_connection" />
+
+                            <com.google.android.material.progressindicator.LinearProgressIndicator
+                                android:id="@+id/webDavProgressIndicator"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:visibility="gone"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/webDavSaveButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="@string/save_webdav_settings" />
+                                
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/webDavEditButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:visibility="gone"
+                                android:text="@string/edit_settings" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
         </LinearLayout>

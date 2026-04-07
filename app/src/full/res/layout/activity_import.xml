@@ -49,19 +49,10 @@
             android:layout_margin="16dp"
             android:orientation="vertical">
 
-            <ImageView
-                android:layout_width="92dp"
-                android:layout_height="92dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="60dp"
-                android:src="@drawable/ic_import_db"
-                android:importantForAccessibility="no" />
-
             <TextView
                 android:id="@+id/import_info_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:text="@string/import_info"
                 android:textSize="14sp"
                 android:textColor="?attr/colorOnSurfaceVariant"
@@ -70,45 +61,77 @@
                 android:drawablePadding="8dp"
                 app:drawableStartCompat="@drawable/ic_info" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/pick_file_button"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp"
-                android:text="@string/pick_file" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/import_movie_db_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp"
-                android:text="@string/import_movie_database"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/import_people_db_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp"
-                android:text="@string/import_people_database"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/import_drive_db"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp"
-                android:text="@string/restore_database_from_google_drive"/>
+                android:layout_marginTop="24dp"
+                app:cardElevation="2dp">
                 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/import_webdav_db_button"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/local_import"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/pick_file_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/pick_file" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/import_movie_db_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/import_movie_database"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="30dp"
-                android:text="@string/restore_database_from_webdav"/>
+                android:layout_marginTop="16dp"
+                app:cardElevation="2dp">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cloud_import"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/import_drive_db"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/restore_database_from_google_drive"/>
+                        
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/import_webdav_db_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/restore_database_from_webdav"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressIndicator"

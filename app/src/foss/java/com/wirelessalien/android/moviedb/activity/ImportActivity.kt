@@ -125,12 +125,6 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
             val databaseHelper = MovieDatabaseHelper(applicationContext)
             databaseHelper.importDatabase(context, this)
         }
-
-        val importPeopleDbButton = findViewById<Button>(R.id.import_people_db_button)
-        importPeopleDbButton.setOnClickListener {
-            val databaseHelper = PeopleDatabaseHelper(applicationContext)
-            databaseHelper.importDatabase(context, this)
-        }
         
         val importWebdavDbButton = findViewById<Button>(R.id.import_webdav_db_button)
         importWebdavDbButton.setOnClickListener {

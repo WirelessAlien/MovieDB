@@ -139,11 +139,6 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
             databaseHelper.importDatabase(context, this)
         }
 
-        binding.importPeopleDbButton.setOnClickListener {
-            val databaseHelper = PeopleDatabaseHelper(applicationContext)
-            databaseHelper.importDatabase(context, this)
-        }
-
         authorizationLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 val data = result.data
