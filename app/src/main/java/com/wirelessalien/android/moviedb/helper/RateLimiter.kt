@@ -31,10 +31,11 @@ class RateLimiter(private val permits: Int, private val period: Long, private va
 
     suspend fun acquire() {
         mutex.withLock {
-            val now = System.currentTimeMillis()
+            var now = System.currentTimeMillis()
             while (timestamps.size >= permits && now - timestamps.first() < unit.toMillis(period)) {
                 val timeToWait = unit.toMillis(period) - (now - timestamps.first())
                 delay(timeToWait)
+                now = System.currentTimeMillis()
             }
             if (timestamps.size >= permits) {
                 timestamps.removeFirst()
