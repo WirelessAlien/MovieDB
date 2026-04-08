@@ -54,7 +54,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="?attr/colorSurfaceVariant"
-                android:padding="16dp"
+                android:paddingTop="16dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:elevation="4dp">
 
                 <TextView
@@ -72,7 +74,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="4dp"
                     android:text="@string/i_understand" />
             </LinearLayout>
 
