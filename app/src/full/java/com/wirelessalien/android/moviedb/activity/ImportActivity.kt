@@ -81,6 +81,19 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
         setSupportActionBar(binding.toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
+
+        val preferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val bannerLayout = findViewById<View>(R.id.import_info_banner)
+        val btnUnderstand = findViewById<View>(R.id.btn_understand_info)
+        
+        if (preferences.getBoolean("import_info_understood", false)) {
+            bannerLayout.visibility = View.GONE
+        }
+        btnUnderstand.setOnClickListener {
+            preferences.edit().putBoolean("import_info_understood", true).apply()
+            bannerLayout.visibility = View.GONE
+        }
+
         googleSignIn = GoogleCredSignIn(this, serverClientId)
         pickFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
