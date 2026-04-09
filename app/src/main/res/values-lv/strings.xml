@@ -192,4 +192,5 @@
     <string name="finish_date">%1$s</string>
     <string name="dropped">Pārtraukts</string>
     <string name="reviews">%1$s</string>
+    <string name="username">Lietotājvārds</string>
 </resources>
