@@ -392,7 +392,7 @@
     <string name="no_upcoming_content">Keine bevorstehende Inhalte gefunden</string>
     <string name="no_upcoming_shows">Keine bevorstehende Serien oder Filme.</string>
     <string name="upcoming_text">Bevorstehend in %1$s, Staffel %2$s, Folge %3$s</string>
-    <string name="sync_provider_caution">⚠ Wenn mehrere Anbieter aktiviert ist, kann es nicht einfacher sein, zwischen den Eingabemethoden aller Anbieter zu unterscheiden, also mit Vorsicht nutzen.</string>
+    <string name="sync_provider_caution">⚠ Wenn mehrere Anbieter aktiviert ist, kann es schwierig sein, zwischen den Eingabemethoden aller Anbieter zu unterscheiden, mit Vorsicht nutzen.</string>
     <string name="trakt_login_required_1">Einloggen - Trakt</string>
     <string name="omdb_api_key1">OMDB API Schlüssel</string>
     <string name="omdb_api_desc_1">Um Bewertungen von IMDb, Rotten Tomaten und Metacritic anzuzeigen, müssen Sie Ihren OMDB API-Schlüssel eingeben. Dieser API-Schlüssel wird verwendet, um externe Rating-Daten zu holen.</string>
