@@ -681,4 +681,6 @@
     <string name="json_import_not_supported">JSON-Einfuhren werden nicht unterstützt. Bitte wählen Sie eine .db-Datei aus.</string>
     <string name="connection_successful">Verbindung erfolgreich!</string>
     <string name="failed_to_restore_database_from_webdav">Datenbank von WebDAV nicht wiederherstellen</string>
+    <string name="password">Passwort</string>
+    <string name="username">Benutzername</string>
 </resources>
