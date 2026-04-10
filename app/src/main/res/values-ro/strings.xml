@@ -9,4 +9,9 @@
     <string name="import_cancel">Anulează</string>
     <string name="cancel">Anulează</string>
     <string name="ok">OK</string>
+    <string name="links">Linkuri</string>
+    <string name="keywords">Cuvinte-cheie</string>
+    <string name="search">Căutare</string>
+    <string name="hint_search">Căutare</string>
+    <string name="description">Descriere</string>
 </resources>
