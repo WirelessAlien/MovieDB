@@ -682,4 +682,5 @@
     <string name="failed_to_restore_database_from_webdav">شکست برای بازگرداندن پایگاه داده از WebDAV</string>
     <string name="webdav_backup_failed">WebDAV پشتیبانی شکست خورده</string>
     <string name="webdav_backup_successful">پشتیبانی موفق WebDAV</string>
+    <string name="username">نام کاربری</string>
 </resources>
