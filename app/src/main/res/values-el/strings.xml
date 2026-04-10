@@ -682,4 +682,5 @@
     <string name="test_webdav_connection">Test WebDAV Connection</string>
     <string name="connection_successful">Σύνδεση επιτυχή!</string>
     <string name="failed_to_restore_database_from_webdav">Επιθυμήθηκε να αποκαταστήσει τη βάση δεδομένων από το WebDAV</string>
+    <string name="username">Όνομα Χρήστη</string>
 </resources>
