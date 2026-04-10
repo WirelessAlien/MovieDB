@@ -685,4 +685,7 @@
     <string name="connection_failed">הקשר נכשל</string>
     <string name="failed_to_restore_database_from_webdav">נכשל לשחזר מסד נתונים מ- WebDAV</string>
     <string name="webdav_backup_failed">WebDAV הגיבוי נכשל</string>
+    <string name="username">שם משתמש</string>
+    <string name="auth_required_title">נדרש אימות</string>
+    <string name="password">סיסמה</string>
 </resources>
