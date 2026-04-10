@@ -301,31 +301,31 @@
     <string name="no_release_dates_found">Не знайдено дати виходу для вашого регіону.</string>
     <string name="production_companies">Виробничі підприємства</string>
     <plurals name="years">
-        <item quantity="one"></item>
+        <item quantity="one"/>
         <item quantity="few">%d роки</item>
         <item quantity="many">%d роки</item>
         <item quantity="other">%d роки</item>
     </plurals>
     <plurals name="months">
-        <item quantity="one"></item>
+        <item quantity="one"/>
         <item quantity="few">%d місяців</item>
         <item quantity="many">%d місяців</item>
         <item quantity="other">%d місяців</item>
     </plurals>
     <plurals name="days">
-        <item quantity="one"></item>
+        <item quantity="one"/>
         <item quantity="few">%d дні</item>
         <item quantity="many">%d дні</item>
         <item quantity="other">%d дні</item>
     </plurals>
     <plurals name="hours">
-        <item quantity="one"></item>
+        <item quantity="one"/>
         <item quantity="few">%d годин</item>
         <item quantity="many">%d годин</item>
         <item quantity="other">%d годин</item>
     </plurals>
     <plurals name="minutes">
-        <item quantity="one"></item>
+        <item quantity="one"/>
         <item quantity="few">%d хвилини</item>
         <item quantity="many">%d хвилини</item>
         <item quantity="other">%d хвилини</item>
@@ -662,4 +662,35 @@
     <string name="donate">Пожертвувати</string>
     <string name="about_movie_db">Про</string>
     <string name="search">Пошук</string>
+    <string name="backup_type_db">ДБ</string>
+    <string name="webdav_backup">Статус на сервери</string>
+    <string name="backup_type_json">СОНЦЕ</string>
+    <string name="cloud_import">Хмарний імпорт</string>
+    <string name="password">Логін</string>
+    <string name="i_understand">Я витримую</string>
+    <string name="edit_settings">Налаштування редагування</string>
+    <string name="local_import">Місцевий імпорт</string>
+    <string name="enable_webdav_sync_backup">Увімкнути WebDAV Синхронізація / резервне копіювання</string>
+    <string name="auth_required_title">Обов\'язкова перевірка</string>
+    <string name="auth_error">%1$s</string>
+    <string name="auth_failed">Не вдалося</string>
+    <string name="import_info">Тільки формат .db підтримується для імпорту. Файли .json не можна імпортувати.</string>
+    <string name="json_import_not_supported">Не підтримується імпорт JSON. Виберіть файл .db.</string>
+    <string name="auth_required_subtitle">Перевірити налаштування WebDAV</string>
+    <string name="backup_type_csv_movies">CSV (Movies and Shows)</string>
+    <string name="backup_type_csv_all">КСВ (Всі дані)</string>
+    <string name="search_for_watch_provider">Пошук провайдера годинника</string>
+    <string name="webdav_server_url_hint">WebDAV Сервер URL (наприклад, https://server.com/backup.db)</string>
+    <string name="username">Ім\'я користувача</string>
+    <string name="test_webdav_connection">Тест WebDAV підключення</string>
+    <string name="save_webdav_settings">Зберегти WebDAV Налаштування</string>
+    <string name="restore_database_from_webdav">Відновлення бази даних з WebDAV</string>
+    <string name="webdav_settings_saved">Налаштування WebDAV збережені</string>
+    <string name="webdav_not_configured_or_enabled">WebDAV не налаштовується або ввімкнено</string>
+    <string name="please_enter_webdav_url">Будь ласка, введіть URL-адресу WebDAV</string>
+    <string name="connection_successful">Зв\'язатися з нами!</string>
+    <string name="connection_failed">Підключення не вдалося</string>
+    <string name="failed_to_restore_database_from_webdav">Вимкнено для відновлення бази даних з WebDAV</string>
+    <string name="webdav_backup_failed">ВебДАВ Резервне копіювання</string>
+    <string name="webdav_backup_successful">WebDAV Backup Успішний</string>
 </resources>
