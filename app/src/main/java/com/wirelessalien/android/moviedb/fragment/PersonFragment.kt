@@ -175,7 +175,7 @@ class PersonFragment : BaseFragment() {
     }
 
     private fun showPersonList() {
-        mGridLayoutManager = GridLayoutManager(activity, sPreferences.getInt(GRID_SIZE_PREFERENCE, 3))
+        mGridLayoutManager = GridLayoutManager(activity, sPreferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         binding.personRecyclerView.layoutManager = mGridLayoutManager
         binding.personRecyclerView.adapter = mPersonAdapter
     }

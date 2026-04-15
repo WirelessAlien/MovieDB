@@ -76,7 +76,7 @@ class RatingFragmentTkt : BaseFragment() {
             }
 
             val mShowGridView =
-                GridLayoutManager(requireActivity(), preferences.getInt(GRID_SIZE_PREFERENCE, 3))
+                GridLayoutManager(requireActivity(), preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
             binding.showRecyclerView.layoutManager = mShowGridView
             linearLayoutManager = mShowGridView
         } else {

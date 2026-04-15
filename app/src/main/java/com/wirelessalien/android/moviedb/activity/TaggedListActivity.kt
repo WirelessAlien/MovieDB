@@ -98,7 +98,7 @@ class TaggedListActivity : BaseActivity() {
         val isGrid = preferences.getBoolean(BaseFragment.SHOWS_LIST_PREFERENCE, true)
         
         if (isGrid) {
-            val gridSize = preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3)
+            val gridSize = preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
             binding.recyclerView.layoutManager = GridLayoutManager(this, gridSize)
         } else {
             binding.recyclerView.layoutManager = LinearLayoutManager(this)

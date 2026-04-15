@@ -68,7 +68,7 @@ class ListItemActivityTmdb : AppCompatActivity() {
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, false)) {
-            binding.recyclerView.layoutManager = GridLayoutManager(this, preferences.getInt(GRID_SIZE_PREFERENCE, 3))
+            binding.recyclerView.layoutManager = GridLayoutManager(this, preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         } else {
             binding.recyclerView.layoutManager = LinearLayoutManager(this)
         }

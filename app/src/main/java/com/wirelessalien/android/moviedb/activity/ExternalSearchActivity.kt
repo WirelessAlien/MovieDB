@@ -102,7 +102,7 @@ class ExternalSearchActivity : AppCompatActivity() {
         }
         binding.recyclerView.apply {
             layoutManager = if (preferences.getBoolean(BaseFragment.SHOWS_LIST_PREFERENCE, false)) GridLayoutManager(this@ExternalSearchActivity, preferences.getInt(
-                BaseFragment.GRID_SIZE_PREFERENCE, 3)) else LinearLayoutManager(this@ExternalSearchActivity)
+                BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)) else LinearLayoutManager(this@ExternalSearchActivity)
             adapter = searchAdapter
         }
     }

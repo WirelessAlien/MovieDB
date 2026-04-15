@@ -155,7 +155,7 @@ class CollectionBottomSheetFragment : BottomSheetDialogFragment() {
         binding.collectionRecyclerView.apply {
             adapter = collectionAdapter
             layoutManager = if (gridView) {
-                GridLayoutManager(context, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3))
+                GridLayoutManager(context, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
             } else {
                 LinearLayoutManager(context)
             }

@@ -356,7 +356,7 @@ class MainActivity : BaseActivity() {
         mShowGenreList = HashMap()
         mHomeSearchShowAdapter = ShowPagingAdapter(mShowGenreList, gridView = true, showDeleteButton = false)
 
-        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3))
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         binding.searchResultsRecyclerView.layoutManager = mShowGridView
         mShowLinearLayoutManager = mShowGridView
 
