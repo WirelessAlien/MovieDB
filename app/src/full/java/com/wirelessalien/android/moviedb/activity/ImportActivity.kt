@@ -199,6 +199,11 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
             url += "/$fileName"
         }
 
+        if (!url.endsWith(".db", true)) {
+            Toast.makeText(this, getString(R.string.json_import_not_supported), Toast.LENGTH_LONG).show()
+            return
+        }
+
         binding.progressIndicator.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {
             try {
