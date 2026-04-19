@@ -20,6 +20,6 @@
   -->
  
 <resources>
-    <string name="app_name" translatable="false">ShowCase Plus</string>
+    <string name="app_name" translatable="false">ShowCase</string>
     <string name="search_title_ext">Αναζήτηση στο ShowCase</string>
 </resources>

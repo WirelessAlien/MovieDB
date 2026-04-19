@@ -661,9 +661,9 @@
     <string name="save_webdav_settings">WebDAV speichern Einstellungen</string>
     <string name="auth_failed">Authentizität gescheitert</string>
     <string name="webdav_backup_successful">WebDAV Backup erfolgreich</string>
-    <string name="webdav_backup_failed">WebDAV Zurück zur Übersicht</string>
+    <string name="webdav_backup_failed">WebDAV-Backup fehlgeschlagen</string>    
     <string name="auth_required_title">Authentifizierung erforderlich</string>
-    <string name="enable_webdav_sync_backup">WebDAV aktivieren Synthetik/Backup</string>
+    <string name="enable_webdav_sync_backup">WebDAV-Synchronisation/Backup aktivieren</string>    
     <string name="search_for_watch_provider">Suche nach Uhrenanbietern</string>
     <string name="backup_type_csv_movies">CSV (Movies und Shows)</string>
     <string name="auth_error">Authentifizierungsfehler: %1$s</string>
@@ -678,7 +678,6 @@
     <string name="webdav_not_configured_or_enabled">WebDAV ist nicht konfiguriert oder aktiviert</string>
     <string name="json_import_not_supported">JSON-Einfuhren werden nicht unterstützt. Bitte wählen Sie eine .db-Datei aus.</string>
     <string name="connection_successful">Verbindung erfolgreich!</string>
-    <string name="failed_to_restore_database_from_webdav">Datenbank von WebDAV nicht wiederherstellen</string>
-    <string name="password">Passwort</string>
+<string name="failed_to_restore_database_from_webdav">Wiederherstellung der Datenbank von WebDAV fehlgeschlagen</string>    <string name="password">Passwort</string>
     <string name="username">Benutzername</string>
 </resources>

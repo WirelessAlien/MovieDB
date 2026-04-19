@@ -662,7 +662,7 @@
     <string name="auth_required_title">Αναγνώριση</string>
     <string name="auth_failed">Η αυθεντικοποίηση απέτυχε</string>
     <string name="search_for_watch_provider">Αναζήτηση για τον πάροχο παρακολούθησης</string>
-    <string name="auth_error">Πρωτότυπος Τίτλος: %1$s</string>
+    <string name="auth_error">Σφάλμα ελέγχου ταυτότητας: %1$s</string>    
     <string name="save_webdav_settings">Save WebDAVV Ρυθμίσεις</string>
     <string name="please_enter_webdav_url">Παρακαλώ μπείτε στο WebDAV URL</string>
     <string name="auth_required_subtitle">Αυθεντικός τίτλος για επεξεργασία ρυθμίσεων WebDAV</string>
