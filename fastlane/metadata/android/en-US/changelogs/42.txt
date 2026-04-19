@@ -1,0 +1,4 @@
+add webdav sync
+fix #155, #157, #161
+update localisation
+a few small fixes improvements
