@@ -288,12 +288,17 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical">
+                             
                                 <com.google.android.material.textfield.TextInputLayout
                                     android:id="@+id/webDavUrlLayout"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="10dp"
-                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                    app:boxCornerRadiusTopStart="10dp"
+                                    app:boxCornerRadiusTopEnd="10dp"
+                                    app:boxCornerRadiusBottomEnd="10dp"
+                                    app:boxCornerRadiusBottomStart="10dp"
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                                     android:hint="@string/webdav_server_url_hint">
 
                                     <com.google.android.material.textfield.TextInputEditText
@@ -308,7 +313,11 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="10dp"
-                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                    app:boxCornerRadiusTopStart="10dp"
+                                    app:boxCornerRadiusTopEnd="10dp"
+                                    app:boxCornerRadiusBottomEnd="10dp"
+                                    app:boxCornerRadiusBottomStart="10dp"
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                                     android:hint="@string/username">
 
                                     <com.google.android.material.textfield.TextInputEditText
@@ -323,7 +332,11 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="10dp"
-                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                    app:boxCornerRadiusTopStart="10dp"
+                                    app:boxCornerRadiusTopEnd="10dp"
+                                    app:boxCornerRadiusBottomEnd="10dp"
+                                    app:boxCornerRadiusBottomStart="10dp"
+                                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                                     android:hint="@string/password">
 
                                     <com.google.android.material.textfield.TextInputEditText
@@ -365,7 +378,6 @@
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
