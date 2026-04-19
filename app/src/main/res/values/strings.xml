@@ -656,6 +656,9 @@
     <string name="trailer">Trailer</string>
     <string name="selected_directory">Path:</string>
     <string name="export_info">The app allows for the exportation of files in \".db\", \".json\" and \".csv\" formats. Please note, however, that only the \".db\" format is supported for subsequent imports.</string>
+    <string name="import_info">Only .db format is supported for imports. .json files cannot be imported.</string>
+    <string name="json_import_not_supported">JSON imports are not supported. Please select a .db file.</string>
+    <string name="i_understand">I Understand</string>
     <string name="directory_path">Path: %1$s</string>
     <string name="no_browser_available">No app can handle this request. Please install a web browser.</string>
     <string name="rate_movie">Rate</string>
@@ -700,6 +703,17 @@
     <string name="search">Search</string>
     <string name="homepage">Homepage</string>
     <string name="pick_file">Pick File</string>
+    <string name="local_import">Local Import</string>
+    <string name="cloud_import">Cloud Import</string>
+    <string name="edit_settings">Edit Settings</string>
+    <string name="auth_required_title">Authentication Required</string>
+    <string name="auth_required_subtitle">Authenticate to edit WebDAV settings</string>
+    <string name="auth_error">Authentication error: %1$s</string>
+    <string name="auth_failed">Authentication failed</string>
+    <string name="backup_type_db">DB</string>
+    <string name="backup_type_json">JSON</string>
+    <string name="backup_type_csv_movies">CSV (Movies and Shows)</string>
+    <string name="backup_type_csv_all">CSV (All data)</string>
     <string name="error_saving_file">Something went wrong. Could not save file.</string>
     <string name="now_playing">Now Playing</string>
     <string name="airing_today">Airing Today</string>
@@ -790,6 +804,7 @@
     <string name="vote_count_hint">e.g. 10000</string>
     <string name="origin_country">Origin Country</string>
     <string name="search_for_country">Search for country</string>
+    <string name="search_for_watch_provider">Search for watch provider</string>
     <string name="use_and_logic_for_countries">Require all selected countries</string>
     <string name="countries_logic_explanation">When enabled, only media from ALL selected origin countries will be shown.</string>
     <string name="watch_providers">Watch Providers</string>
@@ -798,4 +813,21 @@
 
     <string name="app_language">App language</string>
     <string name="episode_groups">Episode Groups</string>
+    <!-- WebDAV Sync & Backup -->
+    <string name="webdav_backup">WebDAV Backup</string>
+    <string name="enable_webdav_sync_backup">Enable WebDAV Sync/Backup</string>
+    <string name="webdav_server_url_hint">WebDAV Server URL (e.g. https://server.com/backup.db)</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="test_webdav_connection">Test WebDAV Connection</string>
+    <string name="save_webdav_settings">Save WebDAV Settings</string>
+    <string name="restore_database_from_webdav">Restore database from WebDAV</string>
+    <string name="webdav_settings_saved">WebDAV settings saved</string>
+    <string name="webdav_not_configured_or_enabled">WebDAV is not configured or enabled</string>
+    <string name="please_enter_webdav_url">Please enter WebDAV URL</string>
+    <string name="connection_successful">Connection successful!</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="failed_to_restore_database_from_webdav">Failed to restore database from WebDAV</string>
+    <string name="webdav_backup_failed">WebDAV Backup Failed</string>
+    <string name="webdav_backup_successful">WebDAV Backup Successful</string>
 </resources>

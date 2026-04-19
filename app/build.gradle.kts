@@ -46,8 +46,8 @@ android {
         applicationId = "com.wirelessalien.android.moviedb"
         minSdk = 24
         targetSdk = 35
-        versionCode = 33
-        versionName = "4.5"
+        versionCode = 42
+        versionName = "4.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OMDB_API_KEY", "\"$omdbApiKey\"")
@@ -107,11 +107,13 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation("androidx.security:security-crypto-ktx:1.1.0")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
     implementation("androidx.work:work-runtime:2.10.1")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.paging:paging-runtime:3.3.6")
 
+    implementation("androidx.biometric:biometric:1.1.0")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")

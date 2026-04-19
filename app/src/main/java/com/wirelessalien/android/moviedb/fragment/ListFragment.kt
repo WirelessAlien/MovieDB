@@ -189,13 +189,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         activityBinding.fab.isEnabled = true
         activityBinding.fab.setOnClickListener {
             val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
+            intent.putExtra("prefs_name", FilterActivity.FILTER_PREFERENCES)
             intent.putExtra("categories", true)
             intent.putExtra("most_popular", false)
             intent.putExtra("dates", false)
             intent.putExtra("keywords", false)
             intent.putExtra("startDate", true)
-            intent.putExtra("finishDate", true)
-            intent.putExtra("account", false)
+            intent.putExtra("finishDate", true)            
             intent.putExtra("account", false)
             intent.putExtra("tags", true)
             intent.putExtra("origin_country", false)
@@ -798,6 +798,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 activityBinding.fab.isEnabled = true
                 activityBinding.fab.setOnClickListener {
                     val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
+                    intent.putExtra("prefs_name", FilterActivity.FILTER_PREFERENCES)
                     intent.putExtra("categories", true)
                     intent.putExtra("most_popular", false)
                     intent.putExtra("dates", false)
@@ -1316,6 +1317,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             activityBinding.fab.setImageResource(R.drawable.ic_filter_list)
             activityBinding.fab.setOnClickListener {
                 val intent = Intent(requireContext().applicationContext, FilterActivity::class.java)
+                intent.putExtra("prefs_name", FilterActivity.FILTER_PREFERENCES)
                 intent.putExtra("categories", true)
                 intent.putExtra("most_popular", false)
                 intent.putExtra("dates", false)
@@ -1423,8 +1425,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         )
         if (showMovie != null && (!showMovie.contains("movie") || !showMovie.contains("tv"))) {
             listToFilter.removeIf { showObject: JSONObject ->
-                val isTV = showObject.optString(ShowBaseAdapter.KEY_NAME) == "0"
-                (showMovie.contains("movie") && isTV) || (showMovie.contains("tv") && !isTV)
+                val isMovie = showObject.optInt(IS_MOVIE) == 1
+                (showMovie.contains("movie") && !isMovie) || (showMovie.contains("tv") && isMovie)
             }
         }
 

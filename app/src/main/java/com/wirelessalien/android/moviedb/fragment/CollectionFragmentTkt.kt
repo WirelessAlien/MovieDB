@@ -73,7 +73,7 @@ class CollectionFragmentTkt : BaseFragment() {
                 adapter = ShowTraktAdapter(collectionList, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
             }
 
-            val mShowGridView = GridLayoutManager(requireActivity(), preferences.getInt(GRID_SIZE_PREFERENCE, 3))
+            val mShowGridView = GridLayoutManager(requireActivity(), preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
             binding.showRecyclerView.layoutManager = mShowGridView
             linearLayoutManager = mShowGridView
         } else {

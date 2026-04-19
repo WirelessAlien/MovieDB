@@ -86,7 +86,7 @@ open class BaseFragment : Fragment() {
             }
             val mShowGridView = GridLayoutManager(
                 activity,
-                preferences.getInt(GRID_SIZE_PREFERENCE, 3)
+                preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
             )
             mShowView.layoutManager = mShowGridView
             mShowLinearLayoutManager = mShowGridView
@@ -119,7 +119,7 @@ open class BaseFragment : Fragment() {
             }
             val mShowGridView = GridLayoutManager(
                 activity,
-                preferences.getInt(GRID_SIZE_PREFERENCE, 3)
+                preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
             )
             mShowView.layoutManager = mShowGridView
             mShowLinearLayoutManager = mShowGridView

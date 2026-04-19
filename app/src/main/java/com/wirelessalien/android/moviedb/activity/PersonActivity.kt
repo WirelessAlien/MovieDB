@@ -93,7 +93,7 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
 
         mSearchPersonAdapter = PersonPagingAdapter()
 
-        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3))
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         binding.searchResultsRecyclerView.layoutManager = mShowGridView
         mShowGridLayoutManager = mShowGridView
 

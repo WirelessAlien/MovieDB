@@ -31,11 +31,19 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.snackbar.Snackbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.CrashHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.WebDavHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.view.View
+import android.widget.ProgressBar
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -59,13 +67,31 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setHomeButtonEnabled(true)
 
+        val preferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val bannerLayout = findViewById<View>(R.id.import_info_banner)
+        val btnUnderstand = findViewById<View>(R.id.btn_understand_info)
+        
+        if (preferences.getBoolean("import_info_understood", false)) {
+            bannerLayout.visibility = View.GONE
+        }
+        btnUnderstand.setOnClickListener {
+            preferences.edit().putBoolean("import_info_understood", true).apply()
+            bannerLayout.visibility = View.GONE
+        }
+
         pickFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
                 val archiveFileUri = result.data!!.data
+                val fileName = getArchiveFileName(archiveFileUri) ?: "imported_file"
+                
+                if (fileName.endsWith(".json", true)) {
+                    Toast.makeText(this, getString(R.string.json_import_not_supported), Toast.LENGTH_LONG).show()
+                    return@registerForActivityResult
+                }
+                
                 Toast.makeText(this, getString(R.string.file_picked_success), Toast.LENGTH_SHORT).show()
                 try {
                     val inputStream = contentResolver.openInputStream(archiveFileUri!!)
-                    val fileName = getArchiveFileName(archiveFileUri) ?: "imported_file"
                     val cacheFile = File(cacheDir, fileName)
                     val fileOutputStream = FileOutputStream(cacheFile)
                     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -111,11 +137,90 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
             val databaseHelper = MovieDatabaseHelper(applicationContext)
             databaseHelper.importDatabase(context, this)
         }
+        
+        val importWebdavDbButton = findViewById<Button>(R.id.import_webdav_db_button)
+        importWebdavDbButton.setOnClickListener {
+            downloadFromWebDav()
+        }
+    }
+    
+    private fun downloadFromWebDav() {
+        val webDavPrefs = WebDavHelper.getEncryptedSharedPreferences(this)
+        val isWebDavEnabled = webDavPrefs.getBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, false)
+        var url = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, "") ?: ""
+        val username = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_USERNAME, "") ?: ""
+        val password = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_PASSWORD, "") ?: ""
 
-        val importPeopleDbButton = findViewById<Button>(R.id.import_people_db_button)
-        importPeopleDbButton.setOnClickListener {
-            val databaseHelper = PeopleDatabaseHelper(applicationContext)
-            databaseHelper.importDatabase(context, this)
+        if (!isWebDavEnabled || url.isEmpty()) {
+            Toast.makeText(this, getString(R.string.webdav_not_configured_or_enabled), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val backupFileType = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this).getString("backup_file_type", "DB")
+        val fileName = when (backupFileType) {
+            "JSON" -> "movies.json"
+            "CSV (Movies and Shows)" -> "movies.csv"
+            "CSV (All data)" -> "movies_with_episodes.csv"
+            else -> "movies.db"
+        }
+
+        if (url.endsWith("/")) {
+            url += fileName
+        } else if (!url.endsWith(".db", true) && !url.endsWith(".json", true) && !url.endsWith(".csv", true)) {
+            url += "/$fileName"
+        }
+
+        if (!url.endsWith(".db", true)) {
+            Toast.makeText(this, getString(R.string.json_import_not_supported), Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val progressIndicator = findViewById<ProgressBar>(R.id.progressIndicator)
+        progressIndicator.visibility = View.VISIBLE
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val tempFile = File(cacheDir, "webdav_backup.db")
+                val success = WebDavHelper.downloadFile(url, username, password, tempFile)
+                if (success) {
+                    val dbPath = getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
+                    val dbFile = File(dbPath)
+                    
+                    // Copy temporary file to database file
+                    tempFile.inputStream().use { input ->
+                        dbFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    
+                    // Delete WAL and SHM files to prevent corruption
+                    File("$dbPath-wal").delete()
+                    File("$dbPath-shm").delete()
+                    
+                    tempFile.delete()
+                    
+                    withContext(Dispatchers.Main) {
+                        progressIndicator.visibility = View.GONE
+                        Snackbar.make(findViewById(android.R.id.content), getString(R.string.database_import_successful), Snackbar.LENGTH_INDEFINITE)
+                            .setAction(getString(R.string.ok)) {
+                                finishAffinity()
+                                val intent = Intent(this@ImportActivity, MainActivity::class.java)
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                startActivity(intent)
+                            }
+                            .show()
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        progressIndicator.visibility = View.GONE
+                        Toast.makeText(this@ImportActivity, getString(R.string.failed_to_restore_database_from_webdav), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    progressIndicator.visibility = View.GONE
+                    Toast.makeText(this@ImportActivity, getString(R.string.could_not_import_backup, e.message), Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 

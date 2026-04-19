@@ -126,6 +126,8 @@ public class FilterActivity extends AppCompatActivity {
     private ArrayList<String> selectedCountries = new ArrayList<>();
     private Map<String, String> countryMap = new HashMap<>();
     private ArrayList<String> selectedWatchProviders = new ArrayList<>();
+    private Map<String, String> watchProviderMap = new HashMap<>();
+    private String prefsName = FILTER_PREFERENCES;
 
     /**
      * Uses Integer.parseInt on all characters in the string (except for splitArg).
@@ -180,6 +182,12 @@ public class FilterActivity extends AppCompatActivity {
         ThemeHelper.INSTANCE.applyAmoledTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
+        
+        Intent intent = getIntent();
+        String customPrefsName = intent.getStringExtra("prefs_name");
+        if (customPrefsName != null && !customPrefsName.isEmpty()) {
+            prefsName = customPrefsName;
+        }
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             StringWriter crashLog = new StringWriter();
@@ -210,7 +218,6 @@ public class FilterActivity extends AppCompatActivity {
 
             android.os.Process.killProcess(android.os.Process.myPid());
         });
-        Intent intent = getIntent();
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -401,9 +408,13 @@ public class FilterActivity extends AppCompatActivity {
         // Retrieve preferences from the last time.
         retrieveFilterPreferences();
         
-        loadCountries();
+        if (intent.getBooleanExtra("origin_country", false)) {
+            loadCountries();
+        }
         
-        loadWatchProviders(mode);
+        if (intent.getBooleanExtra("watch_provider", false)) {
+            loadWatchProviders(mode);
+        }
     }
     
     private void loadCountries() {
@@ -521,51 +532,41 @@ public class FilterActivity extends AppCompatActivity {
                     try {
                         JSONObject responseObj = new JSONObject(result);
                         JSONArray providersArray = responseObj.getJSONArray("results");
-                        ChipGroup chipGroup = findViewById(R.id.watchProviderChipGroup);
-                        List<Chip> providerChips = new ArrayList<>();
+                        List<String> providerNames = new ArrayList<>();
                         for (int i = 0; i < providersArray.length(); i++) {
                             JSONObject providerObj = providersArray.getJSONObject(i);
                             String providerId = providerObj.getString("provider_id");
                             String providerName = providerObj.getString("provider_name");
-                            
-                            Chip chip = new Chip(FilterActivity.this);
-                            chip.setText(providerName);
-                            chip.setTag(providerId);
-                            chip.setCheckable(true);
-                            if (selectedWatchProviders.contains(providerId)) {
-                                chip.setChecked(true);
-                            }
-                            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                                if (isChecked) {
-                                    if (!selectedWatchProviders.contains(providerId)) {
-                                        selectedWatchProviders.add(providerId);
-                                    }
-                                } else {
-                                    selectedWatchProviders.remove(providerId);
-                                }
-                            });
-                            chipGroup.addView(chip);
-                            providerChips.add(chip);
-                            
-                            if (i >= 15) {
-                                chip.setVisibility(View.GONE);
-                            }
+                            watchProviderMap.put(providerName, providerId);
+                            providerNames.add(providerName);
                         }
 
-                        if (providersArray.length() > 15) {
-                            Chip toggleChip = new Chip(FilterActivity.this);
-                            toggleChip.setText(R.string.show_more);
-                            toggleChip.setCheckable(false);
-                            toggleChip.setChipBackgroundColorResource(R.color.md_theme_primary);
-                            toggleChip.setTextColor(getResources().getColor(android.R.color.white));
-                            toggleChip.setOnClickListener(v -> {
-                                boolean isShowingMore = toggleChip.getText().toString().equals(getString(R.string.show_less));
-                                for (int i = 15; i < providerChips.size(); i++) {
-                                    providerChips.get(i).setVisibility(isShowingMore ? View.GONE : View.VISIBLE);
+                        MaterialAutoCompleteTextView autoComplete = findViewById(R.id.watchProviderAutoComplete);
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(FilterActivity.this, android.R.layout.simple_dropdown_item_1line, providerNames);
+                        autoComplete.setAdapter(adapter);
+
+                        autoComplete.setOnItemClickListener((parent, view, position, id) -> {
+                            String selectedName = (String) parent.getItemAtPosition(position);
+                            String selectedId = watchProviderMap.get(selectedName);
+                            if (selectedId != null && !selectedWatchProviders.contains(selectedId)) {
+                                selectedWatchProviders.add(selectedId);
+                                addWatchProviderChip(selectedName, selectedId);
+                            }
+                            autoComplete.setText("");
+                        });
+
+                        // Restore previously selected watch providers
+                        ChipGroup chipGroup = findViewById(R.id.watchProviderChipGroup);
+                        chipGroup.removeAllViews();
+                        for (String providerId : selectedWatchProviders) {
+                            String name = providerId; // Fallback
+                            for (Map.Entry<String, String> entry : watchProviderMap.entrySet()) {
+                                if (entry.getValue().equals(providerId)) {
+                                    name = entry.getKey();
+                                    break;
                                 }
-                                toggleChip.setText(isShowingMore ? R.string.show_more : R.string.show_less);
-                            });
-                            chipGroup.addView(toggleChip);
+                            }
+                            addWatchProviderChip(name, providerId);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -575,8 +576,20 @@ public class FilterActivity extends AppCompatActivity {
         }.execute();
     }
 
+    private void addWatchProviderChip(String name, String id) {
+        ChipGroup chipGroup = findViewById(R.id.watchProviderChipGroup);
+        Chip chip = new Chip(this);
+        chip.setText(name);
+        chip.setCloseIconVisible(true);
+        chip.setOnCloseIconClickListener(v -> {
+            chipGroup.removeView(chip);
+            selectedWatchProviders.remove(id);
+        });
+        chipGroup.addView(chip);
+    }
+
     private void initializeCategoryList() {
-        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         String categoryOrderJson = sharedPreferences.getString(CATEGORY_ORDER, null);
         if (categoryOrderJson != null) {
             Type type = new TypeToken<List<CategoryDTO>>() {
@@ -655,7 +668,7 @@ public class FilterActivity extends AppCompatActivity {
      */
     private void saveFilterPreferences() {
         SharedPreferences sharedPreferences
-                = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+                = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
 
         // Save all settings
@@ -801,7 +814,7 @@ public class FilterActivity extends AppCompatActivity {
      */
     @SuppressLint("SetTextI18n")
     private void retrieveFilterPreferences() {
-        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
 
         withGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITH_GENRES, null), ", ");
         withoutGenres = convertStringToIntegerArrayList(sharedPreferences.getString(FILTER_WITHOUT_GENRES, null), ", ");
@@ -1003,7 +1016,7 @@ public class FilterActivity extends AppCompatActivity {
         MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker();
         builder.setTitleText("Select a date");
 
-        SharedPreferences sharedPreferences = getSharedPreferences(FILTER_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(prefsName, Context.MODE_PRIVATE);
         final SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
 
         // Retrieve the date from SharedPreferences and set it in the DatePicker.

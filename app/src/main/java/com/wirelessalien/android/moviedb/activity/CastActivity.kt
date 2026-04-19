@@ -189,7 +189,7 @@ class CastActivity : BaseActivity() {
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
             val mShowGridView = GridLayoutManager(
                 context,
-                preferences.getInt(GRID_SIZE_PREFERENCE, 3)
+                preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
             )
             binding.castMovieRecyclerView.layoutManager = mShowGridView
         } else {
@@ -203,7 +203,7 @@ class CastActivity : BaseActivity() {
         if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
             val mShowGridView = GridLayoutManager(
                 context,
-                preferences.getInt(GRID_SIZE_PREFERENCE, 3)
+                preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
             )
             binding.crewMovieRecyclerView.layoutManager = mShowGridView
         } else {

@@ -80,7 +80,7 @@ class ListItemActivityTkt : AppCompatActivity() {
                 adapter = ShowTraktAdapter(listItemList, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
             }
 
-            val mShowGridView = GridLayoutManager(this, preferences.getInt(GRID_SIZE_PREFERENCE, 3))
+            val mShowGridView = GridLayoutManager(this, preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
             binding.recyclerView.layoutManager = mShowGridView
             linearLayoutManager = mShowGridView
         } else {

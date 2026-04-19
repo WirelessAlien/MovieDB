@@ -40,6 +40,8 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -60,11 +62,13 @@ import com.google.api.services.drive.DriveScopes
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ActivityExportBinding
 import com.wirelessalien.android.moviedb.helper.CrashHelper
+import com.wirelessalien.android.moviedb.helper.WebDavHelper
 import com.wirelessalien.android.moviedb.helper.DirectoryHelper
 import com.wirelessalien.android.moviedb.helper.GoogleCredSignIn
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.work.DatabaseBackupWorker
 import com.wirelessalien.android.moviedb.work.GoogleDriveBackupWorker
+import com.wirelessalien.android.moviedb.work.WebDavBackupWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -87,7 +91,19 @@ class ExportActivity : AppCompatActivity() {
     private val serverClientId = "892148791583-lmjdmttoa7akrq1v7hnji8eb3p3h1ali.apps.googleusercontent.com"
     private lateinit var authorizationLauncher: ActivityResultLauncher<IntentSenderRequest>
 
-    private val createFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument()) { uri: Uri? ->
+    private val createFileLauncher = registerForActivityResult(object : ActivityResultContracts.CreateDocument("*/*") {
+        override fun createIntent(context: Context, input: String): Intent {
+            val intent = super.createIntent(context, input)
+            val mimeType = when {
+                input.endsWith(".json", true) -> "application/json"
+                input.endsWith(".csv", true) -> "text/csv"
+                input.endsWith(".db", true) -> "application/x-sqlite3"
+                else -> "application/octet-stream"
+            }
+            intent.type = mimeType
+            return intent
+        }
+    }) { uri: Uri? ->
         uri?.let {
             saveFileToUri(it, isJson, isCsv, isMovieOnly)
         }
@@ -128,6 +144,16 @@ class ExportActivity : AppCompatActivity() {
         supportActionBar!!.setHomeButtonEnabled(true)
         googleSignIn = GoogleCredSignIn(this, serverClientId)
 
+        val bannerLayout = findViewById<View>(R.id.export_info_banner)
+        val btnUnderstand = findViewById<View>(R.id.btn_understand_info)
+        if (preferences.getBoolean("export_info_understood", false)) {
+            bannerLayout.visibility = View.GONE
+        }
+        btnUnderstand.setOnClickListener {
+            preferences.edit().putBoolean("export_info_understood", true).apply()
+            bannerLayout.visibility = View.GONE
+        }
+
         val lastBackupTime = preferences.getLong("last_backup_time", 0)
         if (lastBackupTime > 0) {
             binding.lastBackupTime.visibility = View.VISIBLE
@@ -143,12 +169,9 @@ class ExportActivity : AppCompatActivity() {
         val isAutoBackupEnabled = preferences.getBoolean("auto_backup_enabled", false)
         binding.autoBackupSwitch.isChecked = isAutoBackupEnabled
         binding.backupBtn.isEnabled = isAutoBackupEnabled
-        binding.backupFileTypeET.isEnabled = isAutoBackupEnabled
-        binding.backupFrequencyET.isEnabled = isAutoBackupEnabled
 
         val isAutoBackupEnableDrive = preferences.getBoolean("auto_backup_enabled_drive", false)
         binding.autoBackupSwitchDrive.isChecked = isAutoBackupEnableDrive
-        binding.backupFrequencyETDrive.isEnabled = isAutoBackupEnableDrive
 
         val exportDirectory = DirectoryHelper.getExportDirectory(context)
         val exportDirectoryUri = preferences.getString("db_export_directory", null)
@@ -185,8 +208,6 @@ class ExportActivity : AppCompatActivity() {
         binding.autoBackupSwitch.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit().putBoolean("auto_backup_enabled", isChecked).apply()
             binding.backupBtn.isEnabled = isChecked
-            binding.backupFileTypeET.isEnabled = isChecked
-            binding.backupFrequencyET.isEnabled = isChecked
 
             if (isChecked) {
                 if (backupDirectoryUri != null) {
@@ -200,116 +221,165 @@ class ExportActivity : AppCompatActivity() {
             }
         }
 
-        // Check if backup frequency is set, if not set it to default 1440 minutes
-        if (!preferences.contains("backup_frequency")) {
-            preferences.edit().putInt("backup_frequency", 1440).commit()
-        }
-
-        val backupFrequency = preferences.getInt("backup_frequency", 1440)
-        binding.backupFrequencyET.setText(
-            when (backupFrequency) {
-                15 -> "15 minutes"
-                30 -> "30 minutes"
-                60 -> "1 hour"
-                360 -> "6 hours"
-                720 -> "12 hours"
-                1440 -> "1 day"
-                10080 -> "1 week"
-                43200 -> "1 month"
-                else -> "1 day"
-            }
-        )
-
-        val predefinedValues = resources.getStringArray(R.array.backup_frequency_entries)
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValues)
-        binding.backupFrequencyET.setAdapter(adapter)
-        binding.backupFrequencyET.setOnClickListener {
-            binding.backupFrequencyET.showDropDown()
-        }
-
-        binding.backupFrequencyET.setOnItemClickListener { _, _, position, _ ->
-            val frequencyInMinutes = when (predefinedValues[position]) {
-                "15 minutes" -> 15
-                "30 minutes" -> 30
-                "1 hour" -> 60
-                "6 hours" -> 360
-                "12 hours" -> 720
-                "1 day" -> 1440
-                "1 week" -> 10080
-                "1 month" -> 43200
-                else -> 1440
-            }
-            preferences.edit().putInt("backup_frequency", frequencyInMinutes).apply()
-            scheduleDatabaseExport()
-        }
-
         if (!preferences.contains("backup_file_type")) {
             preferences.edit().putString("backup_file_type", "DB").commit()
         }
 
         val backupFileType = preferences.getString("backup_file_type", "DB")
-        binding.backupFileTypeET.setText(backupFileType)
-
-        val fileTypeEntries = resources.getStringArray(R.array.backup_file_type_entries)
-        val fileTypeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, fileTypeEntries)
-        binding.backupFileTypeET.setAdapter(fileTypeAdapter)
-        binding.backupFileTypeET.setOnClickListener {
-            binding.backupFileTypeET.showDropDown()
+        when (backupFileType) {
+            "DB" -> binding.chipDb.isChecked = true
+            "JSON" -> binding.chipJson.isChecked = true
+            "CSV (Movies and Shows)" -> binding.chipCsvMovies.isChecked = true
+            "CSV (All data)" -> binding.chipCsvAll.isChecked = true
+            else -> binding.chipDb.isChecked = true
         }
 
-        binding.backupFileTypeET.setOnItemClickListener { _, _, position, _ ->
-            val fileType = fileTypeEntries[position]
-            preferences.edit().putString("backup_file_type", fileType).apply()
+        binding.backupFileTypeChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                val fileType = when (checkedIds.first()) {
+                    R.id.chip_db -> "DB"
+                    R.id.chip_json -> "JSON"
+                    R.id.chip_csv_movies -> "CSV (Movies and Shows)"
+                    R.id.chip_csv_all -> "CSV (All data)"
+                    else -> "DB"
+                }
+                preferences.edit().putString("backup_file_type", fileType).apply()
+                scheduleDatabaseExport()
+            }
+        }
+
+        // Initialize Slider
+        if (!preferences.contains("backup_frequency")) {
+            preferences.edit().putInt("backup_frequency", 1440).commit()
+        }
+        val backupFrequency = preferences.getInt("backup_frequency", 1440)
+        
+        val sliderValue = when (backupFrequency) {
+            15 -> 0.0f
+            30 -> 1.0f
+            60 -> 2.0f
+            360 -> 3.0f
+            720 -> 4.0f
+            1440 -> 5.0f
+            10080 -> 6.0f
+            43200 -> 7.0f
+            else -> 5.0f
+        }
+        binding.backupFrequencySlider.value = sliderValue
+        updateFrequencyText(sliderValue)
+
+        binding.backupFrequencySlider.addOnChangeListener { _, value, _ ->
+            val frequencyInMinutes = when (value) {
+                0.0f -> 15
+                1.0f -> 30
+                2.0f -> 60
+                3.0f -> 360
+                4.0f -> 720
+                5.0f -> 1440
+                6.0f -> 10080
+                7.0f -> 43200
+                else -> 1440
+            }
+            updateFrequencyText(value)
+            preferences.edit().putInt("backup_frequency", frequencyInMinutes).apply()
+            preferences.edit().putInt("backup_frequency_drive", frequencyInMinutes).apply()
+            WebDavHelper.getEncryptedSharedPreferences(this).edit().putInt("backup_frequency_webdav", frequencyInMinutes).apply()
             scheduleDatabaseExport()
+            
+            val isAutoBackupEnableDrive = preferences.getBoolean("auto_backup_enabled_drive", false)
+            if(isAutoBackupEnableDrive) {
+                scheduleGoogleDriveBackup(frequencyInMinutes)
+            }
+            if (binding.webDavEnabledSwitch.isChecked) {
+                scheduleWebDavBackup()
+            }
         }
-
-        val predefinedValuesDrive = resources.getStringArray(R.array.backup_frequency_entries_drive)
-        val adapterDrive = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, predefinedValuesDrive)
-        binding.backupFrequencyETDrive.setAdapter(adapterDrive)
-
-        val frequencyTextDrive = when (preferences.getInt("backup_frequency_drive", 1440)) {
-            1440 -> "1 day"
-            10080 -> "1 week"
-            43200 -> "1 month"
-            else -> "1 day"
-        }
-        binding.backupFrequencyETDrive.setText(frequencyTextDrive, false)
 
         binding.autoBackupSwitchDrive.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit().putBoolean("auto_backup_enabled_drive", isChecked).apply()
-            binding.backupFrequencyETDrive.isEnabled = isChecked
 
             if (isChecked) {
                 val backupFrequencyDrive = preferences.getInt("backup_frequency_drive", 1440)
                 scheduleGoogleDriveBackup(backupFrequencyDrive)
-                val frequencyTextDrive = when (backupFrequencyDrive) {
-                    1440 -> "1 day"
-                    10080 -> "1 week"
-                    43200 -> "1 month"
-                    else -> "1 day"
-                }
-                binding.backupFrequencyETDrive.setText(frequencyTextDrive, false)
             } else {
                 preferences.edit().remove("backup_frequency_drive").apply()
                 WorkManager.getInstance(this).cancelAllWorkByTag("GoogleDriveBackupWorker")
             }
         }
 
-        binding.backupFrequencyETDrive.setOnClickListener {
-            binding.backupFrequencyETDrive.showDropDown()
+        // WebDAV Settings
+        val webDavPrefs = WebDavHelper.getEncryptedSharedPreferences(this)
+        val isWebDavEnabled = webDavPrefs.getBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, false)
+        binding.webDavEnabledSwitch.isChecked = isWebDavEnabled
+        binding.webDavSettingsLayout.visibility = if (isWebDavEnabled) View.VISIBLE else View.GONE
+
+        binding.webDavUrlET.setText(webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, ""))
+        binding.webDavUsernameET.setText(webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_USERNAME, ""))
+        binding.webDavPasswordET.setText(webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_PASSWORD, ""))
+
+        binding.webDavEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
+            webDavPrefs.edit().putBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, isChecked).apply()
+            binding.webDavSettingsLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
+            if (!isChecked) {
+                WorkManager.getInstance(this).cancelAllWorkByTag("WebDavBackupWorker")
+            }
         }
 
-        binding.backupFrequencyETDrive.setOnItemClickListener { _, _, position, _ ->
-            val selectedFrequency = predefinedValuesDrive[position]
-            val frequencyInMinutes = when (selectedFrequency) {
-                "1 day" -> 1440
-                "1 week" -> 10080
-                "1 month" -> 43200
-                else -> 1440
-            }
-            preferences.edit().putInt("backup_frequency_drive", frequencyInMinutes).apply()
-            scheduleGoogleDriveBackup(frequencyInMinutes)
+        val isWebDavSaved = webDavPrefs.getString(WebDavHelper.KEY_WEBDAV_URL, "")!!.isNotEmpty()
+        if (isWebDavSaved) {
+            binding.webDavInputFields.visibility = View.GONE
+            binding.webDavSaveButton.visibility = View.GONE
+            binding.webDavTestConnectionButton.visibility = View.GONE
+            binding.webDavEditButton.visibility = View.VISIBLE
         }
+
+        binding.webDavSaveButton.setOnClickListener {
+            val url = binding.webDavUrlET.text.toString().trim()
+            val username = binding.webDavUsernameET.text.toString().trim()
+            val password = binding.webDavPasswordET.text.toString().trim()
+            webDavPrefs.edit()
+                .putString(WebDavHelper.KEY_WEBDAV_URL, url)
+                .putString(WebDavHelper.KEY_WEBDAV_USERNAME, username)
+                .putString(WebDavHelper.KEY_WEBDAV_PASSWORD, password)
+                .apply()
+            
+            if (binding.webDavEnabledSwitch.isChecked) {
+                scheduleWebDavBackup()
+            }
+            Toast.makeText(this, getString(R.string.webdav_settings_saved), Toast.LENGTH_SHORT).show()
+            
+            binding.webDavInputFields.visibility = View.GONE
+            binding.webDavSaveButton.visibility = View.GONE
+            binding.webDavTestConnectionButton.visibility = View.GONE
+            binding.webDavEditButton.visibility = View.VISIBLE
+        }
+
+        binding.webDavEditButton.setOnClickListener {
+            authenticateWithBiometrics()
+        }
+
+        binding.webDavTestConnectionButton.setOnClickListener {
+            val url = binding.webDavUrlET.text.toString().trim()
+            val username = binding.webDavUsernameET.text.toString().trim()
+            val password = binding.webDavPasswordET.text.toString().trim()
+            if (url.isEmpty()) {
+                Toast.makeText(this, getString(R.string.please_enter_webdav_url), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            binding.webDavProgressIndicator.visibility = View.VISIBLE
+            CoroutineScope(Dispatchers.IO).launch {
+                val success = WebDavHelper.testConnection(url, username, password)
+                withContext(Dispatchers.Main) {
+                    binding.webDavProgressIndicator.visibility = View.GONE
+                    if (success) {
+                        Toast.makeText(this@ExportActivity, getString(R.string.connection_successful), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@ExportActivity, getString(R.string.connection_failed), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
 
         val googleEmail = preferences.getString("google_email", null)
         if (googleEmail != null) {
@@ -342,6 +412,54 @@ class ExportActivity : AppCompatActivity() {
         }
 
         createNotificationChannel()
+    }
+
+    private fun authenticateWithBiometrics() {
+        val executor = ContextCompat.getMainExecutor(this)
+        val biometricPrompt = BiometricPrompt(this, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    Toast.makeText(applicationContext, getString(R.string.auth_error, errString), Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    binding.webDavInputFields.visibility = View.VISIBLE
+                    binding.webDavSaveButton.visibility = View.VISIBLE
+                    binding.webDavTestConnectionButton.visibility = View.VISIBLE
+                    binding.webDavEditButton.visibility = View.GONE
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    Toast.makeText(applicationContext, getString(R.string.auth_failed), Toast.LENGTH_SHORT).show()
+                }
+            })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.auth_required_title))
+            .setSubtitle(getString(R.string.auth_required_subtitle))
+            .setAllowedAuthenticators(androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
+    }
+
+    private fun updateFrequencyText(value: Float) {
+        val predefinedValues = resources.getStringArray(R.array.backup_frequency_entries)
+        val text = when (value) {
+            0.0f -> predefinedValues[0]
+            1.0f -> predefinedValues[1]
+            2.0f -> predefinedValues[2]
+            3.0f -> predefinedValues[3]
+            4.0f -> predefinedValues[4]
+            5.0f -> predefinedValues[5]
+            6.0f -> predefinedValues[6]
+            7.0f -> predefinedValues[7]
+            else -> predefinedValues[5]
+        }
+        binding.backupFrequencyText.text = text
     }
 
     private fun requestDrivePermissions() {
@@ -461,7 +579,37 @@ class ExportActivity : AppCompatActivity() {
         )
     }
 
+    private fun scheduleWebDavBackup() {
+        val webDavPrefs = WebDavHelper.getEncryptedSharedPreferences(this)
+        val isWebDavEnabled = webDavPrefs.getBoolean(WebDavHelper.KEY_WEBDAV_ENABLED, false)
+
+        if (isWebDavEnabled) {
+            val backupFileType = preferences.getString("backup_file_type", "DB")
+            val inputData = workDataOf("backupFileType" to backupFileType)
+            val frequency = webDavPrefs.getInt("backup_frequency_webdav", 1440)
+
+            val constraints = Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val exportWorkRequest = PeriodicWorkRequestBuilder<WebDavBackupWorker>(frequency.toLong(), TimeUnit.MINUTES)
+                .setInputData(inputData)
+                .setConstraints(constraints)
+                .addTag("WebDavBackupWorker")
+                .build()
+
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "WebDavBackupWorker",
+                ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                exportWorkRequest
+            )
+        }
+    }
+
     private fun scheduleDatabaseExport() {
+        scheduleWebDavBackup()
+        
         val dbBackupDirectory = preferences.getString("db_backup_directory", null)
         if (dbBackupDirectory != null) {
             val directoryUri = Uri.parse(dbBackupDirectory)
