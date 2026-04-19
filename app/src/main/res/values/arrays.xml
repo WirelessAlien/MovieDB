@@ -54,7 +54,7 @@
     <string-array name="app_language_entries">
         <item>System Default</item>
         <item>English</item>
-        <item>Español</item>
+        <item>Ελληνικά</item>
         <item>Français</item>
         <item>Deutsch</item>
         <item>Русский</item>
@@ -63,7 +63,7 @@
     <string-array name="app_language_values">
         <item>system</item>
         <item>en</item>
-        <item>es</item>
+        <item>el</item>
         <item>fr</item>
         <item>de</item>
         <item>ru</item>

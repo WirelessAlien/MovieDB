@@ -18,11 +18,8 @@
   ~     You should have received a copy of the GNU General Public License
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
-
-<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
-    <locale android:name="en"/>
-    <locale android:name="el"/>
-    <locale android:name="fr"/>
-    <locale android:name="de"/>
-    <locale android:name="ru"/>
-</locale-config>
+ 
+<resources>
+    <string name="app_name" translatable="false">ShowCase Plus</string>
+    <string name="search_title_ext">Αναζήτηση στο ShowCase Plus</string>
+</resources>
