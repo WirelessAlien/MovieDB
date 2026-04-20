@@ -57,6 +57,8 @@ class KeywordSearchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityKeywordSearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         
         keywordId = intent.getIntExtra("keywordId", -1)
@@ -65,6 +67,8 @@ class KeywordSearchActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = keywordName
+
+        binding.appBar.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)
 
         setupRecyclerView()
         setupChips()

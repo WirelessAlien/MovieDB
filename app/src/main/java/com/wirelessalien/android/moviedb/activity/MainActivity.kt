@@ -70,6 +70,9 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.Constraints
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.FlexWrap
+import com.google.android.flexbox.FlexboxLayoutManager
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -674,7 +677,11 @@ class MainActivity : BaseActivity() {
             return
         }
 
-        binding.searchResultsRecyclerView.layoutManager = LinearLayoutManager(this)
+        val flexboxLayoutManager = FlexboxLayoutManager(this).apply {
+            flexDirection = FlexDirection.ROW
+            flexWrap = FlexWrap.WRAP
+        }
+        binding.searchResultsRecyclerView.layoutManager = flexboxLayoutManager
         binding.searchResultsRecyclerView.adapter = keywordAdapter
 
         lifecycleScope.launch {
