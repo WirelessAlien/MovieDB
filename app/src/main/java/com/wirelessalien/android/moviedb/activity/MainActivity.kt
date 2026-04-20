@@ -151,6 +151,7 @@ class MainActivity : BaseActivity() {
     private lateinit var settingsActivityResultLauncher: ActivityResultLauncher<Intent>
     private lateinit var mHomeSearchShowAdapter: ShowPagingAdapter
     private lateinit var mDatabaseSearchAdapter: ShowBaseAdapter
+    private lateinit var keywordAdapter: com.wirelessalien.android.moviedb.adapter.KeywordAdapter
     private lateinit var mShowLinearLayoutManager: LinearLayoutManager
     private lateinit var mShowGenreList: HashMap<String, String?>
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
@@ -355,6 +356,12 @@ class MainActivity : BaseActivity() {
 
         mShowGenreList = HashMap()
         mHomeSearchShowAdapter = ShowPagingAdapter(mShowGenreList, gridView = true, showDeleteButton = false)
+        keywordAdapter = com.wirelessalien.android.moviedb.adapter.KeywordAdapter { keyword ->
+            val intent = Intent(this, KeywordSearchActivity::class.java)
+            intent.putExtra("keywordId", keyword.optInt("id"))
+            intent.putExtra("keywordName", keyword.optString("name"))
+            startActivity(intent)
+        }
 
         val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         binding.searchResultsRecyclerView.layoutManager = mShowGridView
@@ -561,28 +568,31 @@ class MainActivity : BaseActivity() {
             val isShowMovieChecked = binding.chipShowMovie.isChecked
             val isMovieChecked = binding.chipMovie.isChecked
             val isShowChecked = binding.chipShow.isChecked
+            val isKeywordChecked = binding.chipKeyword.isChecked
 
-            val currentFragment = getCurrentFragment()
-            if (currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt) {
-                if (isShowMovieChecked) {
-                    multiSearch(query)
-                } else if (isMovieChecked) {
-                    showSearch("movie", query)
-                } else if (isShowChecked) {
-                    showSearch("tv", query)
+            if (isKeywordChecked) {
+                keywordSearch(query)
+            } else {
+                val currentFragment = getCurrentFragment()
+                if (currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt) {
+                    if (isShowMovieChecked) {
+                        multiSearch(query)
+                    } else if (isMovieChecked) {
+                        showSearch("movie", query)
+                    } else if (isShowChecked) {
+                        showSearch("tv", query)
+                    }
+                } else if (currentFragment is ShowFragment) {
+                    val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                    if (listType == "movie") {
+                        showSearch(listType, query)
+                    } else if (listType == "tv") {
+                        showSearch(listType, query)
+                    }
+                } else if (currentFragment is ListFragment) {
+                    databaseSearch(query)
                 }
-            } else if (currentFragment is ShowFragment) {
-                val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
-                if (listType == "movie") {
-                    showSearch(listType, query)
-                } else if (listType == "tv") {
-                    showSearch(listType, query)
-                }
-            } else if (currentFragment is ListFragment) {
-                databaseSearch(query)
             }
-            
-            fetchKeywords(query)
         }
         
         binding.chipShowMovie.setOnCheckedChangeListener { _, isChecked ->
@@ -598,6 +608,12 @@ class MainActivity : BaseActivity() {
             }
         }
         binding.chipShow.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+        binding.chipKeyword.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 val query = binding.searchView.editText.text.toString()
                 if (query.isNotEmpty()) doSearch(query)
@@ -635,84 +651,6 @@ class MainActivity : BaseActivity() {
                     false
                 }
             }
-            
-            binding.searchView.editText.addTextChangedListener(object : TextWatcher {
-                private val handler = Handler(Looper.getMainLooper())
-                private var workRunnable: Runnable? = null
-                override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                    if (workRunnable != null) {
-                        handler.removeCallbacks(workRunnable!!)
-                    }
-                    workRunnable = Runnable {
-                        fetchKeywords(s.toString())
-                    }
-                    handler.postDelayed(workRunnable!!, 500)
-                }
-
-                override fun afterTextChanged(s: Editable) {}
-            })
-        }
-    }
-
-    private fun fetchKeywords(query: String) {
-        if (query.isEmpty()) {
-            binding.searchChipGroup.removeViews(3, binding.searchChipGroup.childCount - 3)
-            return
-        }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val url = java.net.URL("https://api.themoviedb.org/3/search/keyword?query=${query}&page=1")
-                val request = Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Authorization", "Bearer $apiReadAccessToken")
-                    .build()
-
-                val client = OkHttpClient()
-                val response = client.newCall(request).execute()
-                val responseBody = response.body?.string() ?: ""
-                
-                if (response.isSuccessful && responseBody.isNotEmpty()) {
-                    val json = JSONObject(responseBody)
-                    val results = json.optJSONArray("results")
-                    
-                    withContext(Dispatchers.Main) {
-                        binding.searchChipGroup.removeViews(3, binding.searchChipGroup.childCount - 3)
-                        
-                        if (results != null) {
-                            for (i in 0 until Math.min(results.length(), 10)) {
-                                val item = results.getJSONObject(i)
-                                val keywordId = item.getInt("id")
-                                val keywordName = item.getString("name")
-                                
-                                val chip = Chip(this@MainActivity)
-                                chip.text = keywordName
-                                chip.isCheckable = true
-                                chip.setChipDrawable(com.google.android.material.chip.ChipDrawable.createFromAttributes(
-                                    this@MainActivity,
-                                    null,
-                                    0,
-                                    com.google.android.material.R.style.Widget_Material3_Chip_Filter
-                                ))
-                                chip.setOnCheckedChangeListener { _, isChecked ->
-                                    if (isChecked) {
-                                        chip.isChecked = false
-                                        val intent = Intent(this@MainActivity, KeywordSearchActivity::class.java)
-                                        intent.putExtra("keywordId", keywordId)
-                                        intent.putExtra("keywordName", keywordName)
-                                        startActivity(intent)
-                                    }
-                                }
-                                binding.searchChipGroup.addView(chip)
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
         }
     }
 
@@ -731,11 +669,55 @@ class MainActivity : BaseActivity() {
         binding.searchView.editText.hint = hint
     }
 
+    fun keywordSearch(query: String?) {
+        if (query.isNullOrEmpty()) {
+            return
+        }
+
+        binding.searchResultsRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.searchResultsRecyclerView.adapter = keywordAdapter
+
+        lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                com.wirelessalien.android.moviedb.pagingSource.SearchKeywordPagingSource(apiReadAccessToken, query)
+            }.flow.collectLatest { pagingData ->
+                keywordAdapter.submitData(pagingData)
+            }
+        }
+
+        keywordAdapter.addLoadStateListener { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.searchResultsRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    val errorMessage = (loadState.source.refresh as LoadState.Error).error.message
+                    Toast.makeText(this, getString(R.string.error_loading_data) + ": " + errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     fun multiSearch(query: String?) {
         if (query.isNullOrEmpty()) {
             return
         }
 
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
+        binding.searchResultsRecyclerView.layoutManager = mShowGridView
         binding.searchResultsRecyclerView.adapter =  mHomeSearchShowAdapter
 
         lifecycleScope.launch {
@@ -782,6 +764,8 @@ class MainActivity : BaseActivity() {
             return
         }
 
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
+        binding.searchResultsRecyclerView.layoutManager = mShowGridView
         binding.searchResultsRecyclerView.adapter =  mHomeSearchShowAdapter
 
         lifecycleScope.launch {

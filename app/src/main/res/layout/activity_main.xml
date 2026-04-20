@@ -90,6 +90,12 @@
                         android:layout_height="wrap_content"
                         android:text="@string/title_series" />
 
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_keyword"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/keyword_text" />
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
 
