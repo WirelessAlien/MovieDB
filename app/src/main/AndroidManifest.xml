@@ -273,6 +273,10 @@
             android:theme="@style/Theme.Transparent">
         </activity>
 
+        <activity android:name=".activity.KeywordSearchActivity"
+            android:theme="@style/AppTheme">
+        </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

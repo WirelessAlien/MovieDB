@@ -4632,6 +4632,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.keywordsLayout.removeAllViews()
             for (i in 0 until keywordsArray.length()) {
                 val keyword = keywordsArray.getJSONObject(i)
+                val keywordId = keyword.getInt("id")
                 val keywordName = keyword.getString("name")
                 val cardView = MaterialCardView(context)
                 cardView.radius = 5f
@@ -4643,6 +4644,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 keywordTextView.setPadding(8, 4, 8, 4)
                 keywordTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
                 cardView.addView(keywordTextView)
+                cardView.setOnClickListener {
+                    val intent = Intent(context, KeywordSearchActivity::class.java)
+                    intent.putExtra("keywordId", keywordId)
+                    intent.putExtra("keywordName", keywordName)
+                    startActivity(intent)
+                }
                 val params = FlexboxLayout.LayoutParams(
                     FlexboxLayout.LayoutParams.WRAP_CONTENT,
                     FlexboxLayout.LayoutParams.WRAP_CONTENT

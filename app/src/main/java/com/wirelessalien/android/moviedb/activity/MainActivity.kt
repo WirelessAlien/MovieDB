@@ -557,6 +557,53 @@ class MainActivity : BaseActivity() {
     private fun setupSearchView() {
         val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, false)
 
+        val doSearch = { query: String ->
+            val isShowMovieChecked = binding.chipShowMovie.isChecked
+            val isMovieChecked = binding.chipMovie.isChecked
+            val isShowChecked = binding.chipShow.isChecked
+
+            val currentFragment = getCurrentFragment()
+            if (currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt) {
+                if (isShowMovieChecked) {
+                    multiSearch(query)
+                } else if (isMovieChecked) {
+                    showSearch("movie", query)
+                } else if (isShowChecked) {
+                    showSearch("tv", query)
+                }
+            } else if (currentFragment is ShowFragment) {
+                val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                if (listType == "movie") {
+                    showSearch(listType, query)
+                } else if (listType == "tv") {
+                    showSearch(listType, query)
+                }
+            } else if (currentFragment is ListFragment) {
+                databaseSearch(query)
+            }
+            
+            fetchKeywords(query)
+        }
+        
+        binding.chipShowMovie.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+        binding.chipMovie.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+        binding.chipShow.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+
         if (liveSearch) {
             binding.searchView.editText.addTextChangedListener(object : TextWatcher {
                 private val handler = Handler(Looper.getMainLooper())
@@ -567,23 +614,7 @@ class MainActivity : BaseActivity() {
                         handler.removeCallbacks(workRunnable!!)
                     }
                     workRunnable = Runnable {
-                        val currentFragment = getCurrentFragment()
-                        if (currentFragment is HomeFragment) {
-                            multiSearch(s.toString())
-                        } else if (currentFragment is ShowFragment) {
-                            val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
-                            if (listType == "movie") {
-                                showSearch(listType, s.toString())
-                            } else if (listType == "tv") {
-                                showSearch(listType, s.toString())
-                            }
-                        } else if (currentFragment is ListFragment) {
-                            databaseSearch(s.toString())
-                        } else if (currentFragment is AccountDataFragment) {
-                            multiSearch(s.toString())
-                        } else if (currentFragment is AccountDataFragmentTkt) {
-                            multiSearch(s.toString())
-                        }
+                        doSearch(s.toString())
                     }
                     handler.postDelayed(workRunnable!!, 500)
                 }
@@ -596,29 +627,91 @@ class MainActivity : BaseActivity() {
                     actionId == EditorInfo.IME_ACTION_SEARCH ||
                     event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER) {
                     val query = v.text.toString()
-                    val currentFragment = getCurrentFragment()
-                    if (currentFragment is HomeFragment) {
-                        multiSearch(query)
-                    } else if (currentFragment is ShowFragment) {
-                        val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
-                        if (listType == "movie") {
-                            showSearch(listType, query)
-                        } else if (listType == "tv") {
-                            showSearch(listType, query)
-                        }
-                    } else if (currentFragment is ListFragment) {
-                        databaseSearch(query)
-                    } else if (currentFragment is AccountDataFragment) {
-                        multiSearch(query)
-                    } else if (currentFragment is AccountDataFragmentTkt) {
-                        multiSearch(query)
-                    }
+                    doSearch(query)
                     val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(v.windowToken, 0)
                     true
                 } else {
                     false
                 }
+            }
+            
+            binding.searchView.editText.addTextChangedListener(object : TextWatcher {
+                private val handler = Handler(Looper.getMainLooper())
+                private var workRunnable: Runnable? = null
+                override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                    if (workRunnable != null) {
+                        handler.removeCallbacks(workRunnable!!)
+                    }
+                    workRunnable = Runnable {
+                        fetchKeywords(s.toString())
+                    }
+                    handler.postDelayed(workRunnable!!, 500)
+                }
+
+                override fun afterTextChanged(s: Editable) {}
+            })
+        }
+    }
+
+    private fun fetchKeywords(query: String) {
+        if (query.isEmpty()) {
+            binding.searchChipGroup.removeViews(3, binding.searchChipGroup.childCount - 3)
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val url = java.net.URL("https://api.themoviedb.org/3/search/keyword?query=${query}&page=1")
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("Authorization", "Bearer $apiReadAccessToken")
+                    .build()
+
+                val client = OkHttpClient()
+                val response = client.newCall(request).execute()
+                val responseBody = response.body?.string() ?: ""
+                
+                if (response.isSuccessful && responseBody.isNotEmpty()) {
+                    val json = JSONObject(responseBody)
+                    val results = json.optJSONArray("results")
+                    
+                    withContext(Dispatchers.Main) {
+                        binding.searchChipGroup.removeViews(3, binding.searchChipGroup.childCount - 3)
+                        
+                        if (results != null) {
+                            for (i in 0 until Math.min(results.length(), 10)) {
+                                val item = results.getJSONObject(i)
+                                val keywordId = item.getInt("id")
+                                val keywordName = item.getString("name")
+                                
+                                val chip = Chip(this@MainActivity)
+                                chip.text = keywordName
+                                chip.isCheckable = true
+                                chip.setChipDrawable(com.google.android.material.chip.ChipDrawable.createFromAttributes(
+                                    this@MainActivity,
+                                    null,
+                                    0,
+                                    com.google.android.material.R.style.Widget_Material3_Chip_Filter
+                                ))
+                                chip.setOnCheckedChangeListener { _, isChecked ->
+                                    if (isChecked) {
+                                        chip.isChecked = false
+                                        val intent = Intent(this@MainActivity, KeywordSearchActivity::class.java)
+                                        intent.putExtra("keywordId", keywordId)
+                                        intent.putExtra("keywordName", keywordName)
+                                        startActivity(intent)
+                                    }
+                                }
+                                binding.searchChipGroup.addView(chip)
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
