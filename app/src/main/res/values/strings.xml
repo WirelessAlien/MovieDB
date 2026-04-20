@@ -813,6 +813,9 @@
 
     <string name="app_language">App language</string>
     <string name="episode_groups">Episode Groups</string>
+    <string name="chip_show_movie">Shows &amp; Movies</string>
+    <string name="chip_word">Keywords</string>
+
     <!-- WebDAV Sync & Backup -->
     <string name="webdav_backup">WebDAV Backup</string>
     <string name="enable_webdav_sync_backup">Enable WebDAV Sync/Backup</string>

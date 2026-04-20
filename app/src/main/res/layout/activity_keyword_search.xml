@@ -37,7 +37,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll|enterAlways"
-            app:navigationIcon="@drawable/ic_action_name">
+            app:navigationIcon="?attr/homeAsUpIndicator">
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -51,7 +51,9 @@
             android:id="@+id/keyword_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="5dp"
             app:singleLine="true"
             app:singleSelection="true">
 
@@ -69,7 +71,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/title_series" />
-
         </com.google.android.material.chip.ChipGroup>
 
         <FrameLayout
@@ -80,7 +81,7 @@
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="2dip"
+                android:padding="11dp"
                 android:scrollbars="none" />
 
             <com.facebook.shimmer.ShimmerFrameLayout
