@@ -179,4 +179,6 @@ If you find ShowCase useful and would like to support its development, please co
 </a>
 
 ## Team Members
-* Mehmet Eren Tutas     
+* Mehmet Eren Tutas
+* Doga Celebi
+* Gaye Gulmez
