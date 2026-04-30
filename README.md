@@ -177,3 +177,6 @@ If you find ShowCase useful and would like to support its development, please co
 <a href="https://www.paypal.me/WirelessAlien">
   <img src="https://github.com/user-attachments/assets/d2b47113-80e3-40f7-aeb1-a4e07c56c2ef" alt="paypal" width="100" />
 </a>
+
+## Team Members
+* Mehmet Eren Tutas     
