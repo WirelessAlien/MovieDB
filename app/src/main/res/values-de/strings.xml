@@ -323,7 +323,7 @@
     <string name="season1">Staffel</string>
     <string name="hide_the_account_tab_tkt">Den Registerkarte \'Account (TRAKT)\' verbergen</string>
     <string name="search_people">Suche nach Personen</string>
-    <string name="search_movies">Nach Filme suchen…</string>
+    <string name="search_movies">Nach Filmen suchen…</string>
     <string name="search_series">Nach Serien suchen…</string>
     <string name="search_saved">Gespeichert durchsuchen…</string>
     <string name="error_loading_data">Fehler</string>
