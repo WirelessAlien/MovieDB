@@ -35,7 +35,7 @@
     <string name="plan_to_watch">Θέλω να παρακολουθήσω</string>
     <string name="watched">Παρακολούθησα</string>
     <string name="on_hold">Σε Παύση</string>
-    <string name="dropped">Η Παρακολούθηση Σταμάτησε</string>
+    <string name="dropped">Παρατήθηκε</string>
     <string name="dates">Ημερομηνίες</string>
     <string name="in_the_theater_right_now">Στους κινηματογράφους</string>
     <string name="between_two_dates">Μεταξύ δύο ημερομηνιών</string>
@@ -267,7 +267,7 @@
     <string name="watched1">Παρακολουθήθηκε: %1$d</string>
     <string name="plan_to_watch1">Σκοπεύεις να Παρακολουθήσεις: %1$d</string>
     <string name="on_hold1">Παρακολούθηση σε Παύση : %1$d</string>
-    <string name="dropped1">Η Παρακολούθηση Σταμάτησε: %1$d</string>
+    <string name="dropped1">Παρατήθηκε: %1$d</string>
     <string name="watch_summary">Περίληψη Παρακολουθήσεων</string>
     <string name="share_link_using">Κοινοποίηση συνδέσμου χρήσης</string>
     <string name="episode_title">Κ:%1$d Ε:%2$d %3$s</string>
