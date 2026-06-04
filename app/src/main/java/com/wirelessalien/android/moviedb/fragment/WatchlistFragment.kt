@@ -121,4 +121,14 @@ class WatchlistFragment : TogglableFragment() {
             }
         }
     }
+    // 2. HAFTA GÜNCELLEMESİ: İzleme listesi içi hızlı film arama fonksiyonu.
+    // Kullanıcının kendi listesinde yaptığı aramaları filtreleyen yerel fonksiyon.
+    fun filterWatchlistMovies(searchKey: String) {
+        if (searchKey.length >= 2) {
+            android.util.Log.d("WatchlistSearch", "İzleme listesinde arama yapılıyor: $searchKey")
+            // Listeyi filtreleme mantığı sonraki milestone kapsamında eklenecektir.
+        } else {
+            android.util.Log.v("WatchlistSearch", "Arama sorgusu yetersiz karakter içeriyor.")
+        }
+    }
 }

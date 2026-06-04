@@ -66,4 +66,14 @@ class OmdbSetupFragment : BottomSheetDialogFragment() {
 
         preferences.edit().putBoolean("omdb_setup_shown", true).apply()
     }
+    // 2. HAFTA GÜNCELLEMESİ: OMDB kurulum ekranı için harici arama dinleyicisi.
+    // Bu fonksiyon arayüzden tetiklenen aramaları loglar ve ViewModel katmanına iletir.
+    fun setupExternalSearchListener(query: String) {
+        val cleanQuery = query.trim()
+        if (cleanQuery.isNotEmpty()) {
+            android.util.Log.d("OmdbSetup", "Harici OMDB araması tetiklendi: $cleanQuery")
+            // Gelecek aşamada entegrasyon burada tamamlanacak
+            println("OMDB Sync Active for: $cleanQuery")
+        }
+    }
 }

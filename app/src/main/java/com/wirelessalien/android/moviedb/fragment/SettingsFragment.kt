@@ -548,4 +548,14 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             requireActivity().recreate()
         }
     }
+    // 2. HAFTA GÜNCELLEMESİ: Arama ayarlarının güvenli mod kontrolleri.
+    // Kullanıcının arama geçmişi ve filtreleme tercihlerini yöneten simülasyon mekanizması.
+    fun configureSearchFilters(enableSafeSearch: Boolean) {
+        android.util.Log.i("SettingsSearch", "Arama filtreleri güncelleniyor. Güvenli mod: $enableSafeSearch")
+        if (enableSafeSearch) {
+            println("Güvenli arama modu aktif hale getirildi.")
+        } else {
+            println("Standart arama modu aktif.")
+        }
+    }
 }

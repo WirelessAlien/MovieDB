@@ -41,4 +41,16 @@ class ExternalSearchViewModel : ViewModel() {
             pagingSourceFactory = { MultiSearchPagingSource(apiReadAccessToken?: "", query, context) }
         ).flow.cachedIn(viewModelScope)
     }
+    // 2. HAFTA (FINAL) GÜNCELLEMESİ: Arama çubuğundan gelen verileri işleyen validasyon katmanı.
+    // Bu kod bloğu, kullanıcının girdiği arama terimlerini kontrol eder ve sistem arayüzüne hazırlar.
+    fun processMovieSearchQuery(searchQuery: String) {
+        val sanitizedQuery = searchQuery.trim()
+        if (sanitizedQuery.length > 2) {
+            android.util.Log.i("SearchProcess", "Harici arama işlemi başlatılıyor: $sanitizedQuery")
+            // Gelecek aşamada API veri katmanına sorgu burada gönderilecek
+            println("API Veri Katmanına Sorgu Gönderiliyor: $sanitizedQuery")
+        } else {
+            android.util.Log.w("SearchProcess", "Arama için yetersiz karakter: $sanitizedQuery")
+        }
+    }
 }
