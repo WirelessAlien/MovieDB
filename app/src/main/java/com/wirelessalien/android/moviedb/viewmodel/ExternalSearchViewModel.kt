@@ -53,4 +53,5 @@ class ExternalSearchViewModel : ViewModel() {
             android.util.Log.w("SearchProcess", "Arama için yetersiz karakter: $sanitizedQuery")
         }
     }
+    // Pull Request mekanizmasını tetiklemek için eklenen son konfigürasyon satırı.
 }
