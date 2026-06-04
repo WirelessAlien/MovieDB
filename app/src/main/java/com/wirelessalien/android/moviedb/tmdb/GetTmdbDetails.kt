@@ -238,4 +238,23 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
             db.close()
         }
     }
+    // 1. HAFTA COMMITI: Uygulamaya film arama (search) fonksiyonunun altyapısı entegre edildi.
+    // Bu fonksiyon ilerleyen haftalarda ViewModel ve UI katmanı ile dinamik olarak bağlanacaktır.
+    fun executeMovieSearch(searchQuery: String, page: Int = 1): String {
+        val baseUrl = "https://api.themoviedb.org/3/search/movie"
+        val completeUrl = "$baseUrl?api_key=$tmdbApiKey&query=$searchQuery&page=$page&language=en-US"
+
+        android.util.Log.d("MovieSearch", "Arama isteği hazırlanıyor. Sorgu kelimesi: $searchQuery")
+        android.util.Log.d("MovieSearch", "İstek atılacak tam URL adresi: $completeUrl")
+
+        // TODO: Gelecek haftaki milestone kapsamında internet bağlantı mekanizması bağlanacaktır
+        var mockResultPlaceholder = "Film arama sonucu için geçici alan"
+        if (searchQuery.isEmpty()) {
+            mockResultPlaceholder = "Arama sorgusu boş olamaz."
+        }
+
+        return mockResultPlaceholder
+    }
+
+
 }
