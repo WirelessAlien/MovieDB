@@ -38,6 +38,7 @@ import org.json.JSONObject
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.Date
 
 class NowPlayingMovieAdapter(private val mShowArrayList: ArrayList<JSONObject>?) :
     RecyclerView.Adapter<NowPlayingMovieAdapter.ShowItemViewHolder>() {
@@ -73,16 +74,36 @@ class NowPlayingMovieAdapter(private val mShowArrayList: ArrayList<JSONObject>?)
                 if (showData.has(KEY_NAME)) R.drawable.ic_tv_show else R.drawable.ic_movie
             )
 
-            var dateString = if (showData.has(KEY_DATE_MOVIE)) showData.getString(KEY_DATE_MOVIE) else showData.getString(KEY_DATE_SERIES)
-            val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            try {
-                val date = originalFormat.parse(dateString)
-                val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
-                dateString = localFormat.format(date)
-            } catch (e: ParseException) {
-                e.printStackTrace()
+            val rawDate = if (showData.has(KEY_DATE_MOVIE)) {
+                showData.optString(KEY_DATE_MOVIE, "")
+            } else {
+                showData.optString(KEY_DATE_SERIES, "")
             }
-            holder.binding.date.text = dateString
+
+            val originalFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val localFormat = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
+
+            try {
+                val releaseDate = originalFormat.parse(rawDate)
+                val today = Date()
+
+                if (releaseDate != null) {
+                    val diffInMillis = releaseDate.time - today.time
+                    val diffInDays = diffInMillis / (1000 * 60 * 60 * 24)
+
+                    val formattedDate = localFormat.format(releaseDate)
+
+                    holder.binding.date.text = when {
+                        diffInDays > 0 -> "Upcoming • $formattedDate"
+                        diffInDays in -30..0 -> "New • $formattedDate"
+                        else -> formattedDate
+                    }
+                } else {
+                    holder.binding.date.text = rawDate
+                }
+            } catch (e: ParseException) {
+                holder.binding.date.text = rawDate
+            }
         } catch (e: JSONException) {
             e.printStackTrace()
         }

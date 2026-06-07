@@ -75,6 +75,8 @@ class HomeFragment : BaseFragment() {
     private lateinit var mTVShowAdapter: NowPlayingMovieAdapter
     private lateinit var mUpcomingMovieAdapter: NowPlayingMovieAdapter
     private lateinit var mUpcomingTVAdapter: NowPlayingMovieAdapter
+    private lateinit var mTopRatedMovieArrayList: ArrayList<JSONObject>
+    private lateinit var mTopRatedMovieAdapter: NowPlayingMovieAdapter
     private lateinit var binding: FragmentHomeBinding
     private lateinit var activityBinding: ActivityMainBinding
     private lateinit var menuProvider: MenuProvider
@@ -101,6 +103,7 @@ class HomeFragment : BaseFragment() {
                 fetchTrendingList()
                 fetchUpcomingMovies()
                 fetchUpcomingTVShows()
+
             }
         }
     }
@@ -117,6 +120,7 @@ class HomeFragment : BaseFragment() {
         showTrendingList()
         showUpcomingMovieList()
         showUpcomingTVShowList()
+      //  showTopRatedMovieList()
         activityBinding.fab2.visibility = View.GONE
         activityBinding.fab.visibility = View.GONE
         activityBinding.searchView.setupWithSearchBar(binding.searchbar)
@@ -227,11 +231,13 @@ class HomeFragment : BaseFragment() {
         mUpcomingTVAdapter = NowPlayingMovieAdapter(mUpcomingTVShowArrayList)
         mUpcomingMovieArrayList = ArrayList()
         mUpcomingMovieAdapter = NowPlayingMovieAdapter(mUpcomingMovieArrayList)
+        mTopRatedMovieArrayList = ArrayList()
+        mTopRatedMovieAdapter = NowPlayingMovieAdapter(mTopRatedMovieArrayList)
         (requireActivity() as BaseActivity).checkNetwork()
     }
 
     private fun setupRecyclerView(
-        recyclerView: RecyclerView?,
+        recyclerView: RecyclerView,
         layoutManager: LinearLayoutManager,
         adapter: RecyclerView.Adapter<*>?
     ) {
@@ -258,7 +264,10 @@ class HomeFragment : BaseFragment() {
         val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         setupRecyclerView(binding.upcomingMovieRecyclerView, layoutManager, mUpcomingMovieAdapter)
     }
-
+    private fun showTopRatedMovieList() {
+        val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+        setupRecyclerView(binding.upcomingMovieRecyclerView, layoutManager, mTopRatedMovieAdapter)
+    }
     private suspend fun fetchUpcomingTVShows() {
         withContext(Dispatchers.Main) {
             binding.shimmerFrameLayout5.visibility = View.VISIBLE
@@ -272,7 +281,7 @@ class HomeFragment : BaseFragment() {
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {
-                handleUpcomingTVResponse(response)
+                handleMovieResponse(response)
             } else {
                 binding.shimmerFrameLayout5.visibility = View.GONE
                 binding.shimmerFrameLayout5.stopShimmer()
@@ -323,7 +332,7 @@ class HomeFragment : BaseFragment() {
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {
-                handleMovieResponse(response)
+                //SDFKLNHGJKSHKDJFGHSJKLGHDFJKFDGHKJFDHJKFGDHJGIDFK
             } else {
                 binding.shimmerFrameLayout2.visibility = View.GONE
                 binding.shimmerFrameLayout2.stopShimmer()
@@ -374,10 +383,12 @@ class HomeFragment : BaseFragment() {
                 val reader = JSONObject(response)
                 val arrayData = reader.getJSONArray("results")
                 mHomeShowArrayList.clear()
+
                 for (i in 0 until arrayData.length()) {
                     val websiteData = arrayData.getJSONObject(i)
                     mHomeShowArrayList.add(websiteData)
                 }
+
                 binding.nowPlayingRecyclerView.adapter = mHomeShowAdapter
                 mShowListLoaded = true
                 binding.shimmerFrameLayout2.visibility = View.GONE
