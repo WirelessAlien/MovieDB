@@ -40,7 +40,7 @@
     <string name="times_watched">%1$d</string>
     <string name="rating">"Note : "</string>
     <string name="change_start_date_2">"Date de début : "</string>
-    <string name="change_finish_date_2">"Date de fin : "</string>
+    <string name="change_finish_date_2">"Date d\'achèvement : "</string>
     <string name="change_watched_times">"Nombre de visionnages : "</string>
     <string name="cast_title">Distribution</string>
     <string name="crew_title">Équipes</string>
@@ -110,7 +110,7 @@
     <string name="title_hide_saved_tab">Masquer l\'onglet « Enregistrées »</string>
     <string name="title_api_language">Langue de l\'API</string>
     <string name="summary_api_language">Définissez la langue des données de l\'API (sinon, la langue par défaut sera celle du système).</string>
-    <string name="text_tmdb_credits">Ce produit utilise l\'API TMDB mais n\'est ni approuvé ni certifié par TMDB.</string>
+    <string name="text_tmdb_credits">Ce produit utilise l\'API TMDB, mais n\'est ni approuvé ni certifié par TMDB.</string>
     <!-- (General) Toasts -->
     <string name="no_internet_connection">Pas de connexion internet</string>
     <!-- Image content descriptions -->
@@ -145,7 +145,7 @@
     <string name="user_name">Nom d\'utilisateur</string>
     <string name="private_list">Privé</string>
     <string name="watchlist">À regarder</string>
-    <string name="rate">Note</string>
+    <string name="rate">Évaluation</string>
     <string name="favourite">Favoris</string>
     <string name="overview">Aperçu</string>
     <string name="other_details">Autres détails</string>
@@ -246,7 +246,7 @@
     <string name="export_info">L\'application permet l\'exportation de fichiers aux formats « .db », « .json » et « .csv ». Veuillez noter cependant que seul le format « .db » est pris en charge pour les importations ultérieures.</string>
     <string name="directory_path">Chemin : %1$s</string>
     <string name="no_browser_available">Aucune application ne peut traiter cette requête. Veuillez installer un navigateur web.</string>
-    <string name="rate_movie">Note</string>
+    <string name="rate_movie">Évaluation</string>
     <string name="edit">Modifier</string>
     <string name="done">Fait</string>
     <string name="episode_rating_tmdb_not_set">Note (TMDB) : Non définie</string>
@@ -486,7 +486,7 @@
     <string name="mark_all_previous_episodes_as_watched">Marquer tous les épisodes précédents comme vus</string>
     <string name="watched_now">Regardé maintenant</string>
     <string name="watched_at_release">Visionné lors de sa sortie</string>
-    <string name="select_date">Sélectionnez une date</string>
+    <string name="select_date">Sélectionner une date</string>
     <string name="database_not_imported">Impossible d\'importer la base de données</string>
     <string name="no_up_next_episodes">Aucun épisode à venir</string>
     <string name="preference_show_next_episode_title">Afficher le prochain épisode à regarder</string>
@@ -498,7 +498,7 @@
     <string name="all_episodes_watched_message">Vous êtes à jour !</string>
     <string name="up_next">À suivre</string>
     <string name="no_seasons_found">Aucune saison trouvée pour cette série.</string>
-    <string name="show_not_in_database">Pour utiliser cette fonctionnalité, enregistrez la série dans votre base de données locale.</string>
+    <string name="show_not_in_database">« Enregistrez » l\'émission dans la base de données locale pour pouvoir utiliser cette fonctionnalité</string>
     <string name="number">%d</string>
     <string name="no_app_found_to_pick_files">Aucune application trouvée pour sélectionner les fichiers.</string>
     <string name="could_not_read_headers">Impossible de lire les en-têtes. Vérifiez le délimiteur ou assurez-vous que le fichier CSV n\'est pas vide.</string>
@@ -565,7 +565,7 @@
     <string name="downloading_update">Téléchargement de la mise à jour</string>
     <string name="failed_to_open_installer">Impossible d\'ouvrir le programme d\'installation</string>
     <string name="get_app_update">Récupérer automatiquement les mises à jour de l\'application</string>
-    <string name="get_app_update_summary">Obtenez automatiquement la nouvelle version disponible de l\'application dans l\'application.</string>
+    <string name="get_app_update_summary">Téléchargez automatiquement la nouvelle version de l\'application depuis l\'application elle-même</string>
     <string name="update_available2">Mise à jour disponible !</string>
     <string name="continue_watching">Continuez à regarder !</string>
     <string name="quick_access_of_episodes_to_watch_next">Afficher le bouton « Continuer à regarder ! »</string>
@@ -583,7 +583,7 @@
     <string name="notification_permission_not_granted">Autorisation de publication de notification non accordée</string>
     <string name="post_notification_permission_not_granted">Autorisation de publication refusée</string>
     <string name="grant_notification_permissions">Veuillez d\'abord accorder les autorisations de notification et d\'alarme</string>
-    <string name="donate_desc">Si vous trouvez l\'application utile, merci d\'envisager de soutenir son développement.</string>
+    <string name="donate_desc">Si vous trouvez cette application utile, n\'hésitez pas à soutenir son développement.</string>
     <string name="faq">FAQ</string>
     <string name="failed_to_load_faq">Impossible de charger la FAQ.</string>
     <string name="title_behavior">Comportement</string>
