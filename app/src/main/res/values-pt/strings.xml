@@ -1,3 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="no_permission_dialog_ok">OK</string>
+    <string name="place_of_birth">Local de Nascimento: %1$s</string>
+    <string name="crew_movie_title">Parte da equipa em</string>
+    <string name="show_added_error">Não foi possível adicionar a série à base de dados</string>
+    <string name="rating">"Avaliação: "</string>
+    <string name="change_watched_times">"Vezes vistas: "</string>
+    <string name="cast_title">Elenco</string>
+    <string name="crew_title">Equipa</string>
+    <string name="sort_by">Classificar por</string>
+    <string name="most_popular">Mais Populares</string>
+    <string name="best_rated">Melhores Avaliados</string>
+    <string name="release_date">Data de Lançamento</string>
+    <string name="watching">Visto</string>
+    <string name="plan_to_watch">Planeo Assistir</string>
+    <string name="watched">Visto</string>
+    <string name="on_hold">Pausado</string>
+    <string name="dropped">Abandonado</string>
+    <string name="in_the_theater_right_now">Nos cinemas</string>
+    <string name="keyword_text">Exclua e inclua palavras-chave a pôr as suas IDs na respetiva caixa de texto abaixo.\n* Use , (vírgula) para indicar que quer dizer ambas as palavras-chave.\n* Use | (pipe) para indicar que quer uma ou outra.</string>
+    <string name="file_not_found_exception">Não foi possível encontrar o ficheiro</string>
+    <string name="hint_search">Pesquisar…</string>
+    <string name="action_export">Exportar</string>
+    <string name="action_import">Importar</string>
+    <string name="search_title_ext_p">Pesquisar no ShowCase Plus</string>
+    <string name="search_title_ext">Pesquisar no ShowCase</string>
+    <string name="not_watched">Não visto</string>
 </resources>
