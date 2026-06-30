@@ -679,4 +679,8 @@
     <string name="watch_providers_logic_explanation">Quando ativado, somente a mídia disponível em TODOS os provedores de relógio selecionados será mostrada.</string>
     <string name="countries_logic_explanation">Quando ativado, somente a mídia de TODOS os países de origem selecionados será mostrada.</string>
     <string name="list_state_info">A API TMDB não possui um método direto de recuperação de estado de disponibilidade (ou seja, se um filme está disponível ou não) para todas as listas em um único pedido. Consequentemente, cada filme deve ser verificado contra cada lista, o que é ineficiente. Os estados de lista são, portanto, gerenciados em um banco de dados off-line após buscar detalhes do TMDB. Quando um usuário adiciona ou remove um filme de uma lista, essa ação é gravada tanto no TMDB quanto no nosso banco de dados. No entanto, se um usuário modificar suas listas fora do aplicativo (por exemplo, no site do TMDB), o aplicativo não estará ciente dessas mudanças. Para atualizar os dados, os usuários podem atualizar manualmente suas listas usando o botão fornecido.</string>
+    <string name="in_history">Visto</string>
+    <string name="login">Entrar</string>
+    <string name="export">Exportar</string>
+    <string name="ok">OK</string>
 </resources>
