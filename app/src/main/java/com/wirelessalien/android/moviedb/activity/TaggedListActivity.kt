@@ -209,10 +209,6 @@ class TaggedListActivity : BaseActivity() {
         updateHideLabelVisibility()
     }
     
-    private fun updateHideLabelVisibility() {
-        binding.excludeLabel.visibility = if (hiddenTagIds.isNotEmpty()) View.VISIBLE else View.GONE
-    }
-
     private fun showAddHideFilterDialog() {
         lifecycleScope.launch(Dispatchers.IO) {
             val allTags = databaseHelper.getAllTags()
