@@ -203,10 +203,8 @@ class TaggedListActivity : BaseActivity() {
             binding.hideFilterChipGroup.removeView(chip)
             hiddenTagIds.remove(tagId)
             loadMovies()
-            updateHideLabelVisibility()
         }
         binding.hideFilterChipGroup.addView(chip, binding.hideFilterChipGroup.childCount - 1)
-        updateHideLabelVisibility()
     }
     
     private fun showAddHideFilterDialog() {
