@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     ShowCase is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     ShowCase is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/itemCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="?attr/textAppearanceSubtitle1"
+        app:layout_constraintEnd_toStartOf="@+id/typeBadge"
+        app:layout_constraintStart_toEndOf="@id/itemCheckbox"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Movie Title" />
+
+    <TextView
+        android:id="@+id/yearTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:textColor="?android:attr/textColorSecondary"
+        app:layout_constraintStart_toStartOf="@+id/titleTextView"
+        app:layout_constraintTop_toBottomOf="@+id/titleTextView"
+        tools:text="2023" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/typeBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Movie" />
+</androidx.constraintlayout.widget.ConstraintLayout>

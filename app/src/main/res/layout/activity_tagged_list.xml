@@ -62,8 +62,24 @@
                     android:id="@+id/addFilterChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/add_tag"
+                    android:text="@string/with_keywords_hint"
                     app:chipIcon="@drawable/ic_add"/>
+            </com.google.android.material.chip.ChipGroup>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/hideFilterChipGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacing="8dp"
+                app:singleLine="true">
+                
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/addHideFilterChip"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/without_keywords_hint"
+                    app:chipIcon="@drawable/ic_minus"/>
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 

@@ -833,4 +833,15 @@
     <string name="failed_to_restore_database_from_webdav">Failed to restore database from WebDAV</string>
     <string name="webdav_backup_failed">WebDAV Backup Failed</string>
     <string name="webdav_backup_successful">WebDAV Backup Successful</string>
+    <string name="bulk_tag_management">Manage Tags for Media</string>
+    <string name="add_to_tags">Add to Tag(s)</string>
+    <string name="remove_from_tags">Remove from Tag(s)</string>
+    <string name="items_selected">%d selected</string>
+    <string name="bulk_tag_success_add">Added %1$d item(s) to %2$d tag(s)</string>
+    <string name="bulk_tag_success_remove">Removed %1$d item(s) from %2$d tag(s)</string>
+    <string name="select_tags">Select Tags</string>
+    <string name="add_hide_tag">Add Exclude Tag</string>
+    <string name="exclude_label">Exclude:</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
 </resources>

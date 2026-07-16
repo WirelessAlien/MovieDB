@@ -1434,7 +1434,68 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         addTag("Owned")
     }
 
-    fun getMoviesForTags(tagIds: List<Long>): List<JSONObject> {
+    fun getAllMediaSimple(): List<com.wirelessalien.android.moviedb.data.MediaTagItem> {
+        val db = this.readableDatabase
+        val list = mutableListOf<com.wirelessalien.android.moviedb.data.MediaTagItem>()
+        val cursor = db.query(
+            TABLE_MOVIES,
+            arrayOf(COLUMN_MOVIES_ID, COLUMN_TITLE, COLUMN_RELEASE_DATE, COLUMN_MOVIE),
+            null,
+            null,
+            null,
+            null,
+            "$COLUMN_TITLE COLLATE NOCASE ASC"
+        )
+        
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getInt(it.getColumnIndexOrThrow(COLUMN_MOVIES_ID))
+                val title = it.getString(it.getColumnIndexOrThrow(COLUMN_TITLE)) ?: ""
+                val releaseDate = it.getString(it.getColumnIndexOrThrow(COLUMN_RELEASE_DATE)) ?: ""
+                val isMovie = it.getInt(it.getColumnIndexOrThrow(COLUMN_MOVIE)) == 1
+                list.add(com.wirelessalien.android.moviedb.data.MediaTagItem(id, title, releaseDate, isMovie))
+            }
+        }
+        return list
+    }
+    
+    fun bulkAddTag(mediaIds: List<Pair<Int, Boolean>>, tagId: Long) {
+        val db = this.writableDatabase
+        db.beginTransaction()
+        try {
+            for ((mediaId, isMovie) in mediaIds) {
+                val values = ContentValues().apply {
+                    put(COLUMN_MT_MOVIE_ID, mediaId)
+                    put(COLUMN_MT_TAG_ID, tagId)
+                    put(COLUMN_MT_IS_MOVIE, if (isMovie) 1 else 0)
+                }
+                db.insertWithOnConflict(TABLE_MOVIE_TAGS, null, values, SQLiteDatabase.CONFLICT_IGNORE)
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+    
+    fun bulkRemoveTag(mediaIds: List<Pair<Int, Boolean>>, tagId: Long) {
+        val db = this.writableDatabase
+        db.beginTransaction()
+        try {
+            for ((mediaId, isMovie) in mediaIds) {
+                val isMovieInt = if (isMovie) 1 else 0
+                db.delete(
+                    TABLE_MOVIE_TAGS,
+                    "$COLUMN_MT_MOVIE_ID = ? AND $COLUMN_MT_TAG_ID = ? AND $COLUMN_MT_IS_MOVIE = ?",
+                    arrayOf(mediaId.toString(), tagId.toString(), isMovieInt.toString())
+                )
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun getMoviesForTags(tagIds: List<Long>, hiddenTagIds: List<Long> = emptyList()): List<JSONObject> {
         val db = this.readableDatabase
         
         if (tagIds.isEmpty()) return ArrayList()
@@ -1442,12 +1503,29 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val placeholders = tagIds.joinToString(",") { "?" }
         val args = ArrayList<String>()
         tagIds.forEach { args.add(it.toString()) }
-
-        val query = """
+        
+        var query = """
             SELECT m.* 
             FROM $TABLE_MOVIES m
             INNER JOIN $TABLE_MOVIE_TAGS mt ON m.$COLUMN_MOVIES_ID = mt.$COLUMN_MT_MOVIE_ID AND m.$COLUMN_MOVIE = mt.$COLUMN_MT_IS_MOVIE
             WHERE mt.$COLUMN_MT_TAG_ID IN ($placeholders)
+        """
+        
+        if (hiddenTagIds.isNotEmpty()) {
+            val hiddenPlaceholders = hiddenTagIds.joinToString(",") { "?" }
+            hiddenTagIds.forEach { args.add(it.toString()) }
+            query += """
+                AND NOT EXISTS (
+                    SELECT 1 
+                    FROM $TABLE_MOVIE_TAGS mth 
+                    WHERE mth.$COLUMN_MT_MOVIE_ID = m.$COLUMN_MOVIES_ID 
+                      AND mth.$COLUMN_MT_IS_MOVIE = mt.$COLUMN_MT_IS_MOVIE 
+                      AND mth.$COLUMN_MT_TAG_ID IN ($hiddenPlaceholders)
+                )
+            """
+        }
+        
+        query += """
             GROUP BY m.$COLUMN_ID
             HAVING COUNT(DISTINCT mt.$COLUMN_MT_TAG_ID) = ${tagIds.size}
         """

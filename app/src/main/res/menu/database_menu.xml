@@ -45,4 +45,10 @@
         android:orderInCategory="4"
         android:title="@string/tags"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_bulk_tags"
+        android:orderInCategory="5"
+        android:title="@string/bulk_tag_management"
+        app:showAsAction="never" />
 </menu>

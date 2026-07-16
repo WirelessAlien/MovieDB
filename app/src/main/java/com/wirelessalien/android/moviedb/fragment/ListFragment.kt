@@ -313,6 +313,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         showTagsBottomSheet()
                         true
                     }
+                    
+                    R.id.action_bulk_tags -> {
+                        startActivity(Intent(requireContext(), com.wirelessalien.android.moviedb.activity.BulkTagActivity::class.java))
+                        true
+                    }
                     else -> false
                 }
             }
