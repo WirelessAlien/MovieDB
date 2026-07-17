@@ -65,6 +65,7 @@
                     
                     <com.google.android.material.chip.Chip
                         android:id="@+id/addFilterChip"
+                        style="@style/Widget.MaterialComponents.Chip.Action"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/with_keywords_hint"

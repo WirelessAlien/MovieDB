@@ -172,7 +172,7 @@ class BulkTagActivity : BaseActivity() {
             3 -> {
                 val binding = DialogEditTagBinding.inflate(layoutInflater)
 
-                binding.renameInput.hint = getString(R.string.add_new_tag)
+                binding.renameInputLayout.hint = getString(R.string.add_new_tag)
 
                 MaterialAlertDialogBuilder(this)
                     .setTitle(getString(R.string.add_new_tag))

@@ -53,7 +53,6 @@
                 android:hint="@android:string/search_go"
                 android:inputType="textNoSuggestions" />
         </com.google.android.material.textfield.TextInputLayout>
-            
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -83,6 +82,8 @@
                 android:id="@+id/addToTagButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="@string/add_to_tags" />
                 
             <com.google.android.material.button.MaterialButton
@@ -90,6 +91,8 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="@string/remove_from_tags" />
         </LinearLayout>
 
@@ -100,6 +103,8 @@
             android:layout_gravity="center_vertical"
             android:layout_marginStart="16dp"
             android:text="0 selected"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textStyle="bold" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

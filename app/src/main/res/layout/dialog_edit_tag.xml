@@ -26,8 +26,10 @@
     android:padding="24dp">
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/renameInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:hint="@string/edit_tag"
         app:boxCornerRadiusTopStart="10dp"
         app:boxCornerRadiusTopEnd="10dp"
         app:boxCornerRadiusBottomStart="10dp"
@@ -38,7 +40,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
-            style="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense"
-            android:hint="@string/edit_tag" />
+            style="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense" />
     </com.google.android.material.textfield.TextInputLayout>
 </LinearLayout>
