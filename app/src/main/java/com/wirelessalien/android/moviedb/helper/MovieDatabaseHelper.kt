@@ -1453,7 +1453,9 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 val title = it.getString(it.getColumnIndexOrThrow(COLUMN_TITLE)) ?: ""
                 val releaseDate = it.getString(it.getColumnIndexOrThrow(COLUMN_RELEASE_DATE)) ?: ""
                 val isMovie = it.getInt(it.getColumnIndexOrThrow(COLUMN_MOVIE)) == 1
-                list.add(com.wirelessalien.android.moviedb.data.MediaTagItem(id, title, releaseDate, isMovie))
+                val itemTags = getTagsForMovie(id, isMovie).joinToString { tag -> tag.name }
+                
+                list.add(com.wirelessalien.android.moviedb.data.MediaTagItem(id, title, releaseDate, isMovie, itemTags))
             }
         }
         return list

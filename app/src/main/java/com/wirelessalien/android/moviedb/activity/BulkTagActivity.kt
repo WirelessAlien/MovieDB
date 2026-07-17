@@ -23,15 +23,18 @@ package com.wirelessalien.android.moviedb.activity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.BulkTagMediaAdapter
 import com.wirelessalien.android.moviedb.databinding.ActivityBulkTagBinding
+import com.wirelessalien.android.moviedb.databinding.DialogEditTagBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -140,6 +143,7 @@ class BulkTagActivity : BaseActivity() {
                 Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG).show()
                 
                 adapter.deselectAll()
+                loadMedia()
             }
         }
     }
@@ -147,6 +151,7 @@ class BulkTagActivity : BaseActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menu.add(0, 1, 0, getString(R.string.select_all)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         menu.add(0, 2, 0, getString(R.string.deselect_all)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+        menu.add(0, 3, 0, getString(R.string.add_new_tag)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         return true
     }
 
@@ -162,6 +167,24 @@ class BulkTagActivity : BaseActivity() {
             }
             2 -> {
                 adapter.deselectAll()
+                true
+            }
+            3 -> {
+                val binding = DialogEditTagBinding.inflate(layoutInflater)
+
+                binding.renameInput.hint = getString(R.string.add_new_tag)
+
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(getString(R.string.add_new_tag))
+                    .setView(binding.root)
+                    .setPositiveButton(getString(R.string.save)) { _, _ ->
+                        val newName = binding.renameInput.text.toString().trim()
+                        if (newName.isNotEmpty()) {
+                            databaseHelper.addTag(newName)
+                        }
+                    }
+                    .show()
+
                 true
             }
             else -> super.onOptionsItemSelected(item)

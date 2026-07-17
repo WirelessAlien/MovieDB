@@ -90,13 +90,16 @@ class BulkTagMediaAdapter(private val onSelectionChanged: (Int) -> Unit) :
 
         fun bind(item: MediaTagItem) {
             binding.titleTextView.text = item.title
-            binding.yearTextView.text = if (item.releaseYear.length >= 4) item.releaseYear.substring(0, 4) else item.releaseYear
-            
             val context = binding.root.context
-            if (item.isMovie) {
-                binding.typeBadge.text = context.getString(R.string.movie)
+            val typeStr = if (item.isMovie) context.getString(R.string.movie) else context.getString(R.string.tv_shows)
+            val yearStr = if (item.releaseYear.length >= 4) item.releaseYear.substring(0, 4) else item.releaseYear
+            binding.yearTextView.text = "$typeStr \u2022 $yearStr"
+            
+            if (item.tags.isNotEmpty()) {
+                binding.tagsTextView.visibility = View.VISIBLE
+                binding.tagsTextView.text = context.getString(R.string.tags_label).trim() + " " + item.tags
             } else {
-                binding.typeBadge.text = context.getString(R.string.tv_shows)
+                binding.tagsTextView.visibility = View.GONE
             }
 
             binding.itemCheckbox.setOnCheckedChangeListener(null)

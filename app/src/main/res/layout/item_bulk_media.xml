@@ -39,11 +39,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
         android:ellipsize="end"
         android:maxLines="2"
         android:textAppearance="?attr/textAppearanceSubtitle1"
-        app:layout_constraintEnd_toStartOf="@+id/typeBadge"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/itemCheckbox"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Movie Title" />
@@ -56,15 +55,16 @@
         android:textColor="?android:attr/textColorSecondary"
         app:layout_constraintStart_toStartOf="@+id/titleTextView"
         app:layout_constraintTop_toBottomOf="@+id/titleTextView"
-        tools:text="2023" />
+        tools:text="Movie \u2022 2023" />
 
-    <com.google.android.material.chip.Chip
-        android:id="@+id/typeBadge"
+    <TextView
+        android:id="@+id/tagsTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Movie" />
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:textColor="?android:attr/textColorSecondary"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@+id/titleTextView"
+        app:layout_constraintTop_toBottomOf="@+id/yearTextView"
+        tools:text="Action, Sci-Fi" />
 </androidx.constraintlayout.widget.ConstraintLayout>

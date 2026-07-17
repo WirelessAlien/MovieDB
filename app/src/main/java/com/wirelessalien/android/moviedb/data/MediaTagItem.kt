@@ -24,5 +24,6 @@ data class MediaTagItem(
     val id: Int,
     val title: String,
     val releaseYear: String,
-    val isMovie: Boolean
+    val isMovie: Boolean,
+    val tags: String = ""
 )
