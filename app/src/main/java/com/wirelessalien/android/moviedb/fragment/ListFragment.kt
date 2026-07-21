@@ -34,6 +34,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -1000,7 +1001,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             val baseColor = Color.parseColor("#26A69A")
             color = baseColor
             valueTextSize = 10f
-            valueTextColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
+            valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
         }
         
         val barData = BarData(dataSet).apply {
@@ -1011,8 +1012,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             data = barData
             description.isEnabled = false
             legend.isEnabled = false
-            setDrawValueAboveBar(true)
-            
+
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 isDrawGridLines = false
@@ -1023,12 +1023,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         return if (index >= 0 && index < finalGenres.size) finalGenres[index].first else ""
                     }
                 }
-                textColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary) 
+                textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
             }
             
             axisLeft.apply {
                 axisMinimum = 0f
-                textColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
+                textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
             }
             
             axisRight.isEnabled = false
@@ -1157,7 +1157,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 val categoryDataSet = PieDataSet(categoryEntries, "").apply {
                     categoryColors.forEach { addColor(it) }
                     valueTextSize = 12f
-                    valueTextColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
+                    valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
                 }
                 
                 binding.categoryChart.apply {
@@ -1165,7 +1165,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     description.isEnabled = false
                     isDrawHole = true
                     setHoleColor(Color.TRANSPARENT)
-                    setEntryLabelColor(ContextCompat.getColor(requireContext(), R.color.colorTextPrimary))
+                    setEntryLabelColor(requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface))
                     legend.isEnabled = false
                     animateY(1000)
                     invalidate()
@@ -1204,7 +1204,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 val typeDataSet = PieDataSet(typeEntries, "").apply {
                     typeColors.forEach { addColor(it) }
                     valueTextSize = 12f
-                    valueTextColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
+                    valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
                 }
                 
                 binding.typeChart.apply {
@@ -1212,7 +1212,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     description.isEnabled = false
                     isDrawHole = true
                     setHoleColor(Color.TRANSPARENT)
-                    setEntryLabelColor(ContextCompat.getColor(requireContext(), R.color.colorTextPrimary))
+                    setEntryLabelColor(requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface))
                     legend.isEnabled = false
                     animateY(1000)
                     invalidate()
@@ -1248,6 +1248,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             binding.shimmerFrameLayout.stopShimmer()
         }
     }
+
+    private fun Context.getThemeColor(attrRes: Int): Int {
+        val typedValue = TypedValue()
+        theme.resolveAttribute(attrRes, typedValue, true)
+        return if (typedValue.resourceId != 0) {
+            ContextCompat.getColor(this, typedValue.resourceId)
+        } else {
+            typedValue.data
+        }
+    }
+
     /**
      * Create and set the new adapter to update the show view.
      */
