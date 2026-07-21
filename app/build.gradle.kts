@@ -80,10 +80,6 @@ android {
         buildConfig = true
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     packaging {
         resources.excludes.add("META-INF/DEPENDENCIES")
     }
