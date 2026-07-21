@@ -67,10 +67,12 @@ import info.appdev.charting.data.PieEntry
 import info.appdev.charting.data.BarData
 import info.appdev.charting.data.BarDataSet
 import info.appdev.charting.data.BarEntry
+import info.appdev.charting.data.BarEntryFloat
 import info.appdev.charting.components.Legend
 import info.appdev.charting.components.XAxis
 import info.appdev.charting.formatter.IAxisValueFormatter
 import info.appdev.charting.components.AxisBase
+import info.appdev.charting.charts.BarChart
 import android.graphics.Color
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -128,6 +130,7 @@ import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -1242,6 +1245,178 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                 // Setup genre chips
                 setupGenreChips(requireContext(), binding)
+
+                // 3. Activity Trend & 4. Ratings Insight
+                val activityMapResult = mutableMapOf<String, Int>() // "YYYY-MM" to Count
+                val ratingBucketsResult = IntArray(11) // Buckets 0..10
+                
+                withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val cursor = mDatabase.query(
+                        MovieDatabaseHelper.TABLE_MOVIES,
+                        arrayOf(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, MovieDatabaseHelper.COLUMN_PERSONAL_RATING, MovieDatabaseHelper.COLUMN_MOVIES_ID, MovieDatabaseHelper.COLUMN_MOVIE),
+                        null, null, null, null, null
+                    )
+
+                    while (cursor.moveToNext()) {
+                        val isMovie = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
+                        val movieId = cursor.getLong(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
+                        
+                        if (isMovie) {
+                            val finishDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                            val startDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                            val dateToUse = if (!finishDate.isNullOrEmpty()) finishDate else startDate
+                            
+                            if (!dateToUse.isNullOrEmpty()) {
+                                try {
+                                    val date = simpleDateFormat.parse(dateToUse)
+                                    if (date != null) {
+                                        val cal = Calendar.getInstance().apply { time = date }
+                                        val key = String.format("%04d-%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
+                                        activityMapResult[key] = activityMapResult.getOrDefault(key, 0) + 1
+                                    }
+                                } catch (e: Exception) {
+                                    // Ignore parse errors
+                                }
+                            }
+
+                            val rating = cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
+                            if (rating > 0) {
+                                val bucket = Math.round(rating).toInt().coerceIn(1, 10)
+                                ratingBucketsResult[bucket]++
+                            }
+                        } else {
+                            // For TV Shows, we need to query the episodes table
+                            val episodesCursor = mDatabase.query(
+                                MovieDatabaseHelper.TABLE_EPISODES,
+                                arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE, MovieDatabaseHelper.COLUMN_EPISODE_RATING),
+                                "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                                arrayOf(movieId.toString()),
+                                null, null, null
+                            )
+                            while (episodesCursor.moveToNext()) {
+                                val watchDate = episodesCursor.getString(episodesCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE))
+                                if (!watchDate.isNullOrEmpty()) {
+                                    try {
+                                        val date = simpleDateFormat.parse(watchDate)
+                                        if (date != null) {
+                                            val cal = Calendar.getInstance().apply { time = date }
+                                            val key = String.format("%04d-%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
+                                            activityMapResult[key] = activityMapResult.getOrDefault(key, 0) + 1
+                                        }
+                                    } catch (e: Exception) {
+                                        // Ignore parse errors
+                                    }
+                                }
+                                
+                                val epRating = episodesCursor.getFloat(episodesCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_RATING))
+                                if (epRating > 0) {
+                                    val bucket = Math.round(epRating).toInt().coerceIn(1, 10)
+                                    ratingBucketsResult[bucket]++
+                                }
+                            }
+                            episodesCursor.close()
+                        }
+                    }
+                    cursor.close()
+                } // End Dispatchers.IO block
+
+                val sortedActivity = activityMapResult.toSortedMap()
+                val activityEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
+                val activityLabels = ArrayList<String>()
+
+                var activityIndex = 0
+                for ((key, count) in sortedActivity) {
+                    activityEntries.add(info.appdev.charting.data.BarEntryFloat(activityIndex.toFloat(), count.toFloat()))
+                    activityLabels.add(key)
+                    activityIndex++
+                }
+
+                if (activityEntries.isEmpty()) {
+                    binding.activityTrendChart.visibility = View.GONE
+                    binding.activityTrendTitle.visibility = View.GONE
+                } else {
+                    val activityDataSet = BarDataSet(activityEntries, "").apply {
+                        color = Color.parseColor("#42A5F5") // Blue
+                        valueTextSize = 10f
+                        valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
+
+                    binding.activityTrendChart.apply {
+                        data = BarData(activityDataSet).apply { barWidth = 0.6f }
+                        description.isEnabled = false
+                        legend.isEnabled = false
+                        
+                        xAxis.apply {
+                            position = XAxis.XAxisPosition.BOTTOM
+                            isDrawGridLines = false
+                            granularity = 1f
+                            valueFormatter = object : IAxisValueFormatter {
+                                override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                                    val index = value.toInt()
+                                    return if (index >= 0 && index < activityLabels.size) activityLabels[index] else ""
+                                }
+                            }
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        
+                        axisLeft.apply {
+                            axisMinimum = 0f
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        axisRight.isEnabled = false
+                        animateY(1000)
+                        invalidate()
+                    }
+                }
+
+                val ratingEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
+                val ratingLabels = ArrayList<String>()
+                var hasRatings = false
+
+                for (i in 1..10) {
+                    val count = ratingBucketsResult[i]
+                    ratingEntries.add(info.appdev.charting.data.BarEntryFloat((i - 1).toFloat(), count.toFloat()))
+                    ratingLabels.add(i.toString())
+                    if (count > 0) hasRatings = true
+                }
+
+                if (!hasRatings) {
+                    binding.ratingsInsightChart.visibility = View.GONE
+                    binding.ratingsInsightTitle.visibility = View.GONE
+                } else {
+                    val ratingsDataSet = BarDataSet(ratingEntries, "").apply {
+                        color = Color.parseColor("#FFA726") // Orange
+                        valueTextSize = 10f
+                        valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
+
+                    binding.ratingsInsightChart.apply {
+                        data = BarData(ratingsDataSet).apply { barWidth = 0.6f }
+                        description.isEnabled = false
+                        legend.isEnabled = false
+                        
+                        xAxis.apply {
+                            position = XAxis.XAxisPosition.BOTTOM
+                            isDrawGridLines = false
+                            granularity = 1f
+                            valueFormatter = object : IAxisValueFormatter {
+                                override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                                    val index = value.toInt()
+                                    return if (index >= 0 && index < ratingLabels.size) ratingLabels[index] else ""
+                                }
+                            }
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        
+                        axisLeft.apply {
+                            axisMinimum = 0f
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        axisRight.isEnabled = false
+                        animateY(1000)
+                        invalidate()
+                    }
+                }
             }
 
             binding.shimmerFrameLayout.visibility = View.GONE

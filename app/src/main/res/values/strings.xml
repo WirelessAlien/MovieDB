@@ -753,6 +753,8 @@
     <string name="on_hold1">On Hold: %1$d</string>
     <string name="dropped1">Dropped: %1$d</string>
     <string name="watch_summary">Watch Summary</string>
+    <string name="activity_trend">Activity Trend</string>
+    <string name="ratings_insight">Ratings Insight</string>
     <string name="share_link_using">Share link using</string>
     <string name="episode_title">S:%1$d E:%2$d %3$s</string>
     <string name="season_number">S: %1$d</string>

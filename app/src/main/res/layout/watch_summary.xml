@@ -124,6 +124,46 @@
             android:layout_below="@id/genresTitle"
             android:layout_marginBottom="20dp" />
             
+        <!-- Watch Activity Trend -->
+        <TextView
+            android:id="@+id/activityTrendTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/activity_trend"
+            android:layout_below="@id/genreChart"
+            android:textSize="18sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold"/>
+
+        <info.appdev.charting.charts.BarChart
+            android:id="@+id/activityTrendChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_below="@id/activityTrendTitle"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Ratings Insight -->
+        <TextView
+            android:id="@+id/ratingsInsightTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ratings_insight"
+            android:layout_below="@id/activityTrendChart"
+            android:textSize="18sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold"/>
+
+        <info.appdev.charting.charts.BarChart
+            android:id="@+id/ratingsInsightChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_below="@id/ratingsInsightTitle"
+            android:layout_marginBottom="20dp" />
+            
         <com.facebook.shimmer.ShimmerFrameLayout
             android:id="@+id/shimmerFrameLayout"
             android:layout_width="match_parent"
