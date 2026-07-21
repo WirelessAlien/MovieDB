@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
   ~     forked from <https://notabug.org/nvb/MovieDB>
   ~
@@ -37,131 +38,92 @@
             android:layout_marginTop="20dp"
             android:layout_marginStart="5dp"
             android:layout_marginBottom="5dp"/>
+            
+        <TextView
+            android:id="@+id/totalTrackedItems"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/watchSummaryTitle"
+            android:textSize="14sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="20dp"/>
 
+        <!-- Primary Chart: Category Distribution -->
         <TextView
             android:id="@+id/categoryTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/categories"
-            android:layout_below="@id/watchSummaryTitle"
+            android:layout_below="@id/totalTrackedItems"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"/>
+            android:layout_marginBottom="10dp"/>
 
-        <com.google.android.flexbox.FlexboxLayout
-            android:id="@+id/chip1"
+        <info.appdev.charting.charts.PieChart
+            android:id="@+id/categoryChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_below="@id/categoryTitle"
+            android:layout_marginBottom="10dp" />
+            
+        <LinearLayout
+            android:id="@+id/categoryLegendContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/categoryTitle"
-            app:flexWrap="wrap">
+            android:orientation="vertical"
+            android:layout_below="@id/categoryChart"
+            android:layout_marginBottom="20dp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipWatching"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                style="@style/Widget.Material3.Chip.Assist"
-                android:clickable="false"
-                android:checkable="false" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipWatched"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                style="@style/Widget.Material3.Chip.Assist"
-                android:clickable="false"
-                android:checkable="false" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPlanToWatch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                style="@style/Widget.Material3.Chip.Assist"
-                android:clickable="false"
-                android:checkable="false" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipOnHold"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                style="@style/Widget.Material3.Chip.Assist"
-                android:clickable="false"
-                android:checkable="false" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipDropped"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                style="@style/Widget.Material3.Chip.Assist"
-                android:clickable="false"
-                android:checkable="false" />
-        </com.google.android.flexbox.FlexboxLayout>
-
+        <!-- Secondary Chart: Watched Media Type Split -->
         <TextView
             android:id="@+id/typeTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/type"
             android:textSize="18sp"
-            android:layout_below="@id/chip1"
+            android:layout_below="@id/categoryLegendContainer"
             android:textStyle="bold"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:layout_marginStart="5dp"/>
 
-        <com.google.android.flexbox.FlexboxLayout
-            android:id="@+id/chip2"
+        <info.appdev.charting.charts.PieChart
+            android:id="@+id/typeChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_below="@id/typeTitle"
+            android:layout_marginBottom="10dp" />
+            
+        <LinearLayout
+            android:id="@+id/typeLegendContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/typeTitle"
-            app:flexWrap="wrap">
+            android:orientation="vertical"
+            android:layout_below="@id/typeChart"
+            android:layout_marginBottom="20dp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipWatchedMovies"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                app:chipIcon="@drawable/ic_movie"
-                style="@style/Widget.Material3.Chip.Assist"
-                android:clickable="false"
-                android:checkable="false" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipWatchedTVShows"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                app:chipIcon="@drawable/ic_tv_show"
-                style="@style/Widget.Material3.Chip.Assist"
-                android:clickable="false"
-                android:checkable="false" />
-        </com.google.android.flexbox.FlexboxLayout>
-
+        <!-- Secondary Chart: Top Genres -->
         <TextView
             android:id="@+id/genresTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/genres"
-            android:layout_below="@id/chip2"
+            android:layout_below="@id/typeLegendContainer"
             android:textSize="18sp"
             android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:textStyle="bold"/>
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupGenres"
+        <info.appdev.charting.charts.HorizontalBarChart
+            android:id="@+id/genreChart"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_below="@+id/genresTitle"/>
-
+            android:layout_height="300dp"
+            android:layout_below="@id/genresTitle"
+            android:layout_marginBottom="20dp" />
+            
         <com.facebook.shimmer.ShimmerFrameLayout
             android:id="@+id/shimmerFrameLayout"
             android:layout_width="match_parent"

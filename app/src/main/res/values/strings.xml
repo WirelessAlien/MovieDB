@@ -844,4 +844,8 @@
     <string name="exclude_label">Exclude:</string>
     <string name="select_all">Select All</string>
     <string name="deselect_all">Deselect All</string>
+    <string name="unknown_genre">Unknown</string>
+    <string name="others">Others</string>
+    <string name="movies_label">Movies</string>
+    <string name="tv_shows_label">TV Shows</string>
 </resources>

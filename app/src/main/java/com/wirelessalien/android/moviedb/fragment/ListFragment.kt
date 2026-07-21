@@ -59,6 +59,16 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import info.appdev.charting.data.PieData
+import info.appdev.charting.data.PieDataSet
+import info.appdev.charting.data.PieEntry
+import info.appdev.charting.data.BarData
+import info.appdev.charting.data.BarDataSet
+import info.appdev.charting.data.BarEntry
+import info.appdev.charting.components.Legend
+import info.appdev.charting.components.XAxis
+import info.appdev.charting.formatter.ValueFormatter
+import android.graphics.Color
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -865,7 +875,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val cursor: Cursor = mDatabase.rawQuery(
-            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%$genreId%'",
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '$genreId,%' OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%,$genreId,%' OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%,$genreId' OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} = '$genreId'",
             null
         )
         val totalItemCount = if (cursor.moveToFirst()) {
@@ -944,10 +954,85 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    private suspend fun setupGenreChips(context: Context, chipGroup: ChipGroup) {
+    private suspend fun setupGenreChips(context: Context, binding: com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding) {
         val genreIds = getGenreIdsFromDatabase()
         val genreNames = getGenreNamesFromSharedPreferences(context)
-        displayGenresInChipGroup(context, chipGroup, genreIds, genreNames)
+        
+        val genreCounts = mutableListOf<Pair<String, Int>>()
+        for (genreId in genreIds) {
+            val genreName = genreNames[genreId] ?: context.getString(R.string.unknown_genre)
+            val count = getTotalItemCountForGenre(genreId)
+            if (count > 0) {
+                val existing = genreCounts.find { it.first == genreName }
+                if (existing != null) {
+                    genreCounts[genreCounts.indexOf(existing)] = Pair(genreName, existing.second + count)
+                } else {
+                    genreCounts.add(Pair(genreName, count))
+                }
+            }
+        }
+        
+        genreCounts.sortByDescending { it.second }
+        
+        if (genreCounts.isEmpty()) {
+            binding.genreChart.visibility = android.view.View.GONE
+            return
+        }
+        
+        val topN = 5
+        val topGenres = genreCounts.take(topN)
+        val othersCount = genreCounts.drop(topN).sumOf { it.second }
+        
+        val finalGenres = topGenres.toMutableList()
+        if (othersCount > 0) {
+            finalGenres.add(Pair(context.getString(R.string.others), othersCount))
+        }
+        
+        val entries = ArrayList<BarEntry>()
+        // BarChart needs entries in reverse order to display top on top
+        for (i in finalGenres.indices.reversed()) {
+            entries.add(BarEntry((finalGenres.size - 1 - i).toFloat(), finalGenres[i].second.toFloat()))
+        }
+        
+        val dataSet = BarDataSet(entries, "").apply {
+            val baseColor = Color.parseColor("#26A69A")
+            color = baseColor
+            valueTextSize = 10f
+            valueTextColor = context.getColor(R.color.colorTextPrimary)
+        }
+        
+        val barData = BarData(dataSet).apply {
+            barWidth = 0.6f
+        }
+        
+        binding.genreChart.apply {
+            data = barData
+            description.isEnabled = false
+            legend.isEnabled = false
+            setDrawValueAboveBar(true)
+            
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                setDrawGridLines(false)
+                granularity = 1f
+                valueFormatter = object : ValueFormatter() {
+                    override fun getFormattedValue(value: Float): String {
+                        val index = (finalGenres.size - 1 - value.toInt())
+                        return if (index >= 0 && index < finalGenres.size) finalGenres[index].first else ""
+                    }
+                }
+                textColor = context.getColor(R.color.colorTextPrimary)
+            }
+            
+            axisLeft.apply {
+                axisMinimum = 0f
+                textColor = context.getColor(R.color.colorTextPrimary)
+            }
+            
+            axisRight.isEnabled = false
+            animateY(1000)
+            invalidate()
+        }
     }
 
     private fun showTraktSyncDialog() {
@@ -1038,16 +1123,124 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             val watchedMovies = getTotalMoviesInWatchedCategory()
             val watchedTVShows = getTotalTVShowsInWatchedCategory()
 
-            binding.chipWatching.text = getString(R.string.watching1, watching)
-            binding.chipWatched.text = getString(R.string.watched1, watched)
-            binding.chipPlanToWatch.text = getString(R.string.plan_to_watch1, planToWatch)
-            binding.chipOnHold.text = getString(R.string.on_hold1, onHold)
-            binding.chipDropped.text = getString(R.string.dropped1, dropped)
-            binding.chipWatchedMovies.text = getString(R.string.watched1, watchedMovies)
-            binding.chipWatchedTVShows.text = getString(R.string.watched1, watchedTVShows)
+            val totalItems = watching + watched + planToWatch + onHold + dropped
+            
+            if (totalItems == 0) {
+                binding.categoryChart.visibility = View.GONE
+                binding.typeChart.visibility = View.GONE
+                binding.genreChart.visibility = View.GONE
+                binding.categoryTitle.visibility = View.GONE
+                binding.typeTitle.visibility = View.GONE
+                binding.genresTitle.visibility = View.GONE
+                binding.totalTrackedItems.text = getString(R.string.watch_summary) + ": 0"
+            } else {
+                binding.totalTrackedItems.text = "Total tracked items: $totalItems"
+                
+                // 1. Category Distribution
+                val categoryEntries = ArrayList<PieEntry>()
+                if (watching > 0) categoryEntries.add(PieEntry(watching.toFloat(), getString(R.string.watching)))
+                if (watched > 0) categoryEntries.add(PieEntry(watched.toFloat(), getString(R.string.watched)))
+                if (planToWatch > 0) categoryEntries.add(PieEntry(planToWatch.toFloat(), getString(R.string.plan_to_watch)))
+                if (onHold > 0) categoryEntries.add(PieEntry(onHold.toFloat(), getString(R.string.on_hold)))
+                if (dropped > 0) categoryEntries.add(PieEntry(dropped.toFloat(), getString(R.string.dropped)))
+                
+                val categoryColors = listOf(
+                    Color.parseColor("#FFB300"), // watching
+                    Color.parseColor("#43A047"), // watched
+                    Color.parseColor("#1E88E5"), // plan
+                    Color.parseColor("#8E24AA"), // on hold
+                    Color.parseColor("#E53935")  // dropped
+                )
+                
+                val categoryDataSet = PieDataSet(categoryEntries, "").apply {
+                    colors = categoryColors
+                    valueTextSize = 12f
+                    valueTextColor = context.getColor(R.color.colorTextPrimary)
+                }
+                
+                binding.categoryChart.apply {
+                    data = PieData(categoryDataSet)
+                    description.isEnabled = false
+                    isDrawHoleEnabled = true
+                    setHoleColor(Color.TRANSPARENT)
+                    setEntryLabelColor(context.getColor(R.color.colorTextPrimary))
+                    legend.isEnabled = false
+                    animateY(1000)
+                    invalidate()
+                }
+                
+                // Build Category Legends
+                val inflater = LayoutInflater.from(requireContext())
+                val categoryContainer = binding.categoryLegendContainer
+                if (categoryContainer != null) {
+                    categoryContainer.removeAllViews()
+                    for (i in categoryEntries.indices) {
+                        val entry = categoryEntries[i]
+                        val legendView = inflater.inflate(R.layout.legend_item, categoryContainer, false)
+                        val colorBlock = legendView.findViewById<android.view.View>(R.id.legendColorBlock)
+                        val label = legendView.findViewById<android.widget.TextView>(R.id.legendLabel)
+                        val countLabel = legendView.findViewById<android.widget.TextView>(R.id.legendCount)
+                        val percentLabel = legendView.findViewById<android.widget.TextView>(R.id.legendPercent)
+                        
+                        colorBlock.setBackgroundColor(categoryColors[i])
+                        label.text = entry.label
+                        countLabel.text = entry.value.toInt().toString()
+                        val percent = if (totalItems > 0) (entry.value / totalItems) * 100 else 0f
+                        percentLabel.text = String.format("(%.1f%%)", percent)
+                        
+                        categoryContainer.addView(legendView)
+                    }
+                }
+                
+                // 2. Media Type Split
+                val typeEntries = ArrayList<PieEntry>()
+                if (watchedMovies > 0) typeEntries.add(PieEntry(watchedMovies.toFloat(), getString(R.string.movies_label)))
+                if (watchedTVShows > 0) typeEntries.add(PieEntry(watchedTVShows.toFloat(), getString(R.string.tv_shows_label)))
+                
+                val typeColors = listOf(Color.parseColor("#3949AB"), Color.parseColor("#F4511E"))
+                
+                val typeDataSet = PieDataSet(typeEntries, "").apply {
+                    colors = typeColors
+                    valueTextSize = 12f
+                    valueTextColor = context.getColor(R.color.colorTextPrimary)
+                }
+                
+                binding.typeChart.apply {
+                    data = PieData(typeDataSet)
+                    description.isEnabled = false
+                    isDrawHoleEnabled = true
+                    setHoleColor(Color.TRANSPARENT)
+                    setEntryLabelColor(context.getColor(R.color.colorTextPrimary))
+                    legend.isEnabled = false
+                    animateY(1000)
+                    invalidate()
+                }
+                
+                val totalMedia = watchedMovies + watchedTVShows
+                val typeContainer = binding.typeLegendContainer
+                if (typeContainer != null) {
+                    typeContainer.removeAllViews()
+                    for (i in typeEntries.indices) {
+                        val entry = typeEntries[i]
+                        val legendView = inflater.inflate(R.layout.legend_item, typeContainer, false)
+                        val colorBlock = legendView.findViewById<android.view.View>(R.id.legendColorBlock)
+                        val label = legendView.findViewById<android.widget.TextView>(R.id.legendLabel)
+                        val countLabel = legendView.findViewById<android.widget.TextView>(R.id.legendCount)
+                        val percentLabel = legendView.findViewById<android.widget.TextView>(R.id.legendPercent)
+                        
+                        colorBlock.setBackgroundColor(typeColors[i])
+                        label.text = entry.label
+                        countLabel.text = entry.value.toInt().toString()
+                        val percent = if (totalMedia > 0) (entry.value / totalMedia) * 100 else 0f
+                        percentLabel.text = String.format("(%.1f%%)", percent)
+                        
+                        typeContainer.addView(legendView)
+                    }
+                }
 
-            // Setup genre chips
-            setupGenreChips(requireContext(), binding.chipGroupGenres)
+                // Setup genre chips
+                setupGenreChips(requireContext(), binding)
+            }
 
             binding.shimmerFrameLayout.visibility = View.GONE
             binding.shimmerFrameLayout.stopShimmer()

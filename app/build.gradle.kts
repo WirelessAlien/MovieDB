@@ -129,7 +129,8 @@ dependencies {
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
     implementation("com.opencsv:opencsv:5.12.0")
-
+    implementation("com.github.AppDevNext.AndroidChart:chartLib:5.2.3")
+    
     implementation("io.noties.markwon:core:4.6.2")
     implementation("io.noties.markwon:ext-tables:4.6.2")
     implementation("io.noties.markwon:html:4.6.2")
