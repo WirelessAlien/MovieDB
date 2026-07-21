@@ -20,7 +20,6 @@
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 val omdbApiKey = System.getenv("OMDB_API_KEY") ?: ""
