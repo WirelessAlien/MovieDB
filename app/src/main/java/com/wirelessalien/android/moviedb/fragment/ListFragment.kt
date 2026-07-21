@@ -23,6 +23,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import androidx.core.content.ContextCompat
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
@@ -67,7 +68,8 @@ import info.appdev.charting.data.BarDataSet
 import info.appdev.charting.data.BarEntry
 import info.appdev.charting.components.Legend
 import info.appdev.charting.components.XAxis
-import info.appdev.charting.formatter.ValueFormatter
+import info.appdev.charting.formatter.IAxisValueFormatter
+import info.appdev.charting.components.AxisBase
 import android.graphics.Color
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -988,17 +990,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             finalGenres.add(Pair(context.getString(R.string.others), othersCount))
         }
         
-        val entries = ArrayList<BarEntry>()
+        val entries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
         // BarChart needs entries in reverse order to display top on top
         for (i in finalGenres.indices.reversed()) {
-            entries.add(BarEntry((finalGenres.size - 1 - i).toFloat(), finalGenres[i].second.toFloat()))
+            entries.add(info.appdev.charting.data.BarEntryFloat((finalGenres.size - 1 - i).toFloat(), finalGenres[i].second.toFloat()))
         }
         
         val dataSet = BarDataSet(entries, "").apply {
             val baseColor = Color.parseColor("#26A69A")
             color = baseColor
             valueTextSize = 10f
-            valueTextColor = context.getColor(R.color.colorTextPrimary)
+            valueTextColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
         }
         
         val barData = BarData(dataSet).apply {
@@ -1013,20 +1015,20 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
-                setDrawGridLines(false)
+                isDrawGridLines = false
                 granularity = 1f
-                valueFormatter = object : ValueFormatter() {
-                    override fun getFormattedValue(value: Float): String {
+                valueFormatter = object : IAxisValueFormatter {
+                    override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                         val index = (finalGenres.size - 1 - value.toInt())
                         return if (index >= 0 && index < finalGenres.size) finalGenres[index].first else ""
                     }
                 }
-                textColor = context.getColor(R.color.colorTextPrimary)
+                textColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary) 
             }
             
             axisLeft.apply {
                 axisMinimum = 0f
-                textColor = context.getColor(R.color.colorTextPrimary)
+                textColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
             }
             
             axisRight.isEnabled = false
@@ -1137,12 +1139,12 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 binding.totalTrackedItems.text = "Total tracked items: $totalItems"
                 
                 // 1. Category Distribution
-                val categoryEntries = ArrayList<PieEntry>()
-                if (watching > 0) categoryEntries.add(PieEntry(watching.toFloat(), getString(R.string.watching)))
-                if (watched > 0) categoryEntries.add(PieEntry(watched.toFloat(), getString(R.string.watched)))
-                if (planToWatch > 0) categoryEntries.add(PieEntry(planToWatch.toFloat(), getString(R.string.plan_to_watch)))
-                if (onHold > 0) categoryEntries.add(PieEntry(onHold.toFloat(), getString(R.string.on_hold)))
-                if (dropped > 0) categoryEntries.add(PieEntry(dropped.toFloat(), getString(R.string.dropped)))
+                val categoryEntries = ArrayList<info.appdev.charting.data.PieEntryFloat>()
+                if (watching > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(watching.toFloat(), getString(R.string.watching)))
+                if (watched > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(watched.toFloat(), getString(R.string.watched)))
+                if (planToWatch > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(planToWatch.toFloat(), getString(R.string.plan_to_watch)))
+                if (onHold > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(onHold.toFloat(), getString(R.string.on_hold)))
+                if (dropped > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(dropped.toFloat(), getString(R.string.dropped)))
                 
                 val categoryColors = listOf(
                     Color.parseColor("#FFB300"), // watching
@@ -1153,17 +1155,17 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 )
                 
                 val categoryDataSet = PieDataSet(categoryEntries, "").apply {
-                    colors = categoryColors
+                    categoryColors.forEach { addColor(it) }
                     valueTextSize = 12f
-                    valueTextColor = context.getColor(R.color.colorTextPrimary)
+                    valueTextColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
                 }
                 
                 binding.categoryChart.apply {
                     data = PieData(categoryDataSet)
                     description.isEnabled = false
-                    isDrawHoleEnabled = true
+                    isDrawHole = true
                     setHoleColor(Color.TRANSPARENT)
-                    setEntryLabelColor(context.getColor(R.color.colorTextPrimary))
+                    setEntryLabelColor(ContextCompat.getColor(requireContext(), R.color.colorTextPrimary))
                     legend.isEnabled = false
                     animateY(1000)
                     invalidate()
@@ -1193,24 +1195,24 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 }
                 
                 // 2. Media Type Split
-                val typeEntries = ArrayList<PieEntry>()
-                if (watchedMovies > 0) typeEntries.add(PieEntry(watchedMovies.toFloat(), getString(R.string.movies_label)))
-                if (watchedTVShows > 0) typeEntries.add(PieEntry(watchedTVShows.toFloat(), getString(R.string.tv_shows_label)))
+                val typeEntries = ArrayList<info.appdev.charting.data.PieEntryFloat>()
+                if (watchedMovies > 0) typeEntries.add(info.appdev.charting.data.PieEntryFloat(watchedMovies.toFloat(), getString(R.string.movies_label)))
+                if (watchedTVShows > 0) typeEntries.add(info.appdev.charting.data.PieEntryFloat(watchedTVShows.toFloat(), getString(R.string.tv_shows_label)))
                 
                 val typeColors = listOf(Color.parseColor("#3949AB"), Color.parseColor("#F4511E"))
                 
                 val typeDataSet = PieDataSet(typeEntries, "").apply {
-                    colors = typeColors
+                    typeColors.forEach { addColor(it) }
                     valueTextSize = 12f
-                    valueTextColor = context.getColor(R.color.colorTextPrimary)
+                    valueTextColor = ContextCompat.getColor(requireContext(), R.color.colorTextPrimary)
                 }
                 
                 binding.typeChart.apply {
                     data = PieData(typeDataSet)
                     description.isEnabled = false
-                    isDrawHoleEnabled = true
+                    isDrawHole = true
                     setHoleColor(Color.TRANSPARENT)
-                    setEntryLabelColor(context.getColor(R.color.colorTextPrimary))
+                    setEntryLabelColor(ContextCompat.getColor(requireContext(), R.color.colorTextPrimary))
                     legend.isEnabled = false
                     animateY(1000)
                     invalidate()

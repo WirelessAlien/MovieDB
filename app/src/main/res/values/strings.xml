@@ -848,4 +848,5 @@
     <string name="others">Others</string>
     <string name="movies_label">Movies</string>
     <string name="tv_shows_label">TV Shows</string>
+    <string name="total_items_tracked">Total tracked items: %d</string>
 </resources>
