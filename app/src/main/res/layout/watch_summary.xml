@@ -107,7 +107,7 @@
         <info.appdev.charting.charts.HorizontalBarChart
             android:id="@+id/genreChart"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="350dp"
             android:layout_below="@id/genresTitle"
             android:layout_marginBottom="20dp" />
             
