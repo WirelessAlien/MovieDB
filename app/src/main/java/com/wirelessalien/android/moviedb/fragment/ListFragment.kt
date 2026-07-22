@@ -1027,7 +1027,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             return
         }
         
-        val topN = 5
+        val topN = 10
         val topGenres = genreCounts.take(topN)
         val othersCount = genreCounts.drop(topN).sumOf { it.second }
         
@@ -1212,7 +1212,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 if (dropped > 0) categoryColors.add(categoryColorsFull[4])
                 
                 val categoryDataSet = BarDataSet(categoryEntries, "").apply {
-                    categoryColors.forEach { addColor(it) }
+                    setColors(categoryColors)
                     valueTextSize = 12f
                     valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
                 }
