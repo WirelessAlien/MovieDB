@@ -29,8 +29,21 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/watchSummaryTitle"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/summaryCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="8dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/watchSummaryTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/watch_summary"
@@ -39,14 +52,15 @@
             android:layout_marginStart="5dp"
             android:layout_marginBottom="5dp"/>
             
-        <TextView
-            android:id="@+id/totalTrackedItems"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/watchSummaryTitle"
-            android:textSize="14sp"
-            android:layout_marginStart="5dp"
-            android:layout_marginBottom="20dp"/>
+                <TextView
+                    android:id="@+id/totalTrackedItems"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginBottom="10dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Primary Chart: Category Distribution -->
         <TextView
@@ -54,14 +68,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/categories"
-            android:layout_below="@id/totalTrackedItems"
+            android:layout_below="@id/summaryCard"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginTop="10dp"
             android:layout_marginStart="5dp"
             android:layout_marginBottom="10dp"/>
 
-        <info.appdev.charting.charts.PieChart
+        <info.appdev.charting.charts.BarChart
             android:id="@+id/categoryChart"
             android:layout_width="match_parent"
             android:layout_height="250dp"
@@ -76,41 +90,13 @@
             android:layout_below="@id/categoryChart"
             android:layout_marginBottom="20dp" />
 
-        <!-- Secondary Chart: Watched Media Type Split -->
-        <TextView
-            android:id="@+id/typeTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/type"
-            android:textSize="18sp"
-            android:layout_below="@id/categoryLegendContainer"
-            android:textStyle="bold"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="5dp"/>
-
-        <info.appdev.charting.charts.PieChart
-            android:id="@+id/typeChart"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_below="@id/typeTitle"
-            android:layout_marginBottom="10dp" />
-            
-        <LinearLayout
-            android:id="@+id/typeLegendContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_below="@id/typeChart"
-            android:layout_marginBottom="20dp" />
-
         <!-- Secondary Chart: Top Genres -->
         <TextView
             android:id="@+id/genresTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/genres"
-            android:layout_below="@id/typeLegendContainer"
+            android:layout_below="@id/categoryLegendContainer"
             android:textSize="18sp"
             android:layout_marginStart="5dp"
             android:layout_marginBottom="10dp"
@@ -157,7 +143,7 @@
             android:layout_marginTop="10dp"
             android:textStyle="bold"/>
 
-        <info.appdev.charting.charts.BarChart
+        <info.appdev.charting.charts.LineChart
             android:id="@+id/ratingsInsightChart"
             android:layout_width="match_parent"
             android:layout_height="250dp"

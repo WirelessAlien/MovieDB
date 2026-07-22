@@ -865,6 +865,33 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         totalMovies
     }
 
+
+    private suspend fun getTotalMoviesWatchedThisYear(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val currentYearStr = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+        val cursor = mDatabase.rawQuery(
+            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1 AND (${MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE} LIKE '$currentYearStr%' OR ${MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE} LIKE '$currentYearStr%')",
+            null
+        )
+        val count = cursor.count
+        cursor.close()
+        count
+    }
+
+    private suspend fun getTotalTVShowsWatchedThisYear(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val currentYearStr = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+        val cursor = mDatabase.rawQuery(
+            "SELECT DISTINCT ${MovieDatabaseHelper.COLUMN_MOVIES_ID} FROM ${MovieDatabaseHelper.TABLE_EPISODES} WHERE ${MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE} LIKE '$currentYearStr%'",
+            null
+        )
+        val count = cursor.count
+        cursor.close()
+        count
+    }
+
     private suspend fun getTotalTVShowsInWatchedCategory(): Int = withContext(Dispatchers.IO) {
         open()
         mDatabaseHelper.onCreate(mDatabase)
@@ -942,6 +969,21 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
+        val defaultGenres = mapOf(
+            10759 to "Action & Adventure", 16 to "Animation", 35 to "Comedy", 80 to "Crime", 
+            99 to "Documentary", 18 to "Drama", 10751 to "Family", 10762 to "Kids", 
+            9648 to "Mystery", 10763 to "News", 10764 to "Reality", 10765 to "Sci-Fi & Fantasy", 
+            10766 to "Soap", 10767 to "Talk", 10768 to "War & Politics", 37 to "Western", 
+            28 to "Action", 12 to "Adventure", 14 to "Fantasy", 36 to "History", 
+            27 to "Horror", 10402 to "Music", 10749 to "Romance", 878 to "Science Fiction", 
+            10770 to "TV Movie", 53 to "Thriller", 10752 to "War"
+        )
+        for ((key, value) in defaultGenres) {
+            if (!genreNames.containsKey(key)) {
+                genreNames[key] = value
+            }
+        }
+
         return genreNames
     }
 
@@ -1015,6 +1057,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             data = barData
             description.isEnabled = false
             legend.isEnabled = false
+            extraLeftOffset = 50f
+
 
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
@@ -1127,29 +1171,32 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             val dropped = getTotalItem(MovieDatabaseHelper.CATEGORY_DROPPED)
             val watchedMovies = getTotalMoviesInWatchedCategory()
             val watchedTVShows = getTotalTVShowsInWatchedCategory()
+            val watchedMoviesThisYear = getTotalMoviesWatchedThisYear()
+            val watchedTVShowsThisYear = getTotalTVShowsWatchedThisYear()
 
             val totalItems = watching + watched + planToWatch + onHold + dropped
             
             if (totalItems == 0) {
                 binding.categoryChart.visibility = View.GONE
-                binding.typeChart.visibility = View.GONE
-                binding.genreChart.visibility = View.GONE
+                                binding.genreChart.visibility = View.GONE
                 binding.categoryTitle.visibility = View.GONE
-                binding.typeTitle.visibility = View.GONE
-                binding.genresTitle.visibility = View.GONE
+                                binding.genresTitle.visibility = View.GONE
                 binding.totalTrackedItems.text = getString(R.string.watch_summary) + ": 0"
             } else {
-                binding.totalTrackedItems.text = "Total tracked items: $totalItems"
+                binding.totalTrackedItems.text = "Total tracked items: $totalItems\nYou watched $watchedMoviesThisYear movies and $watchedTVShowsThisYear shows this year"
                 
                 // 1. Category Distribution
-                val categoryEntries = ArrayList<info.appdev.charting.data.PieEntryFloat>()
-                if (watching > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(watching.toFloat(), getString(R.string.watching)))
-                if (watched > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(watched.toFloat(), getString(R.string.watched)))
-                if (planToWatch > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(planToWatch.toFloat(), getString(R.string.plan_to_watch)))
-                if (onHold > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(onHold.toFloat(), getString(R.string.on_hold)))
-                if (dropped > 0) categoryEntries.add(info.appdev.charting.data.PieEntryFloat(dropped.toFloat(), getString(R.string.dropped)))
+                val categoryEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
+                val categoryLabels = ArrayList<String>()
+                val categoryCounts = ArrayList<Int>()
+                var idx = 0
+                if (watching > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), watching.toFloat())); categoryLabels.add(getString(R.string.watching)); categoryCounts.add(watching) }
+                if (watched > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), watched.toFloat())); categoryLabels.add(getString(R.string.watched)); categoryCounts.add(watched) }
+                if (planToWatch > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), planToWatch.toFloat())); categoryLabels.add(getString(R.string.plan_to_watch)); categoryCounts.add(planToWatch) }
+                if (onHold > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), onHold.toFloat())); categoryLabels.add(getString(R.string.on_hold)); categoryCounts.add(onHold) }
+                if (dropped > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), dropped.toFloat())); categoryLabels.add(getString(R.string.dropped)); categoryCounts.add(dropped) }
                 
-                val categoryColors = listOf(
+                val categoryColorsFull = listOf(
                     Color.parseColor("#FFB300"), // watching
                     Color.parseColor("#43A047"), // watched
                     Color.parseColor("#1E88E5"), // plan
@@ -1157,19 +1204,40 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     Color.parseColor("#E53935")  // dropped
                 )
                 
-                val categoryDataSet = PieDataSet(categoryEntries, "").apply {
+                val categoryColors = ArrayList<Int>()
+                if (watching > 0) categoryColors.add(categoryColorsFull[0])
+                if (watched > 0) categoryColors.add(categoryColorsFull[1])
+                if (planToWatch > 0) categoryColors.add(categoryColorsFull[2])
+                if (onHold > 0) categoryColors.add(categoryColorsFull[3])
+                if (dropped > 0) categoryColors.add(categoryColorsFull[4])
+                
+                val categoryDataSet = BarDataSet(categoryEntries, "").apply {
                     categoryColors.forEach { addColor(it) }
                     valueTextSize = 12f
                     valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
                 }
                 
                 binding.categoryChart.apply {
-                    data = PieData(categoryDataSet)
+                    data = BarData(categoryDataSet).apply { barWidth = 0.6f }
                     description.isEnabled = false
-                    isDrawHole = true
-                    setHoleColor(Color.TRANSPARENT)
-                    setEntryLabelColor(requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface))
                     legend.isEnabled = false
+                    xAxis.apply {
+                        position = XAxis.XAxisPosition.BOTTOM
+                        isDrawGridLines = false
+                        granularity = 1f
+                        valueFormatter = object : IAxisValueFormatter {
+                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                                val index = value.toInt()
+                                return if (index >= 0 && index < categoryLabels.size) categoryLabels[index] else ""
+                            }
+                        }
+                        textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
+                    axisLeft.apply {
+                        axisMinimum = 0f
+                        textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
+                    axisRight.isEnabled = false
                     animateY(1000)
                     invalidate()
                 }
@@ -1179,8 +1247,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 val categoryContainer = binding.categoryLegendContainer
                 if (categoryContainer != null) {
                     categoryContainer.removeAllViews()
-                    for (i in categoryEntries.indices) {
-                        val entry = categoryEntries[i]
+                    for (i in categoryLabels.indices) {
                         val legendView = inflater.inflate(R.layout.legend_item, categoryContainer, false)
                         val colorBlock = legendView.findViewById<android.view.View>(R.id.legendColorBlock)
                         val label = legendView.findViewById<android.widget.TextView>(R.id.legendLabel)
@@ -1188,60 +1255,16 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         val percentLabel = legendView.findViewById<android.widget.TextView>(R.id.legendPercent)
                         
                         colorBlock.setBackgroundColor(categoryColors[i])
-                        label.text = entry.label
-                        countLabel.text = entry.value.toInt().toString()
-                        val percent = if (totalItems > 0) (entry.value / totalItems) * 100 else 0f
+                        label.text = categoryLabels[i]
+                        val count = categoryCounts[i]
+                        countLabel.text = count.toString()
+                        val percent = if (totalItems > 0) (count.toFloat() / totalItems) * 100 else 0f
                         percentLabel.text = String.format("(%.1f%%)", percent)
                         
                         categoryContainer.addView(legendView)
                     }
                 }
                 
-                // 2. Media Type Split
-                val typeEntries = ArrayList<info.appdev.charting.data.PieEntryFloat>()
-                if (watchedMovies > 0) typeEntries.add(info.appdev.charting.data.PieEntryFloat(watchedMovies.toFloat(), getString(R.string.movies_label)))
-                if (watchedTVShows > 0) typeEntries.add(info.appdev.charting.data.PieEntryFloat(watchedTVShows.toFloat(), getString(R.string.tv_shows_label)))
-                
-                val typeColors = listOf(Color.parseColor("#3949AB"), Color.parseColor("#F4511E"))
-                
-                val typeDataSet = PieDataSet(typeEntries, "").apply {
-                    typeColors.forEach { addColor(it) }
-                    valueTextSize = 12f
-                    valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
-                }
-                
-                binding.typeChart.apply {
-                    data = PieData(typeDataSet)
-                    description.isEnabled = false
-                    isDrawHole = true
-                    setHoleColor(Color.TRANSPARENT)
-                    setEntryLabelColor(requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface))
-                    legend.isEnabled = false
-                    animateY(1000)
-                    invalidate()
-                }
-                
-                val totalMedia = watchedMovies + watchedTVShows
-                val typeContainer = binding.typeLegendContainer
-                if (typeContainer != null) {
-                    typeContainer.removeAllViews()
-                    for (i in typeEntries.indices) {
-                        val entry = typeEntries[i]
-                        val legendView = inflater.inflate(R.layout.legend_item, typeContainer, false)
-                        val colorBlock = legendView.findViewById<android.view.View>(R.id.legendColorBlock)
-                        val label = legendView.findViewById<android.widget.TextView>(R.id.legendLabel)
-                        val countLabel = legendView.findViewById<android.widget.TextView>(R.id.legendCount)
-                        val percentLabel = legendView.findViewById<android.widget.TextView>(R.id.legendPercent)
-                        
-                        colorBlock.setBackgroundColor(typeColors[i])
-                        label.text = entry.label
-                        countLabel.text = entry.value.toInt().toString()
-                        val percent = if (totalMedia > 0) (entry.value / totalMedia) * 100 else 0f
-                        percentLabel.text = String.format("(%.1f%%)", percent)
-                        
-                        typeContainer.addView(legendView)
-                    }
-                }
 
                 // Setup genre chips
                 setupGenreChips(requireContext(), binding)
@@ -1320,7 +1343,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     cursor.close()
                 } // End Dispatchers.IO block
 
-                val sortedActivity = activityMapResult.toSortedMap()
+                val currentYearPrefix = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+                val filteredActivity = activityMapResult.filterKeys { it.startsWith(currentYearPrefix) }
+                val sortedActivity = filteredActivity.toSortedMap()
                 val activityEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
                 val activityLabels = ArrayList<String>()
 
@@ -1369,13 +1394,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
                 }
 
-                val ratingEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
+                val ratingEntries = ArrayList<info.appdev.charting.data.EntryFloat>()
                 val ratingLabels = ArrayList<String>()
                 var hasRatings = false
 
                 for (i in 1..10) {
                     val count = ratingBucketsResult[i]
-                    ratingEntries.add(info.appdev.charting.data.BarEntryFloat((i - 1).toFloat(), count.toFloat()))
+                    ratingEntries.add(info.appdev.charting.data.EntryFloat((i - 1).toFloat(), count.toFloat()))
                     ratingLabels.add(i.toString())
                     if (count > 0) hasRatings = true
                 }
@@ -1384,14 +1409,18 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     binding.ratingsInsightChart.visibility = View.GONE
                     binding.ratingsInsightTitle.visibility = View.GONE
                 } else {
-                    val ratingsDataSet = BarDataSet(ratingEntries, "").apply {
+                    val ratingsDataSet = info.appdev.charting.data.LineDataSet(ratingEntries, "").apply {
                         color = Color.parseColor("#FFA726") // Orange
                         valueTextSize = 10f
                         valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        lineMode = info.appdev.charting.data.LineDataSet.Mode.CUBIC_BEZIER
+                        isDrawFilled = true
+                        fillColor = Color.parseColor("#FFA726")
+                        fillAlpha = 50
                     }
 
                     binding.ratingsInsightChart.apply {
-                        data = BarData(ratingsDataSet).apply { barWidth = 0.6f }
+                        data = info.appdev.charting.data.LineData(ratingsDataSet)
                         description.isEnabled = false
                         legend.isEnabled = false
                         
