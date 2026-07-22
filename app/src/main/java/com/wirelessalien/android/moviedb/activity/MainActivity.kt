@@ -70,6 +70,9 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.work.Constraints
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.FlexWrap
+import com.google.android.flexbox.FlexboxLayoutManager
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -151,6 +154,9 @@ class MainActivity : BaseActivity() {
     private lateinit var settingsActivityResultLauncher: ActivityResultLauncher<Intent>
     private lateinit var mHomeSearchShowAdapter: ShowPagingAdapter
     private lateinit var mDatabaseSearchAdapter: ShowBaseAdapter
+    private var keywordSearchJob: Job? = null
+    private var keywordLoadStateListener: ((androidx.paging.CombinedLoadStates) -> Unit)? = null
+    private lateinit var keywordAdapter: com.wirelessalien.android.moviedb.adapter.KeywordAdapter
     private lateinit var mShowLinearLayoutManager: LinearLayoutManager
     private lateinit var mShowGenreList: HashMap<String, String?>
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
@@ -355,6 +361,38 @@ class MainActivity : BaseActivity() {
 
         mShowGenreList = HashMap()
         mHomeSearchShowAdapter = ShowPagingAdapter(mShowGenreList, gridView = true, showDeleteButton = false)
+        keywordAdapter = com.wirelessalien.android.moviedb.adapter.KeywordAdapter { keyword ->
+            val intent = Intent(this, KeywordSearchActivity::class.java)
+            intent.putExtra("keywordId", keyword.optInt("id"))
+            intent.putExtra("keywordName", keyword.optString("name"))
+            startActivity(intent)
+        }
+
+        keywordLoadStateListener = { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.searchResultsRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    val errorMessage = (loadState.source.refresh as LoadState.Error).error.message
+                    Toast.makeText(this, getString(R.string.error_loading_data) + ": " + errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        keywordAdapter.addLoadStateListener(keywordLoadStateListener!!)
 
         val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         binding.searchResultsRecyclerView.layoutManager = mShowGridView
@@ -557,6 +595,62 @@ class MainActivity : BaseActivity() {
     private fun setupSearchView() {
         val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, false)
 
+        val doSearch = { query: String ->
+            val isShowMovieChecked = binding.chipShowMovie.isChecked
+            val isMovieChecked = binding.chipMovie.isChecked
+            val isShowChecked = binding.chipShow.isChecked
+            val isKeywordChecked = binding.chipKeyword.isChecked
+
+            if (isKeywordChecked) {
+                keywordSearch(query)
+            } else {
+                val currentFragment = getCurrentFragment()
+                if (currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt) {
+                    if (isShowMovieChecked) {
+                        multiSearch(query)
+                    } else if (isMovieChecked) {
+                        showSearch("movie", query)
+                    } else if (isShowChecked) {
+                        showSearch("tv", query)
+                    }
+                } else if (currentFragment is ShowFragment) {
+                    val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                    if (listType == "movie") {
+                        showSearch(listType, query)
+                    } else if (listType == "tv") {
+                        showSearch(listType, query)
+                    }
+                } else if (currentFragment is ListFragment) {
+                    databaseSearch(query)
+                }
+            }
+        }
+        
+        binding.chipShowMovie.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+        binding.chipMovie.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+        binding.chipShow.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+        binding.chipKeyword.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val query = binding.searchView.editText.text.toString()
+                if (query.isNotEmpty()) doSearch(query)
+            }
+        }
+
         if (liveSearch) {
             binding.searchView.editText.addTextChangedListener(object : TextWatcher {
                 private val handler = Handler(Looper.getMainLooper())
@@ -567,23 +661,7 @@ class MainActivity : BaseActivity() {
                         handler.removeCallbacks(workRunnable!!)
                     }
                     workRunnable = Runnable {
-                        val currentFragment = getCurrentFragment()
-                        if (currentFragment is HomeFragment) {
-                            multiSearch(s.toString())
-                        } else if (currentFragment is ShowFragment) {
-                            val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
-                            if (listType == "movie") {
-                                showSearch(listType, s.toString())
-                            } else if (listType == "tv") {
-                                showSearch(listType, s.toString())
-                            }
-                        } else if (currentFragment is ListFragment) {
-                            databaseSearch(s.toString())
-                        } else if (currentFragment is AccountDataFragment) {
-                            multiSearch(s.toString())
-                        } else if (currentFragment is AccountDataFragmentTkt) {
-                            multiSearch(s.toString())
-                        }
+                        doSearch(s.toString())
                     }
                     handler.postDelayed(workRunnable!!, 500)
                 }
@@ -596,23 +674,7 @@ class MainActivity : BaseActivity() {
                     actionId == EditorInfo.IME_ACTION_SEARCH ||
                     event?.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER) {
                     val query = v.text.toString()
-                    val currentFragment = getCurrentFragment()
-                    if (currentFragment is HomeFragment) {
-                        multiSearch(query)
-                    } else if (currentFragment is ShowFragment) {
-                        val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
-                        if (listType == "movie") {
-                            showSearch(listType, query)
-                        } else if (listType == "tv") {
-                            showSearch(listType, query)
-                        }
-                    } else if (currentFragment is ListFragment) {
-                        databaseSearch(query)
-                    } else if (currentFragment is AccountDataFragment) {
-                        multiSearch(query)
-                    } else if (currentFragment is AccountDataFragmentTkt) {
-                        multiSearch(query)
-                    }
+                    doSearch(query)
                     val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(v.windowToken, 0)
                     true
@@ -638,11 +700,35 @@ class MainActivity : BaseActivity() {
         binding.searchView.editText.hint = hint
     }
 
+    fun keywordSearch(query: String?) {
+        if (query.isNullOrEmpty()) {
+            return
+        }
+
+        val flexboxLayoutManager = FlexboxLayoutManager(this).apply {
+            flexDirection = FlexDirection.ROW
+            flexWrap = FlexWrap.WRAP
+        }
+        binding.searchResultsRecyclerView.layoutManager = flexboxLayoutManager
+        binding.searchResultsRecyclerView.adapter = keywordAdapter
+
+        keywordSearchJob?.cancel()
+        keywordSearchJob = lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                com.wirelessalien.android.moviedb.pagingSource.SearchKeywordPagingSource(apiReadAccessToken, query)
+            }.flow.collectLatest { pagingData ->
+                keywordAdapter.submitData(pagingData)
+            }
+        }
+    }
+
     fun multiSearch(query: String?) {
         if (query.isNullOrEmpty()) {
             return
         }
 
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
+        binding.searchResultsRecyclerView.layoutManager = mShowGridView
         binding.searchResultsRecyclerView.adapter =  mHomeSearchShowAdapter
 
         lifecycleScope.launch {
@@ -689,6 +775,8 @@ class MainActivity : BaseActivity() {
             return
         }
 
+        val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
+        binding.searchResultsRecyclerView.layoutManager = mShowGridView
         binding.searchResultsRecyclerView.adapter =  mHomeSearchShowAdapter
 
         lifecycleScope.launch {

@@ -48,6 +48,7 @@ class TaggedListActivity : BaseActivity() {
     private lateinit var binding: ActivityTaggedListBinding
     private lateinit var databaseHelper: MovieDatabaseHelper
     private val selectedTagIds = mutableSetOf<Long>()
+    private val hiddenTagIds = mutableSetOf<Long>()
     private lateinit var adapter: ShowBaseAdapter
     private val genreList = HashMap<String, String?>()
 
@@ -64,10 +65,45 @@ class TaggedListActivity : BaseActivity() {
 
         val initialTagId = intent.getLongExtra("tag_id", -1)
         val initialTagName = intent.getStringExtra("tag_name")
+        val hideTagIds = intent.getLongArrayExtra("hide_tag_ids")
 
         if (initialTagId != -1L && initialTagName != null) {
             supportActionBar?.title = initialTagName
             addTagFilter(initialTagId, initialTagName)
+        }
+        
+        lifecycleScope.launch(Dispatchers.IO) {
+            val allTags = databaseHelper.getAllTags()
+            
+            withContext(Dispatchers.Main) {
+                savedInstanceState?.let { bundle ->
+                    val savedSelected = bundle.getLongArray("selected_tag_ids")
+                    val savedHidden = bundle.getLongArray("hidden_tag_ids")
+                    
+                    savedSelected?.forEach { id -> 
+                        val tag = allTags.find { it.id == id }
+                        if (tag != null) {
+                            addTagFilter(id, tag.name)
+                        }
+                    }
+                    
+                    savedHidden?.forEach { id -> 
+                        val tag = allTags.find { it.id == id }
+                        if (tag != null) {
+                            addHideTagFilter(id, tag.name)
+                        }
+                    }
+                }
+                
+                hideTagIds?.forEach { id -> 
+                    val tag = allTags.find { it.id == id }
+                    if (tag != null) {
+                        addHideTagFilter(id, tag.name)
+                    }
+                }
+                
+                loadMovies()
+            }
         }
 
         setupRecyclerView()
@@ -76,13 +112,21 @@ class TaggedListActivity : BaseActivity() {
             showAddFilterDialog()
         }
         
+        binding.addHideFilterChip.setOnClickListener {
+            showAddHideFilterDialog()
+        }
+        
         binding.swipeRefreshLayout.setOnRefreshListener {
             loadMovies()
         }
-        
-        loadMovies()
     }
     
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLongArray("selected_tag_ids", selectedTagIds.toLongArray())
+        outState.putLongArray("hidden_tag_ids", hiddenTagIds.toLongArray())
+    }
+
     private fun loadGenres() {
         val sharedPreferences = getSharedPreferences("GenreList", Context.MODE_PRIVATE)
         val allEntries = sharedPreferences.all
@@ -129,7 +173,7 @@ class TaggedListActivity : BaseActivity() {
     private fun showAddFilterDialog() {
         lifecycleScope.launch(Dispatchers.IO) {
             val allTags = databaseHelper.getAllTags()
-            val availableTags = allTags.filter { !selectedTagIds.contains(it.id) }
+            val availableTags = allTags.filter { !selectedTagIds.contains(it.id) && !hiddenTagIds.contains(it.id) }
             
             withContext(Dispatchers.Main) {
                 if (availableTags.isEmpty()) {
@@ -148,12 +192,49 @@ class TaggedListActivity : BaseActivity() {
         }
     }
 
+    private fun addHideTagFilter(tagId: Long, tagName: String) {
+        if (hiddenTagIds.contains(tagId)) return
+        hiddenTagIds.add(tagId)
+        
+        val chip = LayoutInflater.from(this).inflate(R.layout.chip_item, binding.hideFilterChipGroup, false) as Chip
+        chip.text = tagName
+        chip.isCloseIconVisible = true
+        chip.setOnCloseIconClickListener {
+            binding.hideFilterChipGroup.removeView(chip)
+            hiddenTagIds.remove(tagId)
+            loadMovies()
+        }
+        binding.hideFilterChipGroup.addView(chip, binding.hideFilterChipGroup.childCount - 1)
+    }
+    
+    private fun showAddHideFilterDialog() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val allTags = databaseHelper.getAllTags()
+            val availableTags = allTags.filter { !selectedTagIds.contains(it.id) && !hiddenTagIds.contains(it.id) }
+            
+            withContext(Dispatchers.Main) {
+                if (availableTags.isEmpty()) {
+                     return@withContext
+                }
+                val tagNames = availableTags.map { it.name }.toTypedArray()
+                MaterialAlertDialogBuilder(this@TaggedListActivity)
+                    .setTitle(getString(R.string.add_hide_tag))
+                    .setItems(tagNames) { _, which ->
+                        val selectedTag = availableTags[which]
+                        addHideTagFilter(selectedTag.id, selectedTag.name)
+                        loadMovies()
+                    }
+                    .show()
+            }
+        }
+    }
+
     private fun loadMovies() {
         binding.shimmerFrameLayout.visibility = View.VISIBLE
         binding.shimmerFrameLayout.startShimmer()
         
         lifecycleScope.launch(Dispatchers.IO) {
-            val movies = databaseHelper.getMoviesForTags(selectedTagIds.toList())
+            val movies = databaseHelper.getMoviesForTags(selectedTagIds.toList(), hiddenTagIds.toList())
             withContext(Dispatchers.Main) {
                 adapter.updateData(ArrayList(movies))
                 binding.shimmerFrameLayout.stopShimmer()

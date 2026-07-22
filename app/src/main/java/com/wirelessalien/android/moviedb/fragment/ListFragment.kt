@@ -23,6 +23,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import androidx.core.content.ContextCompat
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
@@ -33,6 +34,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -59,6 +61,19 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import info.appdev.charting.data.PieData
+import info.appdev.charting.data.PieDataSet
+import info.appdev.charting.data.PieEntry
+import info.appdev.charting.data.BarData
+import info.appdev.charting.data.BarDataSet
+import info.appdev.charting.data.BarEntry
+import info.appdev.charting.data.BarEntryFloat
+import info.appdev.charting.components.Legend
+import info.appdev.charting.components.XAxis
+import info.appdev.charting.formatter.IAxisValueFormatter
+import info.appdev.charting.components.AxisBase
+import info.appdev.charting.charts.BarChart
+import android.graphics.Color
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -115,6 +130,7 @@ import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -311,6 +327,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                     R.id.action_tags -> {
                         showTagsBottomSheet()
+                        true
+                    }
+                    
+                    R.id.action_bulk_tags -> {
+                        startActivity(Intent(requireContext(), com.wirelessalien.android.moviedb.activity.BulkTagActivity::class.java))
                         true
                     }
                     else -> false
@@ -824,10 +845,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = $category",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ?",
+            arrayOf(category.toString())
         )
-        val totalItem = cursor.count
+        var totalItem = 0
+        if (cursor.moveToFirst()) {
+            totalItem = cursor.getInt(0)
+        }
         cursor.close()
         totalItem
     }
@@ -836,22 +860,63 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1",
+            arrayOf(MovieDatabaseHelper.CATEGORY_WATCHED.toString())
         )
-        val totalMovies = cursor.count
+        var totalMovies = 0
+        if (cursor.moveToFirst()) {
+            totalMovies = cursor.getInt(0)
+        }
         cursor.close()
         totalMovies
+    }
+
+
+    private suspend fun getTotalMoviesWatchedThisYear(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val currentYearStr = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+        val pattern = "$currentYearStr%"
+        val cursor = mDatabase.rawQuery(
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1 AND (${MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE} LIKE ? OR ${MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE} LIKE ?)",
+            arrayOf(MovieDatabaseHelper.CATEGORY_WATCHED.toString(), pattern, pattern)
+        )
+        var count = 0
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0)
+        }
+        cursor.close()
+        count
+    }
+
+    private suspend fun getTotalTVShowsWatchedThisYear(): Int = withContext(Dispatchers.IO) {
+        open()
+        mDatabaseHelper.onCreate(mDatabase)
+        val currentYearStr = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+        val pattern = "$currentYearStr%"
+        val cursor = mDatabase.rawQuery(
+            "SELECT COUNT(DISTINCT ${MovieDatabaseHelper.COLUMN_MOVIES_ID}) FROM ${MovieDatabaseHelper.TABLE_EPISODES} WHERE ${MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE} LIKE ?",
+            arrayOf(pattern)
+        )
+        var count = 0
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0)
+        }
+        cursor.close()
+        count
     }
 
     private suspend fun getTotalTVShowsInWatchedCategory(): Int = withContext(Dispatchers.IO) {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 0",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 0",
+            arrayOf(MovieDatabaseHelper.CATEGORY_WATCHED.toString())
         )
-        val totalTVShows = cursor.count
+        var totalTVShows = 0
+        if (cursor.moveToFirst()) {
+            totalTVShows = cursor.getInt(0)
+        }
         cursor.close()
         totalTVShows
     }
@@ -859,9 +924,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private suspend fun getTotalItemCountForGenre(genreId: Int): Int = withContext(Dispatchers.IO) {
         open()
         mDatabaseHelper.onCreate(mDatabase)
+        val genreStr = genreId.toString()
         val cursor: Cursor = mDatabase.rawQuery(
-            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%$genreId%'",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE ? OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE ? OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE ? OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} = ?",
+            arrayOf("$genreStr,%", "%,$genreStr,%", "%,$genreStr", genreStr)
         )
         val totalItemCount = if (cursor.moveToFirst()) {
             cursor.getInt(0)
@@ -921,6 +987,21 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             }
         }
 
+        val defaultGenres = mapOf(
+            10759 to "Action & Adventure", 16 to "Animation", 35 to "Comedy", 80 to "Crime", 
+            99 to "Documentary", 18 to "Drama", 10751 to "Family", 10762 to "Kids", 
+            9648 to "Mystery", 10763 to "News", 10764 to "Reality", 10765 to "Sci-Fi & Fantasy", 
+            10766 to "Soap", 10767 to "Talk", 10768 to "War & Politics", 37 to "Western", 
+            28 to "Action", 12 to "Adventure", 14 to "Fantasy", 36 to "History", 
+            27 to "Horror", 10402 to "Music", 10749 to "Romance", 878 to "Science Fiction", 
+            10770 to "TV Movie", 53 to "Thriller", 10752 to "War"
+        )
+        for ((key, value) in defaultGenres) {
+            if (!genreNames.containsKey(key)) {
+                genreNames[key] = value
+            }
+        }
+
         return genreNames
     }
 
@@ -939,10 +1020,86 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    private suspend fun setupGenreChips(context: Context, chipGroup: ChipGroup) {
+    private suspend fun setupGenreChips(context: Context, binding: com.wirelessalien.android.moviedb.databinding.WatchSummaryBinding) {
         val genreIds = getGenreIdsFromDatabase()
         val genreNames = getGenreNamesFromSharedPreferences(context)
-        displayGenresInChipGroup(context, chipGroup, genreIds, genreNames)
+        
+        val genreCounts = mutableListOf<Pair<String, Int>>()
+        for (genreId in genreIds) {
+            val genreName = genreNames[genreId] ?: context.getString(R.string.unknown_genre)
+            val count = getTotalItemCountForGenre(genreId)
+            if (count > 0) {
+                val existing = genreCounts.find { it.first == genreName }
+                if (existing != null) {
+                    genreCounts[genreCounts.indexOf(existing)] = Pair(genreName, existing.second + count)
+                } else {
+                    genreCounts.add(Pair(genreName, count))
+                }
+            }
+        }
+        
+        genreCounts.sortByDescending { it.second }
+        
+        if (genreCounts.isEmpty()) {
+            binding.genreChart.visibility = android.view.View.GONE
+            return
+        }
+        
+        val topN = 10
+        val topGenres = genreCounts.take(topN)
+        val othersCount = genreCounts.drop(topN).sumOf { it.second }
+        
+        val finalGenres = topGenres.toMutableList()
+        if (othersCount > 0) {
+            finalGenres.add(Pair(context.getString(R.string.others), othersCount))
+        }
+        
+        val entries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
+        // BarChart needs entries in reverse order to display top on top
+        for (i in finalGenres.indices.reversed()) {
+            entries.add(info.appdev.charting.data.BarEntryFloat((finalGenres.size - 1 - i).toFloat(), finalGenres[i].second.toFloat()))
+        }
+        
+        val dataSet = BarDataSet(entries, "").apply {
+            val baseColor = Color.parseColor("#26A69A")
+            color = baseColor
+            valueTextSize = 10f
+            valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+        }
+        
+        val barData = BarData(dataSet).apply {
+            barWidth = 0.6f
+        }
+        
+        binding.genreChart.apply {
+            data = barData
+            description.isEnabled = false
+            legend.isEnabled = false
+            extraLeftOffset = 50f
+
+
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                isDrawGridLines = false
+                granularity = 1f
+                valueFormatter = object : IAxisValueFormatter {
+                    override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                        val index = (finalGenres.size - 1 - value.toInt())
+                        return if (index >= 0 && index < finalGenres.size) finalGenres[index].first else ""
+                    }
+                }
+                textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+            }
+            
+            axisLeft.apply {
+                axisMinimum = 0f
+                textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+            }
+            
+            axisRight.isEnabled = false
+            animateY(1000)
+            invalidate()
+        }
     }
 
     private fun showTraktSyncDialog() {
@@ -1032,22 +1189,298 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             val dropped = getTotalItem(MovieDatabaseHelper.CATEGORY_DROPPED)
             val watchedMovies = getTotalMoviesInWatchedCategory()
             val watchedTVShows = getTotalTVShowsInWatchedCategory()
+            val watchedMoviesThisYear = getTotalMoviesWatchedThisYear()
+            val watchedTVShowsThisYear = getTotalTVShowsWatchedThisYear()
 
-            binding.chipWatching.text = getString(R.string.watching1, watching)
-            binding.chipWatched.text = getString(R.string.watched1, watched)
-            binding.chipPlanToWatch.text = getString(R.string.plan_to_watch1, planToWatch)
-            binding.chipOnHold.text = getString(R.string.on_hold1, onHold)
-            binding.chipDropped.text = getString(R.string.dropped1, dropped)
-            binding.chipWatchedMovies.text = getString(R.string.watched1, watchedMovies)
-            binding.chipWatchedTVShows.text = getString(R.string.watched1, watchedTVShows)
+            val totalItems = watching + watched + planToWatch + onHold + dropped
+            
+            if (totalItems == 0) {
+                binding.categoryChart.visibility = View.GONE
+                                binding.genreChart.visibility = View.GONE
+                binding.categoryTitle.visibility = View.GONE
+                                binding.genresTitle.visibility = View.GONE
+                binding.totalTrackedItems.text = getString(R.string.watch_summary) + ": 0"
+            } else {
+                binding.totalTrackedItems.text = getString(R.string.total_items_tracked, totalItems) + "\n" + getString(R.string.watched_this_year_summary, watchedMoviesThisYear, watchedTVShowsThisYear)
+                
+                // 1. Category Distribution
+                val categoryEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
+                val categoryLabels = ArrayList<String>()
+                val categoryCounts = ArrayList<Int>()
+                var idx = 0
+                if (watching > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), watching.toFloat())); categoryLabels.add(getString(R.string.watching)); categoryCounts.add(watching) }
+                if (watched > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), watched.toFloat())); categoryLabels.add(getString(R.string.watched)); categoryCounts.add(watched) }
+                if (planToWatch > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), planToWatch.toFloat())); categoryLabels.add(getString(R.string.plan_to_watch)); categoryCounts.add(planToWatch) }
+                if (onHold > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), onHold.toFloat())); categoryLabels.add(getString(R.string.on_hold)); categoryCounts.add(onHold) }
+                if (dropped > 0) { categoryEntries.add(info.appdev.charting.data.BarEntryFloat(idx++.toFloat(), dropped.toFloat())); categoryLabels.add(getString(R.string.dropped)); categoryCounts.add(dropped) }
+                
+                val categoryColorsFull = listOf(
+                    Color.parseColor("#FFB300"), // watching
+                    Color.parseColor("#43A047"), // watched
+                    Color.parseColor("#1E88E5"), // plan
+                    Color.parseColor("#8E24AA"), // on hold
+                    Color.parseColor("#E53935")  // dropped
+                )
+                
+                val categoryColors = ArrayList<Int>()
+                if (watching > 0) categoryColors.add(categoryColorsFull[0])
+                if (watched > 0) categoryColors.add(categoryColorsFull[1])
+                if (planToWatch > 0) categoryColors.add(categoryColorsFull[2])
+                if (onHold > 0) categoryColors.add(categoryColorsFull[3])
+                if (dropped > 0) categoryColors.add(categoryColorsFull[4])
+                
+                val categoryDataSet = BarDataSet(categoryEntries, "").apply {
+                    setColors(categoryColors)
+                    valueTextSize = 12f
+                    valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                }
+                
+                binding.categoryChart.apply {
+                    data = BarData(categoryDataSet).apply { barWidth = 0.6f }
+                    description.isEnabled = false
+                    legend.isEnabled = false
+                    xAxis.apply {
+                        position = XAxis.XAxisPosition.BOTTOM
+                        isDrawGridLines = false
+                        granularity = 1f
+                        valueFormatter = object : IAxisValueFormatter {
+                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                                val index = value.toInt()
+                                return if (index >= 0 && index < categoryLabels.size) categoryLabels[index] else ""
+                            }
+                        }
+                        textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
+                    axisLeft.apply {
+                        axisMinimum = 0f
+                        textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
+                    axisRight.isEnabled = false
+                    animateY(1000)
+                    invalidate()
+                }
+                
+                // Build Category Legends
+                val inflater = LayoutInflater.from(requireContext())
+                val categoryContainer = binding.categoryLegendContainer
+                if (categoryContainer != null) {
+                    categoryContainer.removeAllViews()
+                    for (i in categoryLabels.indices) {
+                        val legendView = inflater.inflate(R.layout.legend_item, categoryContainer, false)
+                        val colorBlock = legendView.findViewById<android.view.View>(R.id.legendColorBlock)
+                        val label = legendView.findViewById<android.widget.TextView>(R.id.legendLabel)
+                        val countLabel = legendView.findViewById<android.widget.TextView>(R.id.legendCount)
+                        val percentLabel = legendView.findViewById<android.widget.TextView>(R.id.legendPercent)
+                        
+                        colorBlock.setBackgroundColor(categoryColors[i])
+                        label.text = categoryLabels[i]
+                        val count = categoryCounts[i]
+                        countLabel.text = count.toString()
+                        val percent = if (totalItems > 0) (count.toFloat() / totalItems) * 100 else 0f
+                        percentLabel.text = String.format("(%.1f%%)", percent)
+                        
+                        categoryContainer.addView(legendView)
+                    }
+                }
+                
 
-            // Setup genre chips
-            setupGenreChips(requireContext(), binding.chipGroupGenres)
+                // Setup genre chips
+                setupGenreChips(requireContext(), binding)
+
+                // 3. Activity Trend & 4. Ratings Insight
+                val activityMapResult = mutableMapOf<String, Int>() // "YYYY-MM" to Count
+                val ratingBucketsResult = IntArray(11) // Buckets 0..10
+                
+                withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val cursor = mDatabase.query(
+                        MovieDatabaseHelper.TABLE_MOVIES,
+                        arrayOf(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE, MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE, MovieDatabaseHelper.COLUMN_PERSONAL_RATING, MovieDatabaseHelper.COLUMN_MOVIES_ID, MovieDatabaseHelper.COLUMN_MOVIE),
+                        null, null, null, null, null
+                    )
+
+                    while (cursor.moveToNext()) {
+                        val isMovie = cursor.getInt(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE)) == 1
+                        val movieId = cursor.getLong(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIES_ID))
+                        
+                        if (isMovie) {
+                            val finishDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
+                            val startDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
+                            val dateToUse = if (!finishDate.isNullOrEmpty()) finishDate else startDate
+                            
+                            if (!dateToUse.isNullOrEmpty()) {
+                                try {
+                                    val date = simpleDateFormat.parse(dateToUse)
+                                    if (date != null) {
+                                        val cal = Calendar.getInstance().apply { time = date }
+                                        val key = String.format("%04d-%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
+                                        activityMapResult[key] = activityMapResult.getOrDefault(key, 0) + 1
+                                    }
+                                } catch (e: Exception) {
+                                    // Ignore parse errors
+                                }
+                            }
+
+                            val rating = cursor.getFloat(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_RATING))
+                            if (rating > 0) {
+                                val bucket = Math.round(rating).toInt().coerceIn(1, 10)
+                                ratingBucketsResult[bucket]++
+                            }
+                        } else {
+                            // For TV Shows, we need to query the episodes table
+                            val episodesCursor = mDatabase.query(
+                                MovieDatabaseHelper.TABLE_EPISODES,
+                                arrayOf(MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE, MovieDatabaseHelper.COLUMN_EPISODE_RATING),
+                                "${MovieDatabaseHelper.COLUMN_MOVIES_ID} = ?",
+                                arrayOf(movieId.toString()),
+                                null, null, null
+                            )
+                            while (episodesCursor.moveToNext()) {
+                                val watchDate = episodesCursor.getString(episodesCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE))
+                                if (!watchDate.isNullOrEmpty()) {
+                                    try {
+                                        val date = simpleDateFormat.parse(watchDate)
+                                        if (date != null) {
+                                            val cal = Calendar.getInstance().apply { time = date }
+                                            val key = String.format("%04d-%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1)
+                                            activityMapResult[key] = activityMapResult.getOrDefault(key, 0) + 1
+                                        }
+                                    } catch (e: Exception) {
+                                        // Ignore parse errors
+                                    }
+                                }
+                                
+                                val epRating = episodesCursor.getFloat(episodesCursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_EPISODE_RATING))
+                                if (epRating > 0) {
+                                    val bucket = Math.round(epRating).toInt().coerceIn(1, 10)
+                                    ratingBucketsResult[bucket]++
+                                }
+                            }
+                            episodesCursor.close()
+                        }
+                    }
+                    cursor.close()
+                } // End Dispatchers.IO block
+
+                val currentYearPrefix = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+                val filteredActivity = activityMapResult.filterKeys { it.startsWith(currentYearPrefix) }
+                val sortedActivity = filteredActivity.toSortedMap()
+                val activityEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()
+                val activityLabels = ArrayList<String>()
+
+                var activityIndex = 0
+                for ((key, count) in sortedActivity) {
+                    activityEntries.add(info.appdev.charting.data.BarEntryFloat(activityIndex.toFloat(), count.toFloat()))
+                    activityLabels.add(key)
+                    activityIndex++
+                }
+
+                if (activityEntries.isEmpty()) {
+                    binding.activityTrendChart.visibility = View.GONE
+                    binding.activityTrendTitle.visibility = View.GONE
+                } else {
+                    val activityDataSet = BarDataSet(activityEntries, "").apply {
+                        color = Color.parseColor("#42A5F5") // Blue
+                        valueTextSize = 10f
+                        valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
+
+                    binding.activityTrendChart.apply {
+                        data = BarData(activityDataSet).apply { barWidth = 0.6f }
+                        description.isEnabled = false
+                        legend.isEnabled = false
+                        
+                        xAxis.apply {
+                            position = XAxis.XAxisPosition.BOTTOM
+                            isDrawGridLines = false
+                            granularity = 1f
+                            valueFormatter = object : IAxisValueFormatter {
+                                override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                                    val index = value.toInt()
+                                    return if (index >= 0 && index < activityLabels.size) activityLabels[index] else ""
+                                }
+                            }
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        
+                        axisLeft.apply {
+                            axisMinimum = 0f
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        axisRight.isEnabled = false
+                        animateY(1000)
+                        invalidate()
+                    }
+                }
+
+                val ratingEntries = ArrayList<info.appdev.charting.data.EntryFloat>()
+                val ratingLabels = ArrayList<String>()
+                var hasRatings = false
+
+                for (i in 1..10) {
+                    val count = ratingBucketsResult[i]
+                    ratingEntries.add(info.appdev.charting.data.EntryFloat((i - 1).toFloat(), count.toFloat()))
+                    ratingLabels.add(i.toString())
+                    if (count > 0) hasRatings = true
+                }
+
+                if (!hasRatings) {
+                    binding.ratingsInsightChart.visibility = View.GONE
+                    binding.ratingsInsightTitle.visibility = View.GONE
+                } else {
+                    val ratingsDataSet = info.appdev.charting.data.LineDataSet(ratingEntries, "").apply {
+                        color = Color.parseColor("#FFA726") // Orange
+                        valueTextSize = 10f
+                        valueTextColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        lineMode = info.appdev.charting.data.LineDataSet.Mode.CUBIC_BEZIER
+                        isDrawFilled = true
+                        fillColor = Color.parseColor("#FFA726")
+                        fillAlpha = 50
+                    }
+
+                    binding.ratingsInsightChart.apply {
+                        data = info.appdev.charting.data.LineData(ratingsDataSet)
+                        description.isEnabled = false
+                        legend.isEnabled = false
+                        
+                        xAxis.apply {
+                            position = XAxis.XAxisPosition.BOTTOM
+                            isDrawGridLines = false
+                            granularity = 1f
+                            valueFormatter = object : IAxisValueFormatter {
+                                override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                                    val index = value.toInt()
+                                    return if (index >= 0 && index < ratingLabels.size) ratingLabels[index] else ""
+                                }
+                            }
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        
+                        axisLeft.apply {
+                            axisMinimum = 0f
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
+                        axisRight.isEnabled = false
+                        animateY(1000)
+                        invalidate()
+                    }
+                }
+            }
 
             binding.shimmerFrameLayout.visibility = View.GONE
             binding.shimmerFrameLayout.stopShimmer()
         }
     }
+
+    private fun Context.getThemeColor(attrRes: Int): Int {
+        val typedValue = TypedValue()
+        theme.resolveAttribute(attrRes, typedValue, true)
+        return if (typedValue.resourceId != 0) {
+            ContextCompat.getColor(this, typedValue.resourceId)
+        } else {
+            typedValue.data
+        }
+    }
+
     /**
      * Create and set the new adapter to update the show view.
      */

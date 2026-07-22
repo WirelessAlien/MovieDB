@@ -20,14 +20,13 @@
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 val omdbApiKey = System.getenv("OMDB_API_KEY") ?: ""
 
 android {
     namespace = "com.wirelessalien.android.moviedb"
-    compileSdk = 35
+    compileSdk = 36
 
     flavorDimensions.add("version")
     productFlavors {
@@ -45,9 +44,9 @@ android {
     defaultConfig {
         applicationId = "com.wirelessalien.android.moviedb"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 42
-        versionName = "4.7"
+        targetSdk = 36
+        versionCode = 43
+        versionName = "4.7.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OMDB_API_KEY", "\"$omdbApiKey\"")
@@ -72,17 +71,13 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     buildFeatures {
         viewBinding = true
         buildConfig = true
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     packaging {
@@ -98,50 +93,51 @@ tasks.register("printVersionName") {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.14.0-alpha06")
+    implementation("androidx.core:core-ktx:1.18.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("com.google.android.material:material:1.14.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.google.code.gson:gson:2.14.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
-    implementation("androidx.browser:browser:1.8.0")
+    implementation("androidx.browser:browser:1.10.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("androidx.security:security-crypto-ktx:1.1.0")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
-    implementation("androidx.work:work-runtime:2.10.1")
+    implementation("androidx.work:work-runtime:2.11.2")
     implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.paging:paging-runtime:3.3.6")
+    implementation("androidx.paging:paging-runtime:3.5.0")
 
     implementation("androidx.biometric:biometric:1.1.0")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.core:core-splashscreen:1.2.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0")
 
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.picasso:picasso:2.8")
-    implementation("com.squareup.okhttp3:okhttp:5.1.0")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
 
     //facebook shimmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
-    implementation("com.opencsv:opencsv:5.9")
-
+    implementation("com.opencsv:opencsv:5.12.0")
+    implementation("com.github.AppDevNext.AndroidChart:chartLib:5.2.3")
+    
     implementation("io.noties.markwon:core:4.6.2")
     implementation("io.noties.markwon:ext-tables:4.6.2")
     implementation("io.noties.markwon:html:4.6.2")
 
     //for Google Sign In
-    "fullImplementation"("com.google.android.gms:play-services-auth:21.3.0")
+    "fullImplementation"("com.google.android.gms:play-services-auth:21.6.0")
     "fullImplementation"("com.google.apis:google-api-services-drive:v3-rev197-1.25.0")
-    "fullImplementation"("com.google.http-client:google-http-client-gson:1.47.0")
-    "fullImplementation"("androidx.credentials:credentials:1.5.0")
-    "fullImplementation"("androidx.credentials:credentials-play-services-auth:1.5.0")
-    "fullImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    "fullImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    "fullImplementation"("com.google.http-client:google-http-client-gson:2.1.1")
+    "fullImplementation"("androidx.credentials:credentials:1.6.0")
+    "fullImplementation"("androidx.credentials:credentials-play-services-auth:1.6.0")
+    "fullImplementation"("com.google.android.libraries.identity.googleid:googleid:1.2.0")
+    "fullImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")
 
     testImplementation ("junit:junit:4.13.2")
     androidTestImplementation ("androidx.test.ext:junit:1.3.0")

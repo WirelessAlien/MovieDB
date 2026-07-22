@@ -52,10 +52,12 @@ class MultiSearchPagingSource(
                 .addHeader("Authorization", "Bearer $apiKey")
                 .build()
 
-            val response = withContext(Dispatchers.IO) {
-                client.newCall(request).execute()
+            val responseBody = withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                    response.body?.string() ?: throw IOException("Empty response")
+                }
             }
-            val responseBody = response.body?.string() ?: throw IOException("Empty response")
             val json = JSONObject(responseBody)
             val results = json.getJSONArray("results")
 

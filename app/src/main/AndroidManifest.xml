@@ -153,6 +153,10 @@
         <activity android:name=".activity.TaggedListActivity"
             android:theme="@style/AppTheme">
         </activity>
+        
+        <activity android:name=".activity.BulkTagActivity"
+            android:theme="@style/AppTheme">
+        </activity>
 
         <activity android:name=".activity.CastActivity"
             android:theme="@style/AppTheme">
@@ -271,6 +275,10 @@
 
         <activity android:name=".activity.UpdateActivity"
             android:theme="@style/Theme.Transparent">
+        </activity>
+
+        <activity android:name=".activity.KeywordSearchActivity"
+            android:theme="@style/AppTheme">
         </activity>
 
         <provider

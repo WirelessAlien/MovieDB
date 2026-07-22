@@ -753,6 +753,8 @@
     <string name="on_hold1">On Hold: %1$d</string>
     <string name="dropped1">Dropped: %1$d</string>
     <string name="watch_summary">Watch Summary</string>
+    <string name="activity_trend">Activity Trend</string>
+    <string name="ratings_insight">Ratings Insight</string>
     <string name="share_link_using">Share link using</string>
     <string name="episode_title">S:%1$d E:%2$d %3$s</string>
     <string name="season_number">S: %1$d</string>
@@ -813,6 +815,9 @@
 
     <string name="app_language">App language</string>
     <string name="episode_groups">Episode Groups</string>
+    <string name="chip_show_movie">Shows &amp; Movies</string>
+    <string name="chip_word">Keywords</string>
+
     <!-- WebDAV Sync & Backup -->
     <string name="webdav_backup">WebDAV Backup</string>
     <string name="enable_webdav_sync_backup">Enable WebDAV Sync/Backup</string>
@@ -830,4 +835,21 @@
     <string name="failed_to_restore_database_from_webdav">Failed to restore database from WebDAV</string>
     <string name="webdav_backup_failed">WebDAV Backup Failed</string>
     <string name="webdav_backup_successful">WebDAV Backup Successful</string>
+    <string name="bulk_tag_management">Manage Tags for Media</string>
+    <string name="add_to_tags">Add to Tag(s)</string>
+    <string name="remove_from_tags">Remove from Tag(s)</string>
+    <string name="items_selected">%d selected</string>
+    <string name="bulk_tag_success_add">Added %1$d item(s) to %2$d tag(s)</string>
+    <string name="bulk_tag_success_remove">Removed %1$d item(s) from %2$d tag(s)</string>
+    <string name="select_tags">Select Tags</string>
+    <string name="add_hide_tag">Add Exclude Tag</string>
+    <string name="exclude_label">Exclude:</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="unknown_genre">Unknown</string>
+    <string name="others">Others</string>
+    <string name="movies_label">Movies</string>
+    <string name="tv_shows_label">TV Shows</string>
+    <string name="total_items_tracked">Total tracked items: %d</string>
+    <string name="watched_this_year_summary">You watched %1$d movies and %2$d shows this year</string>
 </resources>
