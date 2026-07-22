@@ -301,10 +301,16 @@ class ImportService : Service() {
                 val movieCV = ContentValues()
                 val episodeCV = ContentValues()
                 var hasEpisodeData = false
+                var tagsString: String? = null
 
                 contentValues.keySet().forEach { key ->
                     val value = contentValues.get(key)
                     when (key) {
+                        "tags" -> {
+                            if (value != null) {
+                                tagsString = value.toString()
+                            }
+                        }
                         MovieDatabaseHelper.COLUMN_SEASON_NUMBER,
                         MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
                         MovieDatabaseHelper.COLUMN_EPISODE_RATING,
@@ -369,6 +375,16 @@ class ImportService : Service() {
                                 // Insert new episode
                                 db.insert(MovieDatabaseHelper.TABLE_EPISODES, null, episodeCV)
                                 Log.d(TAG, "Inserted episode for ${movieCV.getAsString(MovieDatabaseHelper.COLUMN_TITLE)} S${seasonNo}E${episodeNo}")
+                            }
+                        }
+                        
+                        if (!tagsString.isNullOrBlank()) {
+                            val tagsList = tagsString!!.split("|").map { it.trim() }.filter { it.isNotEmpty() }
+                            for (tagName in tagsList) {
+                                val tagId = movieDbHelper.addTag(tagName)
+                                if (tagId != -1L) {
+                                    movieDbHelper.addMovieTag(finalTmdbId.toInt(), tagId, currentIsMovie == 1)
+                                }
                             }
                         }
                     }

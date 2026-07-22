@@ -69,7 +69,8 @@ class CsvImportActivity : AppCompatActivity() {
         "Episode Number" to MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
         "Episode My Rating (0-10)" to MovieDatabaseHelper.COLUMN_EPISODE_RATING,
         "Episode Watch Date (YYYY-MM-DD)" to MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE,
-        "Episode My Review Text" to MovieDatabaseHelper.COLUMN_EPISODE_REVIEW
+        "Episode My Review Text" to MovieDatabaseHelper.COLUMN_EPISODE_REVIEW,
+        "Tags (pipe separated: tag1|tag2)" to "tags"
     )
 
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -224,9 +225,18 @@ class CsvImportActivity : AppCompatActivity() {
     }
 
     private fun findBestMatchForHeader(csvHeader: String): Int {
-        val normalizedCsvHeader = csvHeader.lowercase().replace("_", "").replace(" ", "")
         var bestMatchIndex = 0
         var highestSimilarity = 0.5
+
+        // Check for exact match with the exported column name (value in databaseFields)
+        databaseFields.values.forEachIndexed { index, dbColumnName ->
+            if (index == 0) return@forEachIndexed
+            if (csvHeader.equals(dbColumnName, ignoreCase = true)) {
+                return index
+            }
+        }
+
+        val normalizedCsvHeader = csvHeader.lowercase().replace("_", "").replace(" ", "")
 
         databaseFields.keys.forEachIndexed { index, dbFieldDisplayName ->
             if (index == 0) return@forEachIndexed
