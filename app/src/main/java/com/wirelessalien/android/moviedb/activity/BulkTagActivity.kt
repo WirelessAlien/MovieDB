@@ -180,7 +180,9 @@ class BulkTagActivity : BaseActivity() {
                     .setPositiveButton(getString(R.string.save)) { _, _ ->
                         val newName = binding.renameInput.text.toString().trim()
                         if (newName.isNotEmpty()) {
-                            databaseHelper.addTag(newName)
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                databaseHelper.addTag(newName)
+                            }
                         }
                     }
                     .show()

@@ -1437,15 +1437,16 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
     fun getAllMediaSimple(): List<com.wirelessalien.android.moviedb.data.MediaTagItem> {
         val db = this.readableDatabase
         val list = mutableListOf<com.wirelessalien.android.moviedb.data.MediaTagItem>()
-        val cursor = db.query(
-            TABLE_MOVIES,
-            arrayOf(COLUMN_MOVIES_ID, COLUMN_TITLE, COLUMN_RELEASE_DATE, COLUMN_MOVIE),
-            null,
-            null,
-            null,
-            null,
-            "$COLUMN_TITLE COLLATE NOCASE ASC"
-        )
+        val query = """
+            SELECT m.$COLUMN_MOVIES_ID, m.$COLUMN_TITLE, m.$COLUMN_RELEASE_DATE, m.$COLUMN_MOVIE,
+                   GROUP_CONCAT(t.$COLUMN_TAG_NAME, ', ') as tags
+            FROM $TABLE_MOVIES m
+            LEFT JOIN $TABLE_MOVIE_TAGS mt ON m.$COLUMN_MOVIES_ID = mt.$COLUMN_MT_MOVIE_ID AND m.$COLUMN_MOVIE = mt.$COLUMN_MT_IS_MOVIE
+            LEFT JOIN $TABLE_TAGS t ON mt.$COLUMN_MT_TAG_ID = t.$COLUMN_TAG_ID
+            GROUP BY m.$COLUMN_MOVIES_ID, m.$COLUMN_MOVIE
+            ORDER BY m.$COLUMN_TITLE COLLATE NOCASE ASC
+        """.trimIndent()
+        val cursor = db.rawQuery(query, null)
         
         cursor.use {
             while (it.moveToNext()) {
@@ -1453,7 +1454,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 val title = it.getString(it.getColumnIndexOrThrow(COLUMN_TITLE)) ?: ""
                 val releaseDate = it.getString(it.getColumnIndexOrThrow(COLUMN_RELEASE_DATE)) ?: ""
                 val isMovie = it.getInt(it.getColumnIndexOrThrow(COLUMN_MOVIE)) == 1
-                val itemTags = getTagsForMovie(id, isMovie).joinToString { tag -> tag.name }
+                val itemTags = it.getString(it.getColumnIndexOrThrow("tags")) ?: ""
                 
                 list.add(com.wirelessalien.android.moviedb.data.MediaTagItem(id, title, releaseDate, isMovie, itemTags))
             }

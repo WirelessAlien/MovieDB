@@ -845,10 +845,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = $category",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ?",
+            arrayOf(category.toString())
         )
-        val totalItem = cursor.count
+        var totalItem = 0
+        if (cursor.moveToFirst()) {
+            totalItem = cursor.getInt(0)
+        }
         cursor.close()
         totalItem
     }
@@ -857,10 +860,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1",
+            arrayOf(MovieDatabaseHelper.CATEGORY_WATCHED.toString())
         )
-        val totalMovies = cursor.count
+        var totalMovies = 0
+        if (cursor.moveToFirst()) {
+            totalMovies = cursor.getInt(0)
+        }
         cursor.close()
         totalMovies
     }
@@ -870,11 +876,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val currentYearStr = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+        val pattern = "$currentYearStr%"
         val cursor = mDatabase.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1 AND (${MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE} LIKE '$currentYearStr%' OR ${MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE} LIKE '$currentYearStr%')",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 1 AND (${MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE} LIKE ? OR ${MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE} LIKE ?)",
+            arrayOf(MovieDatabaseHelper.CATEGORY_WATCHED.toString(), pattern, pattern)
         )
-        val count = cursor.count
+        var count = 0
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0)
+        }
         cursor.close()
         count
     }
@@ -883,11 +893,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val currentYearStr = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+        val pattern = "$currentYearStr%"
         val cursor = mDatabase.rawQuery(
-            "SELECT DISTINCT ${MovieDatabaseHelper.COLUMN_MOVIES_ID} FROM ${MovieDatabaseHelper.TABLE_EPISODES} WHERE ${MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE} LIKE '$currentYearStr%'",
-            null
+            "SELECT COUNT(DISTINCT ${MovieDatabaseHelper.COLUMN_MOVIES_ID}) FROM ${MovieDatabaseHelper.TABLE_EPISODES} WHERE ${MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE} LIKE ?",
+            arrayOf(pattern)
         )
-        val count = cursor.count
+        var count = 0
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0)
+        }
         cursor.close()
         count
     }
@@ -896,10 +910,13 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         open()
         mDatabaseHelper.onCreate(mDatabase)
         val cursor = mDatabase.rawQuery(
-            "SELECT * FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ${MovieDatabaseHelper.CATEGORY_WATCHED} AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 0",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_CATEGORIES} = ? AND ${MovieDatabaseHelper.COLUMN_MOVIE} = 0",
+            arrayOf(MovieDatabaseHelper.CATEGORY_WATCHED.toString())
         )
-        val totalTVShows = cursor.count
+        var totalTVShows = 0
+        if (cursor.moveToFirst()) {
+            totalTVShows = cursor.getInt(0)
+        }
         cursor.close()
         totalTVShows
     }
@@ -907,9 +924,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private suspend fun getTotalItemCountForGenre(genreId: Int): Int = withContext(Dispatchers.IO) {
         open()
         mDatabaseHelper.onCreate(mDatabase)
+        val genreStr = genreId.toString()
         val cursor: Cursor = mDatabase.rawQuery(
-            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '$genreId,%' OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%,$genreId,%' OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE '%,$genreId' OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} = '$genreId'",
-            null
+            "SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES} WHERE ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE ? OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE ? OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} LIKE ? OR ${MovieDatabaseHelper.COLUMN_GENRES_IDS} = ?",
+            arrayOf("$genreStr,%", "%,$genreStr,%", "%,$genreStr", genreStr)
         )
         val totalItemCount = if (cursor.moveToFirst()) {
             cursor.getInt(0)
@@ -1183,7 +1201,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                                 binding.genresTitle.visibility = View.GONE
                 binding.totalTrackedItems.text = getString(R.string.watch_summary) + ": 0"
             } else {
-                binding.totalTrackedItems.text = "Total tracked items: $totalItems\nYou watched $watchedMoviesThisYear movies and $watchedTVShowsThisYear shows this year"
+                binding.totalTrackedItems.text = getString(R.string.total_items_tracked, totalItems) + "\n" + getString(R.string.watched_this_year_summary, watchedMoviesThisYear, watchedTVShowsThisYear)
                 
                 // 1. Category Distribution
                 val categoryEntries = ArrayList<info.appdev.charting.data.BarEntryFloat>()

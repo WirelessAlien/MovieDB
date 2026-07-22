@@ -30,6 +30,7 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URL
+import java.net.URLEncoder
 
 class SearchKeywordPagingSource(
     private val apiKey: String,
@@ -39,7 +40,8 @@ class SearchKeywordPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, JSONObject> {
         return try {
             val page = params.key ?: 1
-            val url = URL("https://api.themoviedb.org/3/search/keyword?query=${query}&page=${page}")
+            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            val url = URL("https://api.themoviedb.org/3/search/keyword?query=${encodedQuery}&page=${page}")
 
             val client = OkHttpClient()
             val request = Request.Builder()
@@ -48,10 +50,12 @@ class SearchKeywordPagingSource(
                 .addHeader("Authorization", "Bearer $apiKey")
                 .build()
 
-            val response = withContext(Dispatchers.IO) {
-                client.newCall(request).execute()
+            val responseBody = withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                    response.body?.string() ?: throw IOException("Empty response")
+                }
             }
-            val responseBody = response.body?.string() ?: throw IOException("Empty response")
             val json = JSONObject(responseBody)
             val results = json.getJSONArray("results")
 

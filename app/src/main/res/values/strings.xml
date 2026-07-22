@@ -851,4 +851,5 @@
     <string name="movies_label">Movies</string>
     <string name="tv_shows_label">TV Shows</string>
     <string name="total_items_tracked">Total tracked items: %d</string>
+    <string name="watched_this_year_summary">You watched %1$d movies and %2$d shows this year</string>
 </resources>

@@ -154,6 +154,8 @@ class MainActivity : BaseActivity() {
     private lateinit var settingsActivityResultLauncher: ActivityResultLauncher<Intent>
     private lateinit var mHomeSearchShowAdapter: ShowPagingAdapter
     private lateinit var mDatabaseSearchAdapter: ShowBaseAdapter
+    private var keywordSearchJob: Job? = null
+    private var keywordLoadStateListener: ((androidx.paging.CombinedLoadStates) -> Unit)? = null
     private lateinit var keywordAdapter: com.wirelessalien.android.moviedb.adapter.KeywordAdapter
     private lateinit var mShowLinearLayoutManager: LinearLayoutManager
     private lateinit var mShowGenreList: HashMap<String, String?>
@@ -365,6 +367,32 @@ class MainActivity : BaseActivity() {
             intent.putExtra("keywordName", keyword.optString("name"))
             startActivity(intent)
         }
+
+        keywordLoadStateListener = { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.searchResultsRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    val errorMessage = (loadState.source.refresh as LoadState.Error).error.message
+                    Toast.makeText(this, getString(R.string.error_loading_data) + ": " + errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        keywordAdapter.addLoadStateListener(keywordLoadStateListener!!)
 
         val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         binding.searchResultsRecyclerView.layoutManager = mShowGridView
@@ -684,36 +712,12 @@ class MainActivity : BaseActivity() {
         binding.searchResultsRecyclerView.layoutManager = flexboxLayoutManager
         binding.searchResultsRecyclerView.adapter = keywordAdapter
 
-        lifecycleScope.launch {
+        keywordSearchJob?.cancel()
+        keywordSearchJob = lifecycleScope.launch {
             Pager(PagingConfig(pageSize = 20)) {
                 com.wirelessalien.android.moviedb.pagingSource.SearchKeywordPagingSource(apiReadAccessToken, query)
             }.flow.collectLatest { pagingData ->
                 keywordAdapter.submitData(pagingData)
-            }
-        }
-
-        keywordAdapter.addLoadStateListener { loadState ->
-            when (loadState.source.refresh) {
-                is LoadState.Loading -> {
-                    binding.searchResultsRecyclerView.visibility = View.GONE
-                    binding.shimmerFrameLayout.visibility = View.VISIBLE
-                    binding.shimmerFrameLayout.startShimmer()
-                }
-
-                is LoadState.NotLoading -> {
-                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
-                    binding.shimmerFrameLayout.visibility = View.GONE
-                    binding.shimmerFrameLayout.stopShimmer()
-                }
-
-                is LoadState.Error -> {
-                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
-                    binding.shimmerFrameLayout.visibility = View.GONE
-                    binding.shimmerFrameLayout.stopShimmer()
-                    binding.shimmerFrameLayout.visibility = View.GONE
-                    val errorMessage = (loadState.source.refresh as LoadState.Error).error.message
-                    Toast.makeText(this, getString(R.string.error_loading_data) + ": " + errorMessage, Toast.LENGTH_SHORT).show()
-                }
             }
         }
     }
