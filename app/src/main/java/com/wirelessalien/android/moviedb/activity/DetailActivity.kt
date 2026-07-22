@@ -2327,7 +2327,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             showValues.put(MovieDatabaseHelper.COLUMN_TITLE, movieDataObject.getString(title))
             showValues.put(MovieDatabaseHelper.COLUMN_SUMMARY, movieDataObject.getString("overview"))
             showValues.put(MovieDatabaseHelper.COLUMN_GENRES, genres)
-            showValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, jMovieObject.getString("genre_ids"))
+            showValues.put(MovieDatabaseHelper.COLUMN_GENRES_IDS, jMovieObject.optString("genre_ids", "[]"))
             showValues.put(MovieDatabaseHelper.COLUMN_MOVIE, isMovie)
             showValues.put(MovieDatabaseHelper.COLUMN_RATING, movieDataObject.getString("vote_average"))
             val releaseDate = if (isMovie) "release_date" else "first_air_date"
