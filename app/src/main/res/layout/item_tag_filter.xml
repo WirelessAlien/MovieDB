@@ -18,9 +18,10 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:paddingStart="24dp"
     android:paddingEnd="24dp"
     android:paddingTop="8dp"
@@ -28,37 +29,41 @@
 
     <TextView
         android:id="@+id/tag_name"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:layout_marginBottom="4dp" />
+        android:layout_gravity="center_vertical" />
 
-    <RadioGroup
+    <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/filter_radio_group"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        style="@style/Widget.Material3.MaterialButtonGroup.Connected"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        android:layout_gravity="end|center_vertical">
 
-        <RadioButton
+        <Button
             android:id="@+id/radio_none"
-            android:layout_width="0dp"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="None" />
+            app:icon="@drawable/ic_minus" />
 
-        <RadioButton
+        <Button
             android:id="@+id/radio_include"
-            android:layout_width="0dp"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Include" />
+            app:icon="@drawable/ic_add" />
 
-        <RadioButton
+        <Button
             android:id="@+id/radio_exclude"
-            android:layout_width="0dp"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Exclude" />
-    </RadioGroup>
+            app:icon="@drawable/ic_manual_r" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
 </LinearLayout>

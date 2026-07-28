@@ -51,22 +51,24 @@ class FilterTagsAdapter(
         val tag = tags[position]
         holder.binding.tagName.text = tag.name
 
-        holder.binding.filterRadioGroup.setOnCheckedChangeListener(null)
+        holder.binding.filterRadioGroup.clearOnButtonCheckedListeners()
         if (selectedIncludedIds.contains(tag.id)) {
-            holder.binding.radioInclude.isChecked = true
+            holder.binding.filterRadioGroup.check(R.id.radio_include)
         } else if (selectedExcludedIds.contains(tag.id)) {
-            holder.binding.radioExclude.isChecked = true
+            holder.binding.filterRadioGroup.check(R.id.radio_exclude)
         } else {
-            holder.binding.radioNone.isChecked = true
+            holder.binding.filterRadioGroup.check(R.id.radio_none)
         }
 
-        holder.binding.filterRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-            selectedIncludedIds.remove(tag.id)
-            selectedExcludedIds.remove(tag.id)
+        holder.binding.filterRadioGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                selectedIncludedIds.remove(tag.id)
+                selectedExcludedIds.remove(tag.id)
 
-            when (checkedId) {
-                R.id.radio_include -> selectedIncludedIds.add(tag.id)
-                R.id.radio_exclude -> selectedExcludedIds.add(tag.id)
+                when (checkedId) {
+                    R.id.radio_include -> selectedIncludedIds.add(tag.id)
+                    R.id.radio_exclude -> selectedExcludedIds.add(tag.id)
+                }
             }
         }
     }
