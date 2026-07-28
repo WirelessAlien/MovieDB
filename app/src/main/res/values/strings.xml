@@ -852,4 +852,7 @@
     <string name="tv_shows_label">TV Shows</string>
     <string name="total_items_tracked">Total tracked items: %d</string>
     <string name="watched_this_year_summary">You watched %1$d movies and %2$d shows this year</string>
+    <string name="customize_tags">Customize Tags</string>
+    <string name="filter_tags">Filter Tags</string>
+    <string name="apply">Apply</string>
 </resources>
