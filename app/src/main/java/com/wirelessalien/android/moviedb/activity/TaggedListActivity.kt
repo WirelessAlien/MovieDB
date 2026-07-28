@@ -40,6 +40,8 @@ import com.wirelessalien.android.moviedb.adapter.FilterTagsAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
 import com.wirelessalien.android.moviedb.data.Tag
 import com.wirelessalien.android.moviedb.databinding.ActivityTaggedListBinding
+import com.wirelessalien.android.moviedb.databinding.DialogCustomizeTagsBinding
+import com.wirelessalien.android.moviedb.databinding.DialogFilterTagsBinding
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -256,8 +258,8 @@ class TaggedListActivity : BaseActivity() {
     }
 
     private fun showCustomizeTagsDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_customize_tags, null)
-        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.customize_tags_recycler_view)
+        val binding = DialogCustomizeTagsBinding.inflate(LayoutInflater.from(this))
+        val recyclerView = binding.customizeTagsRecyclerView
         
         val mutableTags = orderedTagIds.mapNotNull { id -> allTags.find { it.id == id } }.toMutableList()
         val tempVisibleIds = visibleTagIds.toMutableSet()
@@ -287,7 +289,7 @@ class TaggedListActivity : BaseActivity() {
         
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.customize_tags))
-            .setView(dialogView)
+            .setView(binding.root)
             .setPositiveButton(getString(R.string.save)) { _, _ ->
                 orderedTagIds = mutableTags.map { it.id }
                 visibleTagIds = tempVisibleIds
@@ -305,8 +307,8 @@ class TaggedListActivity : BaseActivity() {
     }
 
     private fun showFilterTagsDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_filter_tags, null)
-        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.filter_tags_recycler_view)
+        val binding = DialogFilterTagsBinding.inflate(LayoutInflater.from(this))
+        val recyclerView = binding.filterTagsRecyclerView
         
         val filterAdapter = FilterTagsAdapter(allTags, selectedTagIds, hiddenTagIds)
         
@@ -315,7 +317,7 @@ class TaggedListActivity : BaseActivity() {
         
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.filter_tags))
-            .setView(dialogView)
+            .setView(binding.root)
             .setPositiveButton(getString(R.string.apply)) { _, _ ->
                 selectedTagIds = filterAdapter.selectedIncludedIds
                 hiddenTagIds = filterAdapter.selectedExcludedIds

@@ -29,6 +29,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.Tag
+import com.wirelessalien.android.moviedb.databinding.ItemTagFilterBinding
 
 class FilterTagsAdapter(
     private val tags: List<Tag>,
@@ -39,34 +40,27 @@ class FilterTagsAdapter(
     val selectedIncludedIds = initialIncludedTagIds.toMutableSet()
     val selectedExcludedIds = initialExcludedTagIds.toMutableSet()
 
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tagName: TextView = view.findViewById(R.id.tag_name)
-        val radioGroup: RadioGroup = view.findViewById(R.id.filter_radio_group)
-        val radioNone: RadioButton = view.findViewById(R.id.radio_none)
-        val radioInclude: RadioButton = view.findViewById(R.id.radio_include)
-        val radioExclude: RadioButton = view.findViewById(R.id.radio_exclude)
-    }
+    inner class ViewHolder(val binding: ItemTagFilterBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_tag_filter, parent, false)
-        return ViewHolder(view)
+        val binding = ItemTagFilterBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val tag = tags[position]
-        holder.tagName.text = tag.name
+        holder.binding.tagName.text = tag.name
 
-        holder.radioGroup.setOnCheckedChangeListener(null)
+        holder.binding.filterRadioGroup.setOnCheckedChangeListener(null)
         if (selectedIncludedIds.contains(tag.id)) {
-            holder.radioInclude.isChecked = true
+            holder.binding.radioInclude.isChecked = true
         } else if (selectedExcludedIds.contains(tag.id)) {
-            holder.radioExclude.isChecked = true
+            holder.binding.radioExclude.isChecked = true
         } else {
-            holder.radioNone.isChecked = true
+            holder.binding.radioNone.isChecked = true
         }
 
-        holder.radioGroup.setOnCheckedChangeListener { _, checkedId ->
+        holder.binding.filterRadioGroup.setOnCheckedChangeListener { _, checkedId ->
             selectedIncludedIds.remove(tag.id)
             selectedExcludedIds.remove(tag.id)
 

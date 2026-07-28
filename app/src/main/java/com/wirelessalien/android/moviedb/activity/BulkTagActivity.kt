@@ -204,7 +204,7 @@ class BulkTagActivity : BaseActivity() {
             
             withContext(Dispatchers.Main) {
                 if (allTags.isEmpty()) {
-                    Snackbar.make(findViewById(android.R.id.content), "No tags to delete", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(findViewById(android.R.id.content), getString(R.string.no_tags_to_delete), Snackbar.LENGTH_SHORT).show()
                     return@withContext
                 }
 
@@ -221,14 +221,14 @@ class BulkTagActivity : BaseActivity() {
                         if (tagsToDelete.isNotEmpty()) {
                             MaterialAlertDialogBuilder(this@BulkTagActivity)
                                 .setTitle(getString(R.string.delete))
-                                .setMessage("Are you sure you want to delete the selected tags? This action is irreversible and deleted tags cannot be restored.")
+                                .setMessage(getString(R.string.delete_tags_confirmation))
                                 .setPositiveButton(getString(R.string.delete)) { _, _ ->
                                     lifecycleScope.launch(Dispatchers.IO) {
                                         tagsToDelete.forEach { tag ->
                                             databaseHelper.deleteTag(tag.id)
                                         }
                                         withContext(Dispatchers.Main) {
-                                            Snackbar.make(findViewById(android.R.id.content), "Deleted ${tagsToDelete.size} tag(s)", Snackbar.LENGTH_SHORT).show()
+                                            Snackbar.make(findViewById(android.R.id.content), getString(R.string.deleted_tags, tagsToDelete.size), Snackbar.LENGTH_SHORT).show()
                                         }
                                     }
                                 }

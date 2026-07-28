@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.data.Tag
+import com.wirelessalien.android.moviedb.databinding.ItemTagCustomizeBinding
 import java.util.Collections
 
 class CustomizeTagsAdapter(
@@ -39,26 +40,21 @@ class CustomizeTagsAdapter(
     private val onStartDrag: (RecyclerView.ViewHolder) -> Unit
 ) : RecyclerView.Adapter<CustomizeTagsAdapter.ViewHolder>() {
 
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val dragHandle: ImageView = view.findViewById(R.id.drag_handle)
-        val tagName: TextView = view.findViewById(R.id.tag_name)
-        val visibilitySwitch: SwitchMaterial = view.findViewById(R.id.tag_visibility_switch)
-    }
+    inner class ViewHolder(val binding: ItemTagCustomizeBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_tag_customize, parent, false)
-        return ViewHolder(view)
+        val binding = ItemTagCustomizeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val tag = tags[position]
-        holder.tagName.text = tag.name
+        holder.binding.tagName.text = tag.name
 
-        holder.visibilitySwitch.setOnCheckedChangeListener(null)
-        holder.visibilitySwitch.isChecked = visibleTagIds.contains(tag.id)
-        holder.visibilitySwitch.setOnCheckedChangeListener { _, isChecked ->
+        holder.binding.tagVisibilitySwitch.setOnCheckedChangeListener(null)
+        holder.binding.tagVisibilitySwitch.isChecked = visibleTagIds.contains(tag.id)
+        holder.binding.tagVisibilitySwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 visibleTagIds.add(tag.id)
             } else {
@@ -66,7 +62,7 @@ class CustomizeTagsAdapter(
             }
         }
 
-        holder.dragHandle.setOnTouchListener { _, event ->
+        holder.binding.dragHandle.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 onStartDrag(holder)
             }
