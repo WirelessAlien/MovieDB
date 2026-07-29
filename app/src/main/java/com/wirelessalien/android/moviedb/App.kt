@@ -43,7 +43,11 @@ class App : Application() {
         val picasso = Picasso.Builder(this)
             .downloader(OkHttp3Downloader(NetworkClient.client))
             .build()
-        Picasso.setSingletonInstance(picasso)
+        try {
+            Picasso.setSingletonInstance(picasso)
+        } catch (e: IllegalStateException) {
+            // Singleton instance already set
+        }
 
         DynamicColors.applyToActivitiesIfAvailable(this)
         fetchAndStoreGenres()

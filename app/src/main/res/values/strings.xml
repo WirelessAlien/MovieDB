@@ -524,7 +524,7 @@
     <string name="title_show_recommendations">Display recommendations</string>
     <string name="title_show_save_dialog">Display save dialog</string>
 
-    <string name="custom_dns_category">Network</string>
+    <string name="custom_dns_category">Network Rule</string>
     <string name="custom_dns_enabled_title">Use custom DNS (DNS-over-HTTPS)</string>
     <string name="custom_dns_enabled_summary">Route DNS queries over HTTPS to bypass ISP-level DNS blocks (e.g. TMDB blocked by Jio)</string>
     <string name="custom_dns_url_title">DNS-over-HTTPS URL</string>

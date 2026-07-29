@@ -75,6 +75,8 @@ import java.util.concurrent.TimeUnit
 import android.text.InputType
 import android.util.Patterns
 import com.wirelessalien.android.moviedb.NetworkClient
+import com.squareup.picasso.OkHttp3Downloader
+import com.squareup.picasso.Picasso
 import java.net.MalformedURLException
 import java.net.URL
 
@@ -191,6 +193,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         findPreference<SwitchPreferenceCompat>("key_custom_dns_enabled")?.setOnPreferenceChangeListener { _, newValue ->
             NetworkClient.rebuild(requireContext(), newCustomDnsEnabled = newValue as Boolean)
+            rebuildPicasso()
             true
         }
 
@@ -215,11 +218,13 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
                 if (isValid) {
                     NetworkClient.rebuild(requireContext(), newCustomDnsUrl = newUrl)
+                    rebuildPicasso()
                     true
                 } else {
                     Toast.makeText(requireContext(), "Invalid HTTPS URL, reverting to default", Toast.LENGTH_SHORT).show()
                     (preference as EditTextPreference).text = "https://1.1.1.1/dns-query"
                     NetworkClient.rebuild(requireContext(), newCustomDnsUrl = "https://1.1.1.1/dns-query")
+                    rebuildPicasso()
                     false
                 }
             }
@@ -579,6 +584,28 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     override fun onPause() {
         super.onPause()
         preferenceManager.sharedPreferences?.unregisterOnSharedPreferenceChangeListener(this)
+    }
+
+    private fun rebuildPicasso() {
+        val oldPicasso = Picasso.get()
+        val newPicasso = Picasso.Builder(requireContext().applicationContext)
+            .downloader(OkHttp3Downloader(NetworkClient.client))
+            .build()
+        try {
+            val field = Picasso::class.java.getDeclaredField("singleton")
+            field.isAccessible = true
+            field.set(null, newPicasso)
+        } catch (e: ReflectiveOperationException) {
+            android.util.Log.w("SettingsFragment", "Could not replace Picasso singleton via reflection; DNS change will not apply to image loading until restart", e)
+            newPicasso.shutdown()
+            return
+        }
+
+        try {
+            oldPicasso.shutdown()
+        } catch (e: Exception) {
+            android.util.Log.w("SettingsFragment", "Failed to shut down previous Picasso instance", e)
+        }
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
