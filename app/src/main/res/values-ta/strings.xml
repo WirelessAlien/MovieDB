@@ -295,4 +295,5 @@
         <item quantity="other">%1$d நிமிடங்கள்</item>
     </plurals>
     <string name="username">பயனர்பெயர்</string>
+    <string name="stats">நிலை</string>
 </resources>
