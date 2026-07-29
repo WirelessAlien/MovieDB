@@ -60,7 +60,7 @@ class UpdateWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 
     private fun getLatestRelease(): Release? {
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val request = Request.Builder()
             .url("https://api.github.com/repos/WirelessAlien/MovieDB/releases/latest")
             .build()

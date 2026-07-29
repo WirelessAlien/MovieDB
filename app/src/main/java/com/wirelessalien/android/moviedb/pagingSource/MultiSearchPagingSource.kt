@@ -45,7 +45,7 @@ class MultiSearchPagingSource(
             val url = URL("https://api.themoviedb.org/3/search/multi?query=${query}&page=${page}" +
                     BaseActivity.getLanguageParameter2(context))
 
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url(url)
                 .get()

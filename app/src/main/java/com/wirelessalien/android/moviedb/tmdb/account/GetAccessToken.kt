@@ -51,7 +51,7 @@ class GetAccessToken(
     suspend fun fetchAccessToken() {
         withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
 
                 // With an approved request token, create a session
                 val postBody = JSONObject().apply {

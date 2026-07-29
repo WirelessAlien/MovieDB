@@ -32,10 +32,19 @@ import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.OkHttp3Downloader
 
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        NetworkClient.init(this)
+        val picasso = Picasso.Builder(this)
+            .downloader(OkHttp3Downloader(NetworkClient.client))
+            .build()
+        Picasso.setSingletonInstance(picasso)
+
         DynamicColors.applyToActivitiesIfAvailable(this)
         fetchAndStoreGenres()
     }
@@ -65,7 +74,7 @@ class App : Application() {
 
     private suspend fun fetchGenreListFromNetwork(genreType: String, apiKey: String?): String? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+            val client = NetworkClient.client
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/3/genre/$genreType/list?api_key=$apiKey")
                 .build()

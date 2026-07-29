@@ -52,7 +52,7 @@ class UpdateList(
     suspend fun updateList() {
         withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val json = JSONObject()
                 json.put("name", name)
                 json.put("description", description)

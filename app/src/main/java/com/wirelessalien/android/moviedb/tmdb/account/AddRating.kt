@@ -48,7 +48,7 @@ class AddRating(
     suspend fun addRating() {
         var success = false
         try {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val mediaType = "application/json;charset=utf-8".toMediaTypeOrNull()
             val jsonParam = JSONObject().apply {
                 put("value", rating)

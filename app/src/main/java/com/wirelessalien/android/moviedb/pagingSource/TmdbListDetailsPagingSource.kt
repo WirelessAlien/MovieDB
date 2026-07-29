@@ -38,7 +38,7 @@ class TmdbListDetailsPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, JSONObject> {
         return try {
             val page = params.key ?: 1
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/4/list/$listId?page=$page")
                 .get()

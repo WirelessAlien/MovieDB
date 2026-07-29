@@ -72,6 +72,11 @@ import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.UpdateWorker
 import com.wirelessalien.android.moviedb.work.WeeklyWorkerTkt
 import java.util.concurrent.TimeUnit
+import android.text.InputType
+import android.util.Patterns
+import com.wirelessalien.android.moviedb.NetworkClient
+import java.net.MalformedURLException
+import java.net.URL
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
 
@@ -182,6 +187,42 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         if (BuildConfig.OMDB_API_KEY.isNotEmpty()) {
             omdbApiKeyPreference?.summary = getString(R.string.omdb_api_key_summary_provided)
 
+        }
+
+        findPreference<SwitchPreferenceCompat>("key_custom_dns_enabled")?.setOnPreferenceChangeListener { _, newValue ->
+            NetworkClient.rebuild(requireContext(), newCustomDnsEnabled = newValue as Boolean)
+            true
+        }
+
+        findPreference<EditTextPreference>("key_custom_dns_url")?.let { pref ->
+            pref.setOnBindEditTextListener { editText ->
+                editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            }
+            pref.setOnPreferenceChangeListener { preference, newValue ->
+                val newUrl = newValue as String
+                var isValid = false
+
+                if (newUrl.isNotBlank()) {
+                    try {
+                        val url = URL(newUrl)
+                        if (url.protocol == "https") {
+                            isValid = true
+                        }
+                    } catch (e: MalformedURLException) {
+                        isValid = false
+                    }
+                }
+
+                if (isValid) {
+                    NetworkClient.rebuild(requireContext(), newCustomDnsUrl = newUrl)
+                    true
+                } else {
+                    Toast.makeText(requireContext(), "Invalid HTTPS URL, reverting to default", Toast.LENGTH_SHORT).show()
+                    (preference as EditTextPreference).text = "https://1.1.1.1/dns-query"
+                    NetworkClient.rebuild(requireContext(), newCustomDnsUrl = "https://1.1.1.1/dns-query")
+                    false
+                }
+            }
         }
 
         val hideAccountTab = findPreference<CheckBoxPreference>("key_hide_account_tab")

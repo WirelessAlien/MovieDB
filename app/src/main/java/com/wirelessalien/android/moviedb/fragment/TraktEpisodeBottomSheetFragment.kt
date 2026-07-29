@@ -253,7 +253,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
     private fun traktFetchanddisplayepisodedetails(seriesId: Int, seasonNumber: Int, episodeNumber: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url("https://api.themoviedb.org/3/tv/$seriesId/season/$seasonNumber/episode/$episodeNumber?api_key=$apiKey")
                     .build()
@@ -305,7 +305,7 @@ class TraktEpisodeBottomSheetFragment : BottomSheetDialogFragment(), EpisodeTrak
 
     private suspend fun traktFetchepisodedata(traktId: Int, seasonNumber: Int, episodeNumber: Int): JSONObject? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url("https://api.trakt.tv/shows/$traktId/seasons/$seasonNumber/episodes/$episodeNumber")
                 .get()

@@ -53,7 +53,7 @@ class AddEpisodeRating(
         var success1 = false
         var success2 = false
         try {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val mediaType = "application/json;charset=utf-8".toMediaTypeOrNull()
             val jsonParam = JSONObject().apply {
                 put("value", rating)

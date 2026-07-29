@@ -59,7 +59,7 @@ object WebDavHelper {
     }
 
     private val httpClient by lazy {
-        OkHttpClient.Builder()
+        com.wirelessalien.android.moviedb.NetworkClient.client.newBuilder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

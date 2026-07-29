@@ -190,6 +190,26 @@
             android:title="@string/title_live_search"
             app:iconSpaceReserved="false"/>
 
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/custom_dns_category"
+        app:iconSpaceReserved="false">
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="key_custom_dns_enabled"
+            android:title="@string/custom_dns_enabled_title"
+            android:summary="@string/custom_dns_enabled_summary"
+            app:iconSpaceReserved="false"/>
+
+        <EditTextPreference
+            android:key="key_custom_dns_url"
+            android:title="@string/custom_dns_url_title"
+            android:summary="@string/custom_dns_url_summary"
+            android:defaultValue="https://1.1.1.1/dns-query"
+            android:dependency="key_custom_dns_enabled"
+            app:iconSpaceReserved="false"/>
+
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="key_hq_images"

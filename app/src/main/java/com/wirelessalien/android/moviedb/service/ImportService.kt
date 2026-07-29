@@ -58,7 +58,7 @@ class ImportService : Service() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var movieDbHelper: MovieDatabaseHelper
     private val rateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)
-    private val httpClient = OkHttpClient()
+    private val httpClient = com.wirelessalien.android.moviedb.NetworkClient.client
     private var tmdbApiKey: String? = null
 
     companion object {

@@ -77,7 +77,7 @@ class PersonPagingSource(
         return withContext(Dispatchers.IO) {
             try {
                 val url = URL("https://api.themoviedb.org/3/person/popular?page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}")
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)
                     .get()

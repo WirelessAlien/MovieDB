@@ -42,7 +42,7 @@ class AccountLogoutTkt(private val context: Context, private val handler: Handle
     suspend fun logout() {
         withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val jSON = "application/json; charset=utf-8".toMediaTypeOrNull()
                 val accessToken = preferences.getString("trakt_access_token", null)
                 val clientId = ConfigHelper.getConfigValue(context, "client_id")

@@ -172,7 +172,7 @@ class DeepLinkActivity : AppCompatActivity() {
 
 
     private fun fetchFromTmdb(mediaId: String, mediaType: String): JSONObject? {
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")
         val url = "https://api.themoviedb.org/3/$mediaType/$mediaId"
         val request = Request.Builder()
@@ -197,7 +197,7 @@ class DeepLinkActivity : AppCompatActivity() {
         val apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val url = "https://api.themoviedb.org/3/find/$externalId?external_source=imdb_id"
                 val request = Request.Builder()
                     .url(url)

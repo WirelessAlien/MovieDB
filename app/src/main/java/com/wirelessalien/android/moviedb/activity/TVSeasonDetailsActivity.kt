@@ -136,7 +136,7 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
         return withContext(Dispatchers.IO) {
             try {
                 val apiKey = getConfigValue(applicationContext, "api_key")
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url("https://api.themoviedb.org/3/tv/episode_group/$groupId?api_key=$apiKey")
                     .build()

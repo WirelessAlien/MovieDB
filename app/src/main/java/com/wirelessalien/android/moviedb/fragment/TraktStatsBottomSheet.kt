@@ -44,7 +44,7 @@ import java.util.Locale
 class TraktStatsBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var binding: BottomSheetTraktStatsBinding
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private lateinit var preferences: SharedPreferences
     private var accessToken: String? = null
     private var clientId: String? = null

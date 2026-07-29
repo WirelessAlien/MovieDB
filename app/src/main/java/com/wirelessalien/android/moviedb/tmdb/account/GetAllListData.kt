@@ -45,7 +45,7 @@ class GetAllListData(
         var hasMorePages = true
         while (hasMorePages) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url("https://api.themoviedb.org/4/list/$listId?page=$currentPage")
                     .get()

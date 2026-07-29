@@ -928,7 +928,7 @@ class MainActivity : BaseActivity() {
             .post(requestBody)
             .build()
 
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
@@ -1024,7 +1024,7 @@ class MainActivity : BaseActivity() {
                     .post(requestBody)
                     .build()
 
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val response = client.newCall(request).execute()
                 val responseBody = response.body.string()
 

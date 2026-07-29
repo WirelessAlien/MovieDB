@@ -32,7 +32,7 @@ import org.json.JSONObject
 import java.io.IOException
 
 class TraktSync(private val accessToken: String, applicationContext: Context) {
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private val baseUrl = "https://api.trakt.tv"
     private val clientId = ConfigHelper.getConfigValue(applicationContext, "client_id")
 

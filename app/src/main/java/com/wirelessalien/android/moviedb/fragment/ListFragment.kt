@@ -143,7 +143,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
     private var usedFilter = false
     private lateinit var mDatabase: SQLiteDatabase
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
     private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
     private var mScrollPosition: Int? = null

@@ -41,7 +41,7 @@ class TMDbAuthV4(private val context: Context) {
         return withContext(Dispatchers.IO) {
             var accessToken: String? = null
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val jSON = "application/json; charset=utf-8".toMediaTypeOrNull()
 
                 // Create JSON object with redirect_to URL

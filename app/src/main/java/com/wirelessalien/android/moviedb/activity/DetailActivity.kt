@@ -1927,7 +1927,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private suspend fun fetchTraktId(tmdbId: Int, imdbId: String?): Int? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
 
             var url = "https://api.trakt.tv/search/tmdb/$tmdbId?type=show"
             var request = Request.Builder()
@@ -1972,7 +1972,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private suspend fun fetchMovieDetailsByExternalId(externalId: String, type: String): JSONObject? {
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val url = "https://api.themoviedb.org/3/find/$externalId?external_source=$type"
                 val request = Request.Builder()
                     .url(url)
@@ -2031,7 +2031,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private suspend fun fetchMovieDetailsByTitleAndYear(type: String, title: String, year: String): JSONObject? {
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val url = "https://api.themoviedb.org/3/search/$type?query=$title&year=$year"
 
                 val request = Request.Builder()
@@ -2251,7 +2251,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             return null
         }
 
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val url = "https://api.themoviedb.org/3/tv/$showId/season/$seasonNumber/episode/$episodeNumber?api_key=$apiKey&append_to_response=external_ids"
 
         val request = Request.Builder().url(url).build()
@@ -4143,7 +4143,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 } else {
                     URL("https://api.themoviedb.org/3/tv/$movieId/aggregate_credits" + getLanguageParameter2(applicationContext))
                 }
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(apiUrl)
                     .get()
@@ -4243,7 +4243,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)
                     .addHeader("accept", "application/json")
@@ -4361,7 +4361,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         var response: String? = null
         val movie = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
         val url = "https://api.themoviedb.org/3/$movie/$movieId/recommendations" + getLanguageParameter2(applicationContext)
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val request = Request.Builder()
             .url(url)
             .get()
@@ -4404,7 +4404,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     // Load the movie details.
     private fun fetchMovieDetails(url: String): JSONObject {
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val request = Request.Builder()
             .url(url)
             .get()
@@ -4735,7 +4735,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     }
 
     private fun fetchMovieRatings(imdbId: String?, title: String?, year: String?, type: String, apiKey: String): JSONObject? {
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val url = if (imdbId != null) {
             "http://www.omdbapi.com/?i=$imdbId&plot=short&apikey=$apiKey"
         } else {

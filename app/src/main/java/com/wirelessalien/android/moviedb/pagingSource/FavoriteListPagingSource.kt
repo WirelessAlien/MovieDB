@@ -79,7 +79,7 @@ class FavoriteListPagingSource(
         val accessToken = preferences.getString("access_token", "")
         val accountId = preferences.getString("account_id", "")
         val url = "https://api.themoviedb.org/4/account/$accountId/$listType/favorites?page=$page&sort_by=created_at.desc"
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val request = Request.Builder()
             .url(url)
             .get()

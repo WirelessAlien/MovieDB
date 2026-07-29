@@ -82,7 +82,7 @@ class ShowPagingSource(
         return withContext(Dispatchers.IO) {
             try {
                 val url = URL("https://api.themoviedb.org/3/discover/$listType?$filterParameter&page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}")
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)
                     .get()
