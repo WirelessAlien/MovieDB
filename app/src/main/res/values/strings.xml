@@ -528,7 +528,7 @@
     <string name="custom_dns_enabled_title">Use custom DNS (DNS-over-HTTPS)</string>
     <string name="custom_dns_enabled_summary">Route DNS queries over HTTPS to bypass ISP-level DNS blocks (e.g. TMDB blocked by Jio)</string>
     <string name="custom_dns_url_title">DNS-over-HTTPS URL</string>
-    <string name="custom_dns_url_summary">Leave blank to use default (Cloudflare: https://1.1.1.1/dns-query)</string>
+    <string name="custom_dns_url_summary">Leave blank to use default dns url.</string>
     <string name="title_persistent_filtering">Persistent filter</string>
     <string name="summary_persistent_filtering">Auto-filter media when starting the app</string>
     <string name="title_show_representation">Media representation</string>
