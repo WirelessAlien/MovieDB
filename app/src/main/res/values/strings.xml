@@ -858,4 +858,8 @@
     <string name="no_tags_to_delete">No tags to delete</string>
     <string name="delete_tags_confirmation">Are you sure you want to delete the selected tags? This action is irreversible and deleted tags cannot be restored.</string>
     <string name="deleted_tags">Deleted %1$d tag(s)</string>
+    <string name="category_chart_desc">Distribution of media by watch status</string>
+    <string name="genre_chart_desc">Most watched genres</string>
+    <string name="activity_trend_desc">Items watched per month this year</string>
+    <string name="ratings_insight_desc">Distribution of your ratings</string>
 </resources>

@@ -961,7 +961,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         
         binding.genreChart.apply {
             data = barData
-            description.isEnabled = false
+            description.apply {
+                isEnabled = true
+                text = getString(R.string.genre_chart_desc)
+                textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+            }
             legend.isEnabled = false
             extraLeftOffset = 50f
 
@@ -1125,7 +1129,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 
                 binding.categoryChart.apply {
                     data = BarData(categoryDataSet).apply { barWidth = 0.6f }
-                    description.isEnabled = false
+                    description.apply {
+                        isEnabled = true
+                        text = getString(R.string.category_chart_desc)
+                        textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
                     legend.isEnabled = false
                     xAxis.apply {
                         position = XAxis.XAxisPosition.BOTTOM
@@ -1274,7 +1282,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                     binding.activityTrendChart.apply {
                         data = BarData(activityDataSet).apply { barWidth = 0.6f }
-                        description.isEnabled = false
+                        description.apply {
+                            isEnabled = true
+                            text = getString(R.string.activity_trend_desc)
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
                         legend.isEnabled = false
                         
                         xAxis.apply {
@@ -1327,7 +1339,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                     binding.ratingsInsightChart.apply {
                         data = info.appdev.charting.data.LineData(ratingsDataSet)
-                        description.isEnabled = false
+                        description.apply {
+                            isEnabled = true
+                            text = getString(R.string.ratings_insight_desc)
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
                         legend.isEnabled = false
                         
                         xAxis.apply {
