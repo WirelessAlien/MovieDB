@@ -121,7 +121,7 @@ class EpisodeTraktAdapter(
 
     private suspend fun fetchEpisodeData(tvShowId: Int, seasonNumber: Int, episodeNumber: Int, accessToken: String): JSONObject? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url("https://api.trakt.tv/shows/$tvShowId/seasons/$seasonNumber/episodes/$episodeNumber")
                 .get()

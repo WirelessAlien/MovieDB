@@ -47,7 +47,7 @@ class AddToWatchlist(
         val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
         accountId = preferences.getString("account_id", "")
         accessToken = preferences.getString("access_token", "")
-        client = OkHttpClient()
+        client = com.wirelessalien.android.moviedb.NetworkClient.client
     }
 
     suspend fun addToWatchlist() {

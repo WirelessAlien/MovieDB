@@ -162,7 +162,7 @@ open class BaseFragment : Fragment() {
 
     private suspend fun fetchGenreListFromNetwork(mGenreType: String): String? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val localeLanguage = Locale.getDefault().toLanguageTag()
             
             // First attempt with the locale language

@@ -47,7 +47,7 @@ class DeleteEpisodeRating(
     }
 
     suspend fun deleteEpisodeRating() {
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val request = Request.Builder()
             .url("https://api.themoviedb.org/3/tv/$tvShowId/season/$seasonNumber/episode/$episodeNumber/rating")
             .delete()

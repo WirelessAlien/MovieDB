@@ -523,6 +523,12 @@
     <string name="title_show_crew">Display crew</string>
     <string name="title_show_recommendations">Display recommendations</string>
     <string name="title_show_save_dialog">Display save dialog</string>
+
+    <string name="custom_dns_category">Network Rule</string>
+    <string name="custom_dns_enabled_title">Use custom DNS (DNS-over-HTTPS)</string>
+    <string name="custom_dns_enabled_summary">Route DNS queries over HTTPS to bypass ISP-level DNS blocks (e.g. TMDB blocked by Jio)</string>
+    <string name="custom_dns_url_title">Custom DNS-over-HTTPS URL</string>
+    <string name="custom_dns_url_summary">Enter a custom DNS URL or leave unchanged to use the default.</string>
     <string name="title_persistent_filtering">Persistent filter</string>
     <string name="summary_persistent_filtering">Auto-filter media when starting the app</string>
     <string name="title_show_representation">Media representation</string>
@@ -852,4 +858,14 @@
     <string name="tv_shows_label">TV Shows</string>
     <string name="total_items_tracked">Total tracked items: %d</string>
     <string name="watched_this_year_summary">You watched %1$d movies and %2$d shows this year</string>
+    <string name="customize_tags">Customize Tags</string>
+    <string name="filter_tags">Filter Tags</string>
+    <string name="apply">Apply</string>
+    <string name="no_tags_to_delete">No tags to delete</string>
+    <string name="delete_tags_confirmation">Are you sure you want to delete the selected tags? This action is irreversible and deleted tags cannot be restored.</string>
+    <string name="deleted_tags">Deleted %1$d tag(s)</string>
+    <string name="category_chart_desc">Distribution of media by watch status</string>
+    <string name="genre_chart_desc">Most watched genres</string>
+    <string name="activity_trend_desc">Items watched per month this year</string>
+    <string name="ratings_insight_desc">Distribution of your ratings</string>
 </resources>

@@ -52,7 +52,7 @@ class GetShowProgressTkt(
     suspend fun fetchShowProgress() {
         withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url("https://api.trakt.tv/shows/$showId/progress/watched?hidden=false&specials=false&count_specials=false")
                     .get()

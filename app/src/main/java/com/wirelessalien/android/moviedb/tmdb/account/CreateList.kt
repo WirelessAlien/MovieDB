@@ -49,7 +49,7 @@ class CreateList(
     suspend fun createList(): Boolean {
         var success = false
         try {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val mediaType = "application/json".toMediaTypeOrNull()
             val jsonParam = JSONObject().apply {
                 put("name", listName)

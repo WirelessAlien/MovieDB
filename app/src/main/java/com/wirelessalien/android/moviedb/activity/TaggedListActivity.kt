@@ -25,32 +25,41 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.adapter.CustomizeTagsAdapter
+import com.wirelessalien.android.moviedb.adapter.FilterTagsAdapter
 import com.wirelessalien.android.moviedb.adapter.ShowBaseAdapter
+import com.wirelessalien.android.moviedb.data.Tag
 import com.wirelessalien.android.moviedb.databinding.ActivityTaggedListBinding
+import com.wirelessalien.android.moviedb.databinding.DialogCustomizeTagsBinding
+import com.wirelessalien.android.moviedb.databinding.DialogFilterTagsBinding
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 
 class TaggedListActivity : BaseActivity() {
 
     private lateinit var binding: ActivityTaggedListBinding
     private lateinit var databaseHelper: MovieDatabaseHelper
-    private val selectedTagIds = mutableSetOf<Long>()
-    private val hiddenTagIds = mutableSetOf<Long>()
+    private var selectedTagIds = mutableSetOf<Long>()
+    private var hiddenTagIds = mutableSetOf<Long>()
     private lateinit var adapter: ShowBaseAdapter
     private val genreList = HashMap<String, String?>()
+    
+    private var allTags: List<Tag> = emptyList()
+    private var orderedTagIds: List<Long> = emptyList()
+    private var visibleTagIds: MutableSet<Long> = mutableSetOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,67 +67,42 @@ class TaggedListActivity : BaseActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.tags)
 
         databaseHelper = MovieDatabaseHelper(this)
         
         loadGenres()
-
-        val initialTagId = intent.getLongExtra("tag_id", -1)
-        val initialTagName = intent.getStringExtra("tag_name")
-        val hideTagIds = intent.getLongArrayExtra("hide_tag_ids")
-
-        if (initialTagId != -1L && initialTagName != null) {
-            supportActionBar?.title = initialTagName
-            addTagFilter(initialTagId, initialTagName)
-        }
-        
-        lifecycleScope.launch(Dispatchers.IO) {
-            val allTags = databaseHelper.getAllTags()
-            
-            withContext(Dispatchers.Main) {
-                savedInstanceState?.let { bundle ->
-                    val savedSelected = bundle.getLongArray("selected_tag_ids")
-                    val savedHidden = bundle.getLongArray("hidden_tag_ids")
-                    
-                    savedSelected?.forEach { id -> 
-                        val tag = allTags.find { it.id == id }
-                        if (tag != null) {
-                            addTagFilter(id, tag.name)
-                        }
-                    }
-                    
-                    savedHidden?.forEach { id -> 
-                        val tag = allTags.find { it.id == id }
-                        if (tag != null) {
-                            addHideTagFilter(id, tag.name)
-                        }
-                    }
-                }
-                
-                hideTagIds?.forEach { id -> 
-                    val tag = allTags.find { it.id == id }
-                    if (tag != null) {
-                        addHideTagFilter(id, tag.name)
-                    }
-                }
-                
-                loadMovies()
-            }
-        }
-
         setupRecyclerView()
 
-        binding.addFilterChip.setOnClickListener {
-            showAddFilterDialog()
+        val initialTagId = intent.getLongExtra("tag_id", -1)
+        val hideTagIdsArray = intent.getLongArrayExtra("hide_tag_ids")
+
+        savedInstanceState?.let { bundle ->
+            val savedSelected = bundle.getLongArray("selected_tag_ids")
+            val savedHidden = bundle.getLongArray("hidden_tag_ids")
+            
+            savedSelected?.forEach { selectedTagIds.add(it) }
+            savedHidden?.forEach { hiddenTagIds.add(it) }
+        } ?: run {
+             if (initialTagId != -1L) {
+                 selectedTagIds.add(initialTagId)
+             }
+             hideTagIdsArray?.forEach { hiddenTagIds.add(it) }
         }
-        
-        binding.addHideFilterChip.setOnClickListener {
-            showAddHideFilterDialog()
+
+        binding.customizeTagsButton.setOnClickListener {
+            showCustomizeTagsDialog()
+        }
+
+        binding.filterFab.setOnClickListener {
+            showFilterTagsDialog()
         }
         
         binding.swipeRefreshLayout.setOnRefreshListener {
             loadMovies()
         }
+
+        loadTagsAndChips()
     }
     
     override fun onSaveInstanceState(outState: Bundle) {
@@ -151,82 +135,198 @@ class TaggedListActivity : BaseActivity() {
         adapter = ShowBaseAdapter(this, ArrayList(), genreList, isGrid)
         binding.recyclerView.adapter = adapter
     }
-    
-    private fun addTagFilter(tagId: Long, tagName: String) {
-        if (selectedTagIds.contains(tagId)) return
-        selectedTagIds.add(tagId)
-        
-        val chip = LayoutInflater.from(this).inflate(R.layout.chip_item, binding.filterChipGroup, false) as Chip
-        chip.text = tagName
-        chip.isCloseIconVisible = true
-        chip.setOnCloseIconClickListener {
-            binding.filterChipGroup.removeView(chip)
-            selectedTagIds.remove(tagId)
-            loadMovies()
-            if (selectedTagIds.isEmpty()) {
-                finish()
-            }
-        }
-        binding.filterChipGroup.addView(chip, binding.filterChipGroup.childCount - 1)
-    }
 
-    private fun showAddFilterDialog() {
+    private fun loadTagsAndChips() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val allTags = databaseHelper.getAllTags()
-            val availableTags = allTags.filter { !selectedTagIds.contains(it.id) && !hiddenTagIds.contains(it.id) }
+            allTags = databaseHelper.getAllTags()
+            
+            val prefs = getSharedPreferences("TagPreferences", Context.MODE_PRIVATE)
+            val savedOrderStr = prefs.getString("tag_order", null)
+            val savedVisibleStr = prefs.getString("tag_visible", null)
+            
+            val existingIds = allTags.map { it.id }.toSet()
+            
+            val orderedIds = mutableListOf<Long>()
+            if (savedOrderStr != null) {
+                val ids = savedOrderStr.split(",").mapNotNull { it.toLongOrNull() }
+                orderedIds.addAll(ids.filter { existingIds.contains(it) })
+            }
+            
+            val missingIds = existingIds - orderedIds.toSet()
+            orderedIds.addAll(missingIds)
+            orderedTagIds = orderedIds
+
+            val visibleIds = mutableSetOf<Long>()
+            if (savedVisibleStr != null) {
+                val ids = savedVisibleStr.split(",").mapNotNull { it.toLongOrNull() }
+                visibleIds.addAll(ids.filter { existingIds.contains(it) })
+            } else {
+                visibleIds.addAll(existingIds)
+            }
+            
+            visibleIds.addAll(missingIds)
+            visibleTagIds = visibleIds
+
+            if (selectedTagIds.isEmpty() && visibleTagIds.isNotEmpty()) {
+                orderedTagIds.firstOrNull { visibleTagIds.contains(it) }?.let {
+                    selectedTagIds.add(it)
+                }
+            }
             
             withContext(Dispatchers.Main) {
-                if (availableTags.isEmpty()) {
-                     return@withContext
-                }
-                val tagNames = availableTags.map { it.name }.toTypedArray()
-                MaterialAlertDialogBuilder(this@TaggedListActivity)
-                    .setTitle(getString(R.string.add_tag))
-                    .setItems(tagNames) { _, which ->
-                        val selectedTag = availableTags[which]
-                        addTagFilter(selectedTag.id, selectedTag.name)
-                        loadMovies()
-                    }
-                    .show()
+                buildTagChips()
+                loadMovies()
             }
+        }
+    }
+    
+    private fun buildTagChips() {
+        binding.tagsChipGroup.removeAllViews()
+        
+        for (tagId in orderedTagIds) {
+            if (!visibleTagIds.contains(tagId)) continue
+            
+            val tag = allTags.find { it.id == tagId } ?: continue
+            
+            val chip = Chip(this)
+            chip.text = tag.name
+            chip.isCheckable = true
+            
+            updateChipAppearance(chip, tagId)
+            
+            chip.setOnClickListener {
+                if (selectedTagIds.size == 1 && selectedTagIds.contains(tagId) && hiddenTagIds.isEmpty()) {
+                    return@setOnClickListener
+                }
+                
+                selectedTagIds.clear()
+                hiddenTagIds.clear()
+                selectedTagIds.add(tagId)
+                
+                refreshChipsAppearance()
+                loadMovies()
+            }
+            
+            chip.setOnLongClickListener {
+                if (selectedTagIds.contains(tagId)) {
+                    selectedTagIds.remove(tagId)
+                    hiddenTagIds.add(tagId)
+                } else if (hiddenTagIds.contains(tagId)) {
+                    hiddenTagIds.remove(tagId)
+                } else {
+                    selectedTagIds.add(tagId)
+                }
+                
+                updateChipAppearance(chip, tagId)
+                loadMovies()
+                true
+            }
+            
+            binding.tagsChipGroup.addView(chip)
+        }
+    }
+    
+    private fun updateChipAppearance(chip: Chip, tagId: Long) {
+        when {
+            selectedTagIds.contains(tagId) -> {
+                chip.isChecked = true
+                chip.chipBackgroundColor = ContextCompat.getColorStateList(this, R.color.md_theme_primary)
+                chip.setTextColor(ContextCompat.getColor(this, R.color.md_theme_onPrimary))
+                chip.chipIcon = null
+            }
+            hiddenTagIds.contains(tagId) -> {
+                chip.isChecked = false
+                chip.chipBackgroundColor = ContextCompat.getColorStateList(this, R.color.md_theme_errorContainer)
+                chip.setTextColor(ContextCompat.getColor(this, R.color.md_theme_onErrorContainer))
+                chip.chipIcon = ContextCompat.getDrawable(this, R.drawable.ic_minus)
+            }
+            else -> {
+                chip.isChecked = false
+                chip.chipBackgroundColor = ContextCompat.getColorStateList(this, R.color.md_theme_surfaceVariant)
+                chip.setTextColor(ContextCompat.getColor(this, R.color.md_theme_onSurfaceVariant))
+                chip.chipIcon = null
+            }
+        }
+    }
+    
+    private fun refreshChipsAppearance() {
+        for (i in 0 until binding.tagsChipGroup.childCount) {
+            val chip = binding.tagsChipGroup.getChildAt(i) as? Chip ?: continue
+            val tag = allTags.find { it.name == chip.text.toString() } ?: continue
+            updateChipAppearance(chip, tag.id)
         }
     }
 
-    private fun addHideTagFilter(tagId: Long, tagName: String) {
-        if (hiddenTagIds.contains(tagId)) return
-        hiddenTagIds.add(tagId)
+    private fun showCustomizeTagsDialog() {
+        val binding = DialogCustomizeTagsBinding.inflate(LayoutInflater.from(this))
+        val recyclerView = binding.customizeTagsRecyclerView
         
-        val chip = LayoutInflater.from(this).inflate(R.layout.chip_item, binding.hideFilterChipGroup, false) as Chip
-        chip.text = tagName
-        chip.isCloseIconVisible = true
-        chip.setOnCloseIconClickListener {
-            binding.hideFilterChipGroup.removeView(chip)
-            hiddenTagIds.remove(tagId)
-            loadMovies()
+        val mutableTags = orderedTagIds.mapNotNull { id -> allTags.find { it.id == id } }.toMutableList()
+        val tempVisibleIds = visibleTagIds.toMutableSet()
+        
+        var touchHelper: ItemTouchHelper? = null
+        
+        val customizeAdapter = CustomizeTagsAdapter(mutableTags, tempVisibleIds) { viewHolder ->
+            touchHelper?.startDrag(viewHolder)
         }
-        binding.hideFilterChipGroup.addView(chip, binding.hideFilterChipGroup.childCount - 1)
-    }
-    
-    private fun showAddHideFilterDialog() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val allTags = databaseHelper.getAllTags()
-            val availableTags = allTags.filter { !selectedTagIds.contains(it.id) && !hiddenTagIds.contains(it.id) }
-            
-            withContext(Dispatchers.Main) {
-                if (availableTags.isEmpty()) {
-                     return@withContext
-                }
-                val tagNames = availableTags.map { it.name }.toTypedArray()
-                MaterialAlertDialogBuilder(this@TaggedListActivity)
-                    .setTitle(getString(R.string.add_hide_tag))
-                    .setItems(tagNames) { _, which ->
-                        val selectedTag = availableTags[which]
-                        addHideTagFilter(selectedTag.id, selectedTag.name)
-                        loadMovies()
-                    }
-                    .show()
+        
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = customizeAdapter
+        
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
+            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+                val fromPos = viewHolder.adapterPosition
+                val toPos = target.adapterPosition
+                customizeAdapter.moveItem(fromPos, toPos)
+                return true
             }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
         }
+        
+        touchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        touchHelper.attachToRecyclerView(recyclerView)
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.customize_tags))
+            .setView(binding.root)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                orderedTagIds = mutableTags.map { it.id }
+                visibleTagIds = tempVisibleIds
+                
+                val prefs = getSharedPreferences("TagPreferences", Context.MODE_PRIVATE)
+                prefs.edit()
+                    .putString("tag_order", orderedTagIds.joinToString(","))
+                    .putString("tag_visible", visibleTagIds.joinToString(","))
+                    .apply()
+                    
+                buildTagChips()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun showFilterTagsDialog() {
+        val binding = DialogFilterTagsBinding.inflate(LayoutInflater.from(this))
+        val recyclerView = binding.filterTagsRecyclerView
+        
+        val filterAdapter = FilterTagsAdapter(allTags, selectedTagIds, hiddenTagIds)
+        
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = filterAdapter
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.filter_tags))
+            .setView(binding.root)
+            .setPositiveButton(getString(R.string.apply)) { _, _ ->
+                selectedTagIds = filterAdapter.selectedIncludedIds
+                hiddenTagIds = filterAdapter.selectedExcludedIds
+                
+                refreshChipsAppearance()
+                loadMovies()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun loadMovies() {

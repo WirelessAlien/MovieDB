@@ -51,7 +51,7 @@ class GetAccountDetails(private val context: Context?, private val callback: Acc
         val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
         accountId = preferences.getString("account_id", "")
         accessToken = preferences.getString("access_token", "")
-        client = OkHttpClient()
+        client = com.wirelessalien.android.moviedb.NetworkClient.client
     }
 
     suspend fun fetchAccountDetails() {

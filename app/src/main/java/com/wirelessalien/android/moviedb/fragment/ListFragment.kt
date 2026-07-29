@@ -143,7 +143,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
     private var usedFilter = false
     private lateinit var mDatabase: SQLiteDatabase
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
     private lateinit var epDbHelper: EpisodeReminderDatabaseHelper
     private var mScrollPosition: Int? = null
@@ -326,7 +326,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
 
                     R.id.action_tags -> {
-                        showTagsBottomSheet()
+                        startActivity(Intent(requireContext(), TaggedListActivity::class.java))
                         true
                     }
                     
@@ -547,118 +547,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             tmdbDialog.dismiss()
             updateShowViewAdapter()
         }
-    }
-
-    private fun showTagsBottomSheet() {
-        val binding = BottomSheetTagsBinding.inflate(LayoutInflater.from(requireContext()))
-        val dialog = BottomSheetDialog(requireContext())
-        currentTagsDialog = dialog
-        dialog.setContentView(binding.root)
-
-        val layoutManager = FlexboxLayoutManager(context)
-        layoutManager.flexDirection = FlexDirection.ROW
-        layoutManager.justifyContent = JustifyContent.FLEX_START
-        layoutManager.flexWrap = FlexWrap.WRAP
-        binding.tagsRecyclerView.layoutManager = layoutManager
-
-        CoroutineScope(Dispatchers.IO).launch {
-            val tags = mDatabaseHelper.getAllTags()
-            withContext(Dispatchers.Main) {
-                binding.tagsRecyclerView.adapter = TagsAdapter(tags)
-            }
-        }
-
-        dialog.show()
-    }
-
-    inner class TagsAdapter(private val tags: List<Tag>) :
-        RecyclerView.Adapter<TagsAdapter.ViewHolder>() {
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val chip: Chip = view as Chip
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.chip_item, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val tag = tags[position]
-            holder.chip.text = tag.name
-            holder.chip.setOnClickListener {
-                val intent = Intent(requireContext(), TaggedListActivity::class.java).apply {
-                    putExtra("tag_id", tag.id)
-                    putExtra("tag_name", tag.name)
-                }
-                startActivity(intent)
-            }
-            holder.chip.setOnLongClickListener {
-                showEditTagDialog(tag)
-                true
-            }
-        }
-
-        override fun getItemCount() = tags.size
-    }
-
-    private var currentTagsDialog: BottomSheetDialog? = null
-
-    private fun showEditTagDialog(tag: Tag) {
-        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_tag, null)
-        val renameInput = view.findViewById<TextInputEditText>(R.id.renameInput)
-        renameInput.setText(tag.name)
-        renameInput.setSelection(renameInput.text?.length ?: 0)
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.edit_tag))
-            .setView(view)
-            .setPositiveButton(getString(R.string.save)) { _, _ ->
-                val newName = renameInput.text.toString().trim()
-                if (newName.isNotEmpty() && newName != tag.name) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        mDatabaseHelper.updateTag(tag.id, newName)
-                        withContext(Dispatchers.Main) {
-                            currentTagsDialog?.dismiss()
-                            showTagsBottomSheet()
-                            updateShowViewAdapter()
-                        }
-                    }
-                }
-            }
-            .setNegativeButton(getString(R.string.cancel), null)
-            .setNeutralButton(getString(R.string.delete), null)
-            .create()
-
-        dialog.setOnShowListener {
-            val deleteButton = dialog.getButton(DialogInterface.BUTTON_NEUTRAL)
-            var deleteClickedOnce = false
-
-            deleteButton.setOnClickListener {
-                if (deleteClickedOnce) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        mDatabaseHelper.deleteTag(tag.id)
-                        withContext(Dispatchers.Main) {
-                            dialog.dismiss()
-                            currentTagsDialog?.dismiss()
-                            showTagsBottomSheet()
-                            updateShowViewAdapter()
-                        }
-                    }
-                } else {
-                    deleteClickedOnce = true
-                    Toast.makeText(requireContext(), getString(R.string.click_again_to_delete), Toast.LENGTH_SHORT).show()
-                    
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(2000)
-                        deleteClickedOnce = false
-                    }
-                }
-            }
-        }
-
-        dialog.show()
     }
 
     private fun showQuickAccessBottomSheet() {
@@ -1073,7 +961,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         
         binding.genreChart.apply {
             data = barData
-            description.isEnabled = false
+            description.apply {
+                isEnabled = true
+                text = getString(R.string.genre_chart_desc)
+                textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+            }
             legend.isEnabled = false
             extraLeftOffset = 50f
 
@@ -1237,7 +1129,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 
                 binding.categoryChart.apply {
                     data = BarData(categoryDataSet).apply { barWidth = 0.6f }
-                    description.isEnabled = false
+                    description.apply {
+                        isEnabled = true
+                        text = getString(R.string.category_chart_desc)
+                        textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                    }
                     legend.isEnabled = false
                     xAxis.apply {
                         position = XAxis.XAxisPosition.BOTTOM
@@ -1386,7 +1282,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                     binding.activityTrendChart.apply {
                         data = BarData(activityDataSet).apply { barWidth = 0.6f }
-                        description.isEnabled = false
+                        description.apply {
+                            isEnabled = true
+                            text = getString(R.string.activity_trend_desc)
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
                         legend.isEnabled = false
                         
                         xAxis.apply {
@@ -1439,7 +1339,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
                     binding.ratingsInsightChart.apply {
                         data = info.appdev.charting.data.LineData(ratingsDataSet)
-                        description.isEnabled = false
+                        description.apply {
+                            isEnabled = true
+                            text = getString(R.string.ratings_insight_desc)
+                            textColor = requireContext().getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+                        }
                         legend.isEnabled = false
                         
                         xAxis.apply {

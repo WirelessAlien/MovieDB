@@ -69,7 +69,8 @@ class CsvImportActivity : AppCompatActivity() {
         "Episode Number" to MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
         "Episode My Rating (0-10)" to MovieDatabaseHelper.COLUMN_EPISODE_RATING,
         "Episode Watch Date (YYYY-MM-DD)" to MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE,
-        "Episode My Review Text" to MovieDatabaseHelper.COLUMN_EPISODE_REVIEW
+        "Episode My Review Text" to MovieDatabaseHelper.COLUMN_EPISODE_REVIEW,
+        "Tags (pipe separated: tag1|tag2)" to "tags"
     )
 
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -224,9 +225,45 @@ class CsvImportActivity : AppCompatActivity() {
     }
 
     private fun findBestMatchForHeader(csvHeader: String): Int {
-        val normalizedCsvHeader = csvHeader.lowercase().replace("_", "").replace(" ", "")
         var bestMatchIndex = 0
         var highestSimilarity = 0.5
+
+        // Map exported aliases to internal database columns
+        val exportedAliasesMap = mapOf(
+            "tmdb_id" to MovieDatabaseHelper.COLUMN_MOVIES_ID,
+            "title" to MovieDatabaseHelper.COLUMN_TITLE,
+            "summary" to MovieDatabaseHelper.COLUMN_SUMMARY,
+            "tmdb_rating" to MovieDatabaseHelper.COLUMN_RATING,
+            "image" to MovieDatabaseHelper.COLUMN_IMAGE,
+            "icon" to MovieDatabaseHelper.COLUMN_ICON,
+            "genres" to MovieDatabaseHelper.COLUMN_GENRES,
+            "genres_ids" to MovieDatabaseHelper.COLUMN_GENRES_IDS,
+            "rating" to MovieDatabaseHelper.COLUMN_PERSONAL_RATING,
+            "release_date" to MovieDatabaseHelper.COLUMN_RELEASE_DATE,
+            "start_date" to MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE,
+            "finish_date" to MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE,
+            "movie_review" to MovieDatabaseHelper.COLUMN_MOVIE_REVIEW,
+            "is_movie" to MovieDatabaseHelper.COLUMN_MOVIE,
+            "categories" to MovieDatabaseHelper.COLUMN_CATEGORIES,
+            "season" to MovieDatabaseHelper.COLUMN_SEASON_NUMBER,
+            "episode" to MovieDatabaseHelper.COLUMN_EPISODE_NUMBER,
+            "episode_rating" to MovieDatabaseHelper.COLUMN_EPISODE_RATING,
+            "episode_watch_date" to MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE,
+            "episode_review" to MovieDatabaseHelper.COLUMN_EPISODE_REVIEW,
+            "tags" to "tags"
+        )
+
+        val mappedInternalColumn = exportedAliasesMap[csvHeader.lowercase()]
+
+        // Check for exact match with the exported column name or aliased internal column
+        databaseFields.values.forEachIndexed { index, dbColumnName ->
+            if (index == 0) return@forEachIndexed
+            if (csvHeader.equals(dbColumnName, ignoreCase = true) || dbColumnName == mappedInternalColumn) {
+                return index
+            }
+        }
+
+        val normalizedCsvHeader = csvHeader.lowercase().replace("_", "").replace(" ", "")
 
         databaseFields.keys.forEachIndexed { index, dbFieldDisplayName ->
             if (index == 0) return@forEachIndexed

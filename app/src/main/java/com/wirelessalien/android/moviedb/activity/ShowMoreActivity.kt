@@ -203,7 +203,7 @@ class ShowMoreActivity : BaseActivity() {
 
     private suspend fun fetchGenreListFromNetwork(mGenreType: String): String? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/3/genre/$mGenreType/list?api_key=$apiKey")
                 .build()

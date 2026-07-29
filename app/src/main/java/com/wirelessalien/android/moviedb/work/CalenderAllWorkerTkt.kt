@@ -43,7 +43,7 @@ class CalenderAllWorkerTkt(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private val epDbHelper = EpisodeReminderDatabaseHelper(context)
     private val dbHelper = TraktDatabaseHelper(context)
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)

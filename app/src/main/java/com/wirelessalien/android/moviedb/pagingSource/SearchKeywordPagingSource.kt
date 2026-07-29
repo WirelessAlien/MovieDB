@@ -43,7 +43,7 @@ class SearchKeywordPagingSource(
             val encodedQuery = URLEncoder.encode(query, "UTF-8")
             val url = URL("https://api.themoviedb.org/3/search/keyword?query=${encodedQuery}&page=${page}")
 
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url(url)
                 .get()

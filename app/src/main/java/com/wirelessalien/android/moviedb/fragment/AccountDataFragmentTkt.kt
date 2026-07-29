@@ -75,7 +75,7 @@ class AccountDataFragmentTkt : BaseFragment() {
     private var clientId: String? = null
     private lateinit var binding: FragmentAccountDataTktBinding
     private lateinit var activityBinding: ActivityMainBinding
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private var traktReceiver: BroadcastReceiver? = null
 
 

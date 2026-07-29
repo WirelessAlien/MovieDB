@@ -119,6 +119,7 @@ dependencies {
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.squareup.picasso:picasso:2.8")
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("com.squareup.okhttp3:okhttp-dnsoverhttps:5.3.2")
 
     //facebook shimmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")

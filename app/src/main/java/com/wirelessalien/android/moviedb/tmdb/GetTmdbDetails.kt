@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit
 
 class GetTmdbDetails(private val context: Context, private val tmdbApiKey: String) {
 
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private val rateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)
 
     suspend fun fetchAndSaveTmdbDetails(updateProgress: (String, Int) -> Unit) {

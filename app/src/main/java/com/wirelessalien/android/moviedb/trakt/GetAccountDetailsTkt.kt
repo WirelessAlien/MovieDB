@@ -49,7 +49,7 @@ class GetAccountDetailsTkt(private val context: Context?, private val clientId: 
     init {
         val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
         accessToken = preferences.getString("trakt_access_token", "")
-        client = OkHttpClient()
+        client = com.wirelessalien.android.moviedb.NetworkClient.client
     }
 
     suspend fun fetchAccountDetails() {

@@ -71,7 +71,7 @@ class TVSeasonDetails(
     private suspend fun fetchSeasonDetailsFromNetwork(urlString: String): JSONObject? {
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(urlString)
                     .get()

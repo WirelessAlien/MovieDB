@@ -602,7 +602,7 @@ class CastActivity : BaseActivity() {
 
     @Throws(IOException::class, JSONException::class)
     private fun fetchActorDetails(url: String): JSONObject {
-        val client = OkHttpClient()
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val request = Request.Builder()
             .url(url)
             .get()
@@ -620,7 +620,7 @@ class CastActivity : BaseActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val response = try {
                 val url = URL("https://api.themoviedb.org/3/person/$actorId/combined_credits")
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)
                     .get()
@@ -700,7 +700,7 @@ class CastActivity : BaseActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val response = try {
                 val url = URL("https://api.themoviedb.org/3/person/$actorId/images")
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)
                     .get()

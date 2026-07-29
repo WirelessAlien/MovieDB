@@ -165,7 +165,7 @@ class ListItemActivityTmdb : AppCompatActivity() {
     private fun clearList() {
         lifecycleScope.launch {
             val accessToken = preferences.getString("access_token", "") ?: ""
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/4/list/$listId/clear")
                 .get()

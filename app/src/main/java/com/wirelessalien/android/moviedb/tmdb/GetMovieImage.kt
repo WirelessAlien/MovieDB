@@ -38,7 +38,7 @@ class GetMovieImage(
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val locale = Locale.getDefault().language
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url("https://api.themoviedb.org/3/$type/$movieId/images?language=$locale&include_image_language=en,null")
                     .get()

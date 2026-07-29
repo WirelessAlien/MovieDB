@@ -39,7 +39,7 @@ import java.util.Locale
 
 class GetTraktSyncData(context: Context, private val accessToken: String?, private val clientId: String?) {
 
-    private val client = OkHttpClient()
+    private val client = com.wirelessalien.android.moviedb.NetworkClient.client
     private val dbHelper = TraktDatabaseHelper(context)
 
     suspend fun fetchData() = withContext(Dispatchers.IO) {

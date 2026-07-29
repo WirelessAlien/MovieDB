@@ -69,7 +69,7 @@ class ReviewPagingSource(private val movieId: Int, private val type: String, pri
 
     private suspend fun fetchReviewsFromApi(movieId: Int, type: String, page: Int): String? {
         return withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()
                 .url("https://api.themoviedb.org/3/$type/$movieId/reviews?page=$page")
                 .get()

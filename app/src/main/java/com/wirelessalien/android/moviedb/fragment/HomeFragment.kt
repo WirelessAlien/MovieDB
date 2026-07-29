@@ -351,7 +351,7 @@ class HomeFragment : BaseFragment() {
     private suspend fun fetchData(url: URL): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)
                     .get()

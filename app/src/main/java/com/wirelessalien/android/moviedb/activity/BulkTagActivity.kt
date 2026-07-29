@@ -152,6 +152,7 @@ class BulkTagActivity : BaseActivity() {
         menu.add(0, 1, 0, getString(R.string.select_all)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         menu.add(0, 2, 0, getString(R.string.deselect_all)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         menu.add(0, 3, 0, getString(R.string.add_new_tag)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+        menu.add(0, 4, 0, getString(R.string.delete)).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         return true
     }
 
@@ -189,7 +190,55 @@ class BulkTagActivity : BaseActivity() {
 
                 true
             }
+            4 -> {
+                showDeleteTagsDialog()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showDeleteTagsDialog() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val allTags = databaseHelper.getAllTags()
+            
+            withContext(Dispatchers.Main) {
+                if (allTags.isEmpty()) {
+                    Snackbar.make(findViewById(android.R.id.content), getString(R.string.no_tags_to_delete), Snackbar.LENGTH_SHORT).show()
+                    return@withContext
+                }
+
+                val tagNames = allTags.map { it.name }.toTypedArray()
+                val selectedIndices = BooleanArray(allTags.size)
+
+                MaterialAlertDialogBuilder(this@BulkTagActivity)
+                    .setTitle(getString(R.string.delete))
+                    .setMultiChoiceItems(tagNames, selectedIndices) { _, which, isChecked ->
+                        selectedIndices[which] = isChecked
+                    }
+                    .setPositiveButton(getString(R.string.delete)) { _, _ ->
+                        val tagsToDelete = allTags.filterIndexed { index, _ -> selectedIndices[index] }
+                        if (tagsToDelete.isNotEmpty()) {
+                            MaterialAlertDialogBuilder(this@BulkTagActivity)
+                                .setTitle(getString(R.string.delete))
+                                .setMessage(getString(R.string.delete_tags_confirmation))
+                                .setPositiveButton(getString(R.string.delete)) { _, _ ->
+                                    lifecycleScope.launch(Dispatchers.IO) {
+                                        tagsToDelete.forEach { tag ->
+                                            databaseHelper.deleteTag(tag.id)
+                                        }
+                                        withContext(Dispatchers.Main) {
+                                            Snackbar.make(findViewById(android.R.id.content), getString(R.string.deleted_tags, tagsToDelete.size), Snackbar.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show()
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
         }
     }
 }

@@ -65,7 +65,7 @@ class TktTokenRefreshWorker(
                 .post(requestBody)
                 .build()
 
-            val client = OkHttpClient()
+            val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val response = client.newCall(request).execute()
 
             if (response.isSuccessful) {
