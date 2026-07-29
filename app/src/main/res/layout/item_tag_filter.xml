@@ -45,21 +45,21 @@
         app:selectionRequired="true"
         android:layout_gravity="end|center_vertical">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/radio_none"
             style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_minus" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/radio_include"
             style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_add" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/radio_exclude"
             style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
