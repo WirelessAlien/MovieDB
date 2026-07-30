@@ -78,6 +78,13 @@
             android:summary="@string/summary_persistent_filtering"
             android:title="@string/title_persistent_filtering"
             app:iconSpaceReserved="false" />
+
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="key_include_adult"
+            android:summary="@string/summary_include_adult"
+            android:title="@string/title_include_adult"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

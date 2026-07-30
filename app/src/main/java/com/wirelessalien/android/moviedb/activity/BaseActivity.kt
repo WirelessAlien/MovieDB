@@ -147,6 +147,17 @@ open class BaseActivity : AppCompatActivity() {
         private const val API_LANGUAGE_PREFERENCE = "key_api_language"
         private const val API_REGION_PREFERENCE = "key_api_region"
         private const val API_TIMEZONE_PREFERENCE = "key_api_timezone"
+        private const val INCLUDE_ADULT_PREFERENCE = "key_include_adult"
+
+        fun getAdultContentParameter(context: Context?): String {
+            val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
+            val includeAdult = preferences.getBoolean(INCLUDE_ADULT_PREFERENCE, false)
+            return if (includeAdult) {
+                "&include_adult=true"
+            } else {
+                "&include_adult=false"
+            }
+        }
 
         fun getLanguageParameter(context: Context?): String {
             val languageParameter = "&language="

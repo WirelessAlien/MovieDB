@@ -82,7 +82,7 @@ class SearchPagingSource(
     private suspend fun fetchSearchResultsFromApi(listType: String?, page: Int, query: String): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val url = URL("https://api.themoviedb.org/3/search/$listType?query=$query&page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}")
+                val url = URL("https://api.themoviedb.org/3/search/$listType?query=$query&page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}${BaseActivity.getAdultContentParameter(context)}")
                 Log.d("SearchPagingSource", url.toString())
                 val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
