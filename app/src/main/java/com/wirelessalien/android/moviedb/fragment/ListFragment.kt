@@ -219,11 +219,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             filterActivityResultLauncher.launch(intent)
         }
 
-        activityBinding.fab2.setImageResource(R.drawable.ic_chart)
+        activityBinding.fab2.setImageResource(R.drawable.ic_sell)
         activityBinding.fab2.visibility = View.VISIBLE
         activityBinding.fab2.isEnabled = true
         activityBinding.fab2.setOnClickListener {
-            showWatchSummaryDialog()
+            startActivity(Intent(requireContext(), TaggedListActivity::class.java))
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -325,8 +325,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         true
                     }
 
-                    R.id.action_tags -> {
-                        startActivity(Intent(requireContext(), TaggedListActivity::class.java))
+                    R.id.action_stats -> {
+                        showWatchSummaryDialog()
                         true
                     }
                     
