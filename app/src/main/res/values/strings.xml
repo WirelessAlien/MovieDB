@@ -531,6 +531,8 @@
     <string name="custom_dns_url_summary">Enter a custom DNS URL or leave unchanged to use the default.</string>
     <string name="title_persistent_filtering">Persistent filter</string>
     <string name="summary_persistent_filtering">Auto-filter media when starting the app</string>
+    <string name="title_include_adult">Include adult content</string>
+    <string name="summary_include_adult">Show adult titles in search and discover results.</string>
     <string name="title_show_representation">Media representation</string>
     <string name="title_shows_in_grid">Display media in a grid</string>
     <string name="title_grid_size">Grid size</string>
@@ -539,6 +541,8 @@
     <string name="title_live_search">Use live search</string>
     <string name="title_hide_tabs">Tabs visibility</string>
     <string name="summary_hide_tabs">Restart the app to apply changes.</string>
+    <string name="summary_tab_visibility">If all tabs are hidden, the Home tab will be displayed because the app cannot be displayed with no tabs.</string>
+    <string name="title_hide_home_tab">Hide the \'Home\' tab</string>
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
     <string name="title_hide_series_tab">Hide the \'Shows\' tab</string>
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>

@@ -76,7 +76,7 @@ class PersonPagingSource(
     private suspend fun fetchPersonListFromApi(page: Int): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val url = URL("https://api.themoviedb.org/3/person/popular?page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}")
+                val url = URL("https://api.themoviedb.org/3/person/popular?page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}${BaseActivity.getAdultContentParameter(context)}")
                 val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)

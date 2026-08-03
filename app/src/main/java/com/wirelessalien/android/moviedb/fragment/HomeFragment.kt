@@ -268,7 +268,7 @@ class HomeFragment : BaseFragment() {
         calendar.time = date
         calendar.add(Calendar.DAY_OF_YEAR, 7)
         val dateAfterWeek = calendar.time
-        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
+        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()) + BaseActivity.getAdultContentParameter(requireContext()))
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {
@@ -285,7 +285,7 @@ class HomeFragment : BaseFragment() {
             binding.shimmerFrameLayout3.visibility = View.VISIBLE
             binding.shimmerFrameLayout3.startShimmer()
         }
-        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(date)+ "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()))
+        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(date)+ "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()) + BaseActivity.getAdultContentParameter(requireContext()))
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {
@@ -302,7 +302,7 @@ class HomeFragment : BaseFragment() {
             binding.shimmerFrameLayout4.visibility = View.VISIBLE
             binding.shimmerFrameLayout4.startShimmer()
         }
-        val url = URL("https://api.themoviedb.org/3/movie/upcoming" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
+        val url = URL("https://api.themoviedb.org/3/movie/upcoming" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()) + BaseActivity.getAdultContentParameter(requireContext()))
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {
@@ -319,7 +319,7 @@ class HomeFragment : BaseFragment() {
             binding.shimmerFrameLayout2.visibility = View.VISIBLE
             binding.shimmerFrameLayout2.startShimmer()
         }
-        val url = URL("https://api.themoviedb.org/3/movie/now_playing" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()))
+        val url = URL("https://api.themoviedb.org/3/movie/now_playing" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1" + "&" + BaseActivity.getRegionParameter(requireContext()) + BaseActivity.getAdultContentParameter(requireContext()))
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {
@@ -336,7 +336,7 @@ class HomeFragment : BaseFragment() {
             binding.shimmerFrameLayout1.visibility = View.VISIBLE
             binding.shimmerFrameLayout1.startShimmer()
         }
-        val url = URL("https://api.themoviedb.org/3/trending/all/day" + BaseActivity.getLanguageParameter2(requireContext()))
+        val url = URL("https://api.themoviedb.org/3/trending/all/day" + BaseActivity.getLanguageParameter2(requireContext()) + BaseActivity.getAdultContentParameter(requireContext()))
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {

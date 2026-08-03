@@ -21,6 +21,7 @@ package com.wirelessalien.android.moviedb.adapter
 
 //It can be changed, but it is not necessary to change it. So, keep it as it is.
 object SectionsPagerAdapter {
+    const val HIDE_HOME_PREFERENCE = "key_hide_home_tab"
     const val HIDE_MOVIES_PREFERENCE = "key_hide_movies_tab"
     const val HIDE_SERIES_PREFERENCE = "key_hide_series_tab"
     const val HIDE_SAVED_PREFERENCE = "key_hide_saved_tab"

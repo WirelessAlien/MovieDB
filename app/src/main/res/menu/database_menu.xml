@@ -41,9 +41,9 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_tags"
+        android:id="@+id/action_stats"
         android:orderInCategory="4"
-        android:title="@string/tags"
+        android:title="@string/stats"
         app:showAsAction="never" />
 
     <item

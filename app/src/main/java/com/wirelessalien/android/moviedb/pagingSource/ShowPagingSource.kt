@@ -81,7 +81,7 @@ class ShowPagingSource(
     private suspend fun fetchShowListFromApi(listType: String?, page: Int, filterParameter: String): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val url = URL("https://api.themoviedb.org/3/discover/$listType?$filterParameter&page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}")
+                val url = URL("https://api.themoviedb.org/3/discover/$listType?$filterParameter&page=$page&api_key=$apiKey${BaseActivity.getLanguageParameter(context)}${BaseActivity.getAdultContentParameter(context)}")
                 val client = com.wirelessalien.android.moviedb.NetworkClient.client
                 val request = Request.Builder()
                     .url(url)
