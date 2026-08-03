@@ -259,14 +259,9 @@ class MainActivity : BaseActivity() {
             false
         }
 
-        if (savedInstanceState == null) {
-            val initialFragment = HomeFragment()
-            supportFragmentManager.beginTransaction().replace(R.id.container, initialFragment).commit()
-            updateSearchBarTitle(initialFragment)
-            updateSearchViewHint(initialFragment)
-        }
-
         val menu = binding.bottomNavigation.menu
+        menu.findItem(R.id.nav_home).isVisible =
+            !preferences.getBoolean(HIDE_HOME_PREFERENCE, false)
         menu.findItem(R.id.nav_movie).isVisible =
             !preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false)
         menu.findItem(R.id.nav_series).isVisible =
@@ -277,9 +272,44 @@ class MainActivity : BaseActivity() {
             !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false)
         menu.findItem(R.id.nav_account_tkt).isVisible =
             !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false)
+
+        if (savedInstanceState == null) {
+            var initialItemId = R.id.nav_home
+            val initialFragment: Fragment = when {
+                menu.findItem(R.id.nav_home).isVisible -> HomeFragment()
+                menu.findItem(R.id.nav_movie).isVisible -> {
+                    initialItemId = R.id.nav_movie
+                    newInstance(MOVIE)
+                }
+                menu.findItem(R.id.nav_series).isVisible -> {
+                    initialItemId = R.id.nav_series
+                    newInstance(TV)
+                }
+                menu.findItem(R.id.nav_saved).isVisible -> {
+                    initialItemId = R.id.nav_saved
+                    newSavedInstance()
+                }
+                menu.findItem(R.id.nav_account).isVisible -> {
+                    initialItemId = R.id.nav_account
+                    AccountDataFragment()
+                }
+                menu.findItem(R.id.nav_account_tkt).isVisible -> {
+                    initialItemId = R.id.nav_account_tkt
+                    AccountDataFragmentTkt()
+                }
+                else -> HomeFragment()
+            }
+            binding.bottomNavigation.selectedItemId = initialItemId
+            supportFragmentManager.beginTransaction().replace(R.id.container, initialFragment).commit()
+            updateSearchBarTitle(initialFragment)
+            updateSearchViewHint(initialFragment)
+        }
+
         prefListener = OnSharedPreferenceChangeListener { _: SharedPreferences?, key: String? ->
-            if (key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE) {
+            if (key == HIDE_HOME_PREFERENCE || key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE) {
                 val menu1 = binding.bottomNavigation.menu
+                menu1.findItem(R.id.nav_home).isVisible =
+                    !preferences.getBoolean(HIDE_HOME_PREFERENCE, false)
                 menu1.findItem(R.id.nav_movie).isVisible =
                     !preferences.getBoolean(HIDE_MOVIES_PREFERENCE, false)
                 menu1.findItem(R.id.nav_series).isVisible =
@@ -1336,6 +1366,7 @@ class MainActivity : BaseActivity() {
         private const val REQUEST_CODE_ASK_PERMISSIONS_EXPORT = 123
         private const val REQUEST_CODE_ASK_PERMISSIONS_IMPORT = 124
         private const val LIVE_SEARCH_PREFERENCE = "key_live_search"
+        const val HIDE_HOME_PREFERENCE = "key_hide_home_tab"
         const val HIDE_MOVIES_PREFERENCE = "key_hide_movies_tab"
         const val HIDE_SERIES_PREFERENCE = "key_hide_series_tab"
         const val HIDE_SAVED_PREFERENCE = "key_hide_saved_tab"

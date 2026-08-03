@@ -541,6 +541,7 @@
     <string name="title_live_search">Use live search</string>
     <string name="title_hide_tabs">Tabs visibility</string>
     <string name="summary_hide_tabs">Restart the app to apply changes.</string>
+    <string name="title_hide_home_tab">Hide the \'Home\' tab</string>
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
     <string name="title_hide_series_tab">Hide the \'Shows\' tab</string>
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
