@@ -44,7 +44,7 @@ class KeywordSearchPagingSource(
         return try {
             val page = params.key ?: 1
             val url = URL("https://api.themoviedb.org/3/discover/$mediaType?with_keywords=${keywordId}&page=${page}" +
-                    BaseActivity.getLanguageParameter2(context) + BaseActivity.getAdultContentParameter(context))
+                    BaseActivity.getLanguageParameter(context) + BaseActivity.getAdultContentParameter(context))
 
             val client = com.wirelessalien.android.moviedb.NetworkClient.client
             val request = Request.Builder()

@@ -273,6 +273,14 @@ class MainActivity : BaseActivity() {
         menu.findItem(R.id.nav_account_tkt).isVisible =
             !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false)
 
+        val anyItemVisible = menu.findItem(R.id.nav_home).isVisible ||
+                menu.findItem(R.id.nav_movie).isVisible ||
+                menu.findItem(R.id.nav_series).isVisible ||
+                menu.findItem(R.id.nav_saved).isVisible ||
+                menu.findItem(R.id.nav_account).isVisible ||
+                menu.findItem(R.id.nav_account_tkt).isVisible
+        binding.bottomNavigation.visibility = if (anyItemVisible) View.VISIBLE else View.GONE
+
         if (savedInstanceState == null) {
             var initialItemId = R.id.nav_home
             val initialFragment: Fragment = when {
@@ -299,7 +307,7 @@ class MainActivity : BaseActivity() {
                 }
                 else -> HomeFragment()
             }
-            binding.bottomNavigation.selectedItemId = initialItemId
+            binding.bottomNavigation.menu.findItem(initialItemId).isChecked = true
             supportFragmentManager.beginTransaction().replace(R.id.container, initialFragment).commit()
             updateSearchBarTitle(initialFragment)
             updateSearchViewHint(initialFragment)
@@ -320,6 +328,14 @@ class MainActivity : BaseActivity() {
                     !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false)
                 menu1.findItem(R.id.nav_account_tkt).isVisible =
                     !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false)
+                
+                val anyItemVisible = menu1.findItem(R.id.nav_home).isVisible ||
+                        menu1.findItem(R.id.nav_movie).isVisible ||
+                        menu1.findItem(R.id.nav_series).isVisible ||
+                        menu1.findItem(R.id.nav_saved).isVisible ||
+                        menu1.findItem(R.id.nav_account).isVisible ||
+                        menu1.findItem(R.id.nav_account_tkt).isVisible
+                binding.bottomNavigation.visibility = if (anyItemVisible) View.VISIBLE else View.GONE
             }
         }
 

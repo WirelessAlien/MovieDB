@@ -268,7 +268,7 @@ class HomeFragment : BaseFragment() {
         calendar.time = date
         calendar.add(Calendar.DAY_OF_YEAR, 7)
         val dateAfterWeek = calendar.time
-        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()) + BaseActivity.getAdultContentParameter(requireContext()))
+        val url = URL("https://api.themoviedb.org/3/discover/tv" + BaseActivity.getLanguageParameter2(requireContext()) + "&page=1&sort_by=popularity.desc&" + BaseActivity.getRegionParameter2(requireContext())  + "&with_watch_monetization_types=flatrate|free|ads|rent|buy&air_date.lte=" + dateFormat.format(dateAfterWeek) + "&air_date.gte=" + dateFormat.format(date) + "&" + BaseActivity.getTimeZoneParameter(requireContext()) + BaseActivity.getAdultContentParameter(requireContext()))
         val response = fetchData(url)
         withContext(Dispatchers.Main) {
             if (isAdded && !response.isNullOrEmpty()) {
