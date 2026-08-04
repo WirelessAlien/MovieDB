@@ -226,6 +226,19 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="@string/title_chips_visibility"
+        app:iconSpaceReserved="false">
+
+        <MultiSelectListPreference
+            android:key="hidden_chips"
+            android:title="@string/title_chips_visibility"
+            android:summary="@string/summary_chips_visibility"
+            android:entries="@array/chips_entries"
+            android:entryValues="@array/chips_values"
+            app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/title_hide_tabs"
         app:iconSpaceReserved="false">
 
