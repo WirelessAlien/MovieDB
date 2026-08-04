@@ -571,8 +571,9 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
 
         val binding = com.wirelessalien.android.moviedb.databinding.BottomSheetFixDatesBinding.inflate(LayoutInflater.from(requireContext()))
-        val dialog = BottomSheetDialog(requireContext(), com.google.android.material.R.style.Theme_Design_BottomSheetDialog)
+        val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(binding.root)
+        dialog.edgeToEdgeEnabled
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         val adapter = com.wirelessalien.android.moviedb.adapter.FixDatesAdapter(badDates)
