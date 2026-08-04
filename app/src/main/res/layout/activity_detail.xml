@@ -1108,7 +1108,17 @@
                 android:layout_below="@id/movieDescription">
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/trailer"
+                    android:id="@+id/trailerBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipIcon="@drawable/ic_animated_images"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/trailer"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/videosBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:chipIcon="@drawable/ic_animated_images"
@@ -1125,6 +1135,16 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
+                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/boxOfficeChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipIcon="@drawable/ic_link"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/box_office"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip

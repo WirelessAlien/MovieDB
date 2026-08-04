@@ -539,6 +539,9 @@
     <string name="summary_grid_size">Amount of items in a row</string>
     <string name="title_data_usage">Data usage</string>
     <string name="title_live_search">Use live search</string>
+    <string name="title_chips_visibility">Chips visibility</string>
+    <string name="summary_chips_visibility">Choose which chips to hide in details screen</string>
+
     <string name="title_hide_tabs">Tabs visibility</string>
     <string name="summary_hide_tabs">Restart the app to apply changes.</string>
     <string name="summary_tab_visibility">If all tabs are hidden, the Home tab will be displayed because the app cannot be displayed with no tabs.</string>
@@ -664,6 +667,7 @@
     <string name="image">Image</string>
     <string name="where_to_watch">Where to watch?</string>
     <string name="trailer">Trailer</string>
+    <string name="box_office">Box Office</string>
     <string name="selected_directory">Path:</string>
     <string name="export_info">The app allows for the exportation of files in \".db\", \".json\" and \".csv\" formats. Please note, however, that only the \".db\" format is supported for subsequent imports.</string>
     <string name="import_info">Only .db format is supported for imports. .json files cannot be imported.</string>

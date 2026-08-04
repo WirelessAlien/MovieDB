@@ -68,4 +68,23 @@
         <item>de</item>
         <item>ru</item>
     </string-array>
+
+    <string-array name="chips_entries">
+        <item>Trailer</item>
+        <item>Videos</item>
+        <item>Search</item>
+        <item>Box Office</item>
+        <item>IMDb</item>
+        <item>Rotten Tomatoes</item>
+        <item>Metacritic</item>
+    </string-array>
+    <string-array name="chips_values">
+        <item>trailerBtn</item>
+        <item>videosBtn</item>
+        <item>searchBtn</item>
+        <item>boxOfficeChip</item>
+        <item>imdbRatingChip</item>
+        <item>rottenTomatoesRatingChip</item>
+        <item>metacriticRatingChip</item>
+    </string-array>
 </resources>
