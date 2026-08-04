@@ -1255,6 +1255,151 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         super.close()
     }
 
+    data class BadDateItem(
+        val isMovie: Boolean,
+        val mediaId: Int,
+        val season: Int? = null,
+        val episode: Int? = null,
+        val title: String,
+        val column: String,
+        val originalDate: String,
+        val suggestedDate: String
+    )
+
+    fun getBadDates(): List<BadDateItem> {
+        val badDates = mutableListOf<BadDateItem>()
+        val db = this.readableDatabase
+
+        // Regex for standard format YYYY-MM-DD
+        val standardFormatRegex = Regex("^\\d{4}-\\d{2}-\\d{2}$")
+
+        // Query for Movies
+        val movieQuery = "SELECT $COLUMN_MOVIES_ID, $COLUMN_TITLE, $COLUMN_PERSONAL_START_DATE, $COLUMN_PERSONAL_FINISH_DATE, $COLUMN_MOVIE FROM $TABLE_MOVIES"
+        val movieCursor = db.rawQuery(movieQuery, null)
+        movieCursor.use { cursor ->
+            while (cursor.moveToNext()) {
+                val movieId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MOVIES_ID))
+                val title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE))
+                val startDate = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PERSONAL_START_DATE))
+                val finishDate = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PERSONAL_FINISH_DATE))
+                val isMovie = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MOVIE)) == 1
+
+                if (startDate != null && startDate.isNotEmpty() && !startDate.matches(standardFormatRegex)) {
+                    val suggested = formatBadDate(startDate)
+                    if (suggested != startDate) {
+                        badDates.add(BadDateItem(isMovie, movieId, null, null, title, COLUMN_PERSONAL_START_DATE, startDate, suggested))
+                    }
+                }
+
+                if (finishDate != null && finishDate.isNotEmpty() && !finishDate.matches(standardFormatRegex)) {
+                    val suggested = formatBadDate(finishDate)
+                    if (suggested != finishDate) {
+                        badDates.add(BadDateItem(isMovie, movieId, null, null, title, COLUMN_PERSONAL_FINISH_DATE, finishDate, suggested))
+                    }
+                }
+            }
+        }
+
+        // Query for Episodes
+        val episodeQuery = """
+            SELECT e.$COLUMN_MOVIES_ID, e.$COLUMN_SEASON_NUMBER, e.$COLUMN_EPISODE_NUMBER, e.$COLUMN_EPISODE_WATCH_DATE, m.$COLUMN_TITLE 
+            FROM $TABLE_EPISODES e 
+            INNER JOIN $TABLE_MOVIES m ON e.$COLUMN_MOVIES_ID = m.$COLUMN_MOVIES_ID
+        """
+        val episodeCursor = db.rawQuery(episodeQuery, null)
+        episodeCursor.use { cursor ->
+            while (cursor.moveToNext()) {
+                val movieId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MOVIES_ID))
+                val season = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SEASON_NUMBER))
+                val episode = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_EPISODE_NUMBER))
+                val watchDate = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EPISODE_WATCH_DATE))
+                val title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE))
+
+                if (watchDate != null && watchDate.isNotEmpty() && !watchDate.matches(standardFormatRegex)) {
+                    val suggested = formatBadDate(watchDate)
+                    if (suggested != watchDate) {
+                        badDates.add(BadDateItem(false, movieId, season, episode, title, COLUMN_EPISODE_WATCH_DATE, watchDate, suggested))
+                    }
+                }
+            }
+        }
+
+        return badDates
+    }
+
+    private fun formatBadDate(dateString: String): String {
+        return when {
+            dateString.endsWith("-00-00") -> {
+                val year = dateString.substring(0, 4)
+                "$year-00-00"
+            }
+            dateString.startsWith("00-00-") -> {
+                // e.g. 00-00-2024 -> 2024-00-00
+                val year = dateString.substring(6)
+                "$year-00-00"
+            }
+            dateString.endsWith("-00") -> {
+                val monthYear = dateString.substring(0, 7)
+                "$monthYear-00"
+            }
+            dateString.startsWith("00-") -> {
+                // e.g. 00-09-2024 -> 2024-09-00
+                val monthYear = dateString.substring(3)
+                val parts = monthYear.split("-")
+                if (parts.size == 2) {
+                    val month = parts[0]
+                    val year = parts[1]
+                    "$year-$month-00"
+                } else {
+                    dateString
+                }
+            }
+            else -> {
+                try {
+                    val inputFormat = java.text.SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                    val parsed = inputFormat.parse(dateString)
+                    if (parsed != null) {
+                        java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(parsed)
+                    } else {
+                        dateString
+                    }
+                } catch (e: Exception) {
+                    dateString
+                }
+            }
+        }
+    }
+
+    fun updateBadDates(itemsToFix: List<BadDateItem>) {
+        val db = this.writableDatabase
+        db.beginTransaction()
+        try {
+            for (item in itemsToFix) {
+                val values = ContentValues()
+                values.put(item.column, item.suggestedDate)
+
+                if (item.column == COLUMN_EPISODE_WATCH_DATE) {
+                    db.update(
+                        TABLE_EPISODES,
+                        values,
+                        "$COLUMN_MOVIES_ID = ? AND $COLUMN_SEASON_NUMBER = ? AND $COLUMN_EPISODE_NUMBER = ?",
+                        arrayOf(item.mediaId.toString(), item.season.toString(), item.episode.toString())
+                    )
+                } else {
+                    db.update(
+                        TABLE_MOVIES,
+                        values,
+                        "$COLUMN_MOVIES_ID = ?",
+                        arrayOf(item.mediaId.toString())
+                    )
+                }
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     fun getLastWatchedEpisode(movieId: Int): JSONObject? {
         val db = this.readableDatabase
         val cursor = db.query(

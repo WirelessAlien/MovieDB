@@ -2554,7 +2554,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieStartDate.text = startDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieStartDate.text = getString(R.string.start_date_unknown)
+                        val formattedStartDate = when {
+                            startDateString.endsWith("-00-00") -> {
+                                val year = startDateString.substring(0, 4)
+                                year
+                            }
+                            startDateString.startsWith("00-00-") -> {
+                                val year = startDateString.substring(6)
+                                year
+                            }
+                            startDateString.endsWith("-00") -> {
+                                val monthYear = startDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            startDateString.startsWith("00-") -> {
+                                val monthYear = startDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                startDateString
+                            }
+                        }
+                        binding.movieStartDate.text = getString(R.string.start_date, formattedStartDate)
                     }
                 } else {
                     binding.movieStartDate.text = getString(R.string.start_date_unknown)
@@ -2602,7 +2625,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieFinishDate.text = finishDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
+                        val formattedFinishDate = when {
+                            finishDateString.endsWith("-00-00") -> {
+                                val year = finishDateString.substring(0, 4)
+                                year
+                            }
+                            finishDateString.startsWith("00-00-") -> {
+                                val year = finishDateString.substring(6)
+                                year
+                            }
+                            finishDateString.endsWith("-00") -> {
+                                val monthYear = finishDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            finishDateString.startsWith("00-") -> {
+                                val monthYear = finishDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                finishDateString
+                            }
+                        }
+                        binding.movieFinishDate.text = getString(R.string.finish_date, formattedFinishDate)
                     }
                 } else {
                     binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
@@ -3489,7 +3535,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieStartDate.text = startDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieStartDate.text = getString(R.string.start_date_unknown)
+                        val formattedStartDate = when {
+                            startDateString.endsWith("-00-00") -> {
+                                val year = startDateString.substring(0, 4)
+                                year
+                            }
+                            startDateString.startsWith("00-00-") -> {
+                                val year = startDateString.substring(6)
+                                year
+                            }
+                            startDateString.endsWith("-00") -> {
+                                val monthYear = startDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            startDateString.startsWith("00-") -> {
+                                val monthYear = startDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                startDateString
+                            }
+                        }
+                        binding.movieStartDate.text = getString(R.string.start_date, formattedStartDate)
                     }
                 } else {
                     binding.movieStartDate.text = getString(R.string.start_date_unknown)
@@ -3537,7 +3606,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieFinishDate.text = finishDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
+                        val formattedFinishDate = when {
+                            finishDateString.endsWith("-00-00") -> {
+                                val year = finishDateString.substring(0, 4)
+                                year
+                            }
+                            finishDateString.startsWith("00-00-") -> {
+                                val year = finishDateString.substring(6)
+                                year
+                            }
+                            finishDateString.endsWith("-00") -> {
+                                val monthYear = finishDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            finishDateString.startsWith("00-") -> {
+                                val monthYear = finishDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                finishDateString
+                            }
+                        }
+                        binding.movieFinishDate.text = getString(R.string.finish_date, formattedFinishDate)
                     }
                 } else {
                     binding.movieFinishDate.text = getString(R.string.finish_date_unknown)

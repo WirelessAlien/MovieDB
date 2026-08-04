@@ -850,6 +850,7 @@
     <string name="webdav_backup_failed">WebDAV Backup Failed</string>
     <string name="webdav_backup_successful">WebDAV Backup Successful</string>
     <string name="bulk_tag_management">Manage Tags for Media</string>
+    <string name="action_fix_dates">Fix date formats</string>
     <string name="add_to_tags">Add to Tag(s)</string>
     <string name="remove_from_tags">Remove from Tag(s)</string>
     <string name="items_selected">%d selected</string>
