@@ -336,7 +336,10 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
 
                     R.id.action_fix_dates -> {
-                        showFixDatesBottomSheet()
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            val badDates = withContext(Dispatchers.IO) { mDatabaseHelper.getBadDates() }
+                            showFixDatesBottomSheet(badDates)
+                        }
                         true
                     }
                     else -> false
@@ -566,14 +569,18 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private fun showFixDatesBottomSheet() {
         val badDates = mDatabaseHelper.getBadDates()
         if (badDates.isEmpty()) {
-            Toast.makeText(requireContext(), "No dates need fixing.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.no_dates_need_fixing),
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
         val binding = com.wirelessalien.android.moviedb.databinding.BottomSheetFixDatesBinding.inflate(LayoutInflater.from(requireContext()))
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(binding.root)
-        dialog.edgeToEdgeEnabled
+        dialog.edgeToEdgeEnabled = true
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         val adapter = com.wirelessalien.android.moviedb.adapter.FixDatesAdapter(badDates)
@@ -1114,7 +1121,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val binding = WatchSummaryBinding.inflate(LayoutInflater.from(requireContext()))
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog.setContentView(binding.root)
-        bottomSheetDialog.edgeToEdgeEnabled
+        bottomSheetDialog.edgeToEdgeEnabled = true
         bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         bottomSheetDialog.show()
 

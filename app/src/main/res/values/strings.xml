@@ -877,4 +877,6 @@
     <string name="genre_chart_desc">Most watched genres</string>
     <string name="activity_trend_desc">Items watched per month this year</string>
     <string name="ratings_insight_desc">Distribution of your ratings</string>
+    <string name="no_dates_need_fixing">No dates need fixing.</string>
+    <string name="invalid_dates_review_message">The following entries have invalid dates from an earlier app version. Please review and confirm the updates.</string>
 </resources>
