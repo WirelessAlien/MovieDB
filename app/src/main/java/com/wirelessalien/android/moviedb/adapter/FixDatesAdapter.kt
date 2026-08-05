@@ -31,18 +31,16 @@ class FixDatesAdapter(private val badDates: List<MovieDatabaseHelper.BadDateItem
 
     val checkedStates = BooleanArray(badDates.size) { true }
 
-inner class ViewHolder(val binding: ItemFixDateBinding) : RecyclerView.ViewHolder(binding.root) {
-    init {
-        binding.checkbox.setOnCheckedChangeListener { _, isChecked ->
-            val pos = bindingAdapterPosition
-            if (pos != RecyclerView.NO_POSITION) {
-                checkedStates[pos] = isChecked
+    inner class ViewHolder(val binding: ItemFixDateBinding) : RecyclerView.ViewHolder(binding.root) {
+         init {
+            binding.checkbox.setOnCheckedChangeListener { _, isChecked ->
+                val pos = bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    checkedStates[pos] = isChecked
+                }
             }
         }
     }
-}
-        }
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemFixDateBinding.inflate(LayoutInflater.from(parent.context), parent, false)
