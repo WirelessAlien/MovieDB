@@ -519,7 +519,7 @@
     <string name="get_app_update">App-Aktualisierung automatisch abrufen</string>
     <string name="continue_watching">Weiter schauen!</string>
     <string name="quick_access_of_episodes_to_watch_next">Die Anzeige \"Weiterschauen!\" anzeigen</string>
-    <string name="show_the_continue_watching_chip_desc">Zeigen Sie die \"Weiteranschauen\"Anzeige in allen Registerkarten an, um schnell auf die nächste Folge zuzugreifen.</string>
+    <string name="show_the_continue_watching_chip_desc">Zeigen Sie die Anzeige \"Weiteranschauen\" in allen Registerkarten an, um schnell auf die nächste Folge zuzugreifen.</string>
     <string name="tv_shows">Serien</string>
     <string name="no_up_next_shows">Keine laufenden Serien verfügbar, beginnen Sie mit einer neuen Serie!</string>
     <string name="up_next_widget_description">Zeigt die nächste zu sehende Folge (für laufende Serien) an.</string>
