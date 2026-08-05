@@ -110,6 +110,14 @@ class AboutFragment : DialogFragment() {
             shareIntent.putExtra(Intent.EXTRA_TEXT, githubUrl)
             startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
         }
+        
+        binding.infoButton.setOnClickListener {
+            val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
+            val dialogViewBinding = com.wirelessalien.android.moviedb.databinding.FragmentButtonsDescriptionBinding.inflate(layoutInflater)
+            dialog.setContentView(dialogViewBinding.root)
+            dialogViewBinding.displayConfirmation.visibility = View.GONE
+            dialog.show()
+        }
     }
 
     private fun openUrl(url: String) {
