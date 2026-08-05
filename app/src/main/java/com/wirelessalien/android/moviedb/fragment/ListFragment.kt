@@ -336,10 +336,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
 
                     R.id.action_fix_dates -> {
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            val badDates = withContext(Dispatchers.IO) { mDatabaseHelper.getBadDates() }
-                            showFixDatesBottomSheet(badDates)
-                        }
+                        showFixDatesBottomSheet()
                         true
                     }
                     else -> false
