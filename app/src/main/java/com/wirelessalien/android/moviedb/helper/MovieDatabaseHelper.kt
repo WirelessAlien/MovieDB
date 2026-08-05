@@ -1356,11 +1356,11 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
             }
             else -> {
                 try {
-                    val inputFormat = java.text.SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-                    val parsed = inputFormat.parse(dateString)
-                    if (parsed != null) {
-                        java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(parsed)
-                    } else {
+val inputFormat = java.text.SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).apply { isLenient = false }
+val parsed = inputFormat.parse(dateString)
+if (parsed != null) {
+    java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply { isLenient = false }.format(parsed)
+} else {
                         dateString
                     }
                 } catch (e: Exception) {
