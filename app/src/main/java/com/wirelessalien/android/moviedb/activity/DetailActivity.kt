@@ -233,6 +233,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         showNextEpisodePref = preferences.getBoolean(PREFS_SHOW_NEXT_EPISODE, false)
         hideFetchedRatings = preferences.getBoolean("key_hide_fetched_ratings", false)
+        val hiddenChips = preferences.getStringSet("hidden_chips", emptySet()) ?: emptySet()
+        if (hiddenChips.contains("searchBtn")) {
+            binding.searchBtn.visibility = View.GONE
+        }
         apiKey = getConfigValue(applicationContext, "api_key")
         apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
         tktApiKey = getConfigValue(applicationContext, "client_id")
@@ -1657,6 +1661,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         datePicker.show(supportFragmentManager, datePicker.toString())
         datePicker.addOnPositiveButtonClickListener { selection ->
             val calendar = Calendar.getInstance()
+            calendar.timeZone = TimeZone.getTimeZone("UTC")
             calendar.timeInMillis = selection
 
             val timePicker = MaterialTimePicker.Builder()
@@ -2497,9 +2502,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val dateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
                 if (dateString != null) {
                     dbDateFormat = if (dateString.indexOf('-') == 4) {
-                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply { isLenient = false }
                     } else {
-                        SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                        SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).apply { isLenient = false }
                     }
                     // Use dbDateFormat as needed
                 } else {
@@ -2549,7 +2554,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieStartDate.text = startDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieStartDate.text = getString(R.string.start_date_unknown)
+                        val formattedStartDate = when {
+                            startDateString.endsWith("-00-00") -> {
+                                val year = startDateString.substring(0, 4)
+                                year
+                            }
+                            startDateString.startsWith("00-00-") -> {
+                                val year = startDateString.substring(6)
+                                year
+                            }
+                            startDateString.endsWith("-00") -> {
+                                val monthYear = startDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            startDateString.startsWith("00-") -> {
+                                val monthYear = startDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                startDateString
+                            }
+                        }
+                        binding.movieStartDate.text = getString(R.string.start_date, formattedStartDate)
                     }
                 } else {
                     binding.movieStartDate.text = getString(R.string.start_date_unknown)
@@ -2597,7 +2625,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieFinishDate.text = finishDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
+                        val formattedFinishDate = when {
+                            finishDateString.endsWith("-00-00") -> {
+                                val year = finishDateString.substring(0, 4)
+                                year
+                            }
+                            finishDateString.startsWith("00-00-") -> {
+                                val year = finishDateString.substring(6)
+                                year
+                            }
+                            finishDateString.endsWith("-00") -> {
+                                val monthYear = finishDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            finishDateString.startsWith("00-") -> {
+                                val monthYear = finishDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                finishDateString
+                            }
+                        }
+                        binding.movieFinishDate.text = getString(R.string.finish_date, formattedFinishDate)
                     }
                 } else {
                     binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
@@ -3381,6 +3432,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.copyEndToStartBtn.visibility = View.GONE
             try {
                 val dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+                dbDateFormat.isLenient = false
                 val parsedDate = dbDateFormat.parse(startDateText)
                 if (parsedDate != null) {
                     val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(parsedDate)
@@ -3396,6 +3448,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.copyStartToEndBtn.visibility = View.GONE
             try {
                 val dbDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+                dbDateFormat.isLenient = false
                 val parsedDate = dbDateFormat.parse(endDateText)
                 if (parsedDate != null) {
                     val formattedDate = DateFormat.getDateInstance(DateFormat.DEFAULT).format(parsedDate)
@@ -3431,9 +3484,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val dateString = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_START_DATE))
                 if (dateString != null) {
                     dbDateFormat = if (dateString.indexOf('-') == 4) {
-                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply { isLenient = false }
                     } else {
-                        SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                        SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).apply { isLenient = false }
                     }
                 } else {
                     // Handle the null case, e.g., set a default value or log a message
@@ -3482,7 +3535,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieStartDate.text = startDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieStartDate.text = getString(R.string.start_date_unknown)
+                        val formattedStartDate = when {
+                            startDateString.endsWith("-00-00") -> {
+                                val year = startDateString.substring(0, 4)
+                                year
+                            }
+                            startDateString.startsWith("00-00-") -> {
+                                val year = startDateString.substring(6)
+                                year
+                            }
+                            startDateString.endsWith("-00") -> {
+                                val monthYear = startDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            startDateString.startsWith("00-") -> {
+                                val monthYear = startDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                startDateString
+                            }
+                        }
+                        binding.movieStartDate.text = getString(R.string.start_date, formattedStartDate)
                     }
                 } else {
                     binding.movieStartDate.text = getString(R.string.start_date_unknown)
@@ -3530,7 +3606,30 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.movieFinishDate.text = finishDateText
                     } catch (e: ParseException) {
                         e.printStackTrace()
-                        binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
+                        val formattedFinishDate = when {
+                            finishDateString.endsWith("-00-00") -> {
+                                val year = finishDateString.substring(0, 4)
+                                year
+                            }
+                            finishDateString.startsWith("00-00-") -> {
+                                val year = finishDateString.substring(6)
+                                year
+                            }
+                            finishDateString.endsWith("-00") -> {
+                                val monthYear = finishDateString.substring(0, 7)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[0]}-${parts[1]}" else monthYear
+                            }
+                            finishDateString.startsWith("00-") -> {
+                                val monthYear = finishDateString.substring(3)
+                                val parts = monthYear.split("-")
+                                if (parts.size == 2) "${parts[1]}-${parts[0]}" else monthYear
+                            }
+                            else -> {
+                                finishDateString
+                            }
+                        }
+                        binding.movieFinishDate.text = getString(R.string.finish_date, formattedFinishDate)
                     }
                 } else {
                     binding.movieFinishDate.text = getString(R.string.finish_date_unknown)
@@ -4067,8 +4166,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         datePicker.addOnPositiveButtonClickListener { selection: Long? ->
             // Get the date from the MaterialDatePicker.
             val calendar = Calendar.getInstance()
+            calendar.timeZone = TimeZone.getTimeZone("UTC")
             calendar.timeInMillis = selection!!
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+            sdf.timeZone = TimeZone.getTimeZone("UTC")
             val dateFormat = sdf.format(calendar.time)
 
             // Save the date to the database and update the view
@@ -4502,6 +4603,34 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             val externalIdsObject = movieData.getJSONObject("external_ids")
             imdbId = externalIdsObject.getString("imdb_id")
 
+            val hiddenChips = preferences.getStringSet("hidden_chips", emptySet()) ?: emptySet()
+            if (isMovie && !imdbId.isNullOrEmpty() && imdbId != "null" && !hiddenChips.contains("boxOfficeChip")) {
+                binding.boxOfficeChip.visibility = View.VISIBLE
+                binding.boxOfficeChip.setOnClickListener {
+                    val boxOfficeUrl = "https://www.boxofficemojo.com/title/$imdbId"
+                    val intent = Intent(Intent.ACTION_VIEW, boxOfficeUrl.toUri())
+                    if (intent.resolveActivity(packageManager) != null) {
+                        startActivity(intent)
+                    } else {
+                        val builder = CustomTabsIntent.Builder()
+                        val customTabIntent = builder.build()
+                        customTabIntent.launchUrl(this, boxOfficeUrl.toUri())
+                    }
+                }
+            } else {
+                binding.boxOfficeChip.visibility = View.GONE
+            }
+
+            if (hiddenChips.contains("imdbRatingChip")) {
+                binding.imdbRatingChip.visibility = View.GONE
+            }
+            if (hiddenChips.contains("rottenTomatoesRatingChip")) {
+                binding.rottenTomatoesRatingChip.visibility = View.GONE
+            }
+            if (hiddenChips.contains("metacriticRatingChip")) {
+                binding.metacriticRatingChip.visibility = View.GONE
+            }
+
             binding.imdbRatingChip.setOnClickListener {
 
                 val url: String = if (imdbId == "null" || imdbId.isNullOrEmpty()) {
@@ -4595,7 +4724,40 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private fun showTrailer(movieData: JSONObject) {
         videos = movieData.getJSONObject("videos").getJSONArray("results")
 
-        binding.trailer.setOnClickListener {
+        var officialTrailerKey: String? = null
+        if (videos != null && videos!!.length() > 0) {
+            for (i in 0 until videos!!.length()) {
+                val video = videos!!.getJSONObject(i)
+                if (video.optBoolean("official") && video.optString("type").equals("Trailer", ignoreCase = true)) {
+                    officialTrailerKey = video.optString("key")
+                    break
+                }
+            }
+        }
+
+        val hiddenChips = preferences.getStringSet("hidden_chips", emptySet()) ?: emptySet()
+        if (officialTrailerKey != null && !hiddenChips.contains("trailerBtn")) {
+            binding.trailerBtn.visibility = View.VISIBLE
+            binding.trailerBtn.setOnClickListener {
+                val videoUrl = "https://www.youtube.com/watch?v=$officialTrailerKey"
+                val intent = Intent(Intent.ACTION_VIEW, videoUrl.toUri())
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivity(intent)
+                } else {
+                    val builder = CustomTabsIntent.Builder()
+                    val customTabIntent = builder.build()
+                    customTabIntent.launchUrl(this, videoUrl.toUri())
+                }
+            }
+        } else {
+            binding.trailerBtn.visibility = View.GONE
+        }
+
+        if (hiddenChips.contains("videosBtn")) {
+            binding.videosBtn.visibility = View.GONE
+        }
+
+        binding.videosBtn.setOnClickListener {
             if (videos != null && videos!!.length() > 0) {
                 val bottomSheetDialog = BottomSheetDialog(this)
                 val bottomSheetBinding = BottomSheetVideosBinding.inflate(layoutInflater)

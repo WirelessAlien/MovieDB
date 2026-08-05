@@ -334,6 +334,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         startActivity(Intent(requireContext(), com.wirelessalien.android.moviedb.activity.BulkTagActivity::class.java))
                         true
                     }
+
+                    R.id.action_fix_dates -> {
+                        showFixDatesBottomSheet()
+                        true
+                    }
                     else -> false
                 }
             }
@@ -342,6 +347,15 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val dialogShown = preferences.getBoolean("quick_access_dialog_shown", false)
         if (!dialogShown) {
             showQuickAccessBottomSheet()
+        }
+
+        val badDatesChecked = preferences.getBoolean("bad_dates_auto_checked", false)
+        if (!badDatesChecked) {
+            preferences.edit { putBoolean("bad_dates_auto_checked", true) }
+            val badDates = mDatabaseHelper.getBadDates()
+            if (badDates.isNotEmpty()) {
+                showFixDatesBottomSheet()
+            }
         }
     }
 
@@ -547,6 +561,44 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
             tmdbDialog.dismiss()
             updateShowViewAdapter()
         }
+    }
+
+    private fun showFixDatesBottomSheet() {
+        val badDates = mDatabaseHelper.getBadDates()
+        if (badDates.isEmpty()) {
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.no_dates_need_fixing),
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val binding = com.wirelessalien.android.moviedb.databinding.BottomSheetFixDatesBinding.inflate(LayoutInflater.from(requireContext()))
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(binding.root)
+        dialog.edgeToEdgeEnabled = true
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+        val adapter = com.wirelessalien.android.moviedb.adapter.FixDatesAdapter(badDates)
+        binding.datesRecyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+        binding.datesRecyclerView.adapter = adapter
+
+        binding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        binding.btnConfirm.setOnClickListener {
+            val itemsToFix = adapter.getSelectedItems()
+            if (itemsToFix.isNotEmpty()) {
+                mDatabaseHelper.updateBadDates(itemsToFix)
+                Toast.makeText(requireContext(), "Fixed ${itemsToFix.size} dates.", Toast.LENGTH_SHORT).show()
+                refreshData() // Refresh list to reflect potentially new states
+            }
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun showQuickAccessBottomSheet() {
@@ -1066,7 +1118,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val binding = WatchSummaryBinding.inflate(LayoutInflater.from(requireContext()))
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog.setContentView(binding.root)
-        bottomSheetDialog.edgeToEdgeEnabled
+        bottomSheetDialog.edgeToEdgeEnabled = true
         bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         bottomSheetDialog.show()
 

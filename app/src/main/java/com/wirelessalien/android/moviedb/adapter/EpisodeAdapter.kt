@@ -480,13 +480,30 @@ class EpisodeAdapter(
                                     String.format(Locale.getDefault(), "%d-%02d", year, month)
                                 }
                                 else -> {
-                                    DateFormat.getDateInstance(DateFormat.DEFAULT).format(date)
+                                    val d = date
+                                    if (d != null) DateFormat.getDateInstance(DateFormat.DEFAULT).format(d) else details.watchDate
                                 }
                             }
                             holder.binding.watchedDate.text =
                                 context.getString(R.string.watched_on) + " " + formattedDate
                         } catch (e: ParseException) {
                             e.printStackTrace()
+                            val formattedDate = when {
+                                details.watchDate?.endsWith("-00-00") == true -> {
+                                    val year = details.watchDate.substring(0, 4).toInt()
+                                    year.toString()
+                                }
+                                details.watchDate?.endsWith("-00") == true -> {
+                                    val year = details.watchDate.substring(0, 4).toInt()
+                                    val month = details.watchDate.substring(5, 7).toInt()
+                                    String.format(Locale.getDefault(), "%d-%02d", year, month)
+                                }
+                                else -> {
+                                    details.watchDate
+                                }
+                            }
+                            holder.binding.watchedDate.text =
+                                context.getString(R.string.watched_on) + " " + formattedDate
                         }
                     } else {
                         holder.binding.watchedDate.text = context.getString(R.string.watched_on_not_set)

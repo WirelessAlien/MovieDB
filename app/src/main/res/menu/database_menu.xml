@@ -51,4 +51,10 @@
         android:orderInCategory="5"
         android:title="@string/bulk_tag_management"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_fix_dates"
+        android:orderInCategory="6"
+        android:title="@string/action_fix_dates"
+        app:showAsAction="never" />
 </menu>
