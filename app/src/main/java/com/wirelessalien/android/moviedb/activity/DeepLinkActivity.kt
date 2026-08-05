@@ -184,7 +184,7 @@ class DeepLinkActivity : AppCompatActivity() {
         return try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                JSONObject(response.body?.string().toString())
+                JSONObject(response.body.string().toString())
             } else {
                 null
             }

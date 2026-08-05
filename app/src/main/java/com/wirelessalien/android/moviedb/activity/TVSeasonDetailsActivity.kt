@@ -141,7 +141,7 @@ class TVSeasonDetailsActivity : AppCompatActivity() {
                     .url("https://api.themoviedb.org/3/tv/episode_group/$groupId?api_key=$apiKey")
                     .build()
                 val response = client.newCall(request).execute()
-                val bodyString = response.body?.string()
+                val bodyString = response.body.string()
                 if (response.isSuccessful && !bodyString.isNullOrEmpty()) {
                     return@withContext JSONObject(bodyString)
                 }

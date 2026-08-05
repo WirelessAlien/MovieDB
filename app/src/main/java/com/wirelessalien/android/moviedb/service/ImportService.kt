@@ -379,7 +379,7 @@ class ImportService : Service() {
                         }
                         
                         if (!tagsString.isNullOrBlank()) {
-                            val tagsList = tagsString!!.split("|").map { it.trim() }.filter { it.isNotEmpty() }
+                            val tagsList = tagsString.split("|").map { it.trim() }.filter { it.isNotEmpty() }
                             for (tagName in tagsList) {
                                 val tagId = movieDbHelper.addTag(tagName)
                                 if (tagId != -1L) {

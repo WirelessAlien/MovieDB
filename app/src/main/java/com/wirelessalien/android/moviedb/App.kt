@@ -86,7 +86,7 @@ class App : Application() {
             try {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    response.body?.string()
+                    response.body.string()
                 } else {
                     null
                 }
