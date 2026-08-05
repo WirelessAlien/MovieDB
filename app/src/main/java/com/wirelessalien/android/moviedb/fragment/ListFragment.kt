@@ -1118,7 +1118,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         val binding = WatchSummaryBinding.inflate(LayoutInflater.from(requireContext()))
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         bottomSheetDialog.setContentView(binding.root)
-        bottomSheetDialog.edgeToEdgeEnabled = true
+        bottomSheetDialog.edgeToEdgeEnabled
         bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         bottomSheetDialog.show()
 
