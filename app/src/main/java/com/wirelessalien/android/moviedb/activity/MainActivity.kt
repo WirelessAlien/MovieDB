@@ -254,6 +254,7 @@ class MainActivity : BaseActivity() {
                 supportFragmentManager.beginTransaction().replace(R.id.container, selectedFragment).commit()
                 updateSearchBarTitle(selectedFragment)
                 updateSearchViewHint(selectedFragment)
+                updateSearchViewChips(selectedFragment)
                 return@setOnItemSelectedListener true
             }
             false
@@ -311,6 +312,7 @@ class MainActivity : BaseActivity() {
             supportFragmentManager.beginTransaction().replace(R.id.container, initialFragment).commit()
             updateSearchBarTitle(initialFragment)
             updateSearchViewHint(initialFragment)
+            updateSearchViewChips(initialFragment)
         }
 
         prefListener = OnSharedPreferenceChangeListener { _: SharedPreferences?, key: String? ->
@@ -744,6 +746,14 @@ class MainActivity : BaseActivity() {
             else -> getString(R.string.hint_search)
         }
         binding.searchView.editText.hint = hint
+    }
+
+    private fun updateSearchViewChips(fragment: Fragment) {
+        if (fragment is ListFragment) {
+            binding.searchChipScroll.visibility = View.GONE
+        } else {
+            binding.searchChipScroll.visibility = View.VISIBLE
+        }
     }
 
     fun keywordSearch(query: String?) {
