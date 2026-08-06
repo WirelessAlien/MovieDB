@@ -591,6 +591,9 @@
     <string name="summary_notification_one">This preference applies to upcoming movies and shows (including individual episodes) of \"Saved\" and from \"Trakt\" account</string>
     <string name="get_notified_for_saved_movies">Get notified</string>
     <string name="summary_notification_two">Get notified for upcoming items of Trakt account and \"Saved\" when released.</string>
+    <string name="get_notified_for_favorited_people">Get notified for favorited people</string>
+    <string name="summary_notification_three">Get notified when a new movie or show is released for people you have favorited.</string>
+    <string name="notification_for_person_credit">%1$s is in %2$s, releasing soon!</string>
     <string name="not_logged_in">You are not logged in</string>
     <string name="logged_in">You are logged in</string>
     <string name="other">Other</string>
