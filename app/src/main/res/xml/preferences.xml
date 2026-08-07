@@ -154,6 +154,13 @@
             android:title="@string/title_shows_in_grid"
             app:iconSpaceReserved="false"/>
 
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="confirm_removal_preference"
+            android:title="@string/confirm_removal"
+            android:summary="@string/confirm_removal_summary"
+            app:iconSpaceReserved="false"/>
+
         <androidx.preference.SeekBarPreference
             android:defaultValue="3"
             android:dependency="key_show_shows_grid"
