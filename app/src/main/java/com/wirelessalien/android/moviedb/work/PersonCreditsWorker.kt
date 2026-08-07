@@ -73,6 +73,8 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
 
             val apiReadAccessToken = ConfigHelper.getConfigValue(applicationContext, "api_read_access_token")
 
+            val aggregatedCredits = mutableMapOf<MediaCredit, MutableSet<String>>()
+
             for (personId in peopleIds) {
                 delay(100) // Rate limiting
 
@@ -86,19 +88,22 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
                     .build()
 
                 try {
-                    val response = client.newCall(request).execute()
-                    if (response.isSuccessful) {
-                        val responseBody = response.body?.string()
-                        if (responseBody != null) {
-                            val jsonObject = JSONObject(responseBody)
-                            processCredits(jsonObject.optJSONArray("cast"), personName, scheduledDbHelper, notificationDbHelper, alarmManager)
-                            processCredits(jsonObject.optJSONArray("crew"), personName, scheduledDbHelper, notificationDbHelper, alarmManager)
+                    client.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
+                            val responseBody = response.body?.string()
+                            if (responseBody != null) {
+                                val jsonObject = JSONObject(responseBody)
+                                extractCredits(jsonObject.optJSONArray("cast"), personName, aggregatedCredits)
+                                extractCredits(jsonObject.optJSONArray("crew"), personName, aggregatedCredits)
+                            }
                         }
                     }
                 } catch (e: IOException) {
                     Log.e("PersonCreditsWorker", "Error fetching credits for $personId", e)
                 }
             }
+
+            processAggregatedCredits(aggregatedCredits, scheduledDbHelper, notificationDbHelper, alarmManager)
 
             Result.success()
         } catch (e: Exception) {
@@ -107,12 +112,17 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
         }
     }
 
-    private fun processCredits(
+    data class MediaCredit(
+        val mediaType: String,
+        val id: Int,
+        val title: String,
+        val releaseDateStr: String
+    )
+
+    private fun extractCredits(
         creditsArray: org.json.JSONArray?,
         personName: String,
-        scheduledDbHelper: ScheduledNotificationDatabaseHelper,
-        notificationDbHelper: NotificationDatabaseHelper,
-        alarmManager: AlarmManager
+        aggregatedCredits: MutableMap<MediaCredit, MutableSet<String>>
     ) {
         if (creditsArray == null) return
 
@@ -133,6 +143,32 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
 
                 // Check if release date is in the future
                 if (releaseDate.after(currentDate)) {
+                    val mediaCredit = MediaCredit(mediaType, id, title, releaseDateStr)
+                    val namesSet = aggregatedCredits.getOrPut(mediaCredit) { mutableSetOf() }
+                    namesSet.add(personName)
+                }
+            } catch (e: Exception) {
+                Log.e("PersonCreditsWorker", "Error parsing date: $releaseDateStr", e)
+            }
+        }
+    }
+
+    private fun processAggregatedCredits(
+        aggregatedCredits: Map<MediaCredit, Set<String>>,
+        scheduledDbHelper: ScheduledNotificationDatabaseHelper,
+        notificationDbHelper: NotificationDatabaseHelper,
+        alarmManager: AlarmManager
+    ) {
+        val apiDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val currentDate = Date()
+
+        for ((credit, names) in aggregatedCredits) {
+            val combinedPersonName = names.joinToString(",")
+            try {
+                val releaseDate = apiDateFormat.parse(credit.releaseDateStr) ?: continue
+
+                // Check if release date is in the future
+                if (releaseDate.after(currentDate)) {
                     val cal1Week = Calendar.getInstance()
                     cal1Week.time = releaseDate
                     cal1Week.add(Calendar.DAY_OF_YEAR, -7)
@@ -140,8 +176,8 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
                     // Schedule 1 week advance
                     if (cal1Week.time.after(currentDate)) {
                         scheduleNotification(
-                            mediaType, id, title, personName, releaseDateStr, cal1Week.timeInMillis, 
-                            "1week_$id", scheduledDbHelper, notificationDbHelper, alarmManager
+                            credit.mediaType, credit.id, credit.title, combinedPersonName, credit.releaseDateStr, cal1Week.timeInMillis, 
+                            "1week_${credit.id}", scheduledDbHelper, notificationDbHelper, alarmManager
                         )
                     }
 
@@ -151,13 +187,13 @@ class PersonCreditsWorker(context: Context, workerParams: WorkerParameters) : Co
                         calDayOf.time = releaseDate
                   
                         scheduleNotification(
-                            mediaType, id, title, personName, releaseDateStr, calDayOf.timeInMillis, 
-                            "dayof_$id", scheduledDbHelper, notificationDbHelper, alarmManager
+                            credit.mediaType, credit.id, credit.title, combinedPersonName, credit.releaseDateStr, calDayOf.timeInMillis, 
+                            "dayof_${credit.id}", scheduledDbHelper, notificationDbHelper, alarmManager
                         )
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PersonCreditsWorker", "Error parsing date: $releaseDateStr", e)
+                Log.e("PersonCreditsWorker", "Error parsing date: ${credit.releaseDateStr}", e)
             }
         }
     }
