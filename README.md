@@ -93,7 +93,17 @@ You can download and install ShowCase from the following sources:
 >
 > Learn more about the different app versions on the [project wiki](https://github.com/WirelessAlien/MovieDB/wiki/App-Version).
 
+### App Signing Certificate Fingerprints
 
+To help users verify the authenticity of official releases, here are the signing certificate fingerprints:
+
+- **MD5:** `3D:D6:01:A2:2D:EF:63:20:47:FA:E4:B9:94:34:DC:E3`
+- **SHA-1:** `A3:2C:3E:23:1D:A5:B1:55:B0:F6:25:68:78:2A:90:A0:14:C9:65:A9`
+- **SHA-256:** `FF:F2:AC:2B:BF:EA:ED:30:30:51:CA:F1:38:C1:4F:CD:98:0A:92:6F:56:29:65:43:DF:05:C2:55:FD:89:A6:B7`
+
+> [!NOTE]
+> Always verify that downloaded APK signatures match the fingerprints above before installing.
+> 
 ---
 
 ## Building from Source
