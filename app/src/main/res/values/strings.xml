@@ -777,7 +777,8 @@
     <string name="remove_from_list">Remove from list</string>
     <string name="remove_from_list_confirmation">Are you sure you want to remove this item?</string>
     <string name="dont_ask_again">Don\'t ask again</string>
-    <string name="confirm_removal">Display confirm removal Dialog</string>
+    <string name="confirm_removal">Confirm Removal</string>
+    <string name="confirm_removal_2">Display confirm removal Dialog</string>
     <string name="confirm_removal_summary">Ask for confirmation before removing an item from a list</string>
     <string name="episode_title">S:%1$d E:%2$d %3$s</string>
     <string name="season_number">S: %1$d</string>

@@ -63,10 +63,19 @@ class ReviewAdapter :
 
             val dateString = review.optString("created_at")
             try {
-                val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                 val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-                val date = inputFormat.parse(dateString)
-                binding.textViewCreatedAt.text = outputFormat.format(date)
+                var date = try {
+                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                    inputFormat.parse(dateString)
+                } catch (e: Exception) {
+                    null
+                }
+                if (date == null) {
+                    val inputFormat2 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                    date = inputFormat2.parse(dateString)
+                }
+                
+                binding.textViewCreatedAt.text = date?.let { outputFormat.format(it) } ?: dateString
             } catch (e: Exception) {
                 // If parsing fails, show the original string
                 binding.textViewCreatedAt.text = dateString

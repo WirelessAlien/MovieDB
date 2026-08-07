@@ -157,7 +157,7 @@
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="confirm_removal_preference"
-            android:title="@string/confirm_removal"
+            android:title="@string/confirm_removal_2"
             android:summary="@string/confirm_removal_summary"
             app:iconSpaceReserved="false"/>
 
