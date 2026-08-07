@@ -41,6 +41,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.chip.Chip
@@ -203,7 +204,7 @@ class AccountDataFragmentTkt : BaseFragment() {
                     else -> false
                 }
             }
-        }, viewLifecycleOwner)
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun saveSortPreference(criteria: String, order: String) {

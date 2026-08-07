@@ -32,6 +32,7 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -180,7 +181,7 @@ class HomeFragment : BaseFragment() {
                 }
             }
         }
-        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner)
+        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
 //    private fun hasNotifications(): Boolean {

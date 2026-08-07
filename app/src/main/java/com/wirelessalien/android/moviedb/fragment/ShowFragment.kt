@@ -32,6 +32,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.paging.Pager
@@ -136,7 +137,7 @@ class ShowFragment : BaseFragment() {
                     else -> false
                 }
             }
-        }, viewLifecycleOwner)
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     override fun onResume() {
