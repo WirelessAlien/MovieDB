@@ -20,7 +20,17 @@ class NotificationReceiver : BroadcastReceiver() {
         val type = intent.getStringExtra("type") ?: return
         val notificationId = intent.getLongExtra("notificationId", 0).toInt()
 
-        val notificationIntent = Intent(context, MainActivity::class.java)
+        val notificationIntent: Intent
+        if (type == "person_movie" || type == "person_tv") {
+            notificationIntent = Intent(context, com.wirelessalien.android.moviedb.activity.DeepLinkActivity::class.java).apply {
+                action = Intent.ACTION_VIEW
+                val pathPrefix = if (type == "person_movie") "movie" else "tv"
+                data = android.net.Uri.parse("https://www.themoviedb.org/$pathPrefix/$episodeNumber") // episodeNumber holds mediaId for this type
+            }
+        } else {
+            notificationIntent = Intent(context, MainActivity::class.java)
+        }
+
         val pendingIntent = PendingIntent.getActivity(
             context, 0, notificationIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -28,6 +38,8 @@ class NotificationReceiver : BroadcastReceiver() {
 
         val contentText = if (type == "episode") {
             context.getString(R.string.episode_airing_today, episodeNumber, episodeName)
+        } else if (type == "person_movie" || type == "person_tv") {
+            context.getString(R.string.notification_for_person_credit, title, episodeName) // title holds person name, episodeName holds movie/tv title
         } else {
             context.getString(R.string.movie_released_today, title)
         }

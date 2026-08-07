@@ -109,7 +109,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|end"
-                        app:icon="@drawable/ic_close"
+                        app:icon="@drawable/ic_more_vert"
                         android:visibility="gone"
                         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
 

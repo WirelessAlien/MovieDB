@@ -318,6 +318,62 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             }
         }
 
+        findPreference<SwitchPreferenceCompat>("key_get_notified_for_favorited_people")?.let { preference ->
+            preference.setOnPreferenceChangeListener { _, newValue ->
+                if (newValue as Boolean) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val hasPostNotifications = ContextCompat.checkSelfPermission(
+                            requireContext(),
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) == PackageManager.PERMISSION_GRANTED
+                        val hasScheduleExactAlarm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            val alarmManager =
+                                requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                            alarmManager.canScheduleExactAlarms()
+                        } else {
+                            true
+                        }
+
+                        if (!hasPostNotifications || !hasScheduleExactAlarm) {
+                            Toast.makeText(requireContext(), getString(R.string.grant_notification_permissions), Toast.LENGTH_SHORT).show()
+                            preference.isChecked = false
+                            return@setOnPreferenceChangeListener false
+                        }
+                    }
+
+                    // Check network connectivity
+                    val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val network = connectivityManager.activeNetwork
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+                    if (networkCapabilities != null && networkCapabilities.hasCapability(
+                            NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                        // Network is connected, enqueue the work request
+                        val constraints = Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+
+                        val monthlyWorkRequest = PeriodicWorkRequest.Builder(com.wirelessalien.android.moviedb.work.PersonCreditsWorker::class.java, 30, TimeUnit.DAYS)
+                            .setConstraints(constraints)
+                            .build()
+
+                        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+                            "person_credits_worker",
+                            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                            monthlyWorkRequest
+                        )
+                    } else {
+                        // Network is not connected, show error and uncheck the switch
+                        Toast.makeText(requireContext(), getString(R.string.no_internet_connection), Toast.LENGTH_SHORT).show()
+                        preference.isChecked = false
+                        return@setOnPreferenceChangeListener false
+                    }
+                } else {
+                    WorkManager.getInstance(requireContext()).cancelUniqueWork("person_credits_worker")
+                }
+                true
+            }
+        }
+
         val donateKey = findPreference<Preference>("donate_key")
         donateKey?.setOnPreferenceClickListener {
             val donateFragment = DonationFragment()

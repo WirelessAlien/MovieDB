@@ -190,30 +190,77 @@ class ShowPagingAdapter(
         if (showDeleteButton) {
             holder.deleteButton.visibility = View.VISIBLE
             holder.deleteButton.setOnClickListener {
-                val mediaId: Int
-                val type: String
-                try {
-                    mediaId = showData.getInt(KEY_ID)
-                    type = if (showData.has(KEY_TITLE)) "movie" else "tv"
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    return@setOnClickListener
+                val popup = android.widget.PopupMenu(context, holder.deleteButton)
+                popup.menuInflater.inflate(R.menu.menu_list_item_actions, popup.menu)
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_share -> {
+                            try {
+                                val mediaId = showData.getInt(KEY_ID)
+                                val type = if (showData.has(KEY_TITLE)) "movie" else "tv"
+                                val tmdbUrl = "https://www.themoviedb.org/$type/$mediaId"
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    this.type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, tmdbUrl)
+                                }
+                                context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_link_using)))
+                            } catch (e: JSONException) {
+                                e.printStackTrace()
+                            }
+                            true
+                        }
+                        R.id.action_remove -> {
+                            val mediaId: Int
+                            val type: String
+                            try {
+                                mediaId = showData.getInt(KEY_ID)
+                                type = if (showData.has(KEY_TITLE)) "movie" else "tv"
+                            } catch (e: JSONException) {
+                                e.printStackTrace()
+                                return@setOnMenuItemClickListener true
+                            }
+                            val dataList = getCurrentData()
+                            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+                            val listId = prefs.getInt("listId", 0)
+                            val activity = context as Activity
+                            val deleteThread = DeleteFromList(
+                                mediaId,
+                                listId,
+                                type,
+                                activity,
+                                position,
+                                dataList,
+                                this
+                            )
+                            
+                            val askConfirmation = prefs.getBoolean("confirm_removal_preference", true)
+                            if (askConfirmation) {
+                                val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_remove_confirmation, null)
+                                val checkBox = dialogView.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.dont_ask_again_checkbox)
+                                
+                                com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+                                    .setTitle(R.string.confirm_removal)
+                                    .setMessage(R.string.remove_from_list_confirmation)
+                                    .setView(dialogView)
+                                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                                        if (checkBox.isChecked) {
+                                            prefs.edit().putBoolean("confirm_removal_preference", false).apply()
+                                        }
+                                        CoroutineScope(Dispatchers.IO).launch { deleteThread.deleteFromList() }
+                                    }
+                                    .setNegativeButton(android.R.string.cancel, null)
+                                    .show()
+                            } else {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    deleteThread.deleteFromList()
+                                }
+                            }
+                            true
+                        }
+                        else -> false
+                    }
                 }
-                val dataList = getCurrentData()
-                val listId = PreferenceManager.getDefaultSharedPreferences(context).getInt("listId", 0)
-                val activity = context as Activity
-                val deleteThread = DeleteFromList(
-                    mediaId,
-                    listId,
-                    type,
-                    activity,
-                    position,
-                    dataList,
-                    this
-                )
-                CoroutineScope(Dispatchers.IO).launch {
-                    deleteThread.deleteFromList()
-                }
+                popup.show()
             }
         } else {
             holder.deleteButton.visibility = View.GONE
