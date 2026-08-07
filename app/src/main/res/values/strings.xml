@@ -664,6 +664,7 @@
     <string name="just_watch_attribution">This app uses JustWatch data to show streaming service info.</string>
 
     <string name="share">Share ShowCase</string>
+    <string name="share_2">Share</string>
     <string name="donate">Donate</string>
     <string name="attribution">Attribution</string>
     <string name="about_movie_db">About</string>

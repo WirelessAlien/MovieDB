@@ -807,14 +807,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                     - My Review: $reviewString
                     - I watched: $timesWatchedString times
-                    - My $userRatingString
+                    - My Rating $userRatingString
 
                 """.trimIndent()
 
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.type = "text/plain"
                 shareIntent.putExtra(Intent.EXTRA_TEXT, shareText)
-                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_link_using)))
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_2)))
             }
         })
 
