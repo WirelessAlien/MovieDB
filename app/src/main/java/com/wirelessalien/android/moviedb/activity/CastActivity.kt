@@ -663,7 +663,15 @@ class CastActivity : BaseActivity() {
                             castMovieArrayList.add(actorMovies)
                         }
                     }
-
+                    castMovieArrayList.sortWith(
+                        compareByDescending<JSONObject> {
+                            it.optDouble("vote_average", 0.0)
+                        }.thenByDescending {
+                            it.optDouble("vote_count", 0.0)
+                        }.thenByDescending {
+                            it.optDouble("popularity", 0.0)
+                        }
+                    )
                     castMovieAdapter = ShowBaseAdapter(context, castMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
                     binding.castMovieRecyclerView.adapter = castMovieAdapter
                 }
@@ -685,6 +693,15 @@ class CastActivity : BaseActivity() {
                             crewMovieArrayList.add(crewMovies)
                         }
                     }
+                    crewMovieArrayList.sortWith(
+                        compareByDescending<JSONObject> {
+                            it.optDouble("vote_average", 0.0)
+                        }.thenByDescending {
+                            it.optDouble("vote_count", 0.0)
+                        }.thenByDescending {
+                            it.optDouble("popularity", 0.0)
+                        }
+                    )
 
                     crewMovieAdapter = ShowBaseAdapter(context, crewMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
                     binding.crewMovieRecyclerView.adapter = crewMovieAdapter

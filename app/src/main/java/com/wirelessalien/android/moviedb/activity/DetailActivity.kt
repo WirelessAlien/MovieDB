@@ -791,25 +791,25 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 val shareText = """
-                    *${title}*
+    🎬 $title
 
-                    *Overview:*
-                    $overview
+    ${if (isMovie) "Movie" else "TV Show"}
+    ⭐ TMDB: ${binding.rating.text}
+    IMDb: ${binding.imdbRatingChip.text.toString().replace("IMDb ", "")}
+    Metacritic: $metacriticRating
+    Rotten Tomatoes: $rottenTomatoRating
 
-                    *TMDB Link:*
-                    $tmdbLink
+    Overview:
+    $overview
 
-                    *Ratings:*
-                    - TMDB: ${binding.rating.text}
-                    - IMDb: ${binding.imdbRatingChip.text.toString().replace("IMDb ", "")}
-                    - Metacritic: $metacriticRating
-                    - Rotten Tomatoes: $rottenTomatoRating
+    My MovieDB Notes:
+    • My Rating: $userRatingString
+    • My Review: ${reviewString.ifBlank { getString(R.string.rating_na) }}
+    • Watched: $timesWatchedString time(s)
 
-                    - My Review: $reviewString
-                    - I watched: $timesWatchedString times
-                    - My $userRatingString
-
-                """.trimIndent()
+    Open on TMDB:
+    $tmdbLink
+""".trimIndent()
 
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.type = "text/plain"
@@ -4487,10 +4487,26 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val reader = JSONObject(response)
                 val similarMovieArray = reader.getJSONArray("results")
                 similarMovieArrayList.clear()
+
                 for (i in 0 until similarMovieArray.length()) {
                     val movieData = similarMovieArray.getJSONObject(i)
-                    similarMovieArrayList.add(movieData)
+
+                    val isAdult = movieData.optBoolean("adult", false)
+                    val posterPath = movieData.optString("poster_path", "")
+
+                    if (!isAdult && posterPath.isNotBlank() && posterPath != "null") {
+                        similarMovieArrayList.add(movieData)
+                    }
                 }
+
+                similarMovieArrayList.sortWith(
+                    compareByDescending<JSONObject> {
+                        it.optDouble("vote_average", 0.0)
+                    }.thenByDescending {
+                        it.optDouble("popularity", 0.0)
+                    }
+                )
+
                 similarMovieAdapter = SimilarMovieBaseAdapter(
                     similarMovieArrayList, applicationContext
                 )
@@ -4500,6 +4516,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 je.printStackTrace()
             }
         }
+
         hideEmptyRecyclerView(binding.movieRecyclerView, binding.similarMovieTitle)
     }
 
@@ -4652,11 +4669,41 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             val reviewsObject = movieData.getJSONObject("reviews")
             val resultsArray = reviewsObject.getJSONArray("results")
 
-            // Extract the first three reviews
+            // Filter and prioritize reviews before showing them on the detail screen
+            val spoilerKeywords = listOf(
+                "spoiler", "ending", "final scene", "dies", "death", "killed", "killer", "reveals"
+            )
+
             val reviewList = mutableListOf<JSONObject>()
-            for (i in 0 until minOf(3, resultsArray.length())) {
-                reviewList.add(resultsArray.getJSONObject(i))
+
+            for (i in 0 until resultsArray.length()) {
+                val review = resultsArray.getJSONObject(i)
+                val content = review.optString("content", "").trim()
+
+                if (content.isBlank() || content.length < 50) {
+                    continue
+                }
+
+                val containsSpoiler = spoilerKeywords.any { keyword ->
+                    content.contains(keyword, ignoreCase = true)
+                }
+
+                if (containsSpoiler) {
+                    review.put("content", "⚠️ Possible spoiler\n\n$content")
+                }
+
+                reviewList.add(review)
             }
+
+            reviewList.sortWith(
+                compareByDescending<JSONObject> {
+                    it.optJSONObject("author_details")?.optDouble("rating", 0.0) ?: 0.0
+                }.thenByDescending {
+                    it.optString("content", "").length
+                }
+            )
+
+            val limitedReviewList = reviewList.take(3)
 
             // Set up the RecyclerView
             val reviewAdapter = object : RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder>() {
@@ -4666,10 +4713,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 override fun onBindViewHolder(holder: ReviewAdapter.ReviewViewHolder, position: Int) {
-                    holder.bind(reviewList[position])
+                    holder.bind(limitedReviewList[position])
                 }
 
-                override fun getItemCount(): Int = reviewList.size
+                override fun getItemCount(): Int = limitedReviewList.size
             }
 
             binding.recyclerViewReviews.layoutManager = LinearLayoutManager(this)

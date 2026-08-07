@@ -31,6 +31,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ReviewItemBinding
 import org.json.JSONObject
 import java.util.Locale
+import android.graphics.Typeface
 
 class ReviewAdapter :
     PagingDataAdapter<JSONObject, ReviewAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
@@ -86,17 +87,25 @@ class ReviewAdapter :
             } else {
                 binding.root.context.getString(R.string.rating_na)
             }
-            // Set content with max lines and click listener
+            // Set content with spoiler warning, max lines and click listener
             val content = review.optString("content")
-            binding.textViewContent.text = content
-            binding.textViewContent.post {
-                if (binding.textViewContent.lineCount > 3) {
-                    binding.textViewContent.maxLines = 3
-                    isContentExpanded = false
-                } else {
-                    isContentExpanded = true
-                }
+            val isSpoiler = content.startsWith("⚠️ Possible spoiler")
+
+            if (isSpoiler) {
+                val cleanedContent = content
+                    .replace("⚠️ Possible spoiler", "")
+                    .trim()
+
+                binding.textViewContent.text = "⚠️ SPOILER WARNING\n\n$cleanedContent"
+                binding.textViewContent.setTypeface(null, Typeface.BOLD)
+                binding.textViewContent.alpha = 0.9f
+            } else {
+                binding.textViewContent.text = content
+                binding.textViewContent.setTypeface(null, Typeface.NORMAL)
+                binding.textViewContent.alpha = 1.0f
             }
+
+            binding.textViewContent.post {
 
             binding.textViewContent.setOnClickListener {
                 if (binding.textViewContent.lineCount > 3) {
@@ -118,6 +127,17 @@ class ReviewAdapter :
     class ReviewDiffCallback : DiffUtil.ItemCallback<JSONObject>() {
         override fun areItemsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
             return oldItem.getString("id") == newItem.getString("id")
+        }
+
+        override fun areContentsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
+            return oldItem.toString() == newItem.toString()
+        }
+    }
+}
+
+    class ReviewDiffCallback : DiffUtil.ItemCallback<JSONObject>() {
+        override fun areItemsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
+            return oldItem.optString("id") == newItem.optString("id")
         }
 
         override fun areContentsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
