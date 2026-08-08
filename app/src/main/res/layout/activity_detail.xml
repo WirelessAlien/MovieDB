@@ -154,8 +154,8 @@
                                 android:id="@+id/typeChip"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                style="@style/Widget.Material3.Chip.Assist.Elevated"
-                                app:shapeAppearance="?attr/shapeAppearanceCornerFull"
+                                style="@style/Widget.Material3.Chip.Suggestion"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                                 android:layout_marginEnd="8dp"
                                 android:checkable="false"
                                 android:text="Movie"
@@ -1116,8 +1116,8 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/trailer"
-                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    style="@style/Widget.Material3.Chip.Suggestion"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/videosBtn"
@@ -1127,8 +1127,8 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/videos"
-                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    style="@style/Widget.Material3.Chip.Suggestion"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/searchBtn"
@@ -1138,8 +1138,8 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
-                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    style="@style/Widget.Material3.Chip.Suggestion"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/boxOfficeChip"
@@ -1149,8 +1149,8 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/box_office"
-                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    style="@style/Widget.Material3.Chip.Suggestion"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/imdbRatingChip"
@@ -1160,8 +1160,8 @@
                     android:layout_marginEnd="8dp"
                     android:text="IMDb: 0/10"
                     app:chipIcon="@drawable/ic_link"
-                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    style="@style/Widget.Material3.Chip.Suggestion"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/rottenTomatoesRatingChip"
@@ -1171,8 +1171,8 @@
                     android:layout_marginEnd="8dp"
                     android:text="R. Tomatoes: 0%"
                     app:chipIcon="@drawable/ic_link"
-                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    style="@style/Widget.Material3.Chip.Suggestion"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/metacriticRatingChip"
@@ -1182,8 +1182,8 @@
                     android:layout_marginEnd="8dp"
                     android:text="Metacritic: 0/100"
                     app:chipIcon="@drawable/ic_link"
-                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    style="@style/Widget.Material3.Chip.Suggestion"/>
             </com.google.android.flexbox.FlexboxLayout>
 
             <RelativeLayout
