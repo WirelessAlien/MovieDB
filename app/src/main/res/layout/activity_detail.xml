@@ -155,6 +155,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 style="@style/Widget.Material3.Chip.Assist.Elevated"
+                                app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                                 android:layout_marginEnd="8dp"
                                 android:checkable="false"
                                 android:text="Movie"
@@ -1115,6 +1116,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/trailer"
+                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -1125,6 +1127,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/videos"
+                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -1135,6 +1138,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
+                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -1145,6 +1149,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/box_office"
+                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -1155,6 +1160,7 @@
                     android:layout_marginEnd="8dp"
                     android:text="IMDb: 0/10"
                     app:chipIcon="@drawable/ic_link"
+                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -1165,6 +1171,7 @@
                     android:layout_marginEnd="8dp"
                     android:text="R. Tomatoes: 0%"
                     app:chipIcon="@drawable/ic_link"
+                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
 
                 <com.google.android.material.chip.Chip
@@ -1175,6 +1182,7 @@
                     android:layout_marginEnd="8dp"
                     android:text="Metacritic: 0/100"
                     app:chipIcon="@drawable/ic_link"
+                    app:shapeAppearance="?attr/shapeAppearanceCornerFull"
                     style="@style/Widget.Material3.Chip.Assist.Elevated"/>
             </com.google.android.flexbox.FlexboxLayout>
 
@@ -1536,7 +1544,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerMedium"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
         android:contentDescription="@string/sync_provider"
