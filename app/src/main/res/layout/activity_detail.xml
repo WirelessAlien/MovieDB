@@ -154,7 +154,7 @@
                                 android:id="@+id/typeChip"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                style="@style/Widget.Material3.Chip.Suggestion"
+                                style="@style/Widget.Material3.Chip.Assist.Elevated"         
                                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                                 android:layout_marginEnd="8dp"
                                 android:checkable="false"
