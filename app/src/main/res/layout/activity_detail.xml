@@ -1117,7 +1117,6 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/trailer"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
                     android:clickable="true"
                     android:focusable="true"
@@ -1136,7 +1135,6 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/videos"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
                     android:clickable="true"
                     android:focusable="true"
@@ -1154,7 +1152,6 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
                     android:clickable="true"
                     android:focusable="true"
@@ -1172,7 +1169,6 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/box_office"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
                     android:clickable="true"
                     android:focusable="true"
@@ -1207,7 +1203,6 @@
                     android:text="R. Tomatoes: 0%"
                     app:chipIcon="@drawable/ic_page_info"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
                     android:clickable="true"
                     android:focusable="true"
@@ -1225,7 +1220,6 @@
                     android:text="Metacritic: 0/100"
                     app:chipIcon="@drawable/ic_page_info"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
                     android:clickable="true"
                     android:focusable="true"
@@ -1595,6 +1589,7 @@
         android:layout_margin="16dp"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
+        app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerFull"
         android:contentDescription="@string/sync_provider"
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
 
@@ -1611,7 +1606,6 @@
             android:id="@+id/syncProviderChange"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
             style="?attr/materialSplitButtonIconFilledTonalStyle"
             app:icon="@drawable/ic_sync"/>
     </com.google.android.material.button.MaterialSplitButton>
