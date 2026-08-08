@@ -1117,7 +1117,14 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/trailer"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Suggestion"/>
+                    style="@style/Widget.Material3.Chip.Input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
+
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/videosBtn"
@@ -1128,7 +1135,13 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/videos"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Suggestion"/>
+                    style="@style/Widget.Material3.Chip.Input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/searchBtn"
@@ -1139,7 +1152,13 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Suggestion"/>
+                    style="@style/Widget.Material3.Chip.Input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/boxOfficeChip"
@@ -1150,7 +1169,13 @@
                     android:layout_marginEnd="8dp"
                     android:text="@string/box_office"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Suggestion"/>
+                    style="@style/Widget.Material3.Chip.Input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/imdbRatingChip"
@@ -1161,7 +1186,13 @@
                     android:text="IMDb: 0/10"
                     app:chipIcon="@drawable/ic_link"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Suggestion"/>
+                    style="@style/Widget.Material3.Chip.Input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/rottenTomatoesRatingChip"
@@ -1172,7 +1203,13 @@
                     android:text="R. Tomatoes: 0%"
                     app:chipIcon="@drawable/ic_link"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Suggestion"/>
+                    style="@style/Widget.Material3.Chip.Input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/metacriticRatingChip"
@@ -1183,7 +1220,13 @@
                     android:text="Metacritic: 0/100"
                     app:chipIcon="@drawable/ic_link"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Suggestion"/>
+                    style="@style/Widget.Material3.Chip.Input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
             </com.google.android.flexbox.FlexboxLayout>
 
             <RelativeLayout
