@@ -1589,7 +1589,6 @@
         android:layout_margin="16dp"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
         android:contentDescription="@string/sync_provider"
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
 
@@ -1606,6 +1605,8 @@
             android:id="@+id/syncProviderChange"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:checkable="false"
+            android:clickable="true"
             style="?attr/materialSplitButtonIconFilledTonalStyle"
             app:icon="@drawable/ic_sync"/>
     </com.google.android.material.button.MaterialSplitButton>
