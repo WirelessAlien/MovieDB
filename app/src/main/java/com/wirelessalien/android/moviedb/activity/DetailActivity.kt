@@ -769,13 +769,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val title = movieTitle ?: ""
                 val overview = binding.movieDescription.text.toString()
                 val tmdbId = movieId
-                val metacriticRating = binding.metacriticRatingChip.text.toString().replace(getString(R.string.metacritic, ""), "")
-                val rottenTomatoRating = binding.rottenTomatoesRatingChip.text.toString().replace(getString(R.string.r_tomatoes, ""), "")
+                val metacriticRating = binding.metacriticRatingChip.text.toString().replace(getString(R.string.metacritic, ""), "").trim()
+                val rottenTomatoRating = binding.rottenTomatoesRatingChip.text.toString().replace(getString(R.string.r_tomatoes, ""), "").trim()
+                val imdbRating = binding.imdbRatingChip.text.toString().replace("IMDb ", "").trim()
+                val tmdbRating = binding.rating.text.toString().trim()
                 val tmdbLink = "https://www.themoviedb.org/$typeCheck/$tmdbId"
 
-                var userRatingString = getString(R.string.rating_na)
-                var reviewString = getString(R.string.rating_na)
-                var timesWatchedString = getString(R.string.rating_na)
+                var userRatingString = ""
+                var reviewString = ""
+                var timesWatchedString = "0"
                 val cursorr = databaseHelper.getMovieCursor(movieId)
                 cursorr.use {
                     if (it.moveToFirst()) {
@@ -785,36 +787,55 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                             userRatingString = getString(R.string.rating_format, personalRating, localizedTen)
                         }
                         reviewString = it.getString(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_MOVIE_REVIEW)) ?: ""
-                        val timesWatched = it.getInt(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
-                        timesWatchedString = if (timesWatched > 0) timesWatched.toString() else "0"
+                        
+                        var watched = 0
+                        if (!it.isNull(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                            && it.getString(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED)) != ""
+                        ) {
+                            watched = it.getInt(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_REWATCHED))
+                        } else if (it.getInt(it.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_CATEGORIES)) == MovieDatabaseHelper.CATEGORY_WATCHED) {
+                            watched = 1
+                        }
+                        timesWatchedString = if (watched > 0) watched.toString() else "0"
                     }
                 }
 
-                val shareText = """
-                    *${title}*
+                val sb = java.lang.StringBuilder()
+                val typeName = if (isMovie) "movie" else "show"
+                sb.append("Check out this $typeName: *$title*\n\n")
+                
+                if (overview.isNotEmpty() && overview != "Overview not available") {
+                    sb.append("*Overview:*\n$overview\n\n")
+                }
+                
+                sb.append("*TMDB Link:*\n$tmdbLink\n\n")
 
-                    *Overview:*
-                    $overview
+                val tapToReveal = getString(R.string.tap_to_reveal)
+                val hasRealRatings = listOf(tmdbRating, imdbRating, metacriticRating, rottenTomatoRating)
+                    .any { it.isNotBlank() && !it.equals(tapToReveal, ignoreCase = true) }
+                if (hasRealRatings) {
+                    sb.append("*Ratings:*\n")
+                    if (tmdbRating.isNotBlank() && !tmdbRating.equals(tapToReveal, ignoreCase = true)) sb.append("• TMDB: $tmdbRating\n")
+                    if (imdbRating.isNotBlank() && !imdbRating.equals(tapToReveal, ignoreCase = true)) sb.append("• IMDb: $imdbRating\n")
+                    if (metacriticRating.isNotBlank() && !metacriticRating.equals(tapToReveal, ignoreCase = true)) sb.append("• Metacritic: $metacriticRating\n")
+                    if (rottenTomatoRating.isNotBlank() && !rottenTomatoRating.equals(tapToReveal, ignoreCase = true)) sb.append("• Rotten Tomatoes: $rottenTomatoRating\n")
+                    sb.append("\n")
+                }
 
-                    *TMDB Link:*
-                    $tmdbLink
+                if (userRatingString.isNotEmpty() || reviewString.isNotEmpty() || timesWatchedString != "0") {
+                    sb.append("*My Thoughts:*\n")
+                    if (timesWatchedString != "0") sb.append("• I watched this $timesWatchedString times\n")
+                    if (userRatingString.isNotEmpty()) sb.append("• My Rating: $userRatingString\n")
+                    if (reviewString.isNotEmpty()) sb.append("• My Review: $reviewString\n")
+                    sb.append("\n")
+                }
 
-                    *Ratings:*
-                    - TMDB: ${binding.rating.text}
-                    - IMDb: ${binding.imdbRatingChip.text.toString().replace("IMDb ", "")}
-                    - Metacritic: $metacriticRating
-                    - Rotten Tomatoes: $rottenTomatoRating
-
-                    - My Review: $reviewString
-                    - I watched: $timesWatchedString times
-                    - My $userRatingString
-
-                """.trimIndent()
+                val shareText = sb.toString().trimEnd()
 
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.type = "text/plain"
                 shareIntent.putExtra(Intent.EXTRA_TEXT, shareText)
-                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_link_using)))
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_2)))
             }
         })
 
