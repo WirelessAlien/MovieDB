@@ -1188,9 +1188,8 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="IMDb: 0/10"
-                    app:chipIcon="@drawable/ic_movie_info"
+                    app:chipIcon="@drawable/ic_page_info"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                    style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
                     android:clickable="true"
                     android:focusable="true"
@@ -1206,7 +1205,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="R. Tomatoes: 0%"
-                    app:chipIcon="@drawable/ic_movie_info"
+                    app:chipIcon="@drawable/ic_page_info"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
@@ -1224,7 +1223,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="Metacritic: 0/100"
-                    app:chipIcon="@drawable/ic_movie_info"
+                    app:chipIcon="@drawable/ic_page_info"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     style="@style/Widget.Material3.Chip.Input"
                     app:iconStartPadding="3dp"
@@ -1612,8 +1611,8 @@
             android:id="@+id/syncProviderChange"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checkable="true"
+            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
             style="?attr/materialSplitButtonIconFilledTonalStyle"
-            app:icon="@drawable/ic_change_circle"/>
+            app:icon="@drawable/ic_sync"/>
     </com.google.android.material.button.MaterialSplitButton>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
