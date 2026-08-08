@@ -810,12 +810,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 
                 sb.append("*TMDB Link:*\n$tmdbLink\n\n")
 
-                if (tmdbRating.isNotEmpty() || imdbRating.isNotEmpty() || metacriticRating.isNotEmpty() || rottenTomatoRating.isNotEmpty()) {
+                val tapToReveal = getString(R.string.tap_to_reveal)
+                val hasRealRatings = listOf(tmdbRating, imdbRating, metacriticRating, rottenTomatoRating)
+                    .any { it.isNotBlank() && !it.equals(tapToReveal, ignoreCase = true) }
+                if (hasRealRatings) {
                     sb.append("*Ratings:*\n")
-                    if (tmdbRating.isNotEmpty() && !tmdbRating.contains("Tap to reveal", ignoreCase = true)) sb.append("• TMDB: $tmdbRating\n")
-                    if (imdbRating.isNotEmpty() && !imdbRating.contains("Tap to reveal", ignoreCase = true)) sb.append("• IMDb: $imdbRating\n")
-                    if (metacriticRating.isNotEmpty() && !metacriticRating.contains("Tap to reveal", ignoreCase = true)) sb.append("• Metacritic: $metacriticRating\n")
-                    if (rottenTomatoRating.isNotEmpty() && !rottenTomatoRating.contains("Tap to reveal", ignoreCase = true)) sb.append("• Rotten Tomatoes: $rottenTomatoRating\n")
+                    if (tmdbRating.isNotBlank() && !tmdbRating.equals(tapToReveal, ignoreCase = true)) sb.append("• TMDB: $tmdbRating\n")
+                    if (imdbRating.isNotBlank() && !imdbRating.equals(tapToReveal, ignoreCase = true)) sb.append("• IMDb: $imdbRating\n")
+                    if (metacriticRating.isNotBlank() && !metacriticRating.equals(tapToReveal, ignoreCase = true)) sb.append("• Metacritic: $metacriticRating\n")
+                    if (rottenTomatoRating.isNotBlank() && !rottenTomatoRating.equals(tapToReveal, ignoreCase = true)) sb.append("• Rotten Tomatoes: $rottenTomatoRating\n")
                     sb.append("\n")
                 }
 
