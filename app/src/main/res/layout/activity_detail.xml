@@ -1589,7 +1589,7 @@
         android:layout_margin="16dp"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
-        app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerFull"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
         android:contentDescription="@string/sync_provider"
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
 
