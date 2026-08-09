@@ -332,8 +332,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         when (preferences.getString("sync_provider", "local")) {
             "tmdb" -> {
-                binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "TMDB"
+                binding.syncProviderChip.text = "TMDB"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -347,8 +346,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             "trakt" -> {
-                binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "Trakt"
+                binding.syncProviderChip.text = "Trakt"
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                 binding.btnAddToTraktFavorite.visibility = View.VISIBLE
                 binding.btnAddToTraktCollection.visibility = View.VISIBLE
@@ -362,8 +360,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             else -> {
-                binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "Local"
+                binding.syncProviderChip.text = "Local"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -378,7 +375,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
         }
 
-        binding.splitBtn.findViewById<MaterialButton>(R.id.syncProviderChange).setOnClickListener {
+        binding.syncProviderChip.setOnClickListener {
             val dialog = MaterialAlertDialogBuilder(this)
             dialog.setTitle(R.string.sync_provider)
             dialog.setSingleChoiceItems(R.array.sync_providers_display, -1) { dialogInterface: DialogInterface, i: Int ->
@@ -390,15 +387,15 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 when (syncProvider) {
                     "tmdb" -> {
                         tmdbBtnsVisible()
-                        binding.syncProviderBtn.text = "TMDB"
+                        binding.syncProviderChip.text = "TMDB"
                     }
                     "trakt" -> {
                         tktBtnsVisible()
-                        binding.syncProviderBtn.text = "Trakt"
+                        binding.syncProviderChip.text = "Trakt"
                     }
                     else -> {
                         localBtnsVisible()
-                        binding.syncProviderBtn.text = "Local"
+                        binding.syncProviderChip.text = "Local"
                     }
                 }
                 dialogInterface.dismiss()
@@ -3059,8 +3056,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.favouriteButtonTmdb.backgroundTintList = colorStateList
                         binding.addToListTmdb.backgroundTintList = colorStateList
                         binding.watchListButtonTmdb.backgroundTintList = colorStateList
-                        binding.syncProviderChange.backgroundTintList = colorStateList
-                        binding.syncProviderBtn.backgroundTintList = colorStateList
+                        binding.syncProviderChip.chipBackgroundColor = colorStateList
                     }
                     val animation = AnimationUtils.loadAnimation(applicationContext, R.anim.slide_in_right)
                     binding.movieImage.startAnimation(animation)

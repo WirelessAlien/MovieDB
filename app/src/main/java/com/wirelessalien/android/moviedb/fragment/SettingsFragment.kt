@@ -201,18 +201,29 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             etPackageName.setText(preferences.getString("key_custom_ott_package", ""))
             etDeepLink.setText(preferences.getString("key_custom_ott_link", ""))
 
-            MaterialAlertDialogBuilder(requireContext())
+            val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.custom_app_preference)
                 .setView(dialogView)
-                .setPositiveButton(R.string.save) { _, _ ->
-                    preferences.edit {
-                        putString("key_custom_ott_name", etAppName.text.toString().trim())
-                        putString("key_custom_ott_package", etPackageName.text.toString().trim())
-                        putString("key_custom_ott_link", etDeepLink.text.toString().trim())
+                .setPositiveButton(R.string.save, null)
+                .setNegativeButton(R.string.cancel, null)
+                .create()
+            
+            dialog.setOnShowListener {
+                dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                    val deepLinkText = etDeepLink.text.toString().trim()
+                    if (deepLinkText.isNotEmpty() && !deepLinkText.contains("{title}") && !deepLinkText.contains("{imdbId}")) {
+                        etDeepLink.error = getString(R.string.custom_ott_link_summary)
+                    } else {
+                        preferences.edit {
+                            putString("key_custom_ott_name", etAppName.text.toString().trim())
+                            putString("key_custom_ott_package", etPackageName.text.toString().trim())
+                            putString("key_custom_ott_link", deepLinkText)
+                        }
+                        dialog.dismiss()
                     }
                 }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
+            }
+            dialog.show()
             true
         }
 

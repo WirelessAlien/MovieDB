@@ -1599,32 +1599,22 @@
     <!--        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"-->
     <!--        android:src="@drawable/ic_star_border" />-->
 
-    <com.google.android.material.button.MaterialSplitButton
-        android:id="@+id/splitBtn"
+    <com.google.android.material.chip.Chip
+        android:id="@+id/syncProviderChip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerExtraLarge"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
         android:contentDescription="@string/sync_provider"
-        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/syncProviderBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sync"
-            android:checkable="false"
-            android:clickable="false"
-            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/syncProviderChange"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checkable="true"
-            style="?attr/materialSplitButtonIconFilledTonalStyle"
-            app:icon="@drawable/ic_sync"/>
-    </com.google.android.material.button.MaterialSplitButton>
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+        app:iconStartPadding="3dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:checkable="false"
+        app:chipIconEnabled="true"
+        app:checkedIconVisible="false"
+        app:closeIconVisible="false"
+        app:chipIcon="@drawable/ic_sync" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
