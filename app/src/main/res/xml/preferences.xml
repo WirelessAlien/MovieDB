@@ -239,17 +239,26 @@
             android:summary="@string/load_hd_image_summary"/>
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:title="@string/title_chips_visibility"
-        app:iconSpaceReserved="false">
-
-        <MultiSelectListPreference
-            android:key="hidden_chips"
+        <PreferenceCategory
             android:title="@string/title_chips_visibility"
-            android:summary="@string/summary_chips_visibility"
-            android:entries="@array/chips_entries"
-            android:entryValues="@array/chips_values"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false">
+
+            <MultiSelectListPreference
+                android:key="hidden_chips"
+                android:title="@string/title_chips_visibility"
+                android:summary="@string/summary_chips_visibility"
+                android:entries="@array/chips_entries"
+                android:entryValues="@array/chips_values"
+                app:iconSpaceReserved="false"/>
+
+            <ListPreference
+                android:key="key_default_play_app"
+                android:title="@string/title_default_play_app"
+                android:summary="@string/summary_default_play_app"
+                android:entries="@array/play_app_entries"
+                android:entryValues="@array/play_app_values"
+                android:defaultValue="always_ask"
+                app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -303,6 +312,18 @@
         android:title="@string/advanced"
         app:initialExpandedChildrenCount="0"
         app:iconSpaceReserved="false">
+        
+        <EditTextPreference
+            android:key="key_custom_ott_package"
+            android:title="@string/custom_ott_package_title"
+            android:summary="@string/custom_ott_package_summary"
+            app:iconSpaceReserved="false"/>
+
+        <EditTextPreference
+            android:key="key_custom_ott_link"
+            android:title="@string/custom_ott_link_title"
+            android:summary="@string/custom_ott_link_summary"
+            app:iconSpaceReserved="false"/>
 
         <EditTextPreference
             android:key="key_api_language"

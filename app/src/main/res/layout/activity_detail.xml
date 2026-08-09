@@ -1109,6 +1109,23 @@
                 android:layout_below="@id/movieDescription">
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/playBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipIcon="@drawable/ic_play_arrow"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/play"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/trailerBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -1608,6 +1625,6 @@
             android:layout_height="wrap_content"
             android:checkable="true"
             style="?attr/materialSplitButtonIconFilledTonalStyle"
-            app:icon="@drawable/ic_change_circle"/>
+            app:icon="@drawable/ic_sync"/>
     </com.google.android.material.button.MaterialSplitButton>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

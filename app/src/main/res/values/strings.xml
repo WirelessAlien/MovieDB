@@ -890,4 +890,21 @@
     <string name="ratings_insight_desc">Distribution of your ratings</string>
     <string name="no_dates_need_fixing">No dates need fixing.</string>
     <string name="invalid_dates_review_message">The following entries have invalid dates from an earlier app version. Please review and confirm the updates.</string>
+
+    <string name="play">Play</string>
+    <string name="play_in">Play in…</string>
+    <string name="always_ask">Always Ask</string>
+    <string name="title_default_play_app">Default Play App</string>
+    <string name="summary_default_play_app">Choose the default app to open when pressing Play</string>
+    <string name="netflix">Netflix</string>
+    <string name="prime_video">Prime Video</string>
+    <string name="disney_plus">Disney+</string>
+    <string name="hulu">Hulu</string>
+    <string name="stremio">Stremio</string>
+
+    <string name="custom_ott_app">Custom App</string>
+    <string name="custom_ott_package_title">Custom OTT Package ID</string>
+    <string name="custom_ott_package_summary">Package ID of the custom app to launch (e.g. com.example.app)</string>
+    <string name="custom_ott_link_title">Custom OTT Deep Link</string>
+    <string name="custom_ott_link_summary">Search deep link URL. Use {title} for URL-encoded title or {imdbId} for IMDB or other media id.</string>
 </resources>

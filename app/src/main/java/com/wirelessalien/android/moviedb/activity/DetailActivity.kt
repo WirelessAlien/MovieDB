@@ -174,6 +174,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private lateinit var database: SQLiteDatabase
     private lateinit var databaseHelper: MovieDatabaseHelper
     private var movieId = 0
+    private var currentImdbId: String? = null
     private var seasons: JSONArray? = null
     private var lastEpisode: JSONObject? = null
     private var nextEpisode: JSONObject? = null
@@ -233,6 +234,17 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         showNextEpisodePref = preferences.getBoolean(PREFS_SHOW_NEXT_EPISODE, false)
         hideFetchedRatings = preferences.getBoolean("key_hide_fetched_ratings", false)
+        
+        val hiddenChipsPlay = preferences.getStringSet("hidden_chips", emptySet()) ?: emptySet()
+        if (!hiddenChipsPlay.contains("playBtn")) {
+            binding.playBtn.visibility = android.view.View.VISIBLE
+            binding.playBtn.setOnClickListener {
+                handlePlayAction()
+            }
+        } else {
+            binding.playBtn.visibility = android.view.View.GONE
+        }
+
         val hiddenChips = preferences.getStringSet("hidden_chips", emptySet()) ?: emptySet()
         if (hiddenChips.contains("searchBtn")) {
             binding.searchBtn.visibility = View.GONE
@@ -4893,6 +4905,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     traktMediaObject = createTraktMediaObject(movieData)
                     traktCheckingObject = createTraktCheckinObject(movieData)
                     val imdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
+                    currentImdbId = imdbId
                     val omdbType = if (isMovie) "movie" else "series"
 
                     // Check for user-provided API key first, then fallback to BuildConfig
@@ -5078,6 +5091,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         return try {
             val tmdbId = tmdbMovieData.getInt("id")
             val imdbId = tmdbMovieData.optString("imdb_id")
+            currentImdbId = imdbId
             val title = tmdbMovieData.getString(if (isMovie) "title" else "name")
             val year = tmdbMovieData.getString(if (isMovie) "release_date" else "first_air_date").substring(0, 4).toInt()
 
@@ -5104,6 +5118,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         return try {
             val tmdbId = tmdbMovieData.getInt("id")
             val imdbId = tmdbMovieData.optString("imdb_id")
+            currentImdbId = imdbId
             val title = tmdbMovieData.getString(if (isMovie) "title" else "name")
             val year = tmdbMovieData.getString(if (isMovie) "release_date" else "first_air_date").substring(0, 4).toInt()
 
@@ -5443,6 +5458,158 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 MovieDatabaseHelper.CATEGORY_DROPPED -> "dropped"
                 else -> "watching"
             }
+        }
+    }
+
+
+    private data class OttApp(
+        val id: String,
+        val defaultName: String,
+        val packageName: String,
+        val onLaunch: () -> Unit
+    )
+
+    private fun handlePlayAction() {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val defaultApp = prefs.getString("key_default_play_app", "always_ask")
+        
+        when (defaultApp) {
+            "netflix" -> openNetflix()
+            "prime_video" -> openPrimeVideo()
+            "disney_plus" -> openDisneyPlus()
+            "hulu" -> openHulu()
+            "stremio" -> openStremio()
+            "custom_app" -> openCustomApp()
+            else -> showPlayDialog()
+        }
+    }
+
+    private fun showPlayDialog() {
+        val allApps = listOf(
+            OttApp("netflix", getString(R.string.netflix), "com.netflix.mediaclient") { openNetflix() },
+            OttApp("prime_video", getString(R.string.prime_video), "com.amazon.avod.thirdpartyclient") { openPrimeVideo() },
+            OttApp("disney_plus", getString(R.string.disney_plus), "com.disney.disneyplus") { openDisneyPlus() },
+            OttApp("hulu", getString(R.string.hulu), "com.hulu.plus") { openHulu() },
+            OttApp("stremio", getString(R.string.stremio), "com.stremio.one") { openStremio() }
+        ).toMutableList()
+
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val customPkg = prefs.getString("key_custom_ott_package", "") ?: ""
+        if (customPkg.isNotEmpty()) {
+            allApps.add(OttApp("custom_app", getString(R.string.custom_ott_app), customPkg) { openCustomApp() })
+        }
+
+        val pm = packageManager
+        val apps = allApps.filter { app ->
+            if (app.id == "custom_app") {
+                true
+            } else {
+                try {
+                    pm.getApplicationInfo(app.packageName, 0)
+                    true
+                } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                    false
+                }
+            }
+        }.toMutableList()
+
+        if (apps.isEmpty()) {
+            com.google.android.material.snackbar.Snackbar.make(binding.root, "No supported apps installed", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        val adapter = object : android.widget.ArrayAdapter<OttApp>(this, R.layout.item_ott_app, apps) {
+            override fun getView(position: Int, convertView: android.view.View?, parent: android.view.ViewGroup): android.view.View {
+                val view = convertView ?: layoutInflater.inflate(R.layout.item_ott_app, parent, false)
+                val iconView = view.findViewById<android.widget.ImageView>(R.id.app_icon)
+                val nameView = view.findViewById<android.widget.TextView>(R.id.app_name)
+
+                val app = getItem(position)!!
+                try {
+                    val info = pm.getApplicationInfo(app.packageName, 0)
+                    nameView.text = pm.getApplicationLabel(info)
+                    iconView.setImageDrawable(pm.getApplicationIcon(info))
+                    iconView.visibility = android.view.View.VISIBLE
+                } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                    nameView.text = app.defaultName
+                    iconView.setImageDrawable(null)
+                    iconView.visibility = android.view.View.GONE
+                }
+
+                return view
+            }
+        }
+
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        builder.setTitle(getString(R.string.play_in))
+        builder.setAdapter(adapter) { dialog, which ->
+            apps[which].onLaunch()
+            dialog.dismiss()
+        }
+        builder.show()
+    }
+
+    private fun getEncodedTitlePlay(): String {
+        return android.net.Uri.encode(movieTitle ?: "")
+    }
+
+    private fun openCustomApp() {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val linkTemplate = prefs.getString("key_custom_ott_link", "") ?: ""
+        if (linkTemplate.isNotEmpty()) {
+            var url = linkTemplate.replace("{title}", getEncodedTitlePlay())
+            url = url.replace("{imdbId}", currentImdbId ?: "")
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+            val customPkg = prefs.getString("key_custom_ott_package", "") ?: ""
+            if (customPkg.isNotEmpty()) {
+                intent.setPackage(customPkg)
+            }
+            try { startActivity(intent) } catch (e: Exception) {}
+        }
+    }
+
+    private fun openNetflix() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("nflx://www.netflix.com/search?q=$title"))
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("http://www.netflix.com/search?q=$title"))
+            try { startActivity(webIntent) } catch(e2: Exception) {}
+        }
+    }
+
+    private fun openPrimeVideo() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://app.primevideo.com/search?searchTerm=$title"))
+        try { startActivity(intent) } catch (e: Exception) {}
+    }
+
+    private fun openDisneyPlus() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.disneyplus.com/search/$title"))
+        try { startActivity(intent) } catch (e: Exception) {}
+    }
+
+    private fun openHulu() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("hulu://search/$title"))
+        try { startActivity(intent) } catch (e: Exception) {
+            val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.hulu.com/search?q=$title"))
+            try { startActivity(webIntent) } catch(e2: Exception) {}
+        }
+    }
+
+    private fun openStremio() {
+        val imdbId = currentImdbId
+        if (!imdbId.isNullOrEmpty()) {
+            val typeStr = if (isMovie) "movie" else "series"
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("stremio://detail/$typeStr/$imdbId/$imdbId"))
+            try { startActivity(intent) } catch (e: Exception) {}
+        } else {
+            val title = getEncodedTitlePlay()
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("stremio://search?q=$title"))
+            try { startActivity(intent) } catch (e: Exception) {}
         }
     }
 }
