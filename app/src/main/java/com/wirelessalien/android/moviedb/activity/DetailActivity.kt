@@ -5495,8 +5495,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
         val customPkg = prefs.getString("key_custom_ott_package", "") ?: ""
-        if (customPkg.isNotEmpty()) {
-            allApps.add(OttApp("custom_app", getString(R.string.custom_ott_app), customPkg) { openCustomApp() })
+        val customLink = prefs.getString("key_custom_ott_link", "") ?: ""
+        val customName = prefs.getString("key_custom_ott_name", "") ?: ""
+        
+        if (customPkg.isNotEmpty() || customLink.isNotEmpty()) {
+            val displayName = if (customName.isNotEmpty()) customName else getString(R.string.custom_ott_app)
+            allApps.add(OttApp("custom_app", displayName, customPkg) { openCustomApp() })
         }
 
         val pm = packageManager
@@ -5526,14 +5530,21 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
                 val app = getItem(position)!!
                 try {
+                    if (app.packageName.isEmpty()) throw android.content.pm.PackageManager.NameNotFoundException()
                     val info = pm.getApplicationInfo(app.packageName, 0)
-                    nameView.text = pm.getApplicationLabel(info)
+                    nameView.text = if (app.id == "custom_app") app.defaultName else pm.getApplicationLabel(info)
                     iconView.setImageDrawable(pm.getApplicationIcon(info))
                     iconView.visibility = android.view.View.VISIBLE
                 } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
                     nameView.text = app.defaultName
-                    iconView.setImageDrawable(null)
-                    iconView.visibility = android.view.View.GONE
+                    if (app.id == "custom_app") {
+                        iconView.setImageResource(R.drawable.ic_play_arrow)
+                        iconView.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.GRAY)
+                        iconView.visibility = android.view.View.VISIBLE
+                    } else {
+                        iconView.setImageDrawable(null)
+                        iconView.visibility = android.view.View.GONE
+                    }
                 }
 
                 return view
@@ -5556,15 +5567,27 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private fun openCustomApp() {
         val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
         val linkTemplate = prefs.getString("key_custom_ott_link", "") ?: ""
+        val customPkg = prefs.getString("key_custom_ott_package", "") ?: ""
+        
         if (linkTemplate.isNotEmpty()) {
             var url = linkTemplate.replace("{title}", getEncodedTitlePlay())
             url = url.replace("{imdbId}", currentImdbId ?: "")
             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-            val customPkg = prefs.getString("key_custom_ott_package", "") ?: ""
             if (customPkg.isNotEmpty()) {
                 intent.setPackage(customPkg)
             }
-            try { startActivity(intent) } catch (e: Exception) {}
+            try { startActivity(intent) } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.could_not_open_custom_app_or_deep_link), Toast.LENGTH_SHORT).show()
+            }
+        } else if (customPkg.isNotEmpty()) {
+            val intent = packageManager.getLaunchIntentForPackage(customPkg)
+            if (intent != null) {
+                try { startActivity(intent) } catch (e: Exception) {
+                    Toast.makeText(this, getString(R.string.could_not_open_custom_app), Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

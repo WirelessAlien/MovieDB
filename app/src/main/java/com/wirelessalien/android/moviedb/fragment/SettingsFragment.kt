@@ -191,6 +191,31 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         }
 
+        findPreference<Preference>("key_custom_ott_preference")?.setOnPreferenceClickListener {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_custom_ott_app, null)
+            val etAppName = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_app_name)
+            val etPackageName = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_package_name)
+            val etDeepLink = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_deep_link)
+
+            etAppName.setText(preferences.getString("key_custom_ott_name", ""))
+            etPackageName.setText(preferences.getString("key_custom_ott_package", ""))
+            etDeepLink.setText(preferences.getString("key_custom_ott_link", ""))
+
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.custom_app_preference)
+                .setView(dialogView)
+                .setPositiveButton(R.string.save) { _, _ ->
+                    preferences.edit {
+                        putString("key_custom_ott_name", etAppName.text.toString().trim())
+                        putString("key_custom_ott_package", etPackageName.text.toString().trim())
+                        putString("key_custom_ott_link", etDeepLink.text.toString().trim())
+                    }
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+            true
+        }
+
         findPreference<SwitchPreferenceCompat>("key_custom_dns_enabled")?.setOnPreferenceChangeListener { _, newValue ->
             NetworkClient.rebuild(requireContext(), newCustomDnsEnabled = newValue as Boolean)
             rebuildPicasso()
