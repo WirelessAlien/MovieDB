@@ -1606,8 +1606,7 @@
             android:id="@+id/syncProviderChange"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checkable="false"
-            android:clickable="true"
+            android:checkable="true"
             style="?attr/materialSplitButtonIconFilledTonalStyle"
             app:icon="@drawable/ic_change_circle"/>
     </com.google.android.material.button.MaterialSplitButton>
