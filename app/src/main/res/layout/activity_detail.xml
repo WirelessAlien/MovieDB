@@ -1590,6 +1590,7 @@
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
         android:contentDescription="@string/sync_provider"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
 
         <com.google.android.material.button.MaterialButton
