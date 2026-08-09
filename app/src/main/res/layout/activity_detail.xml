@@ -1587,6 +1587,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerExtraLarge"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
         android:contentDescription="@string/sync_provider"
@@ -1607,7 +1608,7 @@
             android:layout_height="wrap_content"
             android:checkable="false"
             android:clickable="true"
-            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-            app:icon="@drawable/ic_sync"/>
+            style="?attr/materialSplitButtonIconFilledTonalStyle"
+            app:icon="@drawable/ic_change_circle"/>
     </com.google.android.material.button.MaterialSplitButton>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
