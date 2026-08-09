@@ -1606,15 +1606,12 @@
         android:layout_margin="16dp"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
-        android:contentDescription="@string/sync_provider"
         app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
         app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-        app:iconStartPadding="3dp"
         android:clickable="true"
         android:focusable="true"
         android:checkable="false"
-        app:chipIconEnabled="true"
+        app:chipIconEnabled="false"
         app:checkedIconVisible="false"
-        app:closeIconVisible="false"
-        app:chipIcon="@drawable/ic_sync" />
+        app:closeIconVisible="false" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

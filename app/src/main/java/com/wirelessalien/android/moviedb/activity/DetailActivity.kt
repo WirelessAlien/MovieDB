@@ -375,34 +375,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             }
         }
 
-        binding.syncProviderChip.setOnClickListener {
-            val dialog = MaterialAlertDialogBuilder(this)
-            dialog.setTitle(R.string.sync_provider)
-            dialog.setSingleChoiceItems(R.array.sync_providers_display, -1) { dialogInterface: DialogInterface, i: Int ->
-                val syncProvider = resources.getStringArray(R.array.sync_providers)[i]
-                val editor = preferences.edit()
-                editor.putString("sync_provider", syncProvider)
-                editor.apply()
-
-                when (syncProvider) {
-                    "tmdb" -> {
-                        tmdbBtnsVisible()
-                        binding.syncProviderChip.text = "TMDB"
-                    }
-                    "trakt" -> {
-                        tktBtnsVisible()
-                        binding.syncProviderChip.text = "Trakt"
-                    }
-                    else -> {
-                        localBtnsVisible()
-                        binding.syncProviderChip.text = "Local"
-                    }
-                }
-                dialogInterface.dismiss()
-            }
-            dialog.show()
-        }
-
         sessionId = preferences.getString("access_token", null)
         accountId = preferences.getString("account_id", null)
         if (sessionId == null || accountId == null) {
@@ -3723,13 +3695,42 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 if (categoryText != null) {
-                    binding.categoryColor.text = categoryText
-                    binding.categoryColor.visibility = View.VISIBLE
+                    binding.syncProviderChip.text = categoryText.uppercase(java.util.Locale.getDefault())
+                    binding.syncProviderChip.maxLines = 1
                 } else {
-                    binding.categoryColor.visibility = View.GONE
+                    binding.syncProviderChip.text = ""
                 }
             } else {
-                binding.categoryColor.visibility = View.GONE
+                val currentDate = java.util.Date()
+                val calendar = java.util.Calendar.getInstance()
+                calendar.time = currentDate
+                calendar.add(java.util.Calendar.MONTH, -1)
+                val oneMonthAgo = calendar.time
+                
+                val releaseDateStr = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+                
+                if (releaseDateStr.isNotEmpty()) {
+                    try {
+                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                        val releaseDate = sdf.parse(releaseDateStr)
+                        if (releaseDate != null) {
+                            if (releaseDate.after(currentDate)) {
+                                binding.syncProviderChip.text = getString(R.string.upcoming).uppercase(java.util.Locale.getDefault())
+                            } else if (releaseDate.after(oneMonthAgo)) {
+                                binding.syncProviderChip.text = getString(R.string.chip_new).uppercase(java.util.Locale.getDefault())
+                            } else {
+                                binding.syncProviderChip.text = getString(R.string.chip_released).uppercase(java.util.Locale.getDefault())
+                            }
+                            binding.syncProviderChip.maxLines = 1
+                        }
+                    } catch (e: Exception) {
+                        binding.syncProviderChip.text = getString(R.string.chip_new).uppercase(java.util.Locale.getDefault())
+                        binding.syncProviderChip.maxLines = 1
+                    }
+                } else {
+                    binding.syncProviderChip.text = getString(R.string.chip_new).uppercase(java.util.Locale.getDefault())
+                    binding.syncProviderChip.maxLines = 1
+                }
             }
         }
     }

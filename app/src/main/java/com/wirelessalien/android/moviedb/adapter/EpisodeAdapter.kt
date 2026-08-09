@@ -173,9 +173,7 @@ class EpisodeAdapter(
         when (defaultSharedPreferences.getString("sync_provider", "local")) {
 
             "tmdb" -> {
-                binding.syncProviderBtn.text = "TMDB"
-                binding.syncProviderBtn.isChecked = true
-                binding.btnAddRatingToTmdb.visibility = View.VISIBLE
+                                                binding.btnAddRatingToTmdb.visibility = View.VISIBLE
 //                binding.btnAddToTraktCollection.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
@@ -199,9 +197,7 @@ class EpisodeAdapter(
 
             }
             "trakt" -> {
-                binding.syncProviderBtn.text = "Trakt"
-                binding.syncProviderBtn.isChecked = true
-                binding.btnAddRatingToTmdb.visibility = View.GONE
+                                                binding.btnAddRatingToTmdb.visibility = View.GONE
 //                binding.btnAddToTraktCollection.visibility = View.VISIBLE
                 binding.btnAddToTraktHistory.visibility = View.VISIBLE
                 binding.btnAddToTraktList.visibility = View.VISIBLE
@@ -226,9 +222,7 @@ class EpisodeAdapter(
                 }
             }
             else -> {
-                binding.syncProviderBtn.text = "Local"
-                binding.syncProviderBtn.isChecked = true
-                binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                                                binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
                 binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                 binding.btnAddRatingToTmdb.visibility = View.GONE
                 //                binding.btnAddToTraktCollection.visibility = View.GONE
@@ -239,84 +233,7 @@ class EpisodeAdapter(
             }
         }
 
-        binding.splitBtn.findViewById<MaterialButton>(R.id.syncProviderChange).setOnClickListener {
-            val dialog = MaterialAlertDialogBuilder(context)
-            dialog.setTitle(R.string.sync_provider)
-            dialog.setSingleChoiceItems(R.array.sync_providers_display, -1) { dialogInterface: DialogInterface, i: Int ->
-                val syncProvider = context.resources.getStringArray(R.array.sync_providers)[i]
-                val editor = defaultSharedPreferences.edit()
-                editor.putString("sync_provider", syncProvider)
-                editor.apply()
-
-                when (syncProvider) {
-                    "tmdb" -> {
-                        binding.btnAddToTraktHistory.visibility = View.GONE
-                        binding.btnAddToTraktList.visibility = View.GONE
-                        binding.btnAddToTraktWatchlist.visibility = View.GONE
-                        binding.btnAddTraktRating.visibility = View.GONE
-                        binding.btnAddRatingToTmdb.visibility = View.VISIBLE
-                        binding.rating.visibility = View.VISIBLE
-                        binding.syncProviderBtn.text = "TMDB"
-                        if (defaultSharedPreferences.getBoolean("force_local_sync", false)) {
-                            binding.btnWatchedToLocalDb.visibility = View.VISIBLE
-                            binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
-                            binding.episodeDbRating.visibility = View.VISIBLE
-                            binding.watchedDate.visibility = View.VISIBLE
-                            binding.episodeDbReviewTitle.visibility = View.VISIBLE
-                            binding.rvCardV.visibility = View.VISIBLE
-                        } else {
-                            binding.btnWatchedToLocalDb.visibility = View.GONE
-                            binding.btnAddDetailsToLocalDb.visibility = View.GONE
-                            binding.episodeDbRating.visibility = View.GONE
-                            binding.watchedDate.visibility = View.GONE
-                            binding.episodeDbReviewTitle.visibility = View.GONE
-                            binding.rvCardV.visibility = View.GONE
-                        }
-                    }
-                    "trakt" -> {
-                        binding.btnAddRatingToTmdb.visibility = View.GONE
-                        binding.btnAddToTraktList.visibility = View.VISIBLE
-                        binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
-                        binding.btnAddTraktRating.visibility = View.VISIBLE
-                        binding.btnAddToTraktHistory.visibility = View.VISIBLE
-                        binding.rating.visibility = View.GONE
-                        binding.syncProviderBtn.text = "Trakt"
-                        if (defaultSharedPreferences.getBoolean("force_local_sync", false)) {
-                            binding.btnWatchedToLocalDb.visibility = View.VISIBLE
-                            binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
-                            binding.episodeDbRating.visibility = View.VISIBLE
-                            binding.watchedDate.visibility = View.VISIBLE
-                            binding.episodeDbReviewTitle.visibility = View.VISIBLE
-                            binding.rvCardV.visibility = View.VISIBLE
-                        } else {
-                            binding.btnWatchedToLocalDb.visibility = View.GONE
-                            binding.btnAddDetailsToLocalDb.visibility = View.GONE
-                            binding.episodeDbRating.visibility = View.GONE
-                            binding.watchedDate.visibility = View.GONE
-                            binding.episodeDbReviewTitle.visibility = View.GONE
-                            binding.rvCardV.visibility = View.GONE
-                        }
-                    }
-                    else -> {
-                        binding.btnAddRatingToTmdb.visibility = View.GONE
-                        binding.btnAddToTraktList.visibility = View.GONE
-                        binding.btnAddToTraktWatchlist.visibility = View.GONE
-                        binding.btnAddTraktRating.visibility = View.GONE
-                        binding.btnAddToTraktHistory.visibility = View.GONE
-                        binding.btnWatchedToLocalDb.visibility = View.VISIBLE
-                        binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
-                        binding.episodeDbRating.visibility = View.VISIBLE
-                        binding.watchedDate.visibility = View.VISIBLE
-                        binding.episodeDbReviewTitle.visibility = View.VISIBLE
-                        binding.rvCardV.visibility = View.VISIBLE
-                        binding.rating.visibility = View.GONE
-                        binding.syncProviderBtn.text = "Local"
-                    }
-                }
-                dialogInterface.dismiss()
-            }
-            dialog.show()
-        }
+        
 
         return EpisodeViewHolder(binding)
     }
