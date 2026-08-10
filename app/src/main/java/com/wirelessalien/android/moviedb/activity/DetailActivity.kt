@@ -4917,6 +4917,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         }
                     }
                 }
+
+                withContext(Dispatchers.Main) {
+                    updatePersonalDetailsViews()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
