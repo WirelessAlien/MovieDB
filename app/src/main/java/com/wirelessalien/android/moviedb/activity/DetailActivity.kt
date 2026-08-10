@@ -458,8 +458,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.fabSave.text = getString(R.string.saved_tab_title)
                 added = true
                 binding.fabSave.visibility = View.GONE
-                updatePersonalDetailsViews()
             }
+            updatePersonalDetailsViews()
         }
 
         binding.shimmerFrameLayout1.visibility = View.VISIBLE
@@ -3703,7 +3703,11 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 calendar.add(java.util.Calendar.MONTH, -1)
                 val oneMonthAgo = calendar.time
                 
-                val releaseDateStr = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+                var releaseDateStr = if (isMovie) jMovieObject.optString("release_date") else jMovieObject.optString("first_air_date")
+                
+                if (releaseDateStr.isEmpty()) {
+                    releaseDateStr = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+                }
                 
                 if (releaseDateStr.isNotEmpty()) {
                     try {
