@@ -4902,7 +4902,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     movieDataObject = movieData
                     traktMediaObject = createTraktMediaObject(movieData)
                     traktCheckingObject = createTraktCheckinObject(movieData)
-                    val imdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
+                    val rawImdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
+                    val imdbId = if (rawImdbId == "null" || rawImdbId.isBlank()) null else rawImdbId
                     currentImdbId = imdbId
                     val omdbType = if (isMovie) "movie" else "series"
 
@@ -5588,8 +5589,19 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     Toast.makeText(this, getString(R.string.could_not_open_custom_app), Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+                try {
+                    val fallbackIntent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
+                        addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+                        setPackage(customPkg)
+                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(fallbackIntent)
+                } catch (e: Exception) {
+                    Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+                }
             }
+        } else {
+            Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -5630,11 +5642,19 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         if (!imdbId.isNullOrEmpty()) {
             val typeStr = if (isMovie) "movie" else "series"
             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("stremio://detail/$typeStr/$imdbId/$imdbId"))
-            try { startActivity(intent) } catch (e: Exception) {}
+            try { 
+                startActivity(intent) 
+            } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+            }
         } else {
             val title = getEncodedTitlePlay()
             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("stremio://search?q=$title"))
-            try { startActivity(intent) } catch (e: Exception) {}
+            try { 
+                startActivity(intent) 
+            } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
