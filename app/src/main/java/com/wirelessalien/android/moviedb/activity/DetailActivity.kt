@@ -3700,8 +3700,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 val currentDate = java.util.Date()
                 val calendar = java.util.Calendar.getInstance()
                 calendar.time = currentDate
-                calendar.add(java.util.Calendar.MONTH, -1)
-                val oneMonthAgo = calendar.time
+                calendar.add(java.util.Calendar.MONTH, -6)
+                val sixMonthsAgo = calendar.time
                 
                 var releaseDateStr = if (isMovie) jMovieObject.optString("release_date") else jMovieObject.optString("first_air_date")
                 
@@ -3716,7 +3716,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         if (releaseDate != null) {
                             if (releaseDate.after(currentDate)) {
                                 binding.syncProviderChip.text = getString(R.string.upcoming).uppercase(java.util.Locale.getDefault())
-                            } else if (releaseDate.after(oneMonthAgo)) {
+                            } else if (releaseDate.after(sixMonthsAgo)) {
                                 binding.syncProviderChip.text = getString(R.string.chip_new).uppercase(java.util.Locale.getDefault())
                             } else {
                                 binding.syncProviderChip.text = getString(R.string.chip_released).uppercase(java.util.Locale.getDefault())
