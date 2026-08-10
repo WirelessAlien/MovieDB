@@ -74,6 +74,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -5519,10 +5520,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }.toMutableList()
 
         if (apps.isEmpty()) {
-            com.google.android.material.snackbar.Snackbar.make(binding.root, "No supported apps installed", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(binding.root,getString(R.string.no_supported_apps_installed),Snackbar.LENGTH_SHORT).show()
             return
         }
-
+        
         val adapter = object : android.widget.ArrayAdapter<OttApp>(this, R.layout.item_ott_app, apps) {
             override fun getView(position: Int, convertView: android.view.View?, parent: android.view.ViewGroup): android.view.View {
                 val view = convertView ?: layoutInflater.inflate(R.layout.item_ott_app, parent, false)

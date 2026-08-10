@@ -917,4 +917,5 @@
 
     <string name="chip_new">New</string>
     <string name="chip_released">Released</string>
+    <string name="no_supported_apps_installed">No supported apps installed</string>
 </resources>
