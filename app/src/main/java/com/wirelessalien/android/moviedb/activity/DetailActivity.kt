@@ -4639,14 +4639,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.boxOfficeChip.visibility = View.VISIBLE
                 binding.boxOfficeChip.setOnClickListener {
                     val boxOfficeUrl = "https://www.boxofficemojo.com/title/$imdbId"
-                    val intent = Intent(Intent.ACTION_VIEW, boxOfficeUrl.toUri())
-                    if (intent.resolveActivity(packageManager) != null) {
-                        startActivity(intent)
-                    } else {
-                        val builder = CustomTabsIntent.Builder()
-                        val customTabIntent = builder.build()
-                        customTabIntent.launchUrl(this, boxOfficeUrl.toUri())
-                    }
+                    launchUrl(context, boxOfficeUrl)
                 }
             } else {
                 binding.boxOfficeChip.visibility = View.GONE
