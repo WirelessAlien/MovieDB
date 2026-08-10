@@ -332,7 +332,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         when (preferences.getString("sync_provider", "local")) {
             "tmdb" -> {
-                binding.syncProviderChip.text = "TMDB"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -346,7 +345,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             "trakt" -> {
-                binding.syncProviderChip.text = "Trakt"
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                 binding.btnAddToTraktFavorite.visibility = View.VISIBLE
                 binding.btnAddToTraktCollection.visibility = View.VISIBLE
@@ -360,7 +358,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             else -> {
-                binding.syncProviderChip.text = "Local"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -922,7 +919,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     this,
                     R.drawable.ic_star_border
                 )
-                binding.categoryColor.visibility = View.GONE
                 databaseUpdate()
                 binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 finish()
