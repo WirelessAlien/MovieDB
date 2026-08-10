@@ -70,6 +70,7 @@
     </string-array>
 
     <string-array name="chips_entries">
+        <item>Play</item>
         <item>Trailer</item>
         <item>Videos</item>
         <item>Search</item>
@@ -79,6 +80,7 @@
         <item>Metacritic</item>
     </string-array>
     <string-array name="chips_values">
+        <item>playBtn</item>
         <item>trailerBtn</item>
         <item>videosBtn</item>
         <item>searchBtn</item>
@@ -86,5 +88,24 @@
         <item>imdbRatingChip</item>
         <item>rottenTomatoesRatingChip</item>
         <item>metacriticRatingChip</item>
+    </string-array>
+
+    <string-array name="play_app_entries">
+        <item>@string/always_ask</item>
+        <item>@string/netflix</item>
+        <item>@string/prime_video</item>
+        <item>@string/disney_plus</item>
+        <item>@string/hulu</item>
+        <item>@string/stremio</item>
+        <item>@string/custom_ott_app</item>
+    </string-array>
+    <string-array name="play_app_values">
+        <item>always_ask</item>
+        <item>netflix</item>
+        <item>prime_video</item>
+        <item>disney_plus</item>
+        <item>hulu</item>
+        <item>stremio</item>
+        <item>custom_app</item>
     </string-array>
 </resources>

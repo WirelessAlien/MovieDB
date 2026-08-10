@@ -59,6 +59,23 @@
             android:summary="@string/show_the_continue_watching_chip_desc"
             android:title="@string/quick_access_of_episodes_to_watch_next"
             app:iconSpaceReserved="false" />
+
+        <MultiSelectListPreference
+            android:key="hidden_chips"
+            android:title="@string/title_chips_visibility"
+            android:summary="@string/summary_chips_visibility"
+            android:entries="@array/chips_entries"
+            android:entryValues="@array/chips_values"
+            app:iconSpaceReserved="false"/>
+
+        <ListPreference
+            android:key="key_default_play_app"
+            android:title="@string/title_default_play_app"
+            android:summary="@string/summary_default_play_app"
+            android:entries="@array/play_app_entries"
+            android:entryValues="@array/play_app_values"
+            android:defaultValue="always_ask"
+            app:iconSpaceReserved="false"/>   
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -240,19 +257,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/title_chips_visibility"
-        app:iconSpaceReserved="false">
-
-        <MultiSelectListPreference
-            android:key="hidden_chips"
-            android:title="@string/title_chips_visibility"
-            android:summary="@string/summary_chips_visibility"
-            android:entries="@array/chips_entries"
-            android:entryValues="@array/chips_values"
-            app:iconSpaceReserved="false"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory
         android:title="@string/title_hide_tabs"
         app:iconSpaceReserved="false">
 
@@ -303,6 +307,12 @@
         android:title="@string/advanced"
         app:initialExpandedChildrenCount="0"
         app:iconSpaceReserved="false">
+        
+        <Preference
+            android:key="key_custom_ott_preference"
+            android:title="@string/custom_app_preference"
+            android:summary="@string/custom_ott_app"
+            app:iconSpaceReserved="false"/>
 
         <EditTextPreference
             android:key="key_api_language"

@@ -74,6 +74,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -174,6 +175,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private lateinit var database: SQLiteDatabase
     private lateinit var databaseHelper: MovieDatabaseHelper
     private var movieId = 0
+    private var currentImdbId: String? = null
     private var seasons: JSONArray? = null
     private var lastEpisode: JSONObject? = null
     private var nextEpisode: JSONObject? = null
@@ -233,6 +235,17 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         preferences = PreferenceManager.getDefaultSharedPreferences(this)
         showNextEpisodePref = preferences.getBoolean(PREFS_SHOW_NEXT_EPISODE, false)
         hideFetchedRatings = preferences.getBoolean("key_hide_fetched_ratings", false)
+        
+        val hiddenChipsPlay = preferences.getStringSet("hidden_chips", emptySet()) ?: emptySet()
+        if (!hiddenChipsPlay.contains("playBtn")) {
+            binding.playBtn.visibility = android.view.View.VISIBLE
+            binding.playBtn.setOnClickListener {
+                handlePlayAction()
+            }
+        } else {
+            binding.playBtn.visibility = android.view.View.GONE
+        }
+
         val hiddenChips = preferences.getStringSet("hidden_chips", emptySet()) ?: emptySet()
         if (hiddenChips.contains("searchBtn")) {
             binding.searchBtn.visibility = View.GONE
@@ -320,8 +333,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         when (preferences.getString("sync_provider", "local")) {
             "tmdb" -> {
-                binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "TMDB"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -335,8 +346,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             "trakt" -> {
-                binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "Trakt"
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
                 binding.btnAddToTraktFavorite.visibility = View.VISIBLE
                 binding.btnAddToTraktCollection.visibility = View.VISIBLE
@@ -350,8 +359,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             else -> {
-                binding.syncProviderBtn.isChecked = true
-                binding.syncProviderBtn.text = "Local"
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
                 binding.btnAddToTraktFavorite.visibility = View.GONE
                 binding.btnAddToTraktCollection.visibility = View.GONE
@@ -364,34 +371,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.watchListButtonTmdb.visibility = View.GONE
                 binding.fabSave.visibility = View.VISIBLE
             }
-        }
-
-        binding.splitBtn.findViewById<MaterialButton>(R.id.syncProviderChange).setOnClickListener {
-            val dialog = MaterialAlertDialogBuilder(this)
-            dialog.setTitle(R.string.sync_provider)
-            dialog.setSingleChoiceItems(R.array.sync_providers_display, -1) { dialogInterface: DialogInterface, i: Int ->
-                val syncProvider = resources.getStringArray(R.array.sync_providers)[i]
-                val editor = preferences.edit()
-                editor.putString("sync_provider", syncProvider)
-                editor.apply()
-
-                when (syncProvider) {
-                    "tmdb" -> {
-                        tmdbBtnsVisible()
-                        binding.syncProviderBtn.text = "TMDB"
-                    }
-                    "trakt" -> {
-                        tktBtnsVisible()
-                        binding.syncProviderBtn.text = "Trakt"
-                    }
-                    else -> {
-                        localBtnsVisible()
-                        binding.syncProviderBtn.text = "Local"
-                    }
-                }
-                dialogInterface.dismiss()
-            }
-            dialog.show()
         }
 
         sessionId = preferences.getString("access_token", null)
@@ -480,8 +459,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.fabSave.text = getString(R.string.saved_tab_title)
                 added = true
                 binding.fabSave.visibility = View.GONE
-                updatePersonalDetailsViews()
             }
+            updatePersonalDetailsViews()
         }
 
         binding.shimmerFrameLayout1.visibility = View.VISIBLE
@@ -941,7 +920,6 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     this,
                     R.drawable.ic_star_border
                 )
-                binding.categoryColor.visibility = View.GONE
                 databaseUpdate()
                 binding.fabSave.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 finish()
@@ -3047,8 +3025,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                         binding.favouriteButtonTmdb.backgroundTintList = colorStateList
                         binding.addToListTmdb.backgroundTintList = colorStateList
                         binding.watchListButtonTmdb.backgroundTintList = colorStateList
-                        binding.syncProviderChange.backgroundTintList = colorStateList
-                        binding.syncProviderBtn.backgroundTintList = colorStateList
+                        binding.syncProviderChip.chipBackgroundColor = colorStateList
                     }
                     val animation = AnimationUtils.loadAnimation(applicationContext, R.anim.slide_in_right)
                     binding.movieImage.startAnimation(animation)
@@ -3715,13 +3692,46 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 }
 
                 if (categoryText != null) {
-                    binding.categoryColor.text = categoryText
-                    binding.categoryColor.visibility = View.VISIBLE
+                    binding.syncProviderChip.text = categoryText.uppercase(java.util.Locale.getDefault())
+                    binding.syncProviderChip.maxLines = 1
                 } else {
-                    binding.categoryColor.visibility = View.GONE
+                    binding.syncProviderChip.text = ""
                 }
             } else {
-                binding.categoryColor.visibility = View.GONE
+                val currentDate = java.util.Date()
+                val calendar = java.util.Calendar.getInstance()
+                calendar.time = currentDate
+                calendar.add(java.util.Calendar.MONTH, -6)
+                val sixMonthsAgo = calendar.time
+                
+                var releaseDateStr = if (isMovie) jMovieObject.optString("release_date") else jMovieObject.optString("first_air_date")
+                
+                if (releaseDateStr.isEmpty()) {
+                    releaseDateStr = if (isMovie) movieDataObject.optString("release_date") else movieDataObject.optString("first_air_date")
+                }
+                
+                if (releaseDateStr.isNotEmpty()) {
+                    try {
+                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                        val releaseDate = sdf.parse(releaseDateStr)
+                        if (releaseDate != null) {
+                            if (releaseDate.after(currentDate)) {
+                                binding.syncProviderChip.text = getString(R.string.upcoming).uppercase(java.util.Locale.getDefault())
+                            } else if (releaseDate.after(sixMonthsAgo)) {
+                                binding.syncProviderChip.text = getString(R.string.chip_new).uppercase(java.util.Locale.getDefault())
+                            } else {
+                                binding.syncProviderChip.text = getString(R.string.chip_released).uppercase(java.util.Locale.getDefault())
+                            }
+                            binding.syncProviderChip.maxLines = 1
+                        }
+                    } catch (e: Exception) {
+                        binding.syncProviderChip.text = getString(R.string.chip_new).uppercase(java.util.Locale.getDefault())
+                        binding.syncProviderChip.maxLines = 1
+                    }
+                } else {
+                    binding.syncProviderChip.text = getString(R.string.chip_new).uppercase(java.util.Locale.getDefault())
+                    binding.syncProviderChip.maxLines = 1
+                }
             }
         }
     }
@@ -4892,7 +4902,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     movieDataObject = movieData
                     traktMediaObject = createTraktMediaObject(movieData)
                     traktCheckingObject = createTraktCheckinObject(movieData)
-                    val imdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
+                    val rawImdbId = movieData.getJSONObject("external_ids").getString("imdb_id")
+                    val imdbId = if (rawImdbId == "null" || rawImdbId.isBlank()) null else rawImdbId
+                    currentImdbId = imdbId
                     val omdbType = if (isMovie) "movie" else "series"
 
                     // Check for user-provided API key first, then fallback to BuildConfig
@@ -4910,6 +4922,10 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                             }
                         }
                     }
+                }
+
+                withContext(Dispatchers.Main) {
+                    updatePersonalDetailsViews()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -5078,6 +5094,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         return try {
             val tmdbId = tmdbMovieData.getInt("id")
             val imdbId = tmdbMovieData.optString("imdb_id")
+            currentImdbId = imdbId
             val title = tmdbMovieData.getString(if (isMovie) "title" else "name")
             val year = tmdbMovieData.getString(if (isMovie) "release_date" else "first_air_date").substring(0, 4).toInt()
 
@@ -5104,6 +5121,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         return try {
             val tmdbId = tmdbMovieData.getInt("id")
             val imdbId = tmdbMovieData.optString("imdb_id")
+            currentImdbId = imdbId
             val title = tmdbMovieData.getString(if (isMovie) "title" else "name")
             val year = tmdbMovieData.getString(if (isMovie) "release_date" else "first_air_date").substring(0, 4).toInt()
 
@@ -5442,6 +5460,200 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 MovieDatabaseHelper.CATEGORY_ON_HOLD -> "on_hold"
                 MovieDatabaseHelper.CATEGORY_DROPPED -> "dropped"
                 else -> "watching"
+            }
+        }
+    }
+
+
+    private data class OttApp(
+        val id: String,
+        val defaultName: String,
+        val packageName: String,
+        val onLaunch: () -> Unit
+    )
+
+    private fun handlePlayAction() {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val defaultApp = prefs.getString("key_default_play_app", "always_ask")
+        
+        when (defaultApp) {
+            "netflix" -> openNetflix()
+            "prime_video" -> openPrimeVideo()
+            "disney_plus" -> openDisneyPlus()
+            "hulu" -> openHulu()
+            "stremio" -> openStremio()
+            "custom_app" -> openCustomApp()
+            else -> showPlayDialog()
+        }
+    }
+
+    private fun showPlayDialog() {
+        val allApps = listOf(
+            OttApp("netflix", getString(R.string.netflix), "com.netflix.mediaclient") { openNetflix() },
+            OttApp("prime_video", getString(R.string.prime_video), "com.amazon.avod.thirdpartyclient") { openPrimeVideo() },
+            OttApp("disney_plus", getString(R.string.disney_plus), "com.disney.disneyplus") { openDisneyPlus() },
+            OttApp("hulu", getString(R.string.hulu), "com.hulu.plus") { openHulu() },
+            OttApp("stremio", getString(R.string.stremio), "com.stremio.one") { openStremio() }
+        ).toMutableList()
+
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val customPkg = prefs.getString("key_custom_ott_package", "") ?: ""
+        val customLink = prefs.getString("key_custom_ott_link", "") ?: ""
+        val customName = prefs.getString("key_custom_ott_name", "") ?: ""
+        
+        if (customPkg.isNotEmpty() || customLink.isNotEmpty()) {
+            val displayName = if (customName.isNotEmpty()) customName else getString(R.string.custom_ott_app)
+            allApps.add(OttApp("custom_app", displayName, customPkg) { openCustomApp() })
+        }
+
+        val pm = packageManager
+        val apps = allApps.filter { app ->
+            if (app.id == "custom_app") {
+                true
+            } else {
+                try {
+                    pm.getApplicationInfo(app.packageName, 0)
+                    true
+                } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                    false
+                }
+            }
+        }.toMutableList()
+
+        if (apps.isEmpty()) {
+            Snackbar.make(binding.root,getString(R.string.no_supported_apps_installed),Snackbar.LENGTH_SHORT).show()
+            return
+        }
+        
+        val adapter = object : android.widget.ArrayAdapter<OttApp>(this, R.layout.item_ott_app, apps) {
+            override fun getView(position: Int, convertView: android.view.View?, parent: android.view.ViewGroup): android.view.View {
+                val view = convertView ?: layoutInflater.inflate(R.layout.item_ott_app, parent, false)
+                val iconView = view.findViewById<android.widget.ImageView>(R.id.app_icon)
+                val nameView = view.findViewById<android.widget.TextView>(R.id.app_name)
+
+                val app = getItem(position)!!
+                try {
+                    if (app.packageName.isEmpty()) throw android.content.pm.PackageManager.NameNotFoundException()
+                    val info = pm.getApplicationInfo(app.packageName, 0)
+                    nameView.text = if (app.id == "custom_app") app.defaultName else pm.getApplicationLabel(info)
+                    iconView.setImageDrawable(pm.getApplicationIcon(info))
+                    iconView.visibility = android.view.View.VISIBLE
+                } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                    nameView.text = app.defaultName
+                    if (app.id == "custom_app") {
+                        iconView.setImageResource(R.drawable.ic_play_arrow)
+                        iconView.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.GRAY)
+                        iconView.visibility = android.view.View.VISIBLE
+                    } else {
+                        iconView.setImageDrawable(null)
+                        iconView.visibility = android.view.View.GONE
+                    }
+                }
+
+                return view
+            }
+        }
+
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+        builder.setTitle(getString(R.string.play_in))
+        builder.setAdapter(adapter) { dialog, which ->
+            apps[which].onLaunch()
+            dialog.dismiss()
+        }
+        builder.show()
+    }
+
+    private fun getEncodedTitlePlay(): String {
+        return android.net.Uri.encode(movieTitle ?: "")
+    }
+
+    private fun openCustomApp() {
+        val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        val linkTemplate = prefs.getString("key_custom_ott_link", "") ?: ""
+        val customPkg = prefs.getString("key_custom_ott_package", "") ?: ""
+        
+        if (linkTemplate.isNotEmpty()) {
+            var url = linkTemplate.replace("{title}", getEncodedTitlePlay())
+            url = url.replace("{imdbId}", currentImdbId ?: "")
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+            if (customPkg.isNotEmpty()) {
+                intent.setPackage(customPkg)
+            }
+            try { startActivity(intent) } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.could_not_open_custom_app_or_deep_link), Toast.LENGTH_SHORT).show()
+            }
+        } else if (customPkg.isNotEmpty()) {
+            val intent = packageManager.getLaunchIntentForPackage(customPkg)
+            if (intent != null) {
+                try { startActivity(intent) } catch (e: Exception) {
+                    Toast.makeText(this, getString(R.string.could_not_open_custom_app), Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                try {
+                    val fallbackIntent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
+                        addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+                        setPackage(customPkg)
+                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(fallbackIntent)
+                } catch (e: Exception) {
+                    Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openNetflix() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("nflx://www.netflix.com/search?q=$title"))
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("http://www.netflix.com/search?q=$title"))
+            try { startActivity(webIntent) } catch(e2: Exception) {}
+        }
+    }
+
+    private fun openPrimeVideo() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://app.primevideo.com/search?searchTerm=$title"))
+        try { startActivity(intent) } catch (e: Exception) {}
+    }
+
+    private fun openDisneyPlus() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.disneyplus.com/search/$title"))
+        try { startActivity(intent) } catch (e: Exception) {}
+    }
+
+    private fun openHulu() {
+        val title = getEncodedTitlePlay()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("hulu://search/$title"))
+        try { startActivity(intent) } catch (e: Exception) {
+            val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.hulu.com/search?q=$title"))
+            try { startActivity(webIntent) } catch(e2: Exception) {}
+        }
+    }
+
+    private fun openStremio() {
+        val imdbId = currentImdbId
+        if (!imdbId.isNullOrEmpty()) {
+            val typeStr = if (isMovie) "movie" else "series"
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("stremio://detail/$typeStr/$imdbId/$imdbId"))
+            try { 
+                startActivity(intent) 
+            } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            val title = getEncodedTitlePlay()
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("stremio://search?q=$title"))
+            try { 
+                startActivity(intent) 
+            } catch (e: Exception) {
+                Toast.makeText(this, getString(R.string.custom_app_not_found), Toast.LENGTH_SHORT).show()
             }
         }
     }

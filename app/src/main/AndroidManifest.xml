@@ -292,7 +292,12 @@
         </provider>
     </application>
 
-    <queries>
+        <queries>
+        <package android:name="com.netflix.mediaclient" />
+        <package android:name="com.amazon.avod.thirdpartyclient" />
+        <package android:name="com.disney.disneyplus" />
+        <package android:name="com.hulu.plus" />
+        <package android:name="com.stremio.one" />
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>

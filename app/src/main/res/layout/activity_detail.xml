@@ -71,21 +71,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"/>
-
-                    <TextView
-                        android:id="@+id/categoryColor"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:background="#99000000"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:textColor="@android:color/white"
-                        android:textSize="12sp"
-                        android:visibility="gone"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        app:layout_constraintBottom_toBottomOf="parent"/>                     
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -154,7 +140,8 @@
                                 android:id="@+id/typeChip"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                style="@style/Widget.Material3.Chip.Assist.Elevated"
+                                style="@style/Widget.Material3.Chip.Assist.Elevated"         
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                                 android:layout_marginEnd="8dp"
                                 android:checkable="false"
                                 android:text="Movie"
@@ -1108,14 +1095,39 @@
                 android:layout_below="@id/movieDescription">
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/playBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipIcon="@drawable/ic_play_arrow"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/play"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/trailerBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:chipIcon="@drawable/ic_animated_images"
+                    app:chipIcon="@drawable/ic_slideshow"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/trailer"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
+
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/videosBtn"
@@ -1125,7 +1137,14 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/videos"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/searchBtn"
@@ -1135,17 +1154,31 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/search"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/boxOfficeChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:chipIcon="@drawable/ic_link"
+                    app:chipIcon="@drawable/ic_confirmation_number"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/box_office"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/imdbRatingChip"
@@ -1154,8 +1187,15 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="IMDb: 0/10"
-                    app:chipIcon="@drawable/ic_link"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:chipIcon="@drawable/ic_page_info"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/rottenTomatoesRatingChip"
@@ -1164,8 +1204,15 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="R. Tomatoes: 0%"
-                    app:chipIcon="@drawable/ic_link"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:chipIcon="@drawable/ic_page_info"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/metacriticRatingChip"
@@ -1174,8 +1221,15 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:text="Metacritic: 0/100"
-                    app:chipIcon="@drawable/ic_link"
-                    style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                    app:chipIcon="@drawable/ic_page_info"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:iconStartPadding="3dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:checkable="false"
+                    app:chipIconEnabled="true"
+                    app:checkedIconVisible="false"
+                    app:closeIconVisible="false"/>
             </com.google.android.flexbox.FlexboxLayout>
 
             <RelativeLayout
@@ -1531,32 +1585,19 @@
     <!--        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"-->
     <!--        android:src="@drawable/ic_star_border" />-->
 
-    <com.google.android.material.button.MaterialSplitButton
-        android:id="@+id/splitBtn"
+    <com.google.android.material.chip.Chip
+        android:id="@+id/syncProviderChip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:shapeAppearanceOverlay="?attr/shapeAppearanceCornerMedium"
         app:layout_anchor="@id/movieImage"
         app:layout_anchorGravity="bottom|end"
-        android:contentDescription="@string/sync_provider"
-        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/syncProviderBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sync"
-            android:checkable="false"
-            android:clickable="false"
-            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/syncProviderChange"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checkable="true"
-            style="?attr/materialSplitButtonIconFilledTonalStyle"
-            app:icon="@drawable/ic_change_circle"/>
-    </com.google.android.material.button.MaterialSplitButton>
+        app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+        android:clickable="false"
+        android:focusable="false"
+        android:checkable="false"
+        app:chipIconEnabled="false"
+        app:checkedIconVisible="false"
+        app:closeIconVisible="false" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -191,6 +191,42 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         }
 
+        findPreference<Preference>("key_custom_ott_preference")?.setOnPreferenceClickListener {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_custom_ott_app, null)
+            val etAppName = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_app_name)
+            val etPackageName = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_package_name)
+            val etDeepLink = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_deep_link)
+
+            etAppName.setText(preferences.getString("key_custom_ott_name", ""))
+            etPackageName.setText(preferences.getString("key_custom_ott_package", ""))
+            etDeepLink.setText(preferences.getString("key_custom_ott_link", ""))
+
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.custom_app_preference)
+                .setView(dialogView)
+                .setPositiveButton(R.string.save, null)
+                .setNegativeButton(R.string.cancel, null)
+                .create()
+            
+            dialog.setOnShowListener {
+                dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                    val deepLinkText = etDeepLink.text.toString().trim()
+                    if (deepLinkText.isNotEmpty() && !deepLinkText.contains("{title}") && !deepLinkText.contains("{imdbId}")) {
+                        etDeepLink.error = getString(R.string.custom_ott_link_summary)
+                    } else {
+                        preferences.edit {
+                            putString("key_custom_ott_name", etAppName.text.toString().trim())
+                            putString("key_custom_ott_package", etPackageName.text.toString().trim())
+                            putString("key_custom_ott_link", deepLinkText)
+                        }
+                        dialog.dismiss()
+                    }
+                }
+            }
+            dialog.show()
+            true
+        }
+
         findPreference<SwitchPreferenceCompat>("key_custom_dns_enabled")?.setOnPreferenceChangeListener { _, newValue ->
             NetworkClient.rebuild(requireContext(), newCustomDnsEnabled = newValue as Boolean)
             rebuildPicasso()

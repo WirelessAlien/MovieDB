@@ -890,4 +890,32 @@
     <string name="ratings_insight_desc">Distribution of your ratings</string>
     <string name="no_dates_need_fixing">No dates need fixing.</string>
     <string name="invalid_dates_review_message">The following entries have invalid dates from an earlier app version. Please review and confirm the updates.</string>
+
+    <string name="play">Play</string>
+    <string name="play_in">Play in…</string>
+    <string name="always_ask">Always Ask</string>
+    <string name="title_default_play_app">Default Play App</string>
+    <string name="summary_default_play_app">Choose the default app to open when pressing Play</string>
+    <string name="netflix">Netflix</string>
+    <string name="prime_video">Prime Video</string>
+    <string name="disney_plus">Disney+</string>
+    <string name="hulu">Hulu</string>
+    <string name="stremio">Stremio</string>
+
+    <string name="custom_ott_app">Preferred App</string>
+    <string name="custom_ott_package_title">App Package ID</string>
+    <string name="custom_ott_package_summary">Package ID of the app to launch (e.g. com.example.app)</string>
+    <string name="custom_ott_link_title">OTT Deep Link</string>
+    <string name="custom_ott_link_summary">Search deep link URL. Use {title} for URL-encoded title or {imdbId} for IMDB or other media ID.</string>
+
+    <string name="custom_ott_name_title">App Name</string>
+    <string name="custom_ott_dialog_instruction">Enter the details of the app you want to use for playing media. You must provide a valid Package ID and Deep Link. The {title} and {imdbId} placeholders can be used in the Deep Link to substitute the movie/show information.</string>
+    <string name="custom_app_preference">Preferred App Preference</string>
+    <string name="could_not_open_custom_app_or_deep_link">Could not open preferred app or deep link</string>
+    <string name="could_not_open_custom_app">Could not open preferred app</string>
+    <string name="custom_app_not_found">App not found</string>
+
+    <string name="chip_new">New</string>
+    <string name="chip_released">Released</string>
+    <string name="no_supported_apps_installed">No supported apps installed</string>
 </resources>
