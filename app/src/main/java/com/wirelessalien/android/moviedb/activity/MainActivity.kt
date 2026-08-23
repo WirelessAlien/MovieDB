@@ -215,6 +215,7 @@ class MainActivity : BaseActivity() {
 
         // Set the default preference values.
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
+        preferences = PreferenceManager.getDefaultSharedPreferences(this)
         
         val isFreeUser = preferences.getBoolean("user_is_free_user", false)
         val hasActivePurchase = preferences.getBoolean("user_has_active_purchase", false)
@@ -246,7 +247,6 @@ class MainActivity : BaseActivity() {
         tmdbApiKey = ConfigHelper.getConfigValue(this, "api_key")?: ""
         clientId = ConfigHelper.getConfigValue(this, "client_id")
         clientSecret = ConfigHelper.getConfigValue(this, "client_secret")
-        preferences = PreferenceManager.getDefaultSharedPreferences(this)
         binding.bottomNavigation.setOnItemSelectedListener { item: MenuItem ->
             val itemId = item.itemId
             var selectedFragment: Fragment? = null
