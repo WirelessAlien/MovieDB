@@ -22,6 +22,21 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <Preference
+        android:key="go_ad_free_key"
+        android:title="@string/go_ad_free"
+        android:summary="@string/go_ad_free_summary"
+        app:iconSpaceReserved="false"
+        app:order="-101" />
+
+    <Preference
+        android:key="subscription_issue_warning_key"
+        android:title="@string/subscription_issue_title"
+        android:summary="@string/subscription_issue_summary"
+        app:iconSpaceReserved="false"
+        app:isPreferenceVisible="false"
+        app:order="-100" />
+
     <PreferenceCategory
         android:title="@string/title_general"
         app:iconSpaceReserved="false">
@@ -375,6 +390,12 @@
             android:summary="@string/donate_desc"
             app:iconSpaceReserved="false"
             android:key="donate_key"/>
+
+        <Preference
+            android:key="manage_subscription_key"
+            android:title="@string/manage_subscription"
+            app:iconSpaceReserved="false"
+            app:isPreferenceVisible="false"/>
 
         <Preference
             android:title="@string/privacy_policy"

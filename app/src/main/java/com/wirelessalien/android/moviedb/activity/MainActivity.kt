@@ -73,13 +73,10 @@ import androidx.work.Constraints
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
-import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -111,6 +108,12 @@ import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ThemeHelper
+import com.wirelessalien.android.moviedb.work.BillingCheckWorker
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.ExistingPeriodicWorkPolicy
+import java.util.concurrent.TimeUnit
+import com.wirelessalien.android.moviedb.fragment.BillingBottomSheetFragment
 import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
 import com.wirelessalien.android.moviedb.pagingSource.SearchPagingSource
 import com.wirelessalien.android.moviedb.service.TraktSyncService
@@ -213,6 +216,24 @@ class MainActivity : BaseActivity() {
 
         // Set the default preference values.
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
+        
+        val isFreeUser = preferences.getBoolean("user_is_free_user", false)
+        val hasActivePurchase = preferences.getBoolean("user_has_active_purchase", false)
+        val billingCheckWorker = PeriodicWorkRequestBuilder<BillingCheckWorker>(1, java.util.concurrent.TimeUnit.DAYS)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "billingCheckWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            billingCheckWorker
+        )
+        val omdbSetupShown = preferences.getBoolean("omdb_setup_shown", false)
+        
+        if (!isFreeUser && !hasActivePurchase && !omdbSetupShown) {
+            val billingFragment = BillingBottomSheetFragment()
+            billingFragment.onPurchaseSuccess = {}
+            billingFragment.show(supportFragmentManager, BillingBottomSheetFragment.TAG)
+        }
         setSupportActionBar(binding.toolbar)
 
         binding.toolbar.setNavigationOnClickListener {

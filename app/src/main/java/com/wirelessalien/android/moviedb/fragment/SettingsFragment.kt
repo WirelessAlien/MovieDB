@@ -39,6 +39,7 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.FragmentTransaction
@@ -70,17 +71,22 @@ import com.wirelessalien.android.moviedb.helper.ThemeHelper
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.UpdateWorker
+import com.wirelessalien.android.moviedb.helper.BillingHelper
+import com.wirelessalien.android.moviedb.data.PurchaseStatus
+import com.wirelessalien.android.moviedb.fragment.BillingBottomSheetFragment
+
 import com.wirelessalien.android.moviedb.work.WeeklyWorkerTkt
-import java.util.concurrent.TimeUnit
 import android.text.InputType
 import android.util.Patterns
 import com.wirelessalien.android.moviedb.NetworkClient
 import com.squareup.picasso.OkHttp3Downloader
 import com.squareup.picasso.Picasso
+import java.util.concurrent.TimeUnit
 import java.net.MalformedURLException
 import java.net.URL
 
 class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeListener {
+    private lateinit var billingHelper: BillingHelper
 
     private val notificationDbHelper: NotificationDatabaseHelper by lazy {
         NotificationDatabaseHelper(requireContext())
@@ -550,6 +556,48 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        billingHelper = BillingHelper(requireContext(), lifecycleScope) { _, _ -> }
+        billingHelper.checkPurchases { _ -> 
+            // Refresh status if necessary; though BillingCheckWorker mostly handles this.
+            // The FOSS stub will immediately return PURCHASED.
+            // We rely on the preferences populated by checkPurchases/Worker.
+        }
+
+        val isSubscribed = preferences.getBoolean("user_is_subscribed", false)
+        val hasActivePurchase = preferences.getBoolean("user_has_active_purchase", false)
+
+        val manageSubscriptionPreference = findPreference<Preference>("manage_subscription_key")
+        val goAdFreePreference = findPreference<Preference>("go_ad_free_key")
+
+        if (isSubscribed) {
+            manageSubscriptionPreference?.isVisible = true
+            manageSubscriptionPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                try {
+                    val url = "https://play.google.com/store/account/subscriptions?package=${requireContext().packageName}"
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = url.toUri()
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), R.string.error_loading_data, Toast.LENGTH_SHORT).show()
+                }
+                true
+            }
+        } else {
+            manageSubscriptionPreference?.isVisible = false
+        }
+
+        if (isSubscribed || hasActivePurchase) {
+            goAdFreePreference?.isVisible = false
+        } else {
+            goAdFreePreference?.isVisible = true
+            goAdFreePreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                val billingFragment = BillingBottomSheetFragment()
+                billingFragment.show(childFragmentManager, BillingBottomSheetFragment.TAG)
+                true
+            }
+        }
+
+        checkSubscriptionIssue()
         findPreference<SwitchPreferenceCompat>("key_auto_update_episode_data")?.let { preference ->
             val workManager = WorkManager.getInstance(requireContext())
             val switchState = MutableLiveData(false)
@@ -568,6 +616,44 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 preference.isChecked = isRunning
             }
         }
+    }
+
+    private fun checkSubscriptionIssue() {
+        val hasActivePurchase = preferences.getBoolean("user_has_active_purchase", false)
+        val billingErrorTimestamp = preferences.getLong("billing_error_timestamp", 0)
+
+        val warningPreference = findPreference<Preference>("subscription_issue_warning_key")
+
+        if (hasActivePurchase && billingErrorTimestamp > 0) {
+            val currentTime = System.currentTimeMillis()
+            val timeElapsed = currentTime - billingErrorTimestamp
+            val timeLeft = 259200000L - timeElapsed
+
+            if (timeLeft > 0) {
+                warningPreference?.isVisible = true
+                warningPreference?.summary = getString(R.string.subscription_issue_summary, formatDuration(timeLeft))
+                warningPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                    val billingFragment = BillingBottomSheetFragment()
+                    billingFragment.isCancelable = true
+                    billingFragment.show(childFragmentManager, BillingBottomSheetFragment.TAG)
+                    true
+                }
+            } else {
+                warningPreference?.isVisible = false
+            }
+        } else {
+            warningPreference?.isVisible = false
+        }
+    }
+
+    private fun formatDuration(millis: Long): String {
+        val hours = TimeUnit.MILLISECONDS.toHours(millis).toInt()
+        val minutes = (TimeUnit.MILLISECONDS.toMinutes(millis) % 60).toInt()
+
+        val hoursString = resources.getQuantityString(R.plurals.hours, hours, hours)
+        val minutesString = resources.getQuantityString(R.plurals.minutes, minutes, minutes)
+
+        return "$hoursString $minutesString"
     }
 
     private fun cancelAllNotifications() {
@@ -700,7 +786,17 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        if (::billingHelper.isInitialized) {
+            billingHelper.endConnection()
+        }
+    }
+
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
+        if (key == "user_has_active_purchase" || key == "billing_error_timestamp") {
+            checkSubscriptionIssue()
+        }
         if (key == SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE || key == SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE || key == SectionsPagerAdapter.HIDE_SAVED_PREFERENCE || key == SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) {
             (requireActivity() as SettingsActivity).mTabsPreferenceChanged = true
         }

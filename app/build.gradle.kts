@@ -46,7 +46,7 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 43
-        versionName = "4.7.1.1"
+        versionName = "4.8.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OMDB_API_KEY", "\"$omdbApiKey\"")
@@ -139,6 +139,9 @@ dependencies {
     "fullImplementation"("androidx.credentials:credentials-play-services-auth:1.6.0")
     "fullImplementation"("com.google.android.libraries.identity.googleid:googleid:1.2.0")
     "fullImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.11.0")
+    
+    "fullImplementation"("com.android.billingclient:billing:8.3.0") 
+    "fullImplementation"("com.android.billingclient:billing-ktx:8.3.0")
 
     testImplementation ("junit:junit:4.13.2")
     androidTestImplementation ("androidx.test.ext:junit:1.3.0")
