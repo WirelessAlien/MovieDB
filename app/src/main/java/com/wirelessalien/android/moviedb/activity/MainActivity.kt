@@ -142,7 +142,6 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 class MainActivity : BaseActivity() {
 
@@ -534,7 +533,7 @@ class MainActivity : BaseActivity() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorkerTkt::class.java, 1, TimeUnit.DAYS)
+        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorkerTkt::class.java, 1, java.util.concurrent.TimeUnit.DAYS)
             .setConstraints(constraints)
             .build()
 
@@ -627,7 +626,7 @@ class MainActivity : BaseActivity() {
             .build()
 
         val monthlyWorkRequest =
-            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, TimeUnit.DAYS)
+            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, java.util.concurrent.TimeUnit.DAYS)
                 .setConstraints(constraints)
                 .build()
 
