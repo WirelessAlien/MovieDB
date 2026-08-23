@@ -31,6 +31,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
+import com.wirelessalien.android.moviedb.BuildConfig
 
 class SyncProviderBottomSheet : BottomSheetDialogFragment() {
 
@@ -128,10 +129,15 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
 
             preferences.edit { putString("sync_provider", selectedProvider) }
             preferences.edit { putBoolean("sync_provider_dialog_shown", true) }
-            dismiss()
 
-//            val omdbSetupFragment = OmdbSetupFragment()
-//            omdbSetupFragment.show(parentFragmentManager, "OmdbSetupFragment")
+            if (BuildConfig.FLAVOR == "foss") {
+                val omdbSetupShown = preferences.getBoolean("omdb_setup_shown", false)
+                if (!omdbSetupShown) {
+                    val omdbSetupFragment = OmdbSetupFragment()
+                    omdbSetupFragment.show(parentFragmentManager, "OmdbSetupFragment")
+                }
+            }
+            dismiss()
         }
     }
 }

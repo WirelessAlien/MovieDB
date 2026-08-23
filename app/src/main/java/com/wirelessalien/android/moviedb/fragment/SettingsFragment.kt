@@ -569,32 +569,37 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         val manageSubscriptionPreference = findPreference<Preference>("manage_subscription_key")
         val goAdFreePreference = findPreference<Preference>("go_ad_free_key")
 
-        if (isSubscribed) {
-            manageSubscriptionPreference?.isVisible = true
-            manageSubscriptionPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                try {
-                    val url = "https://play.google.com/store/account/subscriptions?package=${requireContext().packageName}"
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = url.toUri()
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(requireContext(), R.string.error_loading_data, Toast.LENGTH_SHORT).show()
+        if (BuildConfig.FLAVOR == "full") {
+            if (isSubscribed) {
+                manageSubscriptionPreference?.isVisible = true
+                manageSubscriptionPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                    try {
+                        val url = "https://play.google.com/store/account/subscriptions?package=${requireContext().packageName}"
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.data = url.toUri()
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(requireContext(), R.string.error_loading_data, Toast.LENGTH_SHORT).show()
+                    }
+                    true
                 }
-                true
+            } else {
+                manageSubscriptionPreference?.isVisible = false
+            }
+    
+            if (isSubscribed || hasActivePurchase) {
+                goAdFreePreference?.isVisible = false
+            } else {
+                goAdFreePreference?.isVisible = true
+                goAdFreePreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                    val billingFragment = BillingBottomSheetFragment()
+                    billingFragment.show(childFragmentManager, BillingBottomSheetFragment.TAG)
+                    true
+                }
             }
         } else {
             manageSubscriptionPreference?.isVisible = false
-        }
-
-        if (isSubscribed || hasActivePurchase) {
             goAdFreePreference?.isVisible = false
-        } else {
-            goAdFreePreference?.isVisible = true
-            goAdFreePreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                val billingFragment = BillingBottomSheetFragment()
-                billingFragment.show(childFragmentManager, BillingBottomSheetFragment.TAG)
-                true
-            }
         }
 
         checkSubscriptionIssue()

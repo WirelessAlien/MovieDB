@@ -125,6 +125,8 @@ import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.TktTokenRefreshWorker
+import com.wirelessalien.android.moviedb.BuildConfig
+import com.wirelessalien.android.moviedb.fragment.OmdbSetupFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -229,11 +231,6 @@ class MainActivity : BaseActivity() {
         )
         val omdbSetupShown = preferences.getBoolean("omdb_setup_shown", false)
         
-        if (!isFreeUser && !hasActivePurchase && !omdbSetupShown) {
-            val billingFragment = BillingBottomSheetFragment()
-            billingFragment.onPurchaseSuccess = {}
-            billingFragment.show(supportFragmentManager, BillingBottomSheetFragment.TAG)
-        }
         setSupportActionBar(binding.toolbar)
 
         binding.toolbar.setNavigationOnClickListener {
@@ -615,8 +612,31 @@ class MainActivity : BaseActivity() {
         }
 
         val dialogShown = preferences.getBoolean("sync_provider_dialog_shown", false)
-        if (!dialogShown) {
-            showSyncProviderDialog()
+        if (BuildConfig.FLAVOR == "full") {
+            if (!isFreeUser && !hasActivePurchase) {
+                supportFragmentManager.setFragmentResultListener(BillingBottomSheetFragment.REQUEST_KEY, this) { _, _ ->
+                    if (!preferences.getBoolean("sync_provider_dialog_shown", false)) {
+                        showSyncProviderDialog()
+                    }
+                }
+                
+                // If it's already added (e.g. across config change), don't add it again
+                if (supportFragmentManager.findFragmentByTag(BillingBottomSheetFragment.TAG) == null) {
+                    val billingFragment = BillingBottomSheetFragment()
+                    billingFragment.show(supportFragmentManager, BillingBottomSheetFragment.TAG)
+                }
+            } else {
+                if (!dialogShown) {
+                    showSyncProviderDialog()
+                }
+            }
+        } else if (BuildConfig.FLAVOR == "foss") {
+            if (!dialogShown) {
+                showSyncProviderDialog()
+            } else if (!omdbSetupShown) {
+                val omdbSetupFragment = OmdbSetupFragment()
+                omdbSetupFragment.show(supportFragmentManager, "OmdbSetupFragment")
+            }
         }
     }
 
