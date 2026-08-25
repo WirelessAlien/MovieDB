@@ -667,15 +667,20 @@ class MainActivity : BaseActivity() {
     }
 
     private fun updateSearchBarTitle(fragment: Fragment) {
+        val appName = if (BuildConfig.FLAVOR == "full" && preferences.getBoolean("user_has_active_purchase", false)) {
+            getString(R.string.premium_title)
+        } else {
+            getString(R.string.app_name)
+        }
         val title = when (fragment) {
-            is HomeFragment -> getString(R.string.app_name)
+            is HomeFragment -> appName
             is ShowFragment -> {
                 val listType = fragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
                 if (listType == SectionsPagerAdapter.MOVIE) getString(R.string.title_movies) else getString(R.string.title_series)
             }
             is ListFragment -> getString(R.string.title_saved)
             is AccountDataFragment -> getString(R.string.title_account)
-            else -> getString(R.string.app_name)
+            else -> appName
         }
         binding.toolbar.title = title
     }
