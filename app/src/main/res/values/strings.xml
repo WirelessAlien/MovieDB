@@ -946,4 +946,5 @@
     <string name="manage_subscription">Manage Subscription</string>
     <string name="continue_with_ads">Continue for Free</string>
     <string name="ads_desc">Use the app for free. The app is open-source and free to use; Premium is an optional way to support the project.</string>
+    <string name="ads_title">Free Tier</string>
 </resources>
