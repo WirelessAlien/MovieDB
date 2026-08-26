@@ -221,6 +221,7 @@ class MainActivity : BaseActivity() {
         
         val isFreeUser = preferences.getBoolean("user_is_free_user", false)
         val hasActivePurchase = preferences.getBoolean("user_has_active_purchase", false)
+        val isSubscribed = preferences.getBoolean("user_is_subscribed", false)
         val billingCheckWorker = PeriodicWorkRequestBuilder<BillingCheckWorker>(1, java.util.concurrent.TimeUnit.DAYS)
             .build()
 
@@ -613,7 +614,7 @@ class MainActivity : BaseActivity() {
 
         val dialogShown = preferences.getBoolean("sync_provider_dialog_shown", false)
         if (BuildConfig.FLAVOR == "full") {
-            if (!isFreeUser && !hasActivePurchase) {
+            if (!isFreeUser && !hasActivePurchase && !isSubscribed) {
                 supportFragmentManager.setFragmentResultListener(BillingBottomSheetFragment.REQUEST_KEY, this) { _, _ ->
                     if (!preferences.getBoolean("sync_provider_dialog_shown", false)) {
                         showSyncProviderDialog()
@@ -667,7 +668,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun updateSearchBarTitle(fragment: Fragment) {
-        val appName = if (BuildConfig.FLAVOR == "full" && preferences.getBoolean("user_has_active_purchase", false)) {
+        val appName = if (BuildConfig.FLAVOR == "full" && (preferences.getBoolean("user_has_active_purchase", false) || preferences.getBoolean("user_is_subscribed", false))) {
             getString(R.string.premium_title)
         } else {
             getString(R.string.app_name)
