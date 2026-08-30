@@ -599,7 +599,24 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             }
         } else {
             manageSubscriptionPreference?.isVisible = false
-            goAdFreePreference?.isVisible = false
+            goAdFreePreference?.isVisible = true
+            goAdFreePreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, "market://details?id=com.wirelessalien.android.moviedb.full".toUri())
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+                    startActivity(intent)
+                } catch (e: android.content.ActivityNotFoundException) {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=com.wirelessalien.android.moviedb.full".toUri())
+                        startActivity(intent)
+                    } catch (e2: Exception) {
+                        Toast.makeText(requireContext(), R.string.error_loading_data, Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), R.string.error_loading_data, Toast.LENGTH_SHORT).show()
+                }
+                true
+            }
         }
 
         checkSubscriptionIssue()
