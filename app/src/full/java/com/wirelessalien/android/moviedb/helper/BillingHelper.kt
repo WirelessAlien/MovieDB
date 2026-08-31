@@ -59,7 +59,8 @@ class BillingHelper(
         const val GRACE_PERIOD_MILLIS = 24 * 60 * 60 * 1000L // 24 hours
 
         private const val PREF_FILE = "billing_prefs"
-        private const val KEY_IS_PREMIUM = "is_premium"
+        private const val KEY_HAS_LIFETIME = "has_lifetime"
+        private const val KEY_HAS_SUBSCRIPTION = "has_subscription"
         private const val KEY_LAST_CHECK_TIME = "last_check_time"
         private const val CACHE_VALIDITY_MILLIS = 12 * 60 * 60 * 1000L // 12 hours
     }
@@ -100,57 +101,25 @@ class BillingHelper(
         }
     }
 
-    private fun savePremiumStatus(isPremium: Boolean) {
+    private fun savePremiumStatus(hasLifetime: Boolean, hasSubscription: Boolean) {
         val prefs = context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
         prefs.edit {
-            putBoolean(KEY_IS_PREMIUM, isPremium)
+            putBoolean(KEY_HAS_LIFETIME, hasLifetime)
+                .putBoolean(KEY_HAS_SUBSCRIPTION, hasSubscription)
                 .putLong(KEY_LAST_CHECK_TIME, System.currentTimeMillis())
         }
     }
 
     private fun checkLocalPremiumStatus(): PurchaseStatus {
         val prefs = context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
-        val isPremium = prefs.getBoolean(KEY_IS_PREMIUM, false)
+        val hasLifetime = prefs.getBoolean(KEY_HAS_LIFETIME, false)
+        val hasSubscription = prefs.getBoolean(KEY_HAS_SUBSCRIPTION, false)
         val lastCheckTime = prefs.getLong(KEY_LAST_CHECK_TIME, 0)
 
-        if (isPremium && (System.currentTimeMillis() - lastCheckTime < CACHE_VALIDITY_MILLIS)) {
-            return PurchaseStatus.PURCHASED
+        if ((hasLifetime || hasSubscription) && (System.currentTimeMillis() - lastCheckTime < CACHE_VALIDITY_MILLIS)) {
+            return PurchaseStatus.Purchased(hasLifetime, hasSubscription)
         }
-        return PurchaseStatus.ERROR
-    }
-
-    fun checkSubscription(onResult: (Boolean) -> Unit) {
-        if (!isConnected) {
-            startConnection { success ->
-                if (success) {
-                    checkSubscription(onResult)
-                } else {
-                    onResult(false)
-                }
-            }
-            return
-        }
-
-        val paramsSubs = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
-
-        billingClient.queryPurchasesAsync(paramsSubs) { resultSubs, purchasesSubs ->
-            var isSubscribed = false
-            if (resultSubs.responseCode == BillingClient.BillingResponseCode.OK) {
-                for (purchase in purchasesSubs) {
-                    if (purchase.products.contains(SUBSCRIPTION_PRODUCT_ID) &&
-                        purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                        isSubscribed = true
-                        break
-                    }
-                }
-            }
-            if (isSubscribed) {
-                savePremiumStatus(true)
-            }
-            onResult(isSubscribed)
-        }
+        return PurchaseStatus.Error
     }
 
     suspend fun checkPurchasesSuspend(): PurchaseStatus {
@@ -210,7 +179,7 @@ class BillingHelper(
                 if (success) {
                     checkPurchases(onResult)
                 } else {
-                    onResult(PurchaseStatus.ERROR)
+                    onResult(PurchaseStatus.Error)
                 }
             }
             return
@@ -239,91 +208,82 @@ class BillingHelper(
                         }
                     }
                 }
-            } else if (resultInApp.responseCode == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED ||
-                resultInApp.responseCode == BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE ||
-                resultInApp.responseCode == BillingClient.BillingResponseCode.ERROR) {
-                if (resultInApp.responseCode == BillingClient.BillingResponseCode.ERROR ||
-                    resultInApp.responseCode == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED) {
-                    if (checkLocalPremiumStatus() == PurchaseStatus.PURCHASED) {
-                        onResult(PurchaseStatus.PURCHASED)
-                        return@queryPurchasesAsync
-                    }
+            } else {
+                val status = checkLocalPremiumStatus()
+                if (status is PurchaseStatus.Purchased) {
+                    onResult(status)
+                } else {
+                    onResult(PurchaseStatus.Error)
                 }
-                onResult(PurchaseStatus.ERROR)
                 return@queryPurchasesAsync
             }
 
-            if (isPurchased) {
-                handlePurchaseAcknowledging(purchaseToAcknowledge) {
-                    savePremiumStatus(true)
-                    onResult(PurchaseStatus.PURCHASED)
-                }
-            } else {
-                val paramsSubs = QueryPurchasesParams.newBuilder()
-                    .setProductType(BillingClient.ProductType.SUBS)
-                    .build()
+            val paramsSubs = QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
 
-                billingClient.queryPurchasesAsync(paramsSubs) { resultSubs, purchasesSubs ->
-                    var isSubscribed = false
-                    var isSubPending = false
-                    var subToAcknowledge: Purchase? = null
+            billingClient.queryPurchasesAsync(paramsSubs) { resultSubs, purchasesSubs ->
+                var isSubscribed = false
+                var isSubPending = false
+                var subToAcknowledge: Purchase? = null
 
-                    if (resultSubs.responseCode == BillingClient.BillingResponseCode.OK) {
-                        for (purchase in purchasesSubs) {
-                            if (purchase.products.contains(SUBSCRIPTION_PRODUCT_ID)) {
-                                if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                                    isSubscribed = true
-                                    if (!purchase.isAcknowledged) {
-                                        subToAcknowledge = purchase
-                                    }
-                                    break
-                                } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
-                                    isSubPending = true
+                if (resultSubs.responseCode == BillingClient.BillingResponseCode.OK) {
+                    for (purchase in purchasesSubs) {
+                        if (purchase.products.contains(SUBSCRIPTION_PRODUCT_ID)) {
+                            if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                                isSubscribed = true
+                                if (!purchase.isAcknowledged) {
+                                    subToAcknowledge = purchase
                                 }
+                                break
+                            } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
+                                isSubPending = true
                             }
                         }
-                    } else if (resultSubs.responseCode == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED ||
-                        resultSubs.responseCode == BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE ||
-                        resultSubs.responseCode == BillingClient.BillingResponseCode.ERROR) {
-                        if (resultSubs.responseCode == BillingClient.BillingResponseCode.ERROR ||
-                            resultSubs.responseCode == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED) {
-                            if (checkLocalPremiumStatus() == PurchaseStatus.PURCHASED) {
-                                onResult(PurchaseStatus.PURCHASED)
-                                return@queryPurchasesAsync
-                            }
-                        }
-                        onResult(PurchaseStatus.ERROR)
-                        return@queryPurchasesAsync
                     }
-
-                    if (isSubscribed) {
-                        handlePurchaseAcknowledging(subToAcknowledge) {
-                            savePremiumStatus(true)
-                            onResult(PurchaseStatus.PURCHASED)
-                        }
-                    } else if (isPending || isSubPending) {
-                        onResult(PurchaseStatus.PENDING)
+                } else {
+                    val status = checkLocalPremiumStatus()
+                    if (status is PurchaseStatus.Purchased) {
+                        onResult(status)
                     } else {
-                        savePremiumStatus(false)
-                        onResult(PurchaseStatus.NOT_PURCHASED)
+                        onResult(PurchaseStatus.Error)
                     }
+                    return@queryPurchasesAsync
+                }
+
+                if (isPurchased || isSubscribed) {
+                    handlePurchaseAcknowledging(purchaseToAcknowledge) {
+                        handlePurchaseAcknowledging(subToAcknowledge) {
+                            savePremiumStatus(isPurchased, isSubscribed)
+                            onResult(PurchaseStatus.Purchased(isPurchased, isSubscribed))
+                        }
+                    }
+                } else if (isPending || isSubPending) {
+                    onResult(PurchaseStatus.Pending)
+                } else {
+                    savePremiumStatus(false, false)
+                    onResult(PurchaseStatus.NotPurchased)
                 }
             }
         }
     }
 
     fun launchBillingFlow(activity: Activity, productDetails: ProductDetails) {
+        var offerTokenToUse: String? = null
+        if (productDetails.productType == BillingClient.ProductType.SUBS) {
+            offerTokenToUse = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
+            if (offerTokenToUse == null) {
+                onPurchaseFinished(PurchaseStatus.Error, "Subscription offer token unavailable")
+                return
+            }
+        }
+
         val productDetailsParamsList = listOf(
             BillingFlowParams.ProductDetailsParams.newBuilder()
                 .setProductDetails(productDetails)
                 .apply {
-                    if (productDetails.productType == BillingClient.ProductType.SUBS) {
-                        val offerToken = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
-                        if (offerToken != null) {
-                            setOfferToken(offerToken)
-                        } else {
-                            return@apply
-                        }
+                    if (offerTokenToUse != null) {
+                        setOfferToken(offerTokenToUse)
                     }
                 }
                 .build()
@@ -346,12 +306,12 @@ class BillingHelper(
                 handlePurchase(purchase)
             }
             if (anyPending) {
-                onPurchaseFinished(PurchaseStatus.PENDING, null)
+                onPurchaseFinished(PurchaseStatus.Pending, null)
             }
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
-            onPurchaseFinished(PurchaseStatus.NOT_PURCHASED, context.getString(R.string.purchase_canceled))
+            onPurchaseFinished(PurchaseStatus.NotPurchased, context.getString(R.string.purchase_canceled))
         } else {
-            onPurchaseFinished(PurchaseStatus.NOT_PURCHASED, billingResult.debugMessage)
+            onPurchaseFinished(PurchaseStatus.Error, billingResult.debugMessage)
         }
     }
 
@@ -359,7 +319,9 @@ class BillingHelper(
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
             handlePurchaseAcknowledging(if (!purchase.isAcknowledged) purchase else null) {
                 coroutineScope.launch(Dispatchers.Main) {
-                    onPurchaseFinished(PurchaseStatus.PURCHASED, null)
+                    checkPurchases { status ->
+                        onPurchaseFinished(status, null)
+                    }
                 }
             }
         }

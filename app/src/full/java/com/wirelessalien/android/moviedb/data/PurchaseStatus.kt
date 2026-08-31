@@ -20,10 +20,9 @@
 
 package com.wirelessalien.android.moviedb.data
 
-enum class PurchaseStatus {
-    PURCHASED,
-    NOT_PURCHASED,
-    PENDING,
-    ERROR
+sealed class PurchaseStatus {
+    data class Purchased(val lifetime: Boolean, val subscription: Boolean) : PurchaseStatus()
+    object NotPurchased : PurchaseStatus()
+    object Pending : PurchaseStatus()
+    object Error : PurchaseStatus()
 }
-

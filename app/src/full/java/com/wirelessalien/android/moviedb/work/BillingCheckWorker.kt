@@ -48,15 +48,15 @@ class BillingCheckWorker(
             val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
             when (status) {
-                PurchaseStatus.PURCHASED -> {
+                is PurchaseStatus.Purchased -> {
                     preferences.edit().apply {
                         putBoolean("user_has_active_purchase", true)
-                        putBoolean("user_is_subscribed", true)
+                        putBoolean("user_is_subscribed", status.subscription)
                         putLong("billing_error_timestamp", 0)
                         apply()
                     }
                 }
-                PurchaseStatus.NOT_PURCHASED -> {
+                is PurchaseStatus.NotPurchased -> {
                     preferences.edit().apply {
                         putBoolean("user_has_active_purchase", false)
                         putBoolean("user_is_subscribed", false)
@@ -64,10 +64,10 @@ class BillingCheckWorker(
                         apply()
                     }
                 }
-                PurchaseStatus.ERROR -> {
+                is PurchaseStatus.Error -> {
                     handleError(preferences)
                 }
-                else -> {
+                is PurchaseStatus.Pending -> {
                     // Do nothing for PENDING to preserve last known state
                 }
             }

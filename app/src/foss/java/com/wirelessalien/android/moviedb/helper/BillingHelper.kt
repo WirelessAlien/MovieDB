@@ -29,6 +29,11 @@ class BillingHelper(
     private val coroutineScope: CoroutineScope,
     private val onPurchaseFinished: (PurchaseStatus, String?) -> Unit
 ) {
+
+    companion object {
+        const val GRACE_PERIOD_MILLIS = 24 * 60 * 60 * 1000L // 24 hours
+    }
+
     fun startConnection(onConnectionResult: (Boolean) -> Unit) {
         onConnectionResult(false)
     }
@@ -37,10 +42,10 @@ class BillingHelper(
     }
 
     suspend fun checkPurchasesSuspend(): PurchaseStatus {
-        return PurchaseStatus.PURCHASED
+        return PurchaseStatus.Purchased(true, false)
     }
 
     fun checkPurchases(onResult: (PurchaseStatus) -> Unit) {
-        onResult(PurchaseStatus.PURCHASED)
+        onResult(PurchaseStatus.Purchased(true, false))
     }
 }

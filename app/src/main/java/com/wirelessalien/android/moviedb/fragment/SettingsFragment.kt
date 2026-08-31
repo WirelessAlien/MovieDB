@@ -557,15 +557,56 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         billingHelper = BillingHelper(requireContext(), lifecycleScope) { _, _ -> }
-        billingHelper.checkPurchases { _ -> 
-            // Refresh status if necessary; though BillingCheckWorker mostly handles this.
-            // The FOSS stub will immediately return PURCHASED.
-            // We rely on the preferences populated by checkPurchases/Worker.
+        billingHelper.checkPurchases { status -> 
+            lifecycleScope.launchWhenStarted {
+                when (status) {
+                    is PurchaseStatus.Purchased -> {
+                        preferences.edit {
+                            putBoolean("user_has_active_purchase", true)
+                            putBoolean("user_is_subscribed", status.subscription)
+                        }
+                        updateUIBasedOnEntitlement(status.subscription, true)
+                    }
+                    is PurchaseStatus.NotPurchased -> {
+                        preferences.edit {
+                            putBoolean("user_has_active_purchase", false)
+                            putBoolean("user_is_subscribed", false)
+                        }
+                        updateUIBasedOnEntitlement(false, false)
+                    }
+                    else -> {
+                        // Do nothing, leave default UI
+                    }
+                }
+            }
         }
 
         val isSubscribed = preferences.getBoolean("user_is_subscribed", false)
         val hasActivePurchase = preferences.getBoolean("user_has_active_purchase", false)
+        updateUIBasedOnEntitlement(isSubscribed, hasActivePurchase)
 
+        checkSubscriptionIssue()
+        findPreference<SwitchPreferenceCompat>("key_auto_update_episode_data")?.let { preference ->
+            val workManager = WorkManager.getInstance(requireContext())
+            val switchState = MutableLiveData(false)
+
+            // Observe worker state
+            workManager.getWorkInfosForUniqueWorkLiveData("monthlyTvShowUpdateWorker")
+                .observe(viewLifecycleOwner) { workInfoList ->
+                    val isRunning = workInfoList?.any {
+                        it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING
+                    } == true
+                    switchState.value = isRunning
+                }
+
+            // Observe LiveData and update switch state
+            switchState.observe(viewLifecycleOwner) { isRunning ->
+                preference.isChecked = isRunning
+            }
+        }
+    }
+
+    private fun updateUIBasedOnEntitlement(isSubscribed: Boolean, hasActivePurchase: Boolean) {
         val manageSubscriptionPreference = findPreference<Preference>("manage_subscription_key")
         val goAdFreePreference = findPreference<Preference>("go_ad_free_key")
 
@@ -592,7 +633,9 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             } else {
                 goAdFreePreference?.isVisible = true
                 goAdFreePreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                    val billingFragment = BillingBottomSheetFragment()
+                    val billingFragment = BillingBottomSheetFragment().apply {
+                        arguments = Bundle().apply { putBoolean("is_cancelable", true) }
+                    }
                     billingFragment.show(childFragmentManager, BillingBottomSheetFragment.TAG)
                     true
                 }
@@ -618,26 +661,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 true
             }
         }
-
-        checkSubscriptionIssue()
-        findPreference<SwitchPreferenceCompat>("key_auto_update_episode_data")?.let { preference ->
-            val workManager = WorkManager.getInstance(requireContext())
-            val switchState = MutableLiveData(false)
-
-            // Observe worker state
-            workManager.getWorkInfosForUniqueWorkLiveData("monthlyTvShowUpdateWorker")
-                .observe(viewLifecycleOwner) { workInfoList ->
-                    val isRunning = workInfoList?.any {
-                        it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING
-                    } == true
-                    switchState.value = isRunning
-                }
-
-            // Observe LiveData and update switch state
-            switchState.observe(viewLifecycleOwner) { isRunning ->
-                preference.isChecked = isRunning
-            }
-        }
     }
 
     private fun checkSubscriptionIssue() {
@@ -649,14 +672,15 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         if (hasActivePurchase && billingErrorTimestamp > 0) {
             val currentTime = System.currentTimeMillis()
             val timeElapsed = currentTime - billingErrorTimestamp
-            val timeLeft = 259200000L - timeElapsed
+            val timeLeft = BillingHelper.GRACE_PERIOD_MILLIS - timeElapsed
 
             if (timeLeft > 0) {
                 warningPreference?.isVisible = true
                 warningPreference?.summary = getString(R.string.subscription_issue_summary, formatDuration(timeLeft))
                 warningPreference?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                    val billingFragment = BillingBottomSheetFragment()
-                    billingFragment.isCancelable = true
+                    val billingFragment = BillingBottomSheetFragment().apply {
+                        arguments = Bundle().apply { putBoolean("is_cancelable", true) }
+                    }
                     billingFragment.show(childFragmentManager, BillingBottomSheetFragment.TAG)
                     true
                 }

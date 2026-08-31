@@ -61,7 +61,7 @@ class BillingBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isCancelable = false
+        isCancelable = arguments?.getBoolean("is_cancelable", false) ?: false
     }
 
     override fun onCreateView(
@@ -111,25 +111,27 @@ class BillingBottomSheetFragment : BottomSheetDialogFragment() {
 
     private fun setupBillingHelper() {
         billingHelper = BillingHelper(requireContext(), lifecycleScope) { status, errorMessage ->
-            lifecycleScope.launch(Dispatchers.Main) {
-                when (status) {
-                    PurchaseStatus.PURCHASED -> {
-                        handleValidPurchase()
-                    }
-                    PurchaseStatus.PENDING -> {
-                        binding.description.text = getString(R.string.payment_pending)
-                        binding.btnBuyLifetime.isEnabled = false
-                        binding.btnSubscribe.isEnabled = false
-                    }
-                    PurchaseStatus.ERROR -> {
-                        handleError(errorMessage)
-                    }
-                    PurchaseStatus.NOT_PURCHASED -> {
-                        if (errorMessage != null) {
-                            if (errorMessage == getString(R.string.purchase_canceled)) {
-                                Toast.makeText(requireContext(), R.string.purchase_canceled, Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(requireContext(), getString(R.string.error2, errorMessage), Toast.LENGTH_SHORT).show()
+            if (_binding != null) {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                    when (status) {
+                        is PurchaseStatus.Purchased -> {
+                            handleValidPurchase(status.subscription)
+                        }
+                        is PurchaseStatus.Pending -> {
+                            binding.description.text = getString(R.string.payment_pending)
+                            binding.btnBuyLifetime.isEnabled = false
+                            binding.btnSubscribe.isEnabled = false
+                        }
+                        is PurchaseStatus.Error -> {
+                            handleError(errorMessage)
+                        }
+                        is PurchaseStatus.NotPurchased -> {
+                            if (errorMessage != null) {
+                                if (errorMessage == getString(R.string.purchase_canceled)) {
+                                    Toast.makeText(requireContext(), R.string.purchase_canceled, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(requireContext(), getString(R.string.error2, errorMessage), Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     }
@@ -145,35 +147,41 @@ class BillingBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun handleCheckPurchaseResult(status: PurchaseStatus) {
-        lifecycleScope.launch(Dispatchers.Main) {
-            binding.billingProgressBar.visibility = View.GONE
-            when (status) {
-                PurchaseStatus.PURCHASED -> {
-                    handleValidPurchase()
-                }
-                PurchaseStatus.PENDING -> {
-                    binding.description.text = getString(R.string.payment_pending)
-                    binding.btnBuyLifetime.isEnabled = false
-                    binding.btnSubscribe.isEnabled = false
-                }
-                PurchaseStatus.ERROR -> {
-                    handleError(null)
-                }
-                PurchaseStatus.NOT_PURCHASED -> {
-                    billingHelper.queryProducts(
-                        onOneTimeProductLoaded = { productDetails ->
-                            lifecycleScope.launch(Dispatchers.Main) {
-                                oneTimeProductDetails = productDetails
-                                updateUIForOneTimeProduct(productDetails)
+        if (_binding != null) {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                binding.billingProgressBar.visibility = View.GONE
+                when (status) {
+                    is PurchaseStatus.Purchased -> {
+                        handleValidPurchase(status.subscription)
+                    }
+                    is PurchaseStatus.Pending -> {
+                        binding.description.text = getString(R.string.payment_pending)
+                        binding.btnBuyLifetime.isEnabled = false
+                        binding.btnSubscribe.isEnabled = false
+                    }
+                    is PurchaseStatus.Error -> {
+                        handleError(null)
+                    }
+                    is PurchaseStatus.NotPurchased -> {
+                        billingHelper.queryProducts(
+                            onOneTimeProductLoaded = { productDetails ->
+                                if (_binding != null) {
+                                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                                        oneTimeProductDetails = productDetails
+                                        updateUIForOneTimeProduct(productDetails)
+                                    }
+                                }
+                            },
+                            onSubscriptionProductLoaded = { productDetails ->
+                                if (_binding != null) {
+                                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                                        subscriptionProductDetails = productDetails
+                                        updateUIForSubscriptionProduct(productDetails)
+                                    }
+                                }
                             }
-                        },
-                        onSubscriptionProductLoaded = { productDetails ->
-                            lifecycleScope.launch(Dispatchers.Main) {
-                                subscriptionProductDetails = productDetails
-                                updateUIForSubscriptionProduct(productDetails)
-                            }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -196,18 +204,20 @@ class BillingBottomSheetFragment : BottomSheetDialogFragment() {
         binding.btnSubscribe.isEnabled = true
     }
 
-    private fun handleValidPurchase() {
-        lifecycleScope.launch(Dispatchers.Main) {
-            val preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-            preferences.edit { putBoolean("user_has_active_purchase", true)
-            putBoolean("user_is_subscribed", true) }
+    private fun handleValidPurchase(isSubscribed: Boolean) {
+        if (_binding != null) {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                val preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                preferences.edit { putBoolean("user_has_active_purchase", true)
+                putBoolean("user_is_subscribed", isSubscribed) }
 
-            Toast.makeText(requireContext(), R.string.thank_you_for_your_support, Toast.LENGTH_LONG).show()
-            onPurchaseSuccess?.invoke()
-            parentFragmentManager.setFragmentResult(REQUEST_KEY, Bundle().apply {
-                putBoolean(RESULT_KEY, true)
-            })
-            dismissAllowingStateLoss()
+                Toast.makeText(requireContext(), R.string.thank_you_for_your_support, Toast.LENGTH_LONG).show()
+                onPurchaseSuccess?.invoke()
+                parentFragmentManager.setFragmentResult(REQUEST_KEY, Bundle().apply {
+                    putBoolean(RESULT_KEY, true)
+                })
+                dismissAllowingStateLoss()
+            }
         }
     }
 

@@ -40,6 +40,11 @@ class BillingBottomSheetFragment : BottomSheetDialogFragment() {
 
     var onPurchaseSuccess: (() -> Unit)? = null
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        isCancelable = arguments?.getBoolean("is_cancelable", false) ?: false
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
