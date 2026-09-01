@@ -270,7 +270,7 @@ class MainActivity : BaseActivity() {
             }
             if (selectedFragment != null) {
                 supportFragmentManager.beginTransaction().replace(R.id.container, selectedFragment).commit()
-                updateSearchBarTitle(selectedFragment)
+                updateToolbarTitle(selectedFragment)
                 updateSearchViewHint(selectedFragment)
                 updateSearchViewChips(selectedFragment)
                 return@setOnItemSelectedListener true
@@ -328,12 +328,15 @@ class MainActivity : BaseActivity() {
             }
             binding.bottomNavigation.menu.findItem(initialItemId).isChecked = true
             supportFragmentManager.beginTransaction().replace(R.id.container, initialFragment).commit()
-            updateSearchBarTitle(initialFragment)
+            updateToolbarTitle(initialFragment)
             updateSearchViewHint(initialFragment)
             updateSearchViewChips(initialFragment)
         }
 
         prefListener = OnSharedPreferenceChangeListener { _: SharedPreferences?, key: String? ->
+            if (key == "user_has_active_purchase" || key == "user_is_subscribed") {
+                getCurrentFragment()?.let { updateToolbarTitle(it) }
+            }
             if (key == HIDE_HOME_PREFERENCE || key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE) {
                 val menu1 = binding.bottomNavigation.menu
                 menu1.findItem(R.id.nav_home).isVisible =
@@ -616,6 +619,7 @@ class MainActivity : BaseActivity() {
         if (BuildConfig.FLAVOR == "full") {
             if (!isFreeUser && !hasActivePurchase && !isSubscribed) {
                 supportFragmentManager.setFragmentResultListener(BillingBottomSheetFragment.REQUEST_KEY, this) { _, _ ->
+                    getCurrentFragment()?.let { updateToolbarTitle(it) }
                     if (!preferences.getBoolean("sync_provider_dialog_shown", false)) {
                         showSyncProviderDialog()
                     }
@@ -667,7 +671,7 @@ class MainActivity : BaseActivity() {
         return supportFragmentManager.findFragmentById(R.id.container)
     }
 
-    private fun updateSearchBarTitle(fragment: Fragment) {
+    private fun updateToolbarTitle(fragment: Fragment) {
         val appName = if (BuildConfig.FLAVOR == "full" && (preferences.getBoolean("user_has_active_purchase", false) || preferences.getBoolean("user_is_subscribed", false))) {
             getString(R.string.premium_title)
         } else {
@@ -681,7 +685,7 @@ class MainActivity : BaseActivity() {
             }
             is ListFragment -> getString(R.string.title_saved)
             is AccountDataFragment -> getString(R.string.title_account)
-            else -> appName
+            else -> getString(R.string.app_name)
         }
         binding.toolbar.title = title
     }
@@ -1389,6 +1393,7 @@ class MainActivity : BaseActivity() {
     override fun onResume() {
         ThemeHelper.applyAmoledTheme(this)
         super.onResume()
+        getCurrentFragment()?.let { updateToolbarTitle(it) }
     }
 
     override fun onSupportNavigateUp(): Boolean {
