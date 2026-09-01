@@ -222,8 +222,6 @@ class BillingBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun handleError(errorMessage: String?) {
-        // Fail Secure: Do not dismiss the dialog. Show error message.
-        // The user is blocked from entering the app if they don't have a cached purchase.
         val message = errorMessage ?: getString(R.string.error_loading_data)
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
         binding.btnRefresh.visibility = View.VISIBLE
