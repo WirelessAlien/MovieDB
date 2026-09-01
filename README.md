@@ -47,15 +47,39 @@ The app allows you to filter shows based on genre, release dates, and more. Deta
 
 ## Key Features
 
--   ✨ **TMDB & Trakt Sync:** Seamless synchronization for favorites, watchlist, ratings, and collections.
--   📝 **List Management:** Create and manage public/private lists on TMDB.
--   📊 **External Ratings:** View ratings from IMDb and other sources.
--   📱 **Offline Support:** Local database for tracking shows and personal progress.
--   🔄 **Data Management:** Import and export your local database.
--   🎨 **Material You:** Modern UI that adapts to your device's theme.
--   🔔 **Release Notifications:** Get notified about new movie and TV show releases.
--   🔄 **External Data Import:** Import data from other app (more on [Wiki](https://github.com/WirelessAlien/MovieDB/wiki/Frequently-Asked-Questions-(FAQ)#can-i-import-a-database-from-another-application))
--   ...and many more!
+**Sync & Organization:**
+-   **TMDB & Trakt Sync:** Seamless synchronization for favorites, watchlist, ratings, and collections
+-   **Flexible Sync Providers:** Switch between TMDB, Trakt, or local-only sync modes
+-   **List Management:** Create and manage public/private lists directly on TMDB
+
+**Track Your Media:**
+-   **Episode Tracking:** Track watched episodes, seasons, ratings, and custom reviews for TV shows
+-   **Custom Tags:** Organize your collection with custom tags and categories
+-   **Offline Support:** Local database keeps your collection accessible without syncing
+
+**Discover & Explore:**
+-   **Detailed Information:** Browse cast, crew, recommendations, and images for each title
+-   **External Ratings:** View ratings from IMDb and other sources
+-   **Advanced Search:** Search with filtering by keywords, genres, and more
+-   **Collections & Franchises:** Explore and track movie collections and series
+
+**Notifications & Reminders:**
+-   **Release Notifications:** Get notified about new movie and TV show releases
+-   **Episode Reminders:** Automatic reminders when new episodes air
+-   **Celebrity Follow-ups:** Get notified for new releases from your favorite actors and directors
+
+**Personalization:**
+-   **Material You Design:** Modern UI that adapts to your device's theme
+-   **Home Widgets:** "Up Next" and upcoming releases widgets for quick access
+
+**Data Management:**
+-   **Import/Export:** Support for JSON, CSV, and database backup formats (Local, WebDAV
+-   **Google Drive Backup:** (ShowCase Plus) Back up your database to Google Drive
+-   **External Data Import:** Import data from other apps (more on [Wiki](https://github.com/WirelessAlien/MovieDB/wiki/Frequently-Asked-Questions-(FAQ)#can-i-import-a-database-from-another-application))
+
+**Community:**
+-   **Multi-Language:** Help translate via [Weblate](https://hosted.weblate.org/engage/showcase/)
+-   **Fully Open Source:** 100% free software (GPLv3), no ads or tracking
 ---
 
 ## Screenshots
