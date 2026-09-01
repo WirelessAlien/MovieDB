@@ -37,7 +37,7 @@
 
 ## About The Project
 
-ShowCase (formerly Movie DB) is a fully open-source Android application designed for enthusiasts to explore, discover, and organize their personal collection of films and television series.
+ShowCase (formerly Movie DB) is a fully free and open-source Android application designed for enthusiasts to explore, discover, and organize their personal collection of films and television series.
 
 It offers synchronization with your TMDB and Trakt accounts. Once logged in, you can sync your favorites, watchlist, rated movies, and more. It also integrates with a local database to keep track of your shows. You can assign various statuses to each title—such as ‘planned’, ‘watched’, or ‘dropped’—rate them, and note the dates you commenced and concluded each show.
 
@@ -83,13 +83,13 @@ You can download and install ShowCase from the following sources:
 | :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
 | **GitHub Releases** | [<img src="https://img.shields.io/github/v/release/WirelessAlien/MovieDB?label=Latest%20Release&style=for-the-badge" alt="GitHub release"/>](https://github.com/WirelessAlien/MovieDB/releases/latest) | Standard version & ShowCase Plus (with GDrive backup)     |
 | **F-Droid**          | [<img src="https://img.shields.io/f-droid/v/com.wirelessalien.android.moviedb.svg?style=for-the-badge" alt="F-Droid"/>](https://f-droid.org/packages/com.wirelessalien.android.moviedb/) | Standard version, no GDrive backup                        |
-| **Google Play**      | [<img src="https://img.shields.io/badge/Play%20Store-Download-black?style=for-the-badge&logo=googleplay" alt="Play Store"/>](https://play.google.com/store/apps/details?id=com.wirelessalien.android.moviedb.full) | Ads supported version with IAP (supports the developer)                     |
+| **Google Play**      | [<img src="https://img.shields.io/badge/Play%20Store-Download-black?style=for-the-badge&logo=googleplay" alt="Play Store"/>](https://play.google.com/store/apps/details?id=com.wirelessalien.android.moviedb.full) | ShowCase Plus (Full version)                     |
 
 
 > [!IMPORTANT]
-> The **ShowCase Plus** version includes a feature for backing up your local database to Google Drive. This version is available exclusively from the [GitHub Releases](https://github.com/WirelessAlien/MovieDB/releases/latest) page and is not available on F-Droid due to its inclusion of proprietary Google services.  
+> The **ShowCase Plus** version includes a feature for backing up your local database to Google Drive. This version is available from the [GitHub Releases](https://github.com/WirelessAlien/MovieDB/releases/latest), [Google Play](https://play.google.com/store/apps/details?id=com.wirelessalien.android.moviedb.full) and is not available on F-Droid due to its inclusion of proprietary Google services.  
 >
-> The **Google Play** version is a **Ads supported version with IAP** of the app. The same app is available for free on GitHub Release — purchasing it on Play Store is simply an additional way to **support the developer**.  
+> The **Google Play** version is the same "ShowCase Plus", which is available on GitHub Release — purchasing it on Play Store is simply an additional way to **support the developer**.  
 >
 > Learn more about the different app versions on the [project wiki](https://github.com/WirelessAlien/MovieDB/wiki/App-Version).
 
