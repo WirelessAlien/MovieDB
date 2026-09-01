@@ -73,13 +73,10 @@ import androidx.work.Constraints
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
-import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -111,6 +108,12 @@ import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ListDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.ThemeHelper
+import com.wirelessalien.android.moviedb.work.BillingCheckWorker
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.ExistingPeriodicWorkPolicy
+import java.util.concurrent.TimeUnit
+import com.wirelessalien.android.moviedb.fragment.BillingBottomSheetFragment
 import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
 import com.wirelessalien.android.moviedb.pagingSource.SearchPagingSource
 import com.wirelessalien.android.moviedb.service.TraktSyncService
@@ -122,6 +125,8 @@ import com.wirelessalien.android.moviedb.trakt.GetTraktSyncData
 import com.wirelessalien.android.moviedb.work.DailyWorkerTkt
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
 import com.wirelessalien.android.moviedb.work.TktTokenRefreshWorker
+import com.wirelessalien.android.moviedb.BuildConfig
+import com.wirelessalien.android.moviedb.fragment.OmdbSetupFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -139,7 +144,6 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 class MainActivity : BaseActivity() {
 
@@ -213,6 +217,21 @@ class MainActivity : BaseActivity() {
 
         // Set the default preference values.
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
+        preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        
+        val isFreeUser = preferences.getBoolean("user_is_free_user", false)
+        val hasActivePurchase = preferences.getBoolean("user_has_active_purchase", false)
+        val isSubscribed = preferences.getBoolean("user_is_subscribed", false)
+        val billingCheckWorker = PeriodicWorkRequestBuilder<BillingCheckWorker>(1, java.util.concurrent.TimeUnit.DAYS)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "billingCheckWorker",
+            ExistingPeriodicWorkPolicy.KEEP,
+            billingCheckWorker
+        )
+        val omdbSetupShown = preferences.getBoolean("omdb_setup_shown", false)
+        
         setSupportActionBar(binding.toolbar)
 
         binding.toolbar.setNavigationOnClickListener {
@@ -226,7 +245,6 @@ class MainActivity : BaseActivity() {
         tmdbApiKey = ConfigHelper.getConfigValue(this, "api_key")?: ""
         clientId = ConfigHelper.getConfigValue(this, "client_id")
         clientSecret = ConfigHelper.getConfigValue(this, "client_secret")
-        preferences = PreferenceManager.getDefaultSharedPreferences(this)
         binding.bottomNavigation.setOnItemSelectedListener { item: MenuItem ->
             val itemId = item.itemId
             var selectedFragment: Fragment? = null
@@ -513,7 +531,7 @@ class MainActivity : BaseActivity() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorkerTkt::class.java, 1, TimeUnit.DAYS)
+        val dailyWorkRequest = PeriodicWorkRequest.Builder(DailyWorkerTkt::class.java, 1, java.util.concurrent.TimeUnit.DAYS)
             .setConstraints(constraints)
             .build()
 
@@ -595,8 +613,31 @@ class MainActivity : BaseActivity() {
         }
 
         val dialogShown = preferences.getBoolean("sync_provider_dialog_shown", false)
-        if (!dialogShown) {
-            showSyncProviderDialog()
+        if (BuildConfig.FLAVOR == "full") {
+            if (!isFreeUser && !hasActivePurchase && !isSubscribed) {
+                supportFragmentManager.setFragmentResultListener(BillingBottomSheetFragment.REQUEST_KEY, this) { _, _ ->
+                    if (!preferences.getBoolean("sync_provider_dialog_shown", false)) {
+                        showSyncProviderDialog()
+                    }
+                }
+                
+                // If it's already added (e.g. across config change), don't add it again
+                if (supportFragmentManager.findFragmentByTag(BillingBottomSheetFragment.TAG) == null) {
+                    val billingFragment = BillingBottomSheetFragment()
+                    billingFragment.show(supportFragmentManager, BillingBottomSheetFragment.TAG)
+                }
+            } else {
+                if (!dialogShown) {
+                    showSyncProviderDialog()
+                }
+            }
+        } else if (BuildConfig.FLAVOR == "foss") {
+            if (!dialogShown) {
+                showSyncProviderDialog()
+            } else if (!omdbSetupShown) {
+                val omdbSetupFragment = OmdbSetupFragment()
+                omdbSetupFragment.show(supportFragmentManager, "OmdbSetupFragment")
+            }
         }
     }
 
@@ -606,7 +647,7 @@ class MainActivity : BaseActivity() {
             .build()
 
         val monthlyWorkRequest =
-            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, TimeUnit.DAYS)
+            PeriodicWorkRequestBuilder<GetTmdbTvDetailsWorker>(30, java.util.concurrent.TimeUnit.DAYS)
                 .setConstraints(constraints)
                 .build()
 
@@ -627,15 +668,20 @@ class MainActivity : BaseActivity() {
     }
 
     private fun updateSearchBarTitle(fragment: Fragment) {
+        val appName = if (BuildConfig.FLAVOR == "full" && (preferences.getBoolean("user_has_active_purchase", false) || preferences.getBoolean("user_is_subscribed", false))) {
+            getString(R.string.premium_title)
+        } else {
+            getString(R.string.app_name)
+        }
         val title = when (fragment) {
-            is HomeFragment -> getString(R.string.app_name)
+            is HomeFragment -> appName
             is ShowFragment -> {
                 val listType = fragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
                 if (listType == SectionsPagerAdapter.MOVIE) getString(R.string.title_movies) else getString(R.string.title_series)
             }
             is ListFragment -> getString(R.string.title_saved)
             is AccountDataFragment -> getString(R.string.title_account)
-            else -> getString(R.string.app_name)
+            else -> appName
         }
         binding.toolbar.title = title
     }

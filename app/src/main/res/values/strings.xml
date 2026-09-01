@@ -665,7 +665,7 @@
 
     <string name="share">Share ShowCase</string>
     <string name="share_2">Share</string>
-    <string name="donate">Donate</string>
+    <string name="donate">Support</string>
     <string name="attribution">Attribution</string>
     <string name="about_movie_db">About</string>
     <string name="image">Image</string>
@@ -918,4 +918,34 @@
     <string name="chip_new">New</string>
     <string name="chip_released">Released</string>
     <string name="no_supported_apps_installed">No supported apps installed</string>
+    <string name="subscription_issue_title">Issue with Subscription</string>
+    <string name="subscription_issue_summary">You will lose premium in %s if the issue persists.</string>
+    <string name="refresh_purchase_status">Refresh Status</string>
+
+    <string name="go_ad_free">Get Premium</string>
+    <string name="go_ad_free_summary">Unlock premium features, get priority support, and help support ongoing development</string>
+    <string name="manage_consent">Manage Consent</string>
+    <string name="manage_consent_summary">Manage your data and privacy preferences</string>
+    <string name="please_wait">Please Wait…</string>
+    <string name="premium_feature_msg">This is a premium feature.</string>
+    <string name="purchase_canceled">Purchase canceled</string>
+    <string name="error2">Error: %1$s</string>
+    <string name="lifetime_patron">Lifetime Patron (%1$s)</string>
+    <string name="lifetime_patron2">Lifetime Patron</string>
+    <string name="lifetime_patron_unavailable">Lifetime Patron (Unavailable)</string>
+    <string name="supporter_tier_monthly">Supporter Tier (Monthly %1$s)</string>
+    <string name="supporter_tier_monthly2">Supporter Tier</string>
+    <string name="supporter_tier_unavailable">Supporter Tier (Unavailable)</string>
+    <string name="thank_you_for_your_support">Thank you for your support! Enjoy the app.</string>
+    <string name="support_showcase">Get Premium</string>
+    <string name="support_showcase_desc">Unlock premium features, get priority support, and help keep development going.</string>
+    <string name="otp_desc">Make a one-time contribution and use the app free forever with premium features and priority support. Thank you for supporting the project!</string>
+    <string name="ms_desc">Get premium features, priority support, and help support ongoing development. Cancel anytime.</string>
+    <string name="subscription_auto_renews_monthly">Subscription automatically renews monthly</string>
+    <string name="payment_pending">Payment pending. Your transaction hasn’t been completed yet.</string>
+    <string name="manage_subscription">Manage Subscription</string>
+    <string name="continue_with_ads">Continue for Free</string>
+    <string name="ads_desc">Use the app for free. The app is open-source and free to use; Premium is an optional way to support the project.</string>
+    <string name="ads_title">Free Tier</string>
+    <string name="premium_title">Premium</string>
 </resources>
