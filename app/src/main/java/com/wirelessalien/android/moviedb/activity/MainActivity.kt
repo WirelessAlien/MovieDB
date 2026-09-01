@@ -685,6 +685,7 @@ class MainActivity : BaseActivity() {
             }
             is ListFragment -> getString(R.string.title_saved)
             is AccountDataFragment -> getString(R.string.title_account)
+            is AccountDataFragmentTkt -> getString(R.string.title_account)
             else -> getString(R.string.app_name)
         }
         binding.toolbar.title = title
