@@ -530,16 +530,29 @@
     <string name="title_show_crew">Display crew</string>
     <string name="title_show_recommendations">Display recommendations</string>
     <string name="title_show_save_dialog">Display save dialog</string>
+
+    <string name="custom_dns_category">Network Rule</string>
+    <string name="custom_dns_enabled_title">Use custom DNS (DNS-over-HTTPS)</string>
+    <string name="custom_dns_enabled_summary">Route DNS queries over HTTPS to bypass ISP-level DNS blocks (e.g. TMDB blocked by Jio)</string>
+    <string name="custom_dns_url_title">Custom DNS-over-HTTPS URL</string>
+    <string name="custom_dns_url_summary">Enter a custom DNS URL or leave unchanged to use the default.</string>
     <string name="title_persistent_filtering">Persistent filter</string>
     <string name="summary_persistent_filtering">Auto-filter media when starting the app</string>
+    <string name="title_include_adult">Include adult content</string>
+    <string name="summary_include_adult">Show adult titles in search and discover results.</string>
     <string name="title_show_representation">Media representation</string>
     <string name="title_shows_in_grid">Display media in a grid</string>
     <string name="title_grid_size">Grid size</string>
     <string name="summary_grid_size">Amount of items in a row</string>
     <string name="title_data_usage">Data usage</string>
     <string name="title_live_search">Use live search</string>
+    <string name="title_chips_visibility">Chips visibility</string>
+    <string name="summary_chips_visibility">Choose which chips to hide in details screen</string>
+
     <string name="title_hide_tabs">Tabs visibility</string>
     <string name="summary_hide_tabs">Restart the app to apply changes.</string>
+    <string name="summary_tab_visibility">If all tabs are hidden, the Home tab will be displayed because the app cannot be displayed with no tabs.</string>
+    <string name="title_hide_home_tab">Hide the \'Home\' tab</string>
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
     <string name="title_hide_series_tab">Hide the \'Shows\' tab</string>
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
@@ -585,6 +598,9 @@
     <string name="summary_notification_one">This preference applies to upcoming movies and shows (including individual episodes) of \"Saved\" and from \"Trakt\" account</string>
     <string name="get_notified_for_saved_movies">Get notified</string>
     <string name="summary_notification_two">Get notified for upcoming items of Trakt account and \"Saved\" when released.</string>
+    <string name="get_notified_for_favorited_people">Get notified for favorited people</string>
+    <string name="summary_notification_three">Get notified when a new movie or show is released for people you have favorited.</string>
+    <string name="notification_for_person_credit">%1$s is in %2$s, releasing soon!</string>
     <string name="not_logged_in">You are not logged in</string>
     <string name="logged_in">You are logged in</string>
     <string name="other">Other</string>
@@ -655,12 +671,14 @@
     <string name="just_watch_attribution">This app uses JustWatch data to show streaming service info.</string>
 
     <string name="share">Share ShowCase</string>
-    <string name="donate">Donate</string>
+    <string name="share_2">Share</string>
+    <string name="donate">Support</string>
     <string name="attribution">Attribution</string>
     <string name="about_movie_db">About</string>
     <string name="image">Image</string>
     <string name="where_to_watch">Where to watch?</string>
     <string name="trailer">Trailer</string>
+    <string name="box_office">Box Office</string>
     <string name="selected_directory">Path:</string>
     <string name="export_info">The app allows for the exportation of files in \".db\", \".json\" and \".csv\" formats. Please note, however, that only the \".db\" format is supported for subsequent imports.</string>
     <string name="import_info">Only .db format is supported for imports. .json files cannot be imported.</string>
@@ -760,7 +778,16 @@
     <string name="on_hold1">On Hold: %1$d</string>
     <string name="dropped1">Dropped: %1$d</string>
     <string name="watch_summary">Watch Summary</string>
+    <string name="activity_trend">Activity Trend</string>
+    <string name="ratings_insight">Ratings Insight</string>
     <string name="share_link_using">Share link using</string>
+    <string name="share_movie_link">Share link</string>
+    <string name="remove_from_list">Remove from list</string>
+    <string name="remove_from_list_confirmation">Are you sure you want to remove this item?</string>
+    <string name="dont_ask_again">Don\'t ask again</string>
+    <string name="confirm_removal">Confirm Removal</string>
+    <string name="confirm_removal_2">Display confirm removal Dialog</string>
+    <string name="confirm_removal_summary">Ask for confirmation before removing an item from a list</string>
     <string name="episode_title">S:%1$d E:%2$d %3$s</string>
     <string name="season_number">S: %1$d</string>
     <string name="episode_number">E: %1$d</string>
@@ -820,7 +847,9 @@
 
     <string name="app_language">App language</string>
     <string name="episode_groups">Episode Groups</string>
-   
+    <string name="chip_show_movie">Shows &amp; Movies</string>
+    <string name="chip_word">Keywords</string>
+
     <!-- WebDAV Sync & Backup -->
     <string name="webdav_backup">WebDAV Backup</string>
     <string name="enable_webdav_sync_backup">Enable WebDAV Sync/Backup</string>
@@ -838,4 +867,92 @@
     <string name="failed_to_restore_database_from_webdav">Failed to restore database from WebDAV</string>
     <string name="webdav_backup_failed">WebDAV Backup Failed</string>
     <string name="webdav_backup_successful">WebDAV Backup Successful</string>
+    <string name="bulk_tag_management">Manage Tags for Media</string>
+    <string name="action_fix_dates">Fix date formats</string>
+    <string name="add_to_tags">Add to Tag(s)</string>
+    <string name="remove_from_tags">Remove from Tag(s)</string>
+    <string name="items_selected">%d selected</string>
+    <string name="bulk_tag_success_add">Added %1$d item(s) to %2$d tag(s)</string>
+    <string name="bulk_tag_success_remove">Removed %1$d item(s) from %2$d tag(s)</string>
+    <string name="select_tags">Select Tags</string>
+    <string name="add_hide_tag">Add Exclude Tag</string>
+    <string name="exclude_label">Exclude:</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="unknown_genre">Unknown</string>
+    <string name="others">Others</string>
+    <string name="movies_label">Movies</string>
+    <string name="tv_shows_label">TV Shows</string>
+    <string name="total_items_tracked">Total tracked items: %d</string>
+    <string name="watched_this_year_summary">You watched %1$d movies and %2$d shows this year</string>
+    <string name="customize_tags">Customize Tags</string>
+    <string name="filter_tags">Filter Tags</string>
+    <string name="apply">Apply</string>
+    <string name="no_tags_to_delete">No tags to delete</string>
+    <string name="delete_tags_confirmation">Are you sure you want to delete the selected tags? This action is irreversible and deleted tags cannot be restored.</string>
+    <string name="deleted_tags">Deleted %1$d tag(s)</string>
+    <string name="category_chart_desc">Distribution of media by watch status</string>
+    <string name="genre_chart_desc">Most watched genres</string>
+    <string name="activity_trend_desc">Items watched per month this year</string>
+    <string name="ratings_insight_desc">Distribution of your ratings</string>
+    <string name="no_dates_need_fixing">No dates need fixing.</string>
+    <string name="invalid_dates_review_message">The following entries have invalid dates from an earlier app version. Please review and confirm the updates.</string>
+
+    <string name="play">Play</string>
+    <string name="play_in">Play in…</string>
+    <string name="always_ask">Always Ask</string>
+    <string name="title_default_play_app">Default Play App</string>
+    <string name="summary_default_play_app">Choose the default app to open when pressing Play</string>
+    <string name="netflix">Netflix</string>
+    <string name="prime_video">Prime Video</string>
+    <string name="disney_plus">Disney+</string>
+    <string name="hulu">Hulu</string>
+    <string name="stremio">Stremio</string>
+
+    <string name="custom_ott_app">Preferred App</string>
+    <string name="custom_ott_package_title">App Package ID</string>
+    <string name="custom_ott_package_summary">Package ID of the app to launch (e.g. com.example.app)</string>
+    <string name="custom_ott_link_title">OTT Deep Link</string>
+    <string name="custom_ott_link_summary">Search deep link URL. Use {title} for URL-encoded title or {imdbId} for IMDB or other media ID.</string>
+
+    <string name="custom_ott_name_title">App Name</string>
+    <string name="custom_ott_dialog_instruction">Enter the details of the app you want to use for playing media. You must provide a valid Package ID and Deep Link. The {title} and {imdbId} placeholders can be used in the Deep Link to substitute the movie/show information.</string>
+    <string name="custom_app_preference">Preferred App Preference</string>
+    <string name="could_not_open_custom_app_or_deep_link">Could not open preferred app or deep link</string>
+    <string name="could_not_open_custom_app">Could not open preferred app</string>
+    <string name="custom_app_not_found">App not found</string>
+
+    <string name="chip_new">New</string>
+    <string name="chip_released">Released</string>
+    <string name="no_supported_apps_installed">No supported apps installed</string>
+    <string name="subscription_issue_title">Issue with Subscription</string>
+    <string name="subscription_issue_summary">You will lose premium in %s if the issue persists.</string>
+    <string name="refresh_purchase_status">Refresh Status</string>
+
+    <string name="go_ad_free">Get Premium</string>
+    <string name="go_ad_free_summary">Unlock premium features, get priority support, and help support ongoing development</string>
+    <string name="manage_consent">Manage Consent</string>
+    <string name="manage_consent_summary">Manage your data and privacy preferences</string>
+    <string name="please_wait">Please Wait…</string>
+    <string name="premium_feature_msg">This is a premium feature.</string>
+    <string name="purchase_canceled">Purchase canceled</string>
+    <string name="error2">Error: %1$s</string>
+    <string name="lifetime_patron">Lifetime Patron (%1$s)</string>
+    <string name="lifetime_patron2">Lifetime Patron</string>
+    <string name="lifetime_patron_unavailable">Lifetime Patron (Unavailable)</string>
+    <string name="supporter_tier_monthly">Supporter Tier (Monthly %1$s)</string>
+    <string name="supporter_tier_monthly2">Supporter Tier</string>
+    <string name="supporter_tier_unavailable">Supporter Tier (Unavailable)</string>
+    <string name="thank_you_for_your_support">Thank you for your support! Enjoy the app.</string>
+    <string name="support_showcase">Get Premium</string>
+    <string name="support_showcase_desc">Unlock premium features, get priority support, and help keep development going.</string>
+    <string name="otp_desc">Make a one-time contribution and use the app free forever with premium features and priority support. Thank you for supporting the project!</string>
+    <string name="ms_desc">Get premium features, priority support, and help support ongoing development. Cancel anytime.</string>
+    <string name="subscription_auto_renews_monthly">Subscription automatically renews monthly</string>
+    <string name="payment_pending">Payment pending. Your transaction hasn’t been completed yet.</string>
+    <string name="manage_subscription">Manage Subscription</string>
+    <string name="continue_with_ads">Continue for Free</string>
+    <string name="ads_desc">Use the app for free. The app is open-source and free to use; Premium is an optional way to support the project.</string>
+    <string name="ads_title">Free Tier</string>
+    <string name="premium_title">Premium</string>
 </resources>
