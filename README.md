@@ -73,7 +73,7 @@ The app allows you to filter shows based on genre, release dates, and more. Deta
 -   **Home Widgets:** "Up Next" and upcoming releases widgets for quick access
 
 **Data Management:**
--   **Import/Export:** Support for JSON, CSV, and database backup formats (Local, WebDAV
+-   **Import/Export:** Support for JSON, CSV, and database backup formats (Local, WebDAV)
 -   **Google Drive Backup:** (ShowCase Plus) Back up your database to Google Drive
 -   **External Data Import:** Import data from other apps (more on [Wiki](https://github.com/WirelessAlien/MovieDB/wiki/Frequently-Asked-Questions-(FAQ)#can-i-import-a-database-from-another-application))
 
