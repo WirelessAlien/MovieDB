@@ -558,7 +558,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         super.onViewCreated(view, savedInstanceState)
         billingHelper = BillingHelper(requireContext(), lifecycleScope) { _, _ -> }
         billingHelper.checkPurchases { status -> 
-            lifecycleScope.launchWhenStarted {
+            viewLifecycleOwner.lifecycleScope.launchWhenStarted {
                 when (status) {
                     is PurchaseStatus.Purchased -> {
                         preferences.edit {
