@@ -116,10 +116,14 @@ class BillingHelper(
         val hasSubscription = prefs.getBoolean(KEY_HAS_SUBSCRIPTION, false)
         val lastCheckTime = prefs.getLong(KEY_LAST_CHECK_TIME, 0)
 
-        if ((hasLifetime || hasSubscription) && (System.currentTimeMillis() - lastCheckTime < CACHE_VALIDITY_MILLIS)) {
-            return PurchaseStatus.Purchased(hasLifetime, hasSubscription)
+        val isCacheValid = System.currentTimeMillis() - lastCheckTime < CACHE_VALIDITY_MILLIS
+        if (!isCacheValid) return PurchaseStatus.Error
+
+        return if (hasLifetime || hasSubscription) {
+            PurchaseStatus.Purchased(hasLifetime, hasSubscription)
+        } else {
+            PurchaseStatus.NotPurchased
         }
-        return PurchaseStatus.Error
     }
 
     suspend fun checkPurchasesSuspend(): PurchaseStatus {
