@@ -164,6 +164,10 @@ class HomeFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Uncomment to enable Wrapped promo dialog
+        // showWrappedPromoDialog()
+
         menuProvider = object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_notification, menu)
@@ -537,6 +541,39 @@ class HomeFragment : BaseFragment() {
             binding.shimmerFrameLayout1.apply {
                 visibility = View.GONE
                 stopShimmer()
+            }
+        }
+    }
+
+    
+    private fun showWrappedPromoDialog() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val hasShown = prefs.getBoolean("wrapped_promo_shown", false)
+        
+        if (!hasShown) {
+            val dbHelper = com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper(requireContext())
+            val cursor = dbHelper.readableDatabase.rawQuery("SELECT COUNT(*) FROM ${com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper.TABLE_MOVIES} WHERE ${com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper.COLUMN_MOVIE} = 1", null)
+            var movieCount = 0
+            cursor.use {
+                if (it.moveToFirst()) {
+                    movieCount = it.getInt(0)
+                }
+            }
+            
+            if (movieCount >= 10) {
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                    .setView(R.layout.dialog_wrapped_promo)
+                    .setPositiveButton(R.string.wrapped_promo_open) { _, _ ->
+                        val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+                        val intent = android.content.Intent(requireContext(), com.wirelessalien.android.moviedb.activity.YearWrappedActivity::class.java).apply {
+                            putExtra("year", currentYear)
+                        }
+                        startActivity(intent)
+                    }
+                    .setNegativeButton(R.string.wrapped_promo_dismiss, null)
+                    .show()
+                    
+                prefs.edit().putBoolean("wrapped_promo_shown", true).apply()
             }
         }
     }

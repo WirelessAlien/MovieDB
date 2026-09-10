@@ -57,4 +57,17 @@
         android:orderInCategory="6"
         android:title="@string/action_fix_dates"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_wrapped"
+        android:orderInCategory="10"
+        android:title="Year Wrapped"
+        app:showAsAction="never" />
+
+    <!-- TEST MENU ITEM TO BE REMOVED LATER -->
+    <item
+        android:id="@+id/action_wrapped_test"
+        android:orderInCategory="11"
+        android:title="Year Wrapped (TEST)"
+        app:showAsAction="never" />
 </menu>

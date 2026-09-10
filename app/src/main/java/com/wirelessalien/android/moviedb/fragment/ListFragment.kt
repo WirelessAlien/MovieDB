@@ -253,8 +253,19 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 menuInflater.inflate(R.menu.tkt_auto_sync_menu, menu)
             }
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            override fun onMenuItemSelected (menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
+
+                   //will comment out
+                    R.id.action_wrapped -> {
+                        val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+                        val targetYear = if (currentYear >= 2026) currentYear else 2026
+                        val intent = android.content.Intent(requireContext(), com.wirelessalien.android.moviedb.activity.YearWrappedActivity::class.java).apply {
+                            putExtra("year", targetYear)
+                        }
+                        startActivity(intent)
+                        true
+                    }
 
                     R.id.action_search -> {
                         activityBinding.searchView.show()

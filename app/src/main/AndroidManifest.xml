@@ -162,6 +162,10 @@
             android:theme="@style/AppTheme">
         </activity>
 
+        <activity android:name=".activity.YearWrappedActivity" 
+            android:theme="@style/AppTheme"> 
+        </activity>
+
         <activity android:name=".activity.SettingsActivity"
             android:theme="@style/AppTheme">
         </activity>

@@ -948,4 +948,27 @@
     <string name="ads_desc">Use the app for free. The app is open-source and free to use; Premium is an optional way to support the project.</string>
     <string name="ads_title">Free Tier</string>
     <string name="premium_title">Premium</string>
+
+    <!-- Year in Wrapped -->
+    <string name="wrapped_promo_title">Your Year in Wrapped!</string>
+    <string name="wrapped_promo_message">Take a look back at your movie and TV show watching statistics for the year.</string>
+    <string name="wrapped_promo_open">Open</string>
+    <string name="wrapped_promo_dismiss">Dismiss</string>
+    <string name="wrapped_slide1_title">The Volume</string>
+    <string name="wrapped_slide2_title">Genre DNA</string>
+    <string name="wrapped_slide3_title">Hall of Fame</string>
+    <string name="wrapped_slide4_title">Timeline Milestones</string>
+    <string name="wrapped_slide5_title">Peak Activity</string>
+    <string name="wrapped_slide6_title">Summary</string>
+    <string name="wrapped_avg_rating_format">Average Rating: %s / 10.0</string>
+    <string name="wrapped_peak_month_format">%1$s was your peak with %2$d titles</string>
+    <string name="wrapped_peak_day_format">%1$s Movie Nights: %2$d%% of all watches</string>
+    <string name="wrapped_top_binge_format">Top Binge Date: %1$s (%2$d titles)</string>
+    <string name="wrapped_summary_year">%d Wrapped</string>
+    <string name="wrapped_no_data">No data available for %d</string>
+    <string name="wrapped_share_text">My %d Wrapped on ShowCase!</string>
+    <string name="wrapped_share_chooser">Share your Wrapped</string>
+    <string name="wrapped_share_failed">Failed to share</string>
+    <string name="wrapped_save_success">Saved to gallery</string>
+    <string name="wrapped_save_failed">Failed to save</string>
 </resources>
