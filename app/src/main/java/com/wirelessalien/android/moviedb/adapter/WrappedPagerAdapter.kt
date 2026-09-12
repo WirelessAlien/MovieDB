@@ -20,20 +20,21 @@
 
 package com.wirelessalien.android.moviedb.adapter
 
+import android.net.Uri
 import android.view.LayoutInflater
-import com.wirelessalien.android.moviedb.databinding.ItemWrappedSlideBinding
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.databinding.ItemWrappedSlideBinding
 
 class WrappedPagerAdapter(
     private val data: com.wirelessalien.android.moviedb.helper.WrappedData,
     private val onShareClicked: (View) -> Unit,
-    private val onSaveClicked: (View) -> Unit
+    private val onSaveClicked: (View) -> Unit,
+    private val onPickImageClicked: ((ImageView) -> Unit)? = null,
+    private val initialImageUri: Uri? = null
 ) : RecyclerView.Adapter<WrappedPagerAdapter.WrappedViewHolder>() {
 
     private val SLIDE_COUNT = 6
@@ -54,34 +55,56 @@ class WrappedPagerAdapter(
         holder.binding.peakLayout.visibility = View.GONE
         holder.binding.summaryLayout.visibility = View.GONE
         
+        val context = holder.binding.root.context
+
         when (position) {
             0 -> {
-                holder.binding.slideTitle.text = holder.binding.root.context.getString(R.string.wrapped_slide1_title)
+                holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide1_title)
                 holder.binding.volumeLayout.visibility = View.VISIBLE
                 holder.binding.tvTotalTitles.text = data.totalTitles.toString()
                 holder.binding.tvTotalMovies.text = data.totalMovies.toString()
-                holder.binding.tvTotalShows.text = data.totalEpisodes.toString()
+                holder.binding.tvTotalShows.text = data.totalShows.toString()
+                holder.binding.tvTotalEpisodes.text = data.totalEpisodes.toString()
             }
             1 -> {
-                holder.binding.slideTitle.text = holder.binding.root.context.getString(R.string.wrapped_slide2_title)
+                holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide2_title)
                 holder.binding.genresLayout.visibility = View.VISIBLE
                 val genres = data.topGenres
                 holder.binding.tvGenre1.text = if (genres.isNotEmpty()) "#1 ${genres[0].first} (${genres[0].second}%)" else "N/A"
                 holder.binding.tvGenre2.text = if (genres.size > 1) "#2 ${genres[1].first} (${genres[1].second}%)" else ""
                 holder.binding.tvGenre3.text = if (genres.size > 2) "#3 ${genres[2].first} (${genres[2].second}%)" else ""
+                holder.binding.tvGenre4.text = if (genres.size > 3) "#4 ${genres[3].first} (${genres[3].second}%)" else ""
+                holder.binding.tvGenre5.text = if (genres.size > 4) "#5 ${genres[4].first} (${genres[4].second}%)" else ""
             }
             2 -> {
-                holder.binding.slideTitle.text = holder.binding.root.context.getString(R.string.wrapped_slide3_title)
+                holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide3_title)
                 holder.binding.hallOfFameLayout.visibility = View.VISIBLE
-                holder.binding.tvAverageRating.text = holder.binding.root.context.getString(R.string.wrapped_avg_rating_format, String.format("%.1f", data.averageRating))
+                holder.binding.tvAverageRating.text = context.getString(R.string.wrapped_avg_rating_format, String.format("%.1f", data.averageRating))
                 holder.binding.tvLowestRated.text = data.lowestRatedTitle
                 
-                if (holder.binding.rvTopRated.adapter == null) {
-                    holder.binding.rvTopRated.adapter = WrappedPosterAdapter(data.topRatedTitleIds)
+                var isGrid = false
+
+                fun updateRecyclerView() {
+                    if (isGrid) {
+                        holder.binding.rvTopRated.layoutManager = androidx.recyclerview.widget.GridLayoutManager(context, 3)
+                        holder.binding.rvTopRated.adapter = WrappedPosterAdapter(data.topRatedTitleIds, true)
+                        holder.binding.btnToggleLayout.text = "Scroll View"
+                    } else {
+                        holder.binding.rvTopRated.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
+                        holder.binding.rvTopRated.adapter = WrappedPosterAdapter(data.topRatedTitleIds, false)
+                        holder.binding.btnToggleLayout.text = "Grid View"
+                    }
+                }
+
+                updateRecyclerView()
+
+                holder.binding.btnToggleLayout.setOnClickListener {
+                    isGrid = !isGrid
+                    updateRecyclerView()
                 }
             }
             3 -> {
-                holder.binding.slideTitle.text = holder.binding.root.context.getString(R.string.wrapped_slide4_title)
+                holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide4_title)
                 holder.binding.timelineLayout.visibility = View.VISIBLE
                 holder.binding.tvFirstTitle.text = data.firstTitle
                 holder.binding.tvFirstDate.text = data.firstDate
@@ -89,22 +112,30 @@ class WrappedPagerAdapter(
                 holder.binding.tvLastDate.text = data.lastDate
             }
             4 -> {
-                holder.binding.slideTitle.text = holder.binding.root.context.getString(R.string.wrapped_slide5_title)
+                holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide5_title)
                 holder.binding.peakLayout.visibility = View.VISIBLE
-                holder.binding.tvPeakMonth.text = holder.binding.root.context.getString(R.string.wrapped_peak_month_format, data.peakMonth, data.peakMonthCount)
-                holder.binding.tvPeakDayOfWeek.text = holder.binding.root.context.getString(R.string.wrapped_peak_day_format, data.peakDayOfWeek, data.peakDayOfWeekPercentage)
-                holder.binding.tvTopBingeDate.text = holder.binding.root.context.getString(R.string.wrapped_top_binge_format, data.topBingeDate, data.topBingeCount)
+                holder.binding.tvPeakMonth.text = context.getString(R.string.wrapped_peak_month_format, data.peakMonth, data.peakMonthCount)
+                holder.binding.tvPeakDayOfWeek.text = context.getString(R.string.wrapped_peak_day_format, data.peakDayOfWeek, data.peakDayOfWeekPercentage)
+                holder.binding.tvTopBingeDate.text = context.getString(R.string.wrapped_top_binge_format, data.topBingeDate, data.topBingeCount)
             }
             5 -> {
-                holder.binding.slideTitle.text = holder.binding.root.context.getString(R.string.wrapped_slide6_title)
+                holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide6_title)
                 holder.binding.summaryLayout.visibility = View.VISIBLE
                 
-                holder.binding.tvSummaryYear.text = holder.binding.root.context.getString(R.string.wrapped_summary_year, data.year)
+                holder.binding.tvSummaryYear.text = context.getString(R.string.wrapped_summary_year, data.year)
                 holder.binding.tvPersonaBadge.text = data.personaBadge
                 holder.binding.tvPersonaDesc.text = data.personaDescription
                 holder.binding.tvSummaryTitles.text = data.totalTitles.toString()
                 holder.binding.tvSummaryGenre.text = if (data.topGenres.isNotEmpty()) data.topGenres[0].first else "N/A"
                 holder.binding.tvSummaryRating.text = String.format("%.1f", data.averageRating)
+
+                if (initialImageUri != null) {
+                    holder.binding.ivProfileImage.setImageURI(initialImageUri)
+                }
+
+                holder.binding.ivProfileImage.setOnClickListener {
+                    onPickImageClicked?.invoke(holder.binding.ivProfileImage)
+                }
                 
                 holder.binding.btnShare.setOnClickListener { onShareClicked(holder.binding.shareCard) }
                 holder.binding.btnSave.setOnClickListener { onSaveClicked(holder.binding.shareCard) }

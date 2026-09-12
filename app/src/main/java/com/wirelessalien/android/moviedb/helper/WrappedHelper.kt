@@ -21,7 +21,6 @@
 package com.wirelessalien.android.moviedb.helper
 
 import android.content.Context
-import android.database.Cursor
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -31,6 +30,7 @@ import kotlin.math.roundToInt
 data class WrappedData(
     val year: Int,
     val totalMovies: Int,
+    val totalShows: Int,
     val totalEpisodes: Int,
     val totalTitles: Int,
     val topGenres: List<Pair<String, Int>>,
@@ -58,9 +58,8 @@ class WrappedHelper(private val context: Context) {
 
     fun calculateWrappedData(year: Int): WrappedData? {
         val db = dbHelper.readableDatabase
-        // Hardcoded to gather data up to Dec 31, 2026 from the start of the previous year
-        val startOfYear = "2025-01-01"
-        val endOfYear = "2026-12-31"
+        val startOfYear = "$year-01-01"
+        val endOfYear = "$year-12-31"
 
         // 1. Movies Watched in Year
         val movieQuery = """
@@ -92,11 +91,11 @@ class WrappedHelper(private val context: Context) {
         val movieCursor = db.rawQuery(movieQuery, arrayOf(startOfYear, endOfYear))
         val episodeCursor = db.rawQuery(episodeQuery, arrayOf(startOfYear, endOfYear))
 
+        val watchedShowIds = mutableSetOf<Int>()
         val totalMovies = movieCursor.count
         val totalEpisodes = episodeCursor.count
-        val totalTitles = totalMovies + totalEpisodes
 
-        if (totalTitles == 0) {
+        if (totalMovies == 0 && totalEpisodes == 0) {
             movieCursor.close()
             episodeCursor.close()
             return null
@@ -171,6 +170,8 @@ class WrappedHelper(private val context: Context) {
                     allRatedTitles.add(Pair(title, rating))
                 }
 
+                watchedShowIds.add(movieId)
+
                 genresStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { genre ->
                     genreCounts[genre] = genreCounts.getOrDefault(genre, 0) + 1
                 }
@@ -185,13 +186,16 @@ class WrappedHelper(private val context: Context) {
             }
         }
 
+        val totalShows = watchedShowIds.size
+        val totalTitles = totalMovies + totalShows
+
         watchEvents.sortBy { it.dateObj }
 
         val averageRating = if (ratedCount > 0) totalRating / ratedCount else 0f
         
-        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(3).map { Pair<String, Int>(it.key as String, if (totalTitles > 0) Math.round((it.value.toDouble() / totalTitles) * 100.0).toInt() else 0) }
+        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map { Pair<String, Int>(it.key, if (totalTitles > 0) Math.round((it.value.toDouble() / totalTitles) * 100.0).toInt() else 0) }
         
-        val topRatedIds = allRatedIds.sortedByDescending { it.third }.map { Pair(it.first, it.second) }.distinct().take(10)
+        val topRatedIds = allRatedIds.sortedByDescending { it.third }.map { Pair(it.first, it.second) }.distinct().take(6)
         
         val firstTitle = watchEvents.firstOrNull()?.title ?: ""
         val firstDate = watchEvents.firstOrNull()?.dateObj?.let { displayFormat.format(it) } ?: ""
@@ -221,7 +225,7 @@ class WrappedHelper(private val context: Context) {
         val personaBadge: String
         val personaDescription: String
 
-        if (totalTitles == 0) {
+        if (totalMovies == 0 && totalEpisodes == 0) {
             personaBadge = "The Ghost"
             personaDescription = "You didn't watch anything this year!"
         } else if (averageRating > 0 && averageRating < 3.0f && ratedCount > totalTitles * 0.2) {
@@ -244,6 +248,7 @@ class WrappedHelper(private val context: Context) {
         return WrappedData(
             year = year,
             totalMovies = totalMovies,
+            totalShows = totalShows,
             totalEpisodes = totalEpisodes,
             totalTitles = totalTitles,
             topGenres = topGenres,
@@ -294,9 +299,8 @@ class WrappedHelper(private val context: Context) {
     
     fun hasDataForYear(year: Int): Boolean {
         val db = dbHelper.readableDatabase
-        // Hardcoded to gather data up to Dec 31, 2026 from the start of the previous year
-        val startOfYear = "2025-01-01"
-        val endOfYear = "2026-12-31"
+        val startOfYear = "$year-01-01"
+        val endOfYear = "$year-12-31"
         
         val movieQuery = """
             SELECT COUNT(*) FROM ${MovieDatabaseHelper.TABLE_MOVIES}

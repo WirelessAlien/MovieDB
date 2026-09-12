@@ -32,7 +32,8 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.tmdb.GetMovieImage
 
 class WrappedPosterAdapter(
-    private val titleIds: List<Pair<Int, Boolean>> // TMDB ID, isMovie
+    private val titleIds: List<Pair<Int, Boolean>>,
+    private val isGridMode: Boolean = false
 ) : RecyclerView.Adapter<WrappedPosterAdapter.PosterViewHolder>() {
 
     inner class PosterViewHolder(val binding: ItemWrappedPosterBinding) : RecyclerView.ViewHolder(binding.root)

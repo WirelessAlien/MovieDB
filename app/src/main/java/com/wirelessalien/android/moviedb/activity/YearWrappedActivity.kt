@@ -22,6 +22,7 @@ package com.wirelessalien.android.moviedb.activity
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -31,16 +32,18 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.view.MotionEvent
 import android.view.View
-import android.widget.ProgressBar
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
-import com.wirelessalien.android.moviedb.databinding.ActivityYearWrappedBinding
+import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.viewpager2.widget.ViewPager2
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.adapter.WrappedPagerAdapter
-import kotlinx.coroutines.*
+import com.wirelessalien.android.moviedb.databinding.ActivityYearWrappedBinding
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Date
@@ -57,7 +60,20 @@ class YearWrappedActivity : AppCompatActivity() {
     private val progressDuration = 5000L
     private var isPaused = false
 
-    @SuppressLint("ClickableViewAccessibility")
+    private var downTime = 0L
+    private var downX = 0f
+    private var downY = 0f
+
+    var selectedImageUri: Uri? = null
+    private var activeProfileImageView: ImageView? = null
+
+    val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            selectedImageUri = uri
+            activeProfileImageView?.setImageURI(uri)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityYearWrappedBinding.inflate(layoutInflater)
@@ -69,7 +85,11 @@ class YearWrappedActivity : AppCompatActivity() {
 
         setupViewPager()
         setupProgressBars()
-        setupTouchZones()
+    }
+
+    fun launchImagePicker(imageView: ImageView) {
+        activeProfileImageView = imageView
+        pickImageLauncher.launch("image/*")
     }
 
     private fun setupViewPager() {
@@ -82,10 +102,15 @@ class YearWrappedActivity : AppCompatActivity() {
             return
         }
 
-        
-        val adapter = WrappedPagerAdapter(data, this::shareCard, this::saveCard)
+        val adapter = WrappedPagerAdapter(
+            data,
+            this::shareCard,
+            this::saveCard,
+            this::launchImagePicker,
+            selectedImageUri
+        )
         binding.viewPager.adapter = adapter
-        binding.viewPager.isUserInputEnabled = false // Disable swipe
+        binding.viewPager.isUserInputEnabled = false
         
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -109,45 +134,88 @@ class YearWrappedActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setupTouchZones() {
-        val touchListener = View.OnTouchListener { view, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    pauseProgress()
-                    return@OnTouchListener true
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    resumeProgress()
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                downTime = event.eventTime
+                downX = event.x
+                downY = event.y
+                pauseProgress()
+            }
+            MotionEvent.ACTION_UP -> {
+                resumeProgress()
+                val duration = event.eventTime - downTime
+                val deltaX = Math.abs(event.x - downX)
+                val deltaY = Math.abs(event.y - downY)
+
+                if (duration < 300 && deltaX < 30 && deltaY < 30) {
+                    val focusedView = currentFocus
+                    if (focusedView is EditText) {
+                        focusedView.clearFocus()
+                    }
+
+                    val screenWidth = resources.displayMetrics.widthPixels
+                    val touchX = event.rawX
                     
-                    val eventDuration = event.eventTime - event.downTime
-                    if (eventDuration < 300) { // Tap
-                        if (view.id == R.id.leftTapZone) {
-                            if (currentSlideIndex > 0) {
-                                binding.viewPager.currentItem = currentSlideIndex - 1
-                            }
-                        } else if (view.id == R.id.rightTapZone) {
-                            if (currentSlideIndex < slideCount - 1) {
-                                binding.viewPager.currentItem = currentSlideIndex + 1
-                            } else {
-                                finish()
-                            }
+                    if (touchX < screenWidth * 0.3f) {
+                        if (currentSlideIndex > 0) {
+                            binding.viewPager.currentItem = currentSlideIndex - 1
+                        }
+                    } else if (touchX > screenWidth * 0.3f && !isTouchOnInteractiveView(event)) {
+                        if (currentSlideIndex < slideCount - 1) {
+                            binding.viewPager.currentItem = currentSlideIndex + 1
+                        } else {
+                            finish()
                         }
                     }
-                    return@OnTouchListener true
                 }
             }
-            false
+            MotionEvent.ACTION_CANCEL -> {
+                resumeProgress()
+            }
+        }
+        return super.dispatchTouchEvent(event)
+    }
+
+    private fun isTouchOnInteractiveView(event: MotionEvent): Boolean {
+        val root = binding.root
+        return findInteractiveChild(root, event.rawX, event.rawY)
+    }
+
+    private fun findInteractiveChild(view: View, rawX: Float, rawY: Float): Boolean {
+        if (view.visibility != View.VISIBLE) return false
+
+        val location = IntArray(2)
+        view.getLocationOnScreen(location)
+        val left = location[0]
+        val top = location[1]
+        val right = left + view.width
+        val bottom = top + view.height
+
+        val isInside = rawX >= left && rawX <= right && rawY >= top && rawY <= bottom
+
+        if (!isInside) return false
+
+        if (view.id == R.id.closeButton) return true
+
+        if (view is android.widget.Button || view is EditText || view.id == R.id.ivProfileImage || view.isClickable) {
+            return true
         }
 
-        binding.leftTapZone.setOnTouchListener(touchListener)
-        binding.rightTapZone.setOnTouchListener(touchListener)
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                if (findInteractiveChild(view.getChildAt(i), rawX, rawY)) {
+                    return true
+                }
+            }
+        }
+
+        return false
     }
 
     private fun startProgressAnimation(position: Int) {
         progressAnimator?.cancel()
         
-        // Fill previous bars, empty next bars
         for (i in 0 until slideCount) {
             val pb = binding.progressContainer.getChildAt(i) as ProgressBar
             if (i < position) pb.progress = 100
@@ -157,7 +225,6 @@ class YearWrappedActivity : AppCompatActivity() {
         val currentPb = binding.progressContainer.getChildAt(position) as ProgressBar
         currentPb.progress = 0
 
-        // If it's the last slide (Summary), we don't automatically progress
         if (position == slideCount - 1) {
             currentPb.progress = 100
             return
@@ -201,7 +268,7 @@ class YearWrappedActivity : AppCompatActivity() {
         try {
             val cachePath = File(cacheDir, "images")
             cachePath.mkdirs()
-            val file = File(cachePath, "wrapped_share.png")
+            val file = File(cachePath, "showcase_wrapped_share.png")
             val stream = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
             stream.close()
@@ -211,7 +278,7 @@ class YearWrappedActivity : AppCompatActivity() {
             val shareIntent = Intent().apply {
                 action = Intent.ACTION_SEND
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                setDataAndType(contentUri, contentResolver.getType(contentUri))
+                setDataAndType(contentUri, "image/png")
                 putExtra(Intent.EXTRA_STREAM, contentUri)
                 putExtra(Intent.EXTRA_TEXT, getString(R.string.wrapped_share_text, currentYear))
             }
@@ -227,7 +294,7 @@ class YearWrappedActivity : AppCompatActivity() {
         val filename = "ShowCase_${currentYear}_Wrapped_${Date().time}.png"
         
         try {
-            val values = android.content.ContentValues().apply {
+            val values = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/png")
                 put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/ShowCase")
