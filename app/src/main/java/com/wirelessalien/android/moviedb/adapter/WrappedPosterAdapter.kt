@@ -21,43 +21,54 @@
 package com.wirelessalien.android.moviedb.adapter
 
 import android.view.LayoutInflater
-import com.wirelessalien.android.moviedb.databinding.ItemWrappedPosterBinding
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.databinding.ItemWrappedPosterBinding
+import com.wirelessalien.android.moviedb.databinding.ItemWrappedPosterSmallBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.tmdb.GetMovieImage
 
 class WrappedPosterAdapter(
     private val titleIds: List<Pair<Int, Boolean>>,
     private val isGridMode: Boolean = false
-) : RecyclerView.Adapter<WrappedPosterAdapter.PosterViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     inner class PosterViewHolder(val binding: ItemWrappedPosterBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class SmallPosterViewHolder(val binding: ItemWrappedPosterSmallBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PosterViewHolder {
-        val binding = ItemWrappedPosterBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PosterViewHolder(binding)
+    override fun getItemViewType(position: Int): Int {
+        return if (isGridMode) 1 else 0
     }
 
-    override fun onBindViewHolder(holder: PosterViewHolder, position: Int) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        return if (viewType == 1) {
+            SmallPosterViewHolder(ItemWrappedPosterSmallBinding.inflate(inflater, parent, false))
+        } else {
+            PosterViewHolder(ItemWrappedPosterBinding.inflate(inflater, parent, false))
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = titleIds[position]
         val context = holder.itemView.context
         
         val type = if (item.second) "movie" else "tv"
         val apiKey = ConfigHelper.getConfigValue(context, "tmdb_api_key")
         
+        val imageView = if (holder is SmallPosterViewHolder) holder.binding.ivPoster else (holder as PosterViewHolder).binding.ivPoster
+        
         GetMovieImage(item.first, type, apiKey).fetchMovieImages("posters") { images ->
             if (images.isNotEmpty()) {
                 val posterPath = images[0].getFilePath()
-                val url = "https://image.tmdb.org/t/p/w342$posterPath"
+                val url = "https://image.tmdb.org/t/p/w500$posterPath"
                 
                 Picasso.get()
                     .load(url)
-                    .into(holder.binding.ivPoster)
+                    .into(imageView)
             }
         }
     }

@@ -104,8 +104,6 @@ class YearWrappedActivity : AppCompatActivity() {
 
         val adapter = WrappedPagerAdapter(
             data,
-            this::shareCard,
-            this::saveCard,
             this::launchImagePicker,
             selectedImageUri
         )
@@ -118,6 +116,14 @@ class YearWrappedActivity : AppCompatActivity() {
                 startProgressAnimation(position)
             }
         })
+        
+        binding.btnShare.setOnClickListener {
+            shareCard()
+        }
+        
+        binding.btnSave.setOnClickListener {
+            saveCard()
+        }
     }
 
     private fun setupProgressBars() {
@@ -263,7 +269,15 @@ class YearWrappedActivity : AppCompatActivity() {
         return bitmap
     }
 
-    private fun shareCard(view: View) {
+    private fun getCurrentSlideView(): View? {
+        val recyclerView = binding.viewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
+        val layoutManager = recyclerView?.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+        val view = layoutManager?.findViewByPosition(currentSlideIndex)
+        return view?.findViewById(R.id.slideContentContainer)
+    }
+
+    private fun shareCard() {
+        val view = getCurrentSlideView() ?: return
         val bitmap = getBitmapFromView(view)
         try {
             val cachePath = File(cacheDir, "images")
@@ -289,7 +303,8 @@ class YearWrappedActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveCard(view: View) {
+    private fun saveCard() {
+        val view = getCurrentSlideView() ?: return
         val bitmap = getBitmapFromView(view)
         val filename = "ShowCase_${currentYear}_Wrapped_${Date().time}.png"
         

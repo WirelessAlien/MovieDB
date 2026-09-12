@@ -25,14 +25,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.databinding.ItemWrappedSlideBinding
 
 class WrappedPagerAdapter(
     private val data: com.wirelessalien.android.moviedb.helper.WrappedData,
-    private val onShareClicked: (View) -> Unit,
-    private val onSaveClicked: (View) -> Unit,
     private val onPickImageClicked: ((ImageView) -> Unit)? = null,
     private val initialImageUri: Uri? = null
 ) : RecyclerView.Adapter<WrappedPagerAdapter.WrappedViewHolder>() {
@@ -60,30 +60,58 @@ class WrappedPagerAdapter(
         when (position) {
             0 -> {
                 holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide1_title)
+                holder.binding.slideDesc.text = if (data.totalTitles > 20) context.getString(R.string.wrapped_slide1_desc_high) else context.getString(R.string.wrapped_slide1_desc_low)
                 holder.binding.volumeLayout.visibility = View.VISIBLE
+                
                 holder.binding.tvTotalTitles.text = data.totalTitles.toString()
                 holder.binding.tvTotalMovies.text = data.totalMovies.toString()
                 holder.binding.tvTotalShows.text = data.totalShows.toString()
                 holder.binding.tvTotalEpisodes.text = data.totalEpisodes.toString()
+                
+                val totalHours = Math.round((data.totalMovies * 2) + (data.totalEpisodes * 0.75)).toInt()
+                holder.binding.tvVolumeInsight.text = context.getString(R.string.wrapped_insight_format, totalHours)
             }
             1 -> {
                 holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide2_title)
+                holder.binding.slideDesc.text = context.getString(R.string.wrapped_slide2_desc)
                 holder.binding.genresLayout.visibility = View.VISIBLE
                 val genres = data.topGenres
-                holder.binding.tvGenre1.text = if (genres.isNotEmpty()) "#1 ${genres[0].first} (${genres[0].second}%)" else "N/A"
-                holder.binding.tvGenre2.text = if (genres.size > 1) "#2 ${genres[1].first} (${genres[1].second}%)" else ""
-                holder.binding.tvGenre3.text = if (genres.size > 2) "#3 ${genres[2].first} (${genres[2].second}%)" else ""
-                holder.binding.tvGenre4.text = if (genres.size > 3) "#4 ${genres[3].first} (${genres[3].second}%)" else ""
-                holder.binding.tvGenre5.text = if (genres.size > 4) "#5 ${genres[4].first} (${genres[4].second}%)" else ""
+                
+                if (genres.isNotEmpty()) {
+                    holder.binding.cvGenre1.visibility = View.VISIBLE
+                    holder.binding.tvGenre1Name.text = genres[0].first
+                    holder.binding.tvGenre1Percent.text = "${genres[0].second}%"
+                    holder.binding.pbGenre1.progress = genres[0].second
+                } else {
+                    holder.binding.cvGenre1.visibility = View.GONE
+                }
+                
+                fun bindGenreRow(rowBinding: com.wirelessalien.android.moviedb.databinding.ItemGenreRowBinding, index: Int) {
+                    if (genres.size > index) {
+                        rowBinding.root.visibility = View.VISIBLE
+                        rowBinding.tvGenreRank.text = "#${index + 1}"
+                        rowBinding.tvGenreName.text = genres[index].first
+                        rowBinding.tvGenrePercent.text = "${genres[index].second}%"
+                        rowBinding.pbGenre.progress = genres[index].second
+                    } else {
+                        rowBinding.root.visibility = View.GONE
+                    }
+                }
+                
+                bindGenreRow(holder.binding.genre2Row, 1)
+                bindGenreRow(holder.binding.genre3Row, 2)
+                bindGenreRow(holder.binding.genre4Row, 3)
+                bindGenreRow(holder.binding.genre5Row, 4)
             }
             2 -> {
                 holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide3_title)
+                holder.binding.slideDesc.text = context.getString(R.string.wrapped_slide4_desc)
                 holder.binding.hallOfFameLayout.visibility = View.VISIBLE
-                holder.binding.tvAverageRating.text = context.getString(R.string.wrapped_avg_rating_format, String.format("%.1f", data.averageRating))
+                
+                holder.binding.tvAverageRating.text = String.format("%.1f", data.averageRating)
                 holder.binding.tvLowestRated.text = data.lowestRatedTitle
                 
                 var isGrid = false
-
                 fun updateRecyclerView() {
                     if (isGrid) {
                         holder.binding.rvTopRated.layoutManager = androidx.recyclerview.widget.GridLayoutManager(context, 3)
@@ -105,7 +133,9 @@ class WrappedPagerAdapter(
             }
             3 -> {
                 holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide4_title)
+                holder.binding.slideDesc.text = context.getString(R.string.wrapped_slide3_desc)
                 holder.binding.timelineLayout.visibility = View.VISIBLE
+                
                 holder.binding.tvFirstTitle.text = data.firstTitle
                 holder.binding.tvFirstDate.text = data.firstDate
                 holder.binding.tvLastTitle.text = data.lastTitle
@@ -113,16 +143,24 @@ class WrappedPagerAdapter(
             }
             4 -> {
                 holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide5_title)
+                holder.binding.slideDesc.text = context.getString(R.string.wrapped_slide5_desc)
                 holder.binding.peakLayout.visibility = View.VISIBLE
-                holder.binding.tvPeakMonth.text = context.getString(R.string.wrapped_peak_month_format, data.peakMonth, data.peakMonthCount)
-                holder.binding.tvPeakDayOfWeek.text = context.getString(R.string.wrapped_peak_day_format, data.peakDayOfWeek, data.peakDayOfWeekPercentage)
-                holder.binding.tvTopBingeDate.text = context.getString(R.string.wrapped_top_binge_format, data.topBingeDate, data.topBingeCount)
+                
+                holder.binding.tvPeakMonth.text = data.peakMonth
+                holder.binding.tvPeakMonthDesc.text = context.getString(R.string.wrapped_peak_month_format, data.peakMonth, data.peakMonthCount)
+                
+                holder.binding.tvPeakDayOfWeek.text = data.peakDayOfWeek
+                holder.binding.tvPeakDayDesc.text = context.getString(R.string.wrapped_peak_day_format, data.peakDayOfWeek, data.peakDayOfWeekPercentage)
+                
+                holder.binding.tvTopBingeDate.text = data.topBingeDate
+                holder.binding.tvTopBingeDesc.text = context.getString(R.string.wrapped_top_binge_format, data.topBingeDate, data.topBingeCount)
             }
             5 -> {
                 holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide6_title)
+                holder.binding.slideDesc.text = context.getString(R.string.wrapped_slide6_desc)
                 holder.binding.summaryLayout.visibility = View.VISIBLE
                 
-                holder.binding.tvSummaryYear.text = context.getString(R.string.wrapped_summary_year, data.year)
+                holder.binding.tvSummaryYearLabel.text = "${data.year} WRAPPED"
                 holder.binding.tvPersonaBadge.text = data.personaBadge
                 holder.binding.tvPersonaDesc.text = data.personaDescription
                 holder.binding.tvSummaryTitles.text = data.totalTitles.toString()
@@ -136,9 +174,6 @@ class WrappedPagerAdapter(
                 holder.binding.ivProfileImage.setOnClickListener {
                     onPickImageClicked?.invoke(holder.binding.ivProfileImage)
                 }
-                
-                holder.binding.btnShare.setOnClickListener { onShareClicked(holder.binding.shareCard) }
-                holder.binding.btnSave.setOnClickListener { onSaveClicked(holder.binding.shareCard) }
             }
         }
     }

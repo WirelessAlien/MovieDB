@@ -193,7 +193,7 @@ class WrappedHelper(private val context: Context) {
 
         val averageRating = if (ratedCount > 0) totalRating / ratedCount else 0f
         
-        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map { Pair<String, Int>(it.key, if (totalTitles > 0) Math.round((it.value.toDouble() / totalTitles) * 100.0).toInt() else 0) }
+        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map { Pair<String, Int>(it.key, if (totalMovies + totalEpisodes > 0) Math.round((it.value.toDouble() / (totalMovies + totalEpisodes)) * 100.0).toInt() else 0) }
         
         val topRatedIds = allRatedIds.sortedByDescending { it.third }.map { Pair(it.first, it.second) }.distinct().take(6)
         
@@ -210,7 +210,7 @@ class WrappedHelper(private val context: Context) {
         val peakDayIndex = dayOfWeekCounts.maxByOrNull { it.value }?.key ?: 1
         val peakDayCount = dayOfWeekCounts.maxByOrNull { it.value }?.value ?: 0
         val peakDayName = getDayOfWeekName(peakDayIndex)
-        val peakDayOfWeekPercentage = if (totalTitles > 0) ((peakDayCount.toFloat() / totalTitles) * 100).roundToInt() else 0
+        val peakDayOfWeekPercentage = if (totalMovies + totalEpisodes > 0) ((peakDayCount.toFloat() / (totalMovies + totalEpisodes)) * 100).roundToInt() else 0
 
         val topBingeDateStr = dateCounts.maxByOrNull { it.value }?.key ?: ""
         val topBingeCount = dateCounts.maxByOrNull { it.value }?.value ?: 0
@@ -228,13 +228,13 @@ class WrappedHelper(private val context: Context) {
         if (totalMovies == 0 && totalEpisodes == 0) {
             personaBadge = "The Ghost"
             personaDescription = "You didn't watch anything this year!"
-        } else if (averageRating > 0 && averageRating < 3.0f && ratedCount > totalTitles * 0.2) {
+        } else if (averageRating > 0 && averageRating < 3.0f && ratedCount > (totalMovies + totalEpisodes) * 0.2) {
             personaBadge = "The Critic"
             personaDescription = "High percentage of low ratings. Tough crowd!"
-        } else if (averageRating >= 4.5f && ratedCount > totalTitles * 0.2) {
+        } else if (averageRating >= 4.5f && ratedCount > (totalMovies + totalEpisodes) * 0.2) {
             personaBadge = "The Easy Pleaser"
             personaDescription = "You find the good in everything you watch."
-        } else if (topGenres.isNotEmpty() && genreCounts[topGenres.first().first] ?: 0 > totalTitles * 0.5) {
+        } else if (topGenres.isNotEmpty() && genreCounts[topGenres.first().first] ?: 0 > (totalMovies + totalEpisodes) * 0.5) {
             personaBadge = "The Genre Loyalist"
             personaDescription = "Over 50% of your watches were ${topGenres.first().first}!"
         } else if (topBingeCount >= 10) {

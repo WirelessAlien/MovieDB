@@ -971,4 +971,20 @@
     <string name="wrapped_share_failed">Failed to share</string>
     <string name="wrapped_save_success">Saved to gallery</string>
     <string name="wrapped_save_failed">Failed to save</string>
+    <string name="wrapped_slide1_desc_high">A year of unforgettable stories streamed and celebrated</string>
+    <string name="wrapped_slide1_desc_low">A light year for streaming, but every story counts</string>
+    <string name="wrapped_slide2_desc">The storytelling worlds that defined your screen time this year.</string>
+    <string name="wrapped_slide2_insight">You ventured into deep narratives, suspenseful worlds, and alternate realities this year.</string>
+    <string name="wrapped_slide3_desc">How your cinematic journey started and where it completed.</string>
+    <string name="wrapped_slide4_desc">The absolute best (and the guilty pleasure) of what you watched.</string>
+    <string name="wrapped_slide5_desc">When your watch habits hit their absolute summit.</string>
+    <string name="wrapped_slide6_desc">Your year in cinema, ready to share.</string>
+    <string name="wrapped_first_watch_desc">Your very first watch of the year.</string>
+    <string name="wrapped_last_watch_desc">Your latest completion that capped off the journey.</string>
+    <string name="wrapped_top_rated">Top Rated Titles</string>
+    <string name="wrapped_guilty_pleasure">Guilty Pleasure (Lowest Rated)</string>
+    <string name="wrapped_peak_month_label">Calendar Peak</string>
+    <string name="wrapped_peak_day_label">Weekly Habit</string>
+    <string name="wrapped_binge_label">Record Breaker</string>
+    <string name="wrapped_insight_format">You spent an estimated %1$d hours immersed in cinema &amp; binge sessions.</string>
 </resources>
