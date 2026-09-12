@@ -37,6 +37,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
@@ -262,23 +263,69 @@ class YearWrappedActivity : AppCompatActivity() {
         progressAnimator?.resume()
     }
 
-    private fun getBitmapFromView(view: View): Bitmap {
-        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+    private fun getBitmapFromView(): Bitmap? {
+        val recyclerView = binding.viewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
+        val layoutManager = recyclerView?.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+        val slideView = layoutManager?.findViewByPosition(currentSlideIndex) ?: return null
+        
+        val slideTitle = slideView.findViewById<android.widget.TextView>(R.id.slideTitle)
+        val slideDesc = slideView.findViewById<android.widget.TextView>(R.id.slideDesc)
+        val contentContainer = slideView.findViewById<View>(R.id.slideContentContainer)
+        
+        // Use the measured dimensions from the actual layout on screen.
+        val titleWidth = slideTitle.width
+        val titleHeight = slideTitle.height
+        val descWidth = slideDesc.width
+        val descHeight = slideDesc.height
+        val contentWidth = contentContainer.width
+        val contentHeight = contentContainer.height
+        
+        val margin = 48
+        val paddingBetween = 24
+        val totalWidth = slideView.width + margin * 2
+        val totalHeight = margin + titleHeight + paddingBetween + descHeight + paddingBetween + contentHeight + margin
+        
+        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        view.draw(canvas)
+        
+        val typedValue = android.util.TypedValue()
+        theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
+        canvas.drawColor(typedValue.data)
+        
+        // Draw views manually and center them horizontally based on their actual widths
+        
+        // 1. Draw Title
+        canvas.save()
+        val titleXOffset = (totalWidth - titleWidth) / 2f
+        canvas.translate(titleXOffset, margin.toFloat())
+        slideTitle.draw(canvas)
+        canvas.restore()
+        
+        // 2. Draw Description
+        canvas.save()
+        val descXOffset = (totalWidth - descWidth) / 2f
+        canvas.translate(descXOffset, (margin + titleHeight + paddingBetween).toFloat())
+        slideDesc.draw(canvas)
+        canvas.restore()
+        
+        // 3. Draw Content Container
+        canvas.save()
+        val contentXOffset = (totalWidth - contentWidth) / 2f
+        canvas.translate(contentXOffset, (margin + titleHeight + paddingBetween + descHeight + paddingBetween).toFloat())
+        contentContainer.draw(canvas)
+        canvas.restore()
+        
         return bitmap
     }
 
     private fun getCurrentSlideView(): View? {
         val recyclerView = binding.viewPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
         val layoutManager = recyclerView?.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
-        val view = layoutManager?.findViewByPosition(currentSlideIndex)
-        return view?.findViewById(R.id.slideContentContainer)
+        return layoutManager?.findViewByPosition(currentSlideIndex)
     }
 
     private fun shareCard() {
-        val view = getCurrentSlideView() ?: return
-        val bitmap = getBitmapFromView(view)
+        val bitmap = getBitmapFromView() ?: return
         try {
             val cachePath = File(cacheDir, "images")
             cachePath.mkdirs()
@@ -304,8 +351,7 @@ class YearWrappedActivity : AppCompatActivity() {
     }
 
     private fun saveCard() {
-        val view = getCurrentSlideView() ?: return
-        val bitmap = getBitmapFromView(view)
+        val bitmap = getBitmapFromView() ?: return
         val filename = "ShowCase_${currentYear}_Wrapped_${Date().time}.png"
         
         try {

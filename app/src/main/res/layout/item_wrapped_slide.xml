@@ -127,12 +127,14 @@
                         app:cardElevation="0dp"
                         app:strokeWidth="1dp"
                         app:strokeColor="?attr/colorOutlineVariant">
+                     
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:padding="12dp">
+                        
                             <TextView
                                 android:id="@+id/tvTotalMovies"
                                 android:layout_width="wrap_content"
@@ -141,6 +143,7 @@
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurface"
                                 tools:text="16" />
+                         
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -160,12 +163,14 @@
                         app:cardElevation="0dp"
                         app:strokeWidth="1dp"
                         app:strokeColor="?attr/colorOutlineVariant">
+                     
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:padding="12dp">
+                         
                             <TextView
                                 android:id="@+id/tvTotalShows"
                                 android:layout_width="wrap_content"
@@ -174,6 +179,7 @@
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurface"
                                 tools:text="23" />
+                       
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -193,12 +199,14 @@
                         app:cardElevation="0dp"
                         app:strokeWidth="1dp"
                         app:strokeColor="?attr/colorOutlineVariant">
+                     
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:padding="12dp">
+                          
                             <TextView
                                 android:id="@+id/tvTotalEpisodes"
                                 android:layout_width="wrap_content"
@@ -207,6 +215,7 @@
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurface"
                                 tools:text="217" />
+                          
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -226,6 +235,7 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                  
                     <TextView
                         android:id="@+id/tvVolumeInsight"
                         android:layout_width="match_parent"
@@ -235,7 +245,6 @@
                         android:textColor="?attr/colorOnSurface"
                         tools:text="You spent an estimated 184 hours immersed in cinema &amp; binge sessions." />
                 </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
 
             <!-- Slide 2: Genre DNA -->
@@ -262,11 +271,13 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+                      
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
+                          
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -275,6 +286,7 @@
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorPrimary"
                                 android:layout_marginEnd="12dp" />
+                         
                             <TextView
                                 android:id="@+id/tvGenre1Name"
                                 android:layout_width="0dp"
@@ -284,6 +296,7 @@
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurface"
                                 tools:text="Drama" />
+                          
                             <TextView
                                 android:id="@+id/tvGenre1Percent"
                                 android:layout_width="wrap_content"
@@ -293,6 +306,7 @@
                                 android:textColor="?attr/colorOnSurface"
                                 tools:text="74%" />
                         </LinearLayout>
+                     
                         <ProgressBar
                             android:id="@+id/pbGenre1"
                             style="?android:attr/progressBarStyleHorizontal"
@@ -319,6 +333,7 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                  
                     <TextView
                         android:id="@+id/tvGenreInsight"
                         android:layout_width="match_parent"
@@ -346,17 +361,20 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                   
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:padding="16dp">
+                      
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
+                           
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -364,11 +382,13 @@
                                 android:textSize="12sp"
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
+                          
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
                                 android:gravity="bottom">
+                              
                                 <TextView
                                     android:id="@+id/tvAverageRating"
                                     android:layout_width="wrap_content"
@@ -377,6 +397,7 @@
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorOnSurface"
                                     tools:text="7.5" />
+                          
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -432,11 +453,13 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorError">
-                    <LinearLayout
+                  
+                   <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+                     
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -445,6 +468,7 @@
                             android:textStyle="bold"
                             android:textAllCaps="true"
                             android:textColor="?attr/colorError" />
+                     
                         <TextView
                             android:id="@+id/tvLowestRated"
                             android:layout_width="match_parent"
@@ -456,7 +480,6 @@
                             tools:text="Jack Ryan" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
 
             <!-- Slide 4: Timeline Milestones -->
@@ -476,16 +499,19 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                   
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+                      
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
+                         
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -494,6 +520,7 @@
                                 android:textSize="12sp"
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorPrimary" />
+                         
                             <TextView
                                 android:id="@+id/tvFirstDate"
                                 android:layout_width="wrap_content"
@@ -502,6 +529,7 @@
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 tools:text="Jan 2, 2026" />
                         </LinearLayout>
+                      
                         <TextView
                             android:id="@+id/tvFirstTitle"
                             android:layout_width="match_parent"
@@ -511,6 +539,7 @@
                             android:textStyle="bold"
                             android:textColor="?attr/colorOnSurface"
                             tools:text="FROM" />
+                     
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -529,16 +558,19 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                  
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+                     
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
+                         
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -547,6 +579,7 @@
                                 android:textSize="12sp"
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorTertiary" />
+                        
                             <TextView
                                 android:id="@+id/tvLastDate"
                                 android:layout_width="wrap_content"
@@ -555,6 +588,7 @@
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 tools:text="Dec 28, 2026" />
                         </LinearLayout>
+                     
                         <TextView
                             android:id="@+id/tvLastTitle"
                             android:layout_width="match_parent"
@@ -564,6 +598,7 @@
                             android:textStyle="bold"
                             android:textColor="?attr/colorOnSurface"
                             tools:text="The Gentlemen" />
+                      
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -592,11 +627,13 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+                     
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -605,6 +642,7 @@
                             android:textStyle="bold"
                             android:textAllCaps="true"
                             android:textColor="?attr/colorPrimary" />
+                       
                         <TextView
                             android:id="@+id/tvPeakMonth"
                             android:layout_width="match_parent"
@@ -614,6 +652,7 @@
                             android:textStyle="bold"
                             android:textColor="?attr/colorOnSurface"
                             tools:text="April" />
+                    
                         <TextView
                             android:id="@+id/tvPeakMonthDesc"
                             android:layout_width="match_parent"
@@ -634,11 +673,13 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+                       
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -647,6 +688,7 @@
                             android:textStyle="bold"
                             android:textAllCaps="true"
                             android:textColor="?attr/colorSecondary" />
+                      
                         <TextView
                             android:id="@+id/tvPeakDayOfWeek"
                             android:layout_width="match_parent"
@@ -656,6 +698,7 @@
                             android:textStyle="bold"
                             android:textColor="?attr/colorOnSurface"
                             tools:text="Monday" />
+                   
                         <TextView
                             android:id="@+id/tvPeakDayDesc"
                             android:layout_width="match_parent"
@@ -675,11 +718,13 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
                     app:strokeColor="?attr/colorOutlineVariant">
+                
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
+                      
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -688,6 +733,7 @@
                             android:textStyle="bold"
                             android:textAllCaps="true"
                             android:textColor="?attr/colorTertiary" />
+                     
                         <TextView
                             android:id="@+id/tvTopBingeDate"
                             android:layout_width="match_parent"
@@ -697,6 +743,7 @@
                             android:textStyle="bold"
                             android:textColor="?attr/colorOnSurface"
                             tools:text="April 6" />
+                 
                         <TextView
                             android:id="@+id/tvTopBingeDesc"
                             android:layout_width="match_parent"
@@ -741,11 +788,14 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:layout_marginBottom="24dp">
-                            <ImageView
+                         
+                            <com.google.android.material.imageview.ShapeableImageView
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:src="@mipmap/ic_launcher"
+                                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
                                 android:contentDescription="@string/app_name" />
+                           
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -755,6 +805,7 @@
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurface" />
+                           
                             <TextView
                                 android:id="@+id/tvSummaryYearLabel"
                                 android:layout_width="wrap_content"
@@ -797,6 +848,7 @@
                             android:layout_marginTop="16dp"
                             android:padding="16dp"
                             android:background="@drawable/rounded_bg_surface_container">
+                       
                             <TextView
                                 android:id="@+id/tvPersonaBadge"
                                 android:layout_width="wrap_content"
@@ -805,6 +857,7 @@
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurface"
                                 tools:text="The Genre Loyalist" />
+                        
                             <TextView
                                 android:id="@+id/tvPersonaDesc"
                                 android:layout_width="wrap_content"
@@ -823,6 +876,7 @@
                             android:weightSum="3"
                             android:layout_marginTop="16dp"
                             android:baselineAligned="false">
+                        
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -832,6 +886,7 @@
                                 android:padding="8dp"
                                 android:background="@drawable/rounded_bg_surface_container_low"
                                 android:layout_marginEnd="4dp">
+                           
                                 <TextView
                                     android:id="@+id/tvSummaryTitles"
                                     android:layout_width="wrap_content"
@@ -840,6 +895,7 @@
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorOnSurface"
                                     tools:text="39" />
+                            
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -847,6 +903,7 @@
                                     android:text="TITLES"
                                     android:textColor="?attr/colorOnSurfaceVariant" />
                             </LinearLayout>
+                         
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -856,6 +913,7 @@
                                 android:padding="8dp"
                                 android:background="@drawable/rounded_bg_surface_container_low"
                                 android:layout_marginHorizontal="4dp">
+                              
                                 <TextView
                                     android:id="@+id/tvSummaryGenre"
                                     android:layout_width="wrap_content"
@@ -866,6 +924,7 @@
                                     android:maxLines="1"
                                     android:ellipsize="end"
                                     tools:text="Drama" />
+                              
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -873,6 +932,7 @@
                                     android:text="TOP GENRE"
                                     android:textColor="?attr/colorOnSurfaceVariant" />
                             </LinearLayout>
+                           
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -882,6 +942,7 @@
                                 android:padding="8dp"
                                 android:background="@drawable/rounded_bg_surface_container_low"
                                 android:layout_marginStart="4dp">
+                              
                                 <TextView
                                     android:id="@+id/tvSummaryRating"
                                     android:layout_width="wrap_content"
@@ -890,6 +951,7 @@
                                     android:textStyle="bold"
                                     android:textColor="?attr/colorOnSurface"
                                     tools:text="7.5" />
+                              
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -901,7 +963,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
-
         </FrameLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

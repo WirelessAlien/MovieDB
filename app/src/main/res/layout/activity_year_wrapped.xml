@@ -51,10 +51,11 @@
         app:layout_constraintTop_toBottomOf="@id/progressContainer"
         app:layout_constraintStart_toStartOf="parent">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@mipmap/ic_launcher"
+            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
             android:contentDescription="@string/app_name" />
 
         <TextView

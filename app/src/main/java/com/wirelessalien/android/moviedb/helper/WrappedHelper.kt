@@ -151,6 +151,7 @@ class WrappedHelper(private val context: Context) {
         }
 
         // Process Episodes
+        val processedShowGenresForCounts = mutableSetOf<Int>()
         episodeCursor.use { cursor ->
             while (cursor.moveToNext()) {
                 val title = cursor.getString(0) ?: ""
@@ -172,8 +173,11 @@ class WrappedHelper(private val context: Context) {
 
                 watchedShowIds.add(movieId)
 
-                genresStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { genre ->
-                    genreCounts[genre] = genreCounts.getOrDefault(genre, 0) + 1
+                if (!processedShowGenresForCounts.contains(movieId)) {
+                    processedShowGenresForCounts.add(movieId)
+                    genresStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { genre ->
+                        genreCounts[genre] = genreCounts.getOrDefault(genre, 0) + 1
+                    }
                 }
 
                 try {
@@ -193,7 +197,7 @@ class WrappedHelper(private val context: Context) {
 
         val averageRating = if (ratedCount > 0) totalRating / ratedCount else 0f
         
-        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map { Pair<String, Int>(it.key, if (totalMovies + totalEpisodes > 0) Math.round((it.value.toDouble() / (totalMovies + totalEpisodes)) * 100.0).toInt() else 0) }
+        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map { Pair<String, Int>(it.key, if (totalMovies + totalShows > 0) Math.round((it.value.toDouble() / (totalMovies + totalShows)) * 100.0).toInt() else 0) }
         
         val topRatedIds = allRatedIds.sortedByDescending { it.third }.map { Pair(it.first, it.second) }.distinct().take(6)
         
@@ -234,7 +238,7 @@ class WrappedHelper(private val context: Context) {
         } else if (averageRating >= 4.5f && ratedCount > (totalMovies + totalEpisodes) * 0.2) {
             personaBadge = "The Easy Pleaser"
             personaDescription = "You find the good in everything you watch."
-        } else if (topGenres.isNotEmpty() && genreCounts[topGenres.first().first] ?: 0 > (totalMovies + totalEpisodes) * 0.5) {
+        } else if (topGenres.isNotEmpty() && genreCounts[topGenres.first().first] ?: 0 > (totalMovies + totalShows) * 0.5) {
             personaBadge = "The Genre Loyalist"
             personaDescription = "Over 50% of your watches were ${topGenres.first().first}!"
         } else if (topBingeCount >= 10) {
