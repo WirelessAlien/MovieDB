@@ -334,6 +334,15 @@ class YearWrappedActivity : AppCompatActivity() {
                 val logoXOffset = (totalWidth - appLogoSize) / 2f
                 appLogoDrawable.setBounds(0, 0, appLogoSize, appLogoSize)
                 canvas.translate(logoXOffset, currentY)
+                val path = android.graphics.Path().apply {
+                    addRoundRect(
+                        android.graphics.RectF(0f, 0f, appLogoSize.toFloat(), appLogoSize.toFloat()),
+                        16f,
+                        16f,
+                        android.graphics.Path.Direction.CW
+                    )
+                }
+                canvas.clipPath(path)
                 appLogoDrawable.draw(canvas)
                 canvas.restore()
                 currentY += appLogoSize + paddingBetween / 2f

@@ -24,6 +24,13 @@ import android.content.Intent
 import android.content.IntentSender
 import android.net.Uri
 import android.os.Bundle
+
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
+import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetailsSaved
+import kotlinx.coroutines.Job
 import android.provider.OpenableColumns
 import android.util.Log
 import android.view.MenuItem
@@ -228,14 +235,7 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
                     
                     withContext(Dispatchers.Main) {
                         binding.progressIndicator.visibility = View.GONE
-                        Snackbar.make(findViewById(android.R.id.content), getString(R.string.database_import_successful), Snackbar.LENGTH_INDEFINITE)
-                            .setAction(getString(R.string.ok)) {
-                                finishAffinity()
-                                val intent = Intent(this@ImportActivity, MainActivity::class.java)
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                startActivity(intent)
-                            }
-                            .show()
+                        fetchEpisodeDataAfterImport()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
@@ -353,14 +353,7 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
 
                     withContext(Dispatchers.Main) {
                         binding.progressIndicator.visibility = View.GONE
-                        Snackbar.make(findViewById(android.R.id.content), getString(R.string.database_import_successful), Snackbar.LENGTH_INDEFINITE)
-                            .setAction(getString(R.string.ok)) {
-                                finishAffinity()
-                                val intent = Intent(this@ImportActivity, MainActivity::class.java)
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                startActivity(intent)
-                            }
-                            .show()
+                        fetchEpisodeDataAfterImport()
                     }
                 } else {
                     withContext(Dispatchers.Main) {
@@ -419,6 +412,43 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
     }
 
     override fun onAdapterDataChangedListener() {
-        // Do nothing
+        fetchEpisodeDataAfterImport()
+    }
+
+    private fun fetchEpisodeDataAfterImport() {
+        val tmdbApiKey = ConfigHelper.getConfigValue(this, "api_key")
+        val binding = DialogProgressIndicatorBinding.inflate(layoutInflater)
+
+        val tmdbDialog = MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.fetching_episode_data))
+            .setView(binding.root)
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.ok)) { dialog, _ ->
+                finishAffinity()
+                val intent = Intent(this@ImportActivity, MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+                dialog.dismiss()
+            }
+            .show()
+
+        // Disable positive button initially
+        val positiveButton = tmdbDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+        positiveButton.isEnabled = false
+
+        lifecycleScope.launch {
+            val getTmdbDetails = GetTmdbDetailsSaved(this@ImportActivity, tmdbApiKey ?: "")
+            getTmdbDetails.fetchAndSaveTmdbDetails { showTitle, progress ->
+                lifecycleScope.launch(Dispatchers.Main) {
+                    binding.progressText.text = getString(R.string.fetching_show_data, showTitle)
+                    binding.progressIndicator.progress = progress
+                }
+            }
+            withContext(Dispatchers.Main) {
+                binding.progressText.text = getString(R.string.database_import_successful)
+                binding.progressIndicator.visibility = View.GONE
+                positiveButton.isEnabled = true
+            }
+        }
     }
 }

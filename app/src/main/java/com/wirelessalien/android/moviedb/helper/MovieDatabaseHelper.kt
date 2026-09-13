@@ -32,6 +32,8 @@ import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.RadioGroup
 import android.widget.Toast
+import android.view.View
+import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBinding
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
 import com.google.android.material.chip.Chip
@@ -576,7 +578,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
             // Only show database and csv
             val name = pathname.name
             name.endsWith(".db") || name.endsWith(".csv")
-        }
+        } ?: emptyArray()
         val fileAdapter = ArrayAdapter<String>(context, android.R.layout.select_dialog_singlechoice)
         for (file in files) {
             fileAdapter.add(file.name)
@@ -593,6 +595,16 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 if (exportDBPath == null) {
                     Toast.makeText(context, context.resources.getString(R.string.file_not_found_exception), Toast.LENGTH_SHORT).show()
                 } else if (fileAdapter.getItem(which)!!.endsWith(".db")) {
+                    
+                    val binding = DialogProgressIndicatorBinding.inflate(LayoutInflater.from(context))
+                    binding.progressText.text = context.getString(R.string.importing)
+                    binding.progressIndicator.isIndeterminate = true
+                    
+                    val progressDialog = MaterialAlertDialogBuilder(context)
+                        .setView(binding.root)
+                        .setCancelable(false)
+                        .show()
+                        
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             // Import the file selected in the dialog.
@@ -605,35 +617,51 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                             src.close()
                             dst.close()
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, R.string.database_import_successful, Toast.LENGTH_SHORT).show()
+                                progressDialog.dismiss()
+                                // Delegate to listener to handle success properly in activity
+                                listener.onAdapterDataChangedListener()
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
+                            withContext(Dispatchers.Main) {
+                                progressDialog.dismiss()
+                            }
                         }
                     }
                 } else if (fileAdapter.getItem(which)!!.endsWith(".csv")) {
+                    
+                    val binding = DialogProgressIndicatorBinding.inflate(LayoutInflater.from(context))
+                    binding.progressText.text = context.getString(R.string.importing_csv_data)
+                    binding.progressIndicator.isIndeterminate = true
+                    
+                    val progressDialog = MaterialAlertDialogBuilder(context)
+                        .setView(binding.root)
+                        .setCancelable(false)
+                        .show()
+                        
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             val csvFile = File(path, fileAdapter.getItem(which)!!)
                             val database = context.openOrCreateDatabase(databaseFileName, Context.MODE_PRIVATE, null)
                             importCSVToDatabase(database, csvFile)
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, R.string.database_import_successful, Toast.LENGTH_SHORT).show()
+                                progressDialog.dismiss()
+                                // Delegate to listener to handle success properly in activity
+                                listener.onAdapterDataChangedListener()
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
                             withContext(Dispatchers.Main) {
+                                progressDialog.dismiss()
                                 Toast.makeText(context, R.string.database_not_imported, Toast.LENGTH_SHORT).show()
                             }
                         }
-                        listener.onAdapterDataChangedListener()
                     }
                 }
             } catch (npe: NullPointerException) {
                 npe.printStackTrace()
                 Toast.makeText(context, context.resources.getString(R.string.file_not_found_exception), Toast.LENGTH_SHORT).show()
             }
-            listener.onAdapterDataChangedListener()
         }
         fileDialog.show()
     }
