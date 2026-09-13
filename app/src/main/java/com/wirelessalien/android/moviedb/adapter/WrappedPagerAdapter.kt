@@ -69,7 +69,8 @@ class WrappedPagerAdapter(
                 holder.binding.tvTotalEpisodes.text = data.totalEpisodes.toString()
                 
                 val totalHours = Math.round((data.totalMovies * 2) + (data.totalEpisodes * 0.75)).toInt()
-                holder.binding.tvVolumeInsight.text = context.getString(R.string.wrapped_insight_format, totalHours)
+                val totalDays = totalHours / 24.0
+                holder.binding.tvVolumeInsight.text = context.getString(R.string.wrapped_insight_format, totalHours, totalDays)
             }
             1 -> {
                 holder.binding.slideTitle.text = context.getString(R.string.wrapped_slide2_title)
@@ -111,24 +112,33 @@ class WrappedPagerAdapter(
                 holder.binding.tvAverageRating.text = String.format("%.1f", data.averageRating)
                 holder.binding.tvLowestRated.text = data.lowestRatedTitle
                 
-                var isGrid = false
-                fun updateRecyclerView() {
-                    if (isGrid) {
-                        holder.binding.rvTopRated.layoutManager = androidx.recyclerview.widget.GridLayoutManager(context, 3)
-                        holder.binding.rvTopRated.adapter = WrappedPosterAdapter(data.topRatedTitleIds, true)
-                        holder.binding.btnToggleLayout.text = "Scroll View"
+                fun bindHofRow(row: com.wirelessalien.android.moviedb.databinding.ItemWrappedHallOfFameRowBinding, index: Int) {
+                    if (data.topRatedTitleIds.size > index) {
+                        row.root.visibility = View.VISIBLE
+                        row.tvRank.text = "#${index + 1}"
+                        row.tvTitle.text = data.topRatedTitleIds[index].first
+                        row.tvRating.text = String.format("%.1f", data.topRatedTitleIds[index].second)
                     } else {
-                        holder.binding.rvTopRated.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
-                        holder.binding.rvTopRated.adapter = WrappedPosterAdapter(data.topRatedTitleIds, false)
-                        holder.binding.btnToggleLayout.text = "Grid View"
+                        row.root.visibility = View.GONE
                     }
                 }
-
-                updateRecyclerView()
-
-                holder.binding.btnToggleLayout.setOnClickListener {
-                    isGrid = !isGrid
-                    updateRecyclerView()
+                
+                bindHofRow(holder.binding.hofRow1, 0)
+                bindHofRow(holder.binding.hofRow2, 1)
+                bindHofRow(holder.binding.hofRow3, 2)
+                
+                holder.binding.hofRow4.root.visibility = View.GONE
+                holder.binding.hofRow5.root.visibility = View.GONE
+                
+                if (data.topRatedTitleIds.size > 3) {
+                    holder.binding.btnMoreTopRated.visibility = View.VISIBLE
+                    holder.binding.btnMoreTopRated.setOnClickListener {
+                        bindHofRow(holder.binding.hofRow4, 3)
+                        bindHofRow(holder.binding.hofRow5, 4)
+                        holder.binding.btnMoreTopRated.visibility = View.GONE
+                    }
+                } else {
+                    holder.binding.btnMoreTopRated.visibility = View.GONE
                 }
             }
             3 -> {

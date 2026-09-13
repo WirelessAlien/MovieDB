@@ -35,7 +35,7 @@ data class WrappedData(
     val totalTitles: Int,
     val topGenres: List<Pair<String, Int>>,
     val averageRating: Float,
-    val topRatedTitleIds: List<Pair<Int, Boolean>>, // TMDB IDs and isMovie for posters
+    val topRatedTitleIds: List<Pair<String, Float>>, // Title and Rating
     val lowestRatedTitle: String,
     val firstTitle: String,
     val firstDate: String,
@@ -199,7 +199,7 @@ class WrappedHelper(private val context: Context) {
         
         val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map { Pair<String, Int>(it.key, if (totalMovies + totalShows > 0) Math.round((it.value.toDouble() / (totalMovies + totalShows)) * 100.0).toInt() else 0) }
         
-        val topRatedIds = allRatedIds.sortedByDescending { it.third }.map { Pair(it.first, it.second) }.distinct().take(6)
+        val topRatedIds = allRatedTitles.sortedByDescending { it.second }.distinctBy { it.first }.take(5)
         
         val firstTitle = watchEvents.firstOrNull()?.title ?: ""
         val firstDate = watchEvents.firstOrNull()?.dateObj?.let { displayFormat.format(it) } ?: ""

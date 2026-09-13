@@ -272,7 +272,6 @@ class YearWrappedActivity : AppCompatActivity() {
         val slideDesc = slideView.findViewById<android.widget.TextView>(R.id.slideDesc)
         val contentContainer = slideView.findViewById<View>(R.id.slideContentContainer)
         
-        // Use the measured dimensions from the actual layout on screen.
         val titleWidth = slideTitle.width
         val titleHeight = slideTitle.height
         val descWidth = slideDesc.width
@@ -282,8 +281,35 @@ class YearWrappedActivity : AppCompatActivity() {
         
         val margin = 48
         val paddingBetween = 24
+        
+        val isSummary = currentSlideIndex == 5
+        
+        // App logo and name for branding (only for non-summary pages)
+        val appLogoDrawable = androidx.core.content.ContextCompat.getDrawable(this, R.mipmap.ic_launcher)
+        val appLogoSize = if (!isSummary && appLogoDrawable != null) 72 else 0
+        val appName = getString(R.string.app_name)
+        val paint = android.graphics.Paint().apply {
+            val typedArray = theme.obtainStyledAttributes(intArrayOf(com.google.android.material.R.attr.colorOnSurface))
+            color = typedArray.getColor(0, android.graphics.Color.BLACK)
+            typedArray.recycle()
+            textSize = 40f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            isAntiAlias = true
+        }
+        val appNameBounds = android.graphics.Rect()
+        if (!isSummary) {
+            paint.getTextBounds(appName, 0, appName.length, appNameBounds)
+        }
+        val brandingHeight = if (!isSummary) appLogoSize + paddingBetween / 2 + appNameBounds.height() else 0
+        val brandingPadding = if (!isSummary) paddingBetween * 2 else 0
+        
         val totalWidth = slideView.width + margin * 2
-        val totalHeight = margin + titleHeight + paddingBetween + descHeight + paddingBetween + contentHeight + margin
+        
+        val totalHeight = if (isSummary) {
+            margin + contentHeight + margin
+        } else {
+            margin + brandingHeight + brandingPadding + titleHeight + paddingBetween + descHeight + paddingBetween + contentHeight + margin
+        }
         
         val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -292,28 +318,53 @@ class YearWrappedActivity : AppCompatActivity() {
         theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
         canvas.drawColor(typedValue.data)
         
-        // Draw views manually and center them horizontally based on their actual widths
-        
-        // 1. Draw Title
-        canvas.save()
-        val titleXOffset = (totalWidth - titleWidth) / 2f
-        canvas.translate(titleXOffset, margin.toFloat())
-        slideTitle.draw(canvas)
-        canvas.restore()
-        
-        // 2. Draw Description
-        canvas.save()
-        val descXOffset = (totalWidth - descWidth) / 2f
-        canvas.translate(descXOffset, (margin + titleHeight + paddingBetween).toFloat())
-        slideDesc.draw(canvas)
-        canvas.restore()
-        
-        // 3. Draw Content Container
-        canvas.save()
-        val contentXOffset = (totalWidth - contentWidth) / 2f
-        canvas.translate(contentXOffset, (margin + titleHeight + paddingBetween + descHeight + paddingBetween).toFloat())
-        contentContainer.draw(canvas)
-        canvas.restore()
+        if (isSummary) {
+            // Draw only the content block for the summary page
+            canvas.save()
+            val contentXOffset = (totalWidth - contentWidth) / 2f
+            canvas.translate(contentXOffset, margin.toFloat())
+            contentContainer.draw(canvas)
+            canvas.restore()
+        } else {
+            var currentY = margin.toFloat()
+            
+            // Draw Branding
+            if (appLogoDrawable != null) {
+                canvas.save()
+                val logoXOffset = (totalWidth - appLogoSize) / 2f
+                appLogoDrawable.setBounds(0, 0, appLogoSize, appLogoSize)
+                canvas.translate(logoXOffset, currentY)
+                appLogoDrawable.draw(canvas)
+                canvas.restore()
+                currentY += appLogoSize + paddingBetween / 2f
+                
+                canvas.drawText(appName, (totalWidth - appNameBounds.width()) / 2f, currentY + appNameBounds.height(), paint)
+                currentY += appNameBounds.height() + brandingPadding
+            }
+            
+            // Draw Title
+            canvas.save()
+            val titleXOffset = (totalWidth - titleWidth) / 2f
+            canvas.translate(titleXOffset, currentY)
+            slideTitle.draw(canvas)
+            canvas.restore()
+            currentY += titleHeight + paddingBetween
+            
+            // Draw Description
+            canvas.save()
+            val descXOffset = (totalWidth - descWidth) / 2f
+            canvas.translate(descXOffset, currentY)
+            slideDesc.draw(canvas)
+            canvas.restore()
+            currentY += descHeight + paddingBetween
+            
+            // Draw Content Container
+            canvas.save()
+            val contentXOffset = (totalWidth - contentWidth) / 2f
+            canvas.translate(contentXOffset, currentY)
+            contentContainer.draw(canvas)
+            canvas.restore()
+        }
         
         return bitmap
     }

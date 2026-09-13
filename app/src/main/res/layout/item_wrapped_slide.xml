@@ -416,7 +416,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="24dp"
-                    android:layout_marginBottom="8dp"
+                    android:layout_marginBottom="12dp"
                     android:gravity="center_vertical">
                     
                     <TextView
@@ -427,22 +427,28 @@
                         android:textStyle="bold"
                         android:textSize="16sp"
                         android:textColor="?attr/colorOnSurface" />
-                        
-                    <Button
-                        android:id="@+id/btnToggleLayout"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Grid View"
-                        android:textSize="12sp" />
                 </LinearLayout>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvTopRated"
+                <LinearLayout
+                    android:id="@+id/llTopRatedList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    android:clipToPadding="false" />
+                    android:orientation="vertical">
+                    
+                    <include layout="@layout/item_wrapped_hall_of_fame_row" android:id="@+id/hofRow1" />
+                    <include layout="@layout/item_wrapped_hall_of_fame_row" android:id="@+id/hofRow2" />
+                    <include layout="@layout/item_wrapped_hall_of_fame_row" android:id="@+id/hofRow3" />
+                    <include layout="@layout/item_wrapped_hall_of_fame_row" android:id="@+id/hofRow4" android:visibility="gone" />
+                    <include layout="@layout/item_wrapped_hall_of_fame_row" android:id="@+id/hofRow5" android:visibility="gone" />
+                    
+                    <Button
+                        android:id="@+id/btnMoreTopRated"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="More" />
+                </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"

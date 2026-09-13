@@ -986,5 +986,5 @@
     <string name="wrapped_peak_month_label">Calendar Peak</string>
     <string name="wrapped_peak_day_label">Weekly Habit</string>
     <string name="wrapped_binge_label">Record Breaker</string>
-    <string name="wrapped_insight_format">You spent an estimated %1$d hours immersed in cinema &amp; binge sessions.</string>
+    <string name="wrapped_insight_format">You spent an estimated %1$d hours (%2$.1f days) immersed in cinema &amp; binge sessions.</string>
 </resources>
