@@ -54,17 +54,22 @@ class WebDavBackupWorker(appContext: Context, workerParams: WorkerParameters) :
 
         val backupFileType = inputData.getString("backupFileType") ?: "DB"
         val fileName = when (backupFileType) {
-            "JSON" -> "movies.json"
-            "CSV (Movies and Shows)" -> "movies.csv"
-            "CSV (All Data)" -> "movies_with_episodes.csv"
             "ZIP (Complete App Data)", "ZIP" -> "app_data_backup.zip"
             else -> "movies.db"
         }
 
-        if (url.endsWith("/")) {
+        val lastSlash = url.lastIndexOf('/')
+        if (lastSlash != -1 && lastSlash < url.length - 1) {
+            val lastSegment = url.substring(lastSlash + 1)
+            if (lastSegment.endsWith(".db", true) || lastSegment.endsWith(".json", true) || lastSegment.endsWith(".csv", true) || lastSegment.endsWith(".zip", true)) {
+                url = url.substring(0, lastSlash + 1) + fileName
+            } else {
+                url = "$url/$fileName"
+            }
+        } else if (url.endsWith("/")) {
             url += fileName
-        } else if (!url.endsWith(".db", true) && !url.endsWith(".json", true) && !url.endsWith(".csv", true) && !url.endsWith(".zip", true)) {
-            url += "/$fileName"
+        } else {
+            url = "$url/$fileName"
         }
 
         val tempBackupFile = File(applicationContext.cacheDir, fileName)
@@ -74,33 +79,6 @@ class WebDavBackupWorker(appContext: Context, workerParams: WorkerParameters) :
                 when (backupFileType) {
                     "ZIP (Complete App Data)", "ZIP" -> {
                         com.wirelessalien.android.moviedb.helper.AppDataZipHelper.exportAppDataToZip(applicationContext, output)
-                    }
-                    "DB" -> {
-                        val currentDBPath = applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
-                        FileInputStream(currentDBPath).use { input ->
-                            input.copyTo(output)
-                        }
-                    }
-                    "JSON" -> {
-                        val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val json = databaseHelper.readableDatabase.use { db ->
-                            databaseHelper.getJSONExportString(db)
-                        }
-                        output.write(json.toByteArray())
-                    }
-                    "CSV (Movies and Shows)" -> {
-                        val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val csv = databaseHelper.readableDatabase.use { db ->
-                            databaseHelper.getCSVExportString(db, true)
-                        }
-                        output.write(csv.toByteArray())
-                    }
-                    "CSV (All Data)" -> {
-                        val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val csv = databaseHelper.readableDatabase.use { db ->
-                            databaseHelper.getCSVExportString(db, false)
-                        }
-                        output.write(csv.toByteArray())
                     }
                     else -> {
                         val currentDBPath = applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath

@@ -43,17 +43,12 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
         val documentFile = DocumentFile.fromTreeUri(applicationContext, directoryUri)
 
         val fileName = when (backupFileType) {
-            "JSON" -> "movies.json"
-            "CSV (Movies and Shows)" -> "movies.csv"
-            "CSV (All Data)" -> "movies_with_episodes.csv"
             "ZIP (Complete App Data)", "ZIP" -> "app_data_backup.zip"
             else -> "movies.db"
         }
 
         val existingFile = documentFile?.findFile(fileName)
         val mimeType = when (backupFileType) {
-            "JSON" -> "application/json"
-            "CSV (Movies and Shows)", "CSV (All Data)" -> "text/csv"
             "ZIP (Complete App Data)", "ZIP" -> "application/zip"
             else -> "application/octet-stream"
         }
@@ -71,34 +66,6 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
                     "ZIP (Complete App Data)", "ZIP" -> {
                         com.wirelessalien.android.moviedb.helper.AppDataZipHelper.exportAppDataToZip(applicationContext, output)
                     }
-                    "DB" -> {
-                        val currentDBPath = applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
-                        FileInputStream(currentDBPath).use { input ->
-                            input.copyTo(output)
-                        }
-                    }
-                    "JSON" -> {
-                        val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val json = databaseHelper.readableDatabase.use { db ->
-                            databaseHelper.getJSONExportString(db)
-                        }
-                        output.write(json.toByteArray())
-                    }
-                    "CSV (Movies and Shows)" -> {
-                        val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val csv = databaseHelper.readableDatabase.use { db ->
-                            databaseHelper.getCSVExportString(db, true)
-                        }
-                        output.write(csv.toByteArray())
-                    }
-                    "CSV (All Data)" -> {
-                        val databaseHelper = MovieDatabaseHelper(applicationContext)
-                        val csv = databaseHelper.readableDatabase.use { db ->
-                            databaseHelper.getCSVExportString(db, false)
-                        }
-                        output.write(csv.toByteArray())
-                    }
-
                     else -> {
                         val currentDBPath = applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
                         FileInputStream(currentDBPath).use { input ->

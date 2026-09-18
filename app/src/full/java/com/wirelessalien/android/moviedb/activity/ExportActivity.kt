@@ -229,10 +229,6 @@ class ExportActivity : AppCompatActivity() {
 
         val backupFileType = preferences.getString("backup_file_type", "DB")
         when (backupFileType) {
-            "DB" -> binding.chipDb.isChecked = true
-            "JSON" -> binding.chipJson.isChecked = true
-            "CSV (Movies and Shows)" -> binding.chipCsvMovies.isChecked = true
-            "CSV (All Data)" -> binding.chipCsvAll.isChecked = true
             "ZIP (Complete App Data)", "ZIP" -> binding.chipZip.isChecked = true
             else -> binding.chipDb.isChecked = true
         }
@@ -240,10 +236,6 @@ class ExportActivity : AppCompatActivity() {
         binding.backupFileTypeChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 val fileType = when (checkedIds.first()) {
-                    R.id.chip_db -> "DB"
-                    R.id.chip_json -> "JSON"
-                    R.id.chip_csv_movies -> "CSV (Movies and Shows)"
-                    R.id.chip_csv_all -> "CSV (All Data)"
                     R.id.chip_zip -> "ZIP (Complete App Data)"
                     else -> "DB"
                 }
@@ -520,15 +512,31 @@ class ExportActivity : AppCompatActivity() {
             .build()
 
         CoroutineScope(Dispatchers.IO).launch {
+            var tempZipFile: File? = null
             try {
-                val dbFile = File(getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath)
+                val backupFileType = preferences.getString("backup_file_type", "DB")
+                val isZip = backupFileType == "ZIP (Complete App Data)" || backupFileType == "ZIP"
+
+                val fileName = if (isZip) "showcase_app_data_backup.zip" else "showcase_database_backup.db"
+                val mimeType = if (isZip) "application/zip" else "application/octet-stream"
+
+                val uploadFile = if (isZip) {
+                    tempZipFile = File(cacheDir, "showcase_app_data_backup.zip")
+                    java.io.FileOutputStream(tempZipFile).use { outputStream ->
+                        com.wirelessalien.android.moviedb.helper.AppDataZipHelper.exportAppDataToZip(applicationContext, outputStream)
+                    }
+                    tempZipFile
+                } else {
+                    File(getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath)
+                }
+
                 val fileMetadata = com.google.api.services.drive.model.File()
-                fileMetadata.name = "showcase_database_backup.db"
-                val mediaContent = FileContent("application/octet-stream", dbFile)
+                fileMetadata.name = fileName
+                val mediaContent = FileContent(mimeType, uploadFile)
 
                 // Search for the existing file in the app data folder
                 val result = driveService.files().list()
-                    .setQ("name = 'showcase_database_backup.db' and trashed = false and 'appDataFolder' in parents")
+                    .setQ("name = '$fileName' and trashed = false and 'appDataFolder' in parents")
                     .setSpaces("appDataFolder")
                     .execute()
                 val files = result.files
@@ -554,13 +562,17 @@ class ExportActivity : AppCompatActivity() {
                 request.execute()
 
                 withContext(Dispatchers.Main) {
+                    binding.progressIndicator.visibility = View.GONE
                     Toast.makeText(this@ExportActivity, getString(R.string.database_backup_successful), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    binding.progressIndicator.visibility = View.GONE
                     Toast.makeText(this@ExportActivity,
                         getString(R.string.backup_failed, e.message), Toast.LENGTH_SHORT).show()
                 }
+            } finally {
+                tempZipFile?.delete()
             }
         }
     }

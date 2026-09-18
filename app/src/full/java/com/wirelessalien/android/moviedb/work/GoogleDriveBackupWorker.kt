@@ -58,11 +58,28 @@ class GoogleDriveBackupWorker(appContext: Context, workerParams: WorkerParameter
             .setApplicationName(applicationContext.getString(R.string.app_name))
             .build()
 
+        val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val backupFileType = prefs.getString("backup_file_type", "DB")
+        val isZip = backupFileType == "ZIP (Complete App Data)" || backupFileType == "ZIP"
+
+        val fileName = if (isZip) "showcase_app_data_backup.zip" else "showcase_database_backup.db"
+        val mimeType = if (isZip) "application/zip" else "application/octet-stream"
+
+        var tempZipFile: File? = null
         return try {
-            val dbFile = File(applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath)
+            val uploadFile = if (isZip) {
+                tempZipFile = File(applicationContext.cacheDir, "showcase_app_data_backup.zip")
+                java.io.FileOutputStream(tempZipFile).use { output ->
+                    com.wirelessalien.android.moviedb.helper.AppDataZipHelper.exportAppDataToZip(applicationContext, output)
+                }
+                tempZipFile
+            } else {
+                File(applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath)
+            }
+
             val fileMetadata = com.google.api.services.drive.model.File()
-            fileMetadata.name = "showcase_database_backup.db"
-            val mediaContent = FileContent("application/octet-stream", dbFile)
+            fileMetadata.name = fileName
+            val mediaContent = FileContent(mimeType, uploadFile)
 
             // Create a notification builder
             val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -75,7 +92,7 @@ class GoogleDriveBackupWorker(appContext: Context, workerParams: WorkerParameter
 
             // Search for the existing file in the app data folder
             val result = driveService.files().list()
-                .setQ("name = 'showcase_database_backup.db' and trashed = false and 'appDataFolder' in parents")
+                .setQ("name = '$fileName' and trashed = false and 'appDataFolder' in parents")
                 .setSpaces("appDataFolder")
                 .execute()
             val files = result.files
@@ -102,13 +119,14 @@ class GoogleDriveBackupWorker(appContext: Context, workerParams: WorkerParameter
             builder.setContentText(applicationContext.getString(R.string.database_backup_successful))
                 .setProgress(0, 0, false)
             notificationManager.notify(1, builder.build())
-            val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
             prefs.edit().putLong("last_backup_time_drive", System.currentTimeMillis()).apply()
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
             showNotification(applicationContext.getString(R.string.database_backup), applicationContext.getString(R.string.database_backup_failed))
             Result.failure()
+        } finally {
+            tempZipFile?.delete()
         }
     }
 

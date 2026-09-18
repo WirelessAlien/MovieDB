@@ -200,10 +200,6 @@ class ExportActivity : AppCompatActivity() {
 
         val backupFileType = preferences.getString("backup_file_type", "DB")
         when (backupFileType) {
-            "DB" -> binding.chipDb.isChecked = true
-            "JSON" -> binding.chipJson.isChecked = true
-            "CSV (Movies and Shows)" -> binding.chipCsvMovies.isChecked = true
-            "CSV (All Data)" -> binding.chipCsvAll.isChecked = true
             "ZIP (Complete App Data)", "ZIP" -> binding.chipZip.isChecked = true
             else -> binding.chipDb.isChecked = true
         }
@@ -211,10 +207,6 @@ class ExportActivity : AppCompatActivity() {
         binding.backupFileTypeChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
             if (checkedIds.isNotEmpty()) {
                 val fileType = when (checkedIds.first()) {
-                    R.id.chip_db -> "DB"
-                    R.id.chip_json -> "JSON"
-                    R.id.chip_csv_movies -> "CSV (Movies and Shows)"
-                    R.id.chip_csv_all -> "CSV (All Data)"
                     R.id.chip_zip -> "ZIP (Complete App Data)"
                     else -> "DB"
                 }
