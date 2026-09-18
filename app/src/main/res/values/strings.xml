@@ -731,7 +731,8 @@
     <string name="backup_type_db">DB</string>
     <string name="backup_type_json">JSON</string>
     <string name="backup_type_csv_movies">CSV (Movies and Shows)</string>
-    <string name="backup_type_csv_all">CSV (All data)</string>
+    <string name="backup_type_csv_all">CSV (All Data)</string>
+    <string name="backup_type_zip">ZIP (Complete App Data)</string>
     <string name="error_saving_file">Something went wrong. Could not save file.</string>
     <string name="now_playing">Now Playing</string>
     <string name="airing_today">Airing Today</string>

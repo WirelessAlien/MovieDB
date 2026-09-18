@@ -45,14 +45,16 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
         val fileName = when (backupFileType) {
             "JSON" -> "movies.json"
             "CSV (Movies and Shows)" -> "movies.csv"
-            "CSV (All data)" -> "movies_with_episodes.csv"
+            "CSV (All Data)" -> "movies_with_episodes.csv"
+            "ZIP (Complete App Data)", "ZIP" -> "app_data_backup.zip"
             else -> "movies.db"
         }
 
         val existingFile = documentFile?.findFile(fileName)
         val mimeType = when (backupFileType) {
             "JSON" -> "application/json"
-            "CSV (Movies and Shows)", "CSV (All data)" -> "text/csv"
+            "CSV (Movies and Shows)", "CSV (All Data)" -> "text/csv"
+            "ZIP (Complete App Data)", "ZIP" -> "application/zip"
             else -> "application/octet-stream"
         }
 
@@ -66,6 +68,9 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
 
             outputStream?.use { output ->
                 when (backupFileType) {
+                    "ZIP (Complete App Data)", "ZIP" -> {
+                        com.wirelessalien.android.moviedb.helper.AppDataZipHelper.exportAppDataToZip(applicationContext, output)
+                    }
                     "DB" -> {
                         val currentDBPath = applicationContext.getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
                         FileInputStream(currentDBPath).use { input ->
@@ -86,7 +91,7 @@ class DatabaseBackupWorker(appContext: Context, workerParams: WorkerParameters) 
                         }
                         output.write(csv.toByteArray())
                     }
-                    "CSV (All data)" -> {
+                    "CSV (All Data)" -> {
                         val databaseHelper = MovieDatabaseHelper(applicationContext)
                         val csv = databaseHelper.readableDatabase.use { db ->
                             databaseHelper.getCSVExportString(db, false)

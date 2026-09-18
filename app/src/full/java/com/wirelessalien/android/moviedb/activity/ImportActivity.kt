@@ -126,9 +126,12 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
                     inputStream.close()
 
                     // Check if file has extension, if not try to detect it
-                    if (!cacheFile.name.endsWith(".db", true) && !cacheFile.name.endsWith(".csv", true)) {
+                    if (!cacheFile.name.endsWith(".db", true) && !cacheFile.name.endsWith(".csv", true) && !cacheFile.name.endsWith(".zip", true)) {
                         if (isSQLite(cacheFile)) {
                             val newFile = File(cacheDir, "$fileName.db")
+                            cacheFile.renameTo(newFile)
+                        } else if (isZipFile(cacheFile)) {
+                            val newFile = File(cacheDir, "$fileName.zip")
                             cacheFile.renameTo(newFile)
                         } else {
                             val mimeType = contentResolver.getType(archiveFileUri)
@@ -196,17 +199,18 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
         val fileName = when (backupFileType) {
             "JSON" -> "movies.json"
             "CSV (Movies and Shows)" -> "movies.csv"
-            "CSV (All data)" -> "movies_with_episodes.csv"
+            "CSV (All Data)" -> "movies_with_episodes.csv"
+            "ZIP (Complete App Data)", "ZIP" -> "app_data_backup.zip"
             else -> "movies.db"
         }
 
         if (url.endsWith("/")) {
             url += fileName
-        } else if (!url.endsWith(".db", true) && !url.endsWith(".json", true) && !url.endsWith(".csv", true)) {
+        } else if (!url.endsWith(".db", true) && !url.endsWith(".json", true) && !url.endsWith(".csv", true) && !url.endsWith(".zip", true)) {
             url += "/$fileName"
         }
 
-        if (!url.endsWith(".db", true)) {
+        if (!url.endsWith(".db", true) && !url.endsWith(".zip", true)) {
             Toast.makeText(this, getString(R.string.json_import_not_supported), Toast.LENGTH_LONG).show()
             return
         }
@@ -214,22 +218,27 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
         binding.progressIndicator.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val tempFile = File(cacheDir, "webdav_backup.db")
+                val isZip = fileName.endsWith(".zip", true) || url.endsWith(".zip", true)
+                val tempFile = File(cacheDir, if (isZip) "webdav_backup.zip" else "webdav_backup.db")
                 val success = WebDavHelper.downloadFile(url, username, password, tempFile)
                 if (success) {
-                    val dbPath = getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
-                    val dbFile = File(dbPath)
-                    
-                    // Copy temporary file to database file
-                    tempFile.inputStream().use { input ->
-                        dbFile.outputStream().use { output ->
-                            input.copyTo(output)
+                    if (isZip) {
+                        com.wirelessalien.android.moviedb.helper.AppDataZipHelper.importAppDataFromZip(applicationContext, tempFile.inputStream())
+                    } else {
+                        val dbPath = getDatabasePath(MovieDatabaseHelper.databaseFileName).absolutePath
+                        val dbFile = File(dbPath)
+                        
+                        // Copy temporary file to database file
+                        tempFile.inputStream().use { input ->
+                            dbFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
                         }
+                        
+                        // Delete WAL and SHM files to prevent corruption
+                        File("$dbPath-wal").delete()
+                        File("$dbPath-shm").delete()
                     }
-                    
-                    // Delete WAL and SHM files to prevent corruption
-                    File("$dbPath-wal").delete()
-                    File("$dbPath-shm").delete()
                     
                     tempFile.delete()
                     
@@ -407,6 +416,19 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
             }
         } catch (e: IOException) {
             e.printStackTrace()
+            false
+        }
+    }
+
+    private fun isZipFile(file: File): Boolean {
+        return try {
+            java.io.FileInputStream(file).use { fis ->
+                val header = ByteArray(4)
+                if (fis.read(header) != 4) return false
+                header[0] == 0x50.toByte() && header[1] == 0x4B.toByte() &&
+                        header[2] == 0x03.toByte() && header[3] == 0x04.toByte()
+            }
+        } catch (e: Exception) {
             false
         }
     }

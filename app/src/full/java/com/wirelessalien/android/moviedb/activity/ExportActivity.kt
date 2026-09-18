@@ -84,6 +84,7 @@ class ExportActivity : AppCompatActivity() {
     private var isJson: Boolean = false
     private var isCsv: Boolean = false
     private var isMovieOnly: Boolean = false
+    private var isZip: Boolean = false
     private var backupDirectoryUri: Uri? = null
     private var exportDirectoryUri: Uri? = null
     private lateinit var preferences: SharedPreferences
@@ -98,6 +99,7 @@ class ExportActivity : AppCompatActivity() {
                 input.endsWith(".json", true) -> "application/json"
                 input.endsWith(".csv", true) -> "text/csv"
                 input.endsWith(".db", true) -> "application/x-sqlite3"
+                input.endsWith(".zip", true) -> "application/zip"
                 else -> "application/octet-stream"
             }
             intent.type = mimeType
@@ -105,7 +107,7 @@ class ExportActivity : AppCompatActivity() {
         }
     }) { uri: Uri? ->
         uri?.let {
-            saveFileToUri(it, isJson, isCsv, isMovieOnly)
+            saveFileToUri(it, isJson, isCsv, isMovieOnly, isZip)
         }
     }
     private val openBackupDirectoryLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -230,7 +232,8 @@ class ExportActivity : AppCompatActivity() {
             "DB" -> binding.chipDb.isChecked = true
             "JSON" -> binding.chipJson.isChecked = true
             "CSV (Movies and Shows)" -> binding.chipCsvMovies.isChecked = true
-            "CSV (All data)" -> binding.chipCsvAll.isChecked = true
+            "CSV (All Data)" -> binding.chipCsvAll.isChecked = true
+            "ZIP (Complete App Data)", "ZIP" -> binding.chipZip.isChecked = true
             else -> binding.chipDb.isChecked = true
         }
 
@@ -240,7 +243,8 @@ class ExportActivity : AppCompatActivity() {
                     R.id.chip_db -> "DB"
                     R.id.chip_json -> "JSON"
                     R.id.chip_csv_movies -> "CSV (Movies and Shows)"
-                    R.id.chip_csv_all -> "CSV (All data)"
+                    R.id.chip_csv_all -> "CSV (All Data)"
+                    R.id.chip_zip -> "ZIP (Complete App Data)"
                     else -> "DB"
                 }
                 preferences.edit().putString("backup_file_type", fileType).apply()
@@ -656,18 +660,21 @@ class ExportActivity : AppCompatActivity() {
         }
     }
 
-    fun promptUserToSaveFile(fileName: String, isJson: Boolean, isCsv: Boolean, isMovieOnly: Boolean) {
+    fun promptUserToSaveFile(fileName: String, isJson: Boolean, isCsv: Boolean, isMovieOnly: Boolean, isZip: Boolean = false) {
         this.isJson = isJson
         this.isCsv = isCsv
         this.isMovieOnly = isMovieOnly
+        this.isZip = isZip
         createFileLauncher.launch(fileName)
     }
 
-    private fun saveFileToUri(uri: Uri, isJson: Boolean, isCsv: Boolean, isMovieOnly: Boolean) {
+    private fun saveFileToUri(uri: Uri, isJson: Boolean, isCsv: Boolean, isMovieOnly: Boolean, isZip: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 contentResolver.openOutputStream(uri)?.use { outputStream ->
-                    if (isJson) {
+                    if (isZip) {
+                        com.wirelessalien.android.moviedb.helper.AppDataZipHelper.exportAppDataToZip(applicationContext, outputStream)
+                    } else if (isJson) {
                         val databaseHelper = MovieDatabaseHelper(applicationContext)
                         val json = databaseHelper.readableDatabase.use { db ->
                             databaseHelper.getJSONExportString(db)

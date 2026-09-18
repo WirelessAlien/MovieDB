@@ -181,6 +181,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/backup_type_csv_all" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_zip"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/backup_type_zip" />
                 </com.google.android.material.chip.ChipGroup>
 
                 <TextView

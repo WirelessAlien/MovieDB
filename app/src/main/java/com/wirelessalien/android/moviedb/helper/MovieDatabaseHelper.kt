@@ -326,6 +326,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val jsonChip = customView.findViewById<Chip>(R.id.chip_json)
         val dbChip = customView.findViewById<Chip>(R.id.chip_db)
         val csvChip = customView.findViewById<Chip>(R.id.chip_csv)
+        val zipChip = customView.findViewById<Chip>(R.id.chip_zip)
         val csvExportOptions = customView.findViewById<RadioGroup>(R.id.csv_export_options)
 
         csvChip.setOnCheckedChangeListener { _, isChecked ->
@@ -342,6 +343,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 val isJson = jsonChip.isChecked
                 val isDb = dbChip.isChecked
                 val isCsv = csvChip.isChecked
+                val isZip = zipChip?.isChecked == true
                 val isMoviesOnly = csvExportOptions.checkedRadioButtonId == R.id.radio_movies_only
 
                 if (isCsv && csvExportOptions.checkedRadioButtonId == -1) {
@@ -350,23 +352,46 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                 }
 
                 if (exportDirectoryUri != null) {
-                    exportToUri(context, exportDirectoryUri, isJson, isDb, isCsv, isMoviesOnly)
+                    exportToUri(context, exportDirectoryUri, isJson, isDb, isCsv, isZip, isMoviesOnly)
                     Log.d("Export", "Exporting to URI")
                 } else if (exportDirectory != null) {
-                    exportToDirectory(context, exportDirectory, isJson, isDb, isCsv, isMoviesOnly)
+                    exportToDirectory(context, exportDirectory, isJson, isDb, isCsv, isZip, isMoviesOnly)
                     Log.d("Export", "Exporting to DIR")
                 } else {
-                    promptUserToSaveFile(context, isJson, isDb, isCsv, isMoviesOnly)
+                    promptUserToSaveFile(context, isJson, isDb, isCsv, isZip, isMoviesOnly)
                 }
             }
             .setNegativeButton(context.getString(R.string.cancel)) { dialogInterface, _ -> dialogInterface.cancel() }
         builder.show()
     }
 
-    private fun exportToUri(context: Context, exportDirectoryUri: String, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isMoviesOnly: Boolean) {
+    private fun exportToUri(context: Context, exportDirectoryUri: String, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isZip: Boolean, isMoviesOnly: Boolean) {
         val documentFile = DocumentFile.fromTreeUri(context, Uri.parse(exportDirectoryUri))
         val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
         when {
+            isZip -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val fileExtension = ".zip"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                    try {
+                        val newFile = documentFile?.createFile("application/zip", fileName)
+                        val outputStream = context.contentResolver.openOutputStream(newFile!!.uri)
+                        outputStream?.use {
+                            AppDataZipHelper.exportAppDataToZip(context, it)
+                        }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            if (context is ExportActivity) {
+                                context.promptUserToSaveFile(fileName, isJson = false, isCsv = false, isMovieOnly = false, isZip = true)
+                            }
+                        }
+                    }
+                }
+            }
             isJson -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     val fileContent = getJSONExportString(readableDatabase)
@@ -385,7 +410,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false, isZip = false)
                         }
                     }
                 }
@@ -423,7 +448,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
                             if (context is ExportActivity) {
-                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false, isMovieOnly = false)
+                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false, isMovieOnly = false, isZip = false)
                             }
                         }
                     }
@@ -447,7 +472,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly, isZip = false)
                         }
                     }
                 }
@@ -455,9 +480,31 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
     }
 
-    private fun exportToDirectory(context: Context, exportDirectory: File, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isMoviesOnly: Boolean) {
+    private fun exportToDirectory(context: Context, exportDirectory: File, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isZip: Boolean, isMoviesOnly: Boolean) {
         val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm-ss-SSS", Locale.US)
         when {
+            isZip -> {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val fileExtension = ".zip"
+                    val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                    try {
+                        val file = File(exportDirectory, fileName)
+                        FileOutputStream(file).use {
+                            AppDataZipHelper.exportAppDataToZip(context, it)
+                        }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, context.resources.getString(R.string.write_to_external_storage_as) + fileName, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            if (context is ExportActivity) {
+                                context.promptUserToSaveFile(fileName, isJson = false, isCsv = false, isMovieOnly = false, isZip = true)
+                            }
+                        }
+                    }
+                }
+            }
             isJson -> {
                 CoroutineScope(Dispatchers.IO).launch {
                     val fileContent = getJSONExportString(readableDatabase)
@@ -475,7 +522,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false, isZip = false)
                         }
                     }
                 }
@@ -512,7 +559,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
                             if (context is ExportActivity) {
-                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false, isMovieOnly = false)
+                                context.promptUserToSaveFile(exportDBPath, isJson = false, isCsv = false, isMovieOnly = false, isZip = false)
                             }
                         }
                     }
@@ -535,7 +582,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                     } catch (e: IOException) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
-                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly)
+                            (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly, isZip = false)
                         }
                     }
                 }
@@ -543,23 +590,28 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         }
     }
 
-    private fun promptUserToSaveFile(context: Context, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isMoviesOnly: Boolean) {
+    private fun promptUserToSaveFile(context: Context, isJson: Boolean, isDb: Boolean, isCsv: Boolean, isZip: Boolean, isMoviesOnly: Boolean) {
         val simpleDateFormat = SimpleDateFormat("dd-MM-yy-kk-mm", Locale.US)
         when {
+            isZip -> {
+                val fileExtension = ".zip"
+                val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = false, isMovieOnly = false, isZip = true)
+            }
             isJson -> {
                 val fileExtension = ".json"
                 val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false)
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = true, isCsv = false, isMovieOnly = false, isZip = false)
             }
             isDb -> {
                 val fileExtension = ".db"
                 val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = false, isMovieOnly = false)
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = false, isMovieOnly = false, isZip = false)
             }
             isCsv -> {
                 val fileExtension = ".csv"
                 val fileName = DATABASE_FILE_NAME + simpleDateFormat.format(Date()) + fileExtension
-                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly)
+                (context as ExportActivity).promptUserToSaveFile(fileName, isJson = false, isCsv = true, isMovieOnly = isMoviesOnly, isZip = false)
             }
         }
     }
@@ -575,9 +627,9 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
         val downloadPath = context.cacheDir.path
         val directory = File(downloadPath)
         val files = directory.listFiles { pathname: File ->
-            // Only show database and csv
+            // Only show database, csv and zip
             val name = pathname.name
-            name.endsWith(".db") || name.endsWith(".csv")
+            name.endsWith(".db") || name.endsWith(".csv") || name.endsWith(".zip")
         } ?: emptyArray()
         val fileAdapter = ArrayAdapter<String>(context, android.R.layout.select_dialog_singlechoice)
         for (file in files) {
@@ -625,6 +677,33 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                             e.printStackTrace()
                             withContext(Dispatchers.Main) {
                                 progressDialog.dismiss()
+                            }
+                        }
+                    }
+                } else if (fileAdapter.getItem(which)!!.endsWith(".zip")) {
+                    
+                    val binding = DialogProgressIndicatorBinding.inflate(LayoutInflater.from(context))
+                    binding.progressText.text = context.getString(R.string.importing)
+                    binding.progressIndicator.isIndeterminate = true
+                    
+                    val progressDialog = MaterialAlertDialogBuilder(context)
+                        .setView(binding.root)
+                        .setCancelable(false)
+                        .show()
+                        
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val zipFile = File(path, fileAdapter.getItem(which)!!)
+                            AppDataZipHelper.importAppDataFromZip(context, zipFile.inputStream())
+                            withContext(Dispatchers.Main) {
+                                progressDialog.dismiss()
+                                listener.onAdapterDataChangedListener()
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            withContext(Dispatchers.Main) {
+                                progressDialog.dismiss()
+                                Toast.makeText(context, R.string.database_not_imported, Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
