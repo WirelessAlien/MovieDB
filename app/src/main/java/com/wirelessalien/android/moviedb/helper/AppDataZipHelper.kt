@@ -34,13 +34,18 @@ object AppDataZipHelper {
 
     fun exportAppDataToZip(context: Context, outputStream: OutputStream) {
         val dataDir = context.dataDir
-        val directoriesToBackup = listOf("databases", "shared_prefs", "files")
+        // Note: 'files' directory is omitted because the app does not store persistent user data there
+        // that needs backing up, and to avoid system files like profileinstaller_*.dat.
+        val directoriesToBackup = listOf("databases", "shared_prefs")
 
         ZipOutputStream(outputStream.buffered()).use { zipOut ->
             for (dirName in directoriesToBackup) {
                 val dir = File(dataDir, dirName)
                 if (dir.exists() && dir.isDirectory) {
                     dir.walkTopDown().filter { it.isFile }.forEach { file ->
+                        if (file.name == "webdav_prefs.xml") {
+                            return@forEach
+                        }
                         try {
                             val relativePath = file.relativeTo(dataDir).path.replace('\\', '/')
                             zipOut.putNextEntry(ZipEntry(relativePath))
@@ -60,15 +65,18 @@ object AppDataZipHelper {
 
     fun importAppDataFromZip(context: Context, inputStream: InputStream) {
         val dataDir = context.dataDir
-        val allowedDirectories = listOf("databases", "shared_prefs", "files")
+        // Note: 'files' directory is omitted because the app does not store persistent user data there
+        // that needs backing up, and to avoid system files like profileinstaller_*.dat.
+        val allowedDirectories = listOf("databases", "shared_prefs")
 
         ZipInputStream(inputStream.buffered()).use { zipIn ->
             var entry: ZipEntry? = zipIn.nextEntry
             while (entry != null) {
                 val relativePath = entry.name.replace('\\', '/')
                 val topDir = relativePath.substringBefore('/')
+                val fileName = File(relativePath).name
 
-                if (!entry.isDirectory && topDir in allowedDirectories) {
+                if (!entry.isDirectory && topDir in allowedDirectories && fileName != "webdav_prefs.xml") {
                     val targetFile = File(dataDir, relativePath)
 
                     // Security check to prevent Zip Slip vulnerability
