@@ -4492,7 +4492,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
     private suspend fun fetchSimilarMovies(): String? = withContext(Dispatchers.IO) {
         var response: String? = null
         val movie = if (isMovie) SectionsPagerAdapter.MOVIE else SectionsPagerAdapter.TV
-        val url = "https://api.themoviedb.org/3/$movie/$movieId/recommendations" + getLanguageParameter2(applicationContext)
+        val url = "https://api.themoviedb.org/3/$movie/$movieId/recommendations" + getLanguageParameter2(applicationContext) + getAdultContentParameter(applicationContext)
         val client = com.wirelessalien.android.moviedb.NetworkClient.client
         val request = Request.Builder()
             .url(url)
