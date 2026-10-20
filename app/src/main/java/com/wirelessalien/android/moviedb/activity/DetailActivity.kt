@@ -1109,10 +1109,9 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         }
 
-        SimklDatabaseHelper(context).use { simklDb ->
-            simklStatus = simklDb.getItemStatus(movieId, isMovie)
-            simklRating = simklDb.getItemRating(movieId, isMovie)
-        }
+        val simklDb = SimklDatabaseHelper(context)
+        simklStatus = simklDb.getItemStatus(movieId, isMovie)
+        simklRating = simklDb.getItemRating(movieId, isMovie)
         updateSimklButtonsUI()
 
         binding.btnSimklStatus.setOnClickListener {
@@ -1541,9 +1540,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     else movieDataObject.optString("name", movieTitle ?: "")
                     val type = if (isMovie) "movie" else "show"
                     lifecycleScope.launch(Dispatchers.IO) {
-                        SimklDatabaseHelper(context).use { simklDb ->
-                            simklDb.updateItemStatus(movieId, type, title, status, nowIso)
-                        }
+                        val simklDb = SimklDatabaseHelper(context)
+                        simklDb.updateItemStatus(movieId, type, title, status, nowIso)
                         addItemtoTmdb()
                     }
                 }
@@ -1577,9 +1575,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 response.close()
                 if (isSuccess) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        SimklDatabaseHelper(context).use { simklDb ->
-                            simklDb.removeItem(movieId, isMovie)
-                        }
+                        val simklDb = SimklDatabaseHelper(context)
+                        simklDb.removeItem(movieId, isMovie)
                     }
                 }
                 runOnUiThread {
@@ -1616,9 +1613,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     else movieDataObject.optString("name", movieTitle ?: "")
                     val type = if (isMovie) "movie" else "show"
                     lifecycleScope.launch(Dispatchers.IO) {
-                        SimklDatabaseHelper(context).use { simklDb ->
-                            simklDb.updateItemStatus(movieId, type, title, "completed", watchedAt)
-                        }
+                        val simklDb = SimklDatabaseHelper(context)
+                        simklDb.updateItemStatus(movieId, type, title, "completed", watchedAt)
                         addItemtoTmdb()
                     }
                 }
@@ -1647,7 +1643,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         lifecycleScope.launch {
             val lastWatchedStr = withContext(Dispatchers.IO) {
-                SimklDatabaseHelper(context).use { it.getLastWatched(movieId, isMovie) }
+                SimklDatabaseHelper(context).getLastWatched(movieId, isMovie)
             }
             dialogViewBinding.progressIndicator.visibility = View.GONE
             if (!lastWatchedStr.isNullOrEmpty()) {
@@ -1731,7 +1727,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         progressIndicator.visibility = View.VISIBLE
         lifecycleScope.launch(Dispatchers.IO) {
-            val currentRating = SimklDatabaseHelper(context).use { it.getItemRating(movieId, isMovie) }
+            val currentRating = SimklDatabaseHelper(context).getItemRating(movieId, isMovie)
             withContext(Dispatchers.Main) {
                 progressIndicator.visibility = View.GONE
                 ratingSlider.value = currentRating.coerceIn(0, 10).toFloat()
@@ -1789,9 +1785,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     if (isSuccess) {
                         val type = if (isMovie) "movie" else "show"
                         lifecycleScope.launch(Dispatchers.IO) {
-                            SimklDatabaseHelper(context).use { simklDb ->
-                                simklDb.upsertItemRating(movieId, type, title, rating, ratedAt)
-                            }
+                            val simklDb = SimklDatabaseHelper(context)
+                            simklDb.upsertItemRating(movieId, type, title, rating, ratedAt)
                             addItemtoTmdb()
                         }
                     }
@@ -1833,9 +1828,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     response.close()
                     if (isSuccess) {
                         lifecycleScope.launch(Dispatchers.IO) {
-                            SimklDatabaseHelper(context).use { simklDb ->
-                                simklDb.removeItemRating(movieId, isMovie)
-                            }
+                            val simklDb = SimklDatabaseHelper(context)
+                            simklDb.removeItemRating(movieId, isMovie)
                         }
                     }
                     runOnUiThread {

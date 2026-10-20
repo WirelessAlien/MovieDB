@@ -141,9 +141,8 @@ class EpisodeAdapter(
                         isInRating = db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
                     }
                 }
-                SimklDatabaseHelper(context).use { simklDb ->
-                    simklWatchedEpisodes = simklDb.getWatchedEpisodesForSeason(tvShowId, seasonNumber).toMutableSet()
-                }
+                val simklDb = SimklDatabaseHelper(context)
+                simklWatchedEpisodes = simklDb.getWatchedEpisodesForSeason(tvShowId, seasonNumber).toMutableSet()
             }
             notifyDataSetChanged()
         }
@@ -170,9 +169,8 @@ class EpisodeAdapter(
     fun refreshSimklWatchedState() {
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
-                SimklDatabaseHelper(context).use { simklDb ->
-                    simklWatchedEpisodes = simklDb.getWatchedEpisodesForSeason(tvShowId, seasonNumber).toMutableSet()
-                }
+                val simklDb = SimklDatabaseHelper(context)
+                simklWatchedEpisodes = simklDb.getWatchedEpisodesForSeason(tvShowId, seasonNumber).toMutableSet()
             }
             notifyDataSetChanged()
         }
@@ -759,12 +757,11 @@ class EpisodeAdapter(
                     response.close()
                     if (isSuccess) {
                         CoroutineScope(Dispatchers.IO).launch {
-                            SimklDatabaseHelper(context).use { simklDb ->
-                                if (currentlyWatched) {
-                                    simklDb.removeEpisodeFromWatched(tvShowId, seasonNumber, episode.episodeNumber)
-                                } else {
-                                    simklDb.addEpisodeToWatched(0, tvShowId, seasonNumber, episode.episodeNumber, currentDateTime)
-                                }
+                            val simklDb = SimklDatabaseHelper(context)
+                            if (currentlyWatched) {
+                                simklDb.removeEpisodeFromWatched(tvShowId, seasonNumber, episode.episodeNumber)
+                            } else {
+                                simklDb.addEpisodeToWatched(0, tvShowId, seasonNumber, episode.episodeNumber, currentDateTime)
                             }
                             if (!currentlyWatched) {
                                 addItemtoTmdb()

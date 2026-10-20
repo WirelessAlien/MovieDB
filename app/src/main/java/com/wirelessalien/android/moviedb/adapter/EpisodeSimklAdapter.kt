@@ -148,18 +148,17 @@ class EpisodeSimklAdapter(
                     response.close()
                     if (isSuccess) {
                         CoroutineScope(Dispatchers.IO).launch {
-                            SimklDatabaseHelper(context).use { db ->
-                                if (endpoint == "sync/history") {
-                                    db.addEpisodeToWatched(
-                                        simklId,
-                                        tvShowId,
-                                        seasonNumber,
-                                        episodeNumber,
-                                        currentDateTime
-                                    )
-                                } else {
-                                    db.removeEpisodeFromWatched(tvShowId, seasonNumber, episodeNumber)
-                                }
+                            val db = SimklDatabaseHelper(context)
+                            if (endpoint == "sync/history") {
+                                db.addEpisodeToWatched(
+                                    simklId,
+                                    tvShowId,
+                                    seasonNumber,
+                                    episodeNumber,
+                                    currentDateTime
+                                )
+                            } else {
+                                db.removeEpisodeFromWatched(tvShowId, seasonNumber, episodeNumber)
                             }
                         }
                     }

@@ -176,7 +176,6 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
             }
 
             cursor.close()
-            simklDb.close()
             tmdbDb.close()
         }
     }

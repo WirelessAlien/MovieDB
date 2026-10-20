@@ -277,12 +277,6 @@ class SimklListFragment : BaseFragment() {
         adapter.updateShowList(filteredList)
     }
 
-    override fun onDestroy() {
-        dbHelper.close()
-        tmdbHelper.close()
-        super.onDestroy()
-    }
-
     override fun onResume() {
         super.onResume()
         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)

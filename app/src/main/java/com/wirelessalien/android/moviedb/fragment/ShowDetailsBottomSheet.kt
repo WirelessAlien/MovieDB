@@ -325,7 +325,6 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
     override fun onDestroyView() {
         movieDatabaseHelper.close()
         traktDatabaseHelper.close()
-        simklDatabaseHelper.close()
         super.onDestroyView()
     }
 

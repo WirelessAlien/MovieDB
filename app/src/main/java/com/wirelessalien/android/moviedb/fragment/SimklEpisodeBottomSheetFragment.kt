@@ -126,9 +126,8 @@ class SimklEpisodeBottomSheetFragment :
                         val episodes = TmdbDetailsDatabaseHelper(requireContext()).use {
                             it.getEpisodesForSeason(showId, sNum)
                         }
-                        val watchedEpisodes = SimklDatabaseHelper(requireContext()).use {
-                            it.getWatchedEpisodesForSeason(showId, sNum).toMutableList()
-                        }
+                        val watchedEpisodes = SimklDatabaseHelper(requireContext())
+                            .getWatchedEpisodesForSeason(showId, sNum).toMutableList()
 
                         val episodeAdapter = EpisodeSimklAdapter(
                             episodes,
@@ -162,15 +161,13 @@ class SimklEpisodeBottomSheetFragment :
     ) {
         binding.chipEpS.text = "S${seasonNumber}:E${episodeNumber}"
 
-        val isWatched = SimklDatabaseHelper(requireContext()).use {
-            it.isEpisodeWatched(tvShowId, seasonNumber, episodeNumber)
-        }
+        val isWatched = SimklDatabaseHelper(requireContext())
+            .isEpisodeWatched(tvShowId, seasonNumber, episodeNumber)
         updateWatchedIcon(isWatched)
 
         binding.addToWatched.setOnClickListener {
-            val isCurrentlyWatched = SimklDatabaseHelper(requireContext()).use {
-                it.isEpisodeWatched(tvShowId, seasonNumber, episodeNumber)
-            }
+            val isCurrentlyWatched = SimklDatabaseHelper(requireContext())
+                .isEpisodeWatched(tvShowId, seasonNumber, episodeNumber)
             val currentDateTime = android.icu.text.SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                 Locale.ENGLISH
@@ -217,18 +214,17 @@ class SimklEpisodeBottomSheetFragment :
                     response.close()
                     if (isSuccess) {
                         CoroutineScope(Dispatchers.IO).launch {
-                            SimklDatabaseHelper(requireContext()).use { db ->
-                                if (endpoint == "sync/history") {
-                                    db.addEpisodeToWatched(
-                                        simklId,
-                                        tvShowId,
-                                        seasonNumber,
-                                        episodeNumber,
-                                        currentDateTime
-                                    )
-                                } else {
-                                    db.removeEpisodeFromWatched(tvShowId, seasonNumber, episodeNumber)
-                                }
+                            val db = SimklDatabaseHelper(requireContext())
+                            if (endpoint == "sync/history") {
+                                db.addEpisodeToWatched(
+                                    simklId,
+                                    tvShowId,
+                                    seasonNumber,
+                                    episodeNumber,
+                                    currentDateTime
+                                )
+                            } else {
+                                db.removeEpisodeFromWatched(tvShowId, seasonNumber, episodeNumber)
                             }
                             addItemtoTmdb()
                         }

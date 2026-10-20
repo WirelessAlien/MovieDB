@@ -96,10 +96,9 @@ class AccountDataFragmentSimkl : BaseFragment() {
             val token = sharedPreferences.getString("simkl_access_token", null)
             if (!token.isNullOrEmpty()) {
                 val shouldSync = withContext(Dispatchers.IO) {
-                    SimklDatabaseHelper(requireContext()).use { db ->
-                        val lastChecked = db.getSyncActivities()?.lastCheckedMs ?: 0L
-                        System.currentTimeMillis() - lastChecked >= SYNC_THROTTLE_MS
-                    }
+                    val db = SimklDatabaseHelper(requireContext())
+                    val lastChecked = db.getSyncActivities()?.lastCheckedMs ?: 0L
+                    System.currentTimeMillis() - lastChecked >= SYNC_THROTTLE_MS
                 }
                 if (shouldSync && isAdded) {
                     startSimklIncrementalSync()

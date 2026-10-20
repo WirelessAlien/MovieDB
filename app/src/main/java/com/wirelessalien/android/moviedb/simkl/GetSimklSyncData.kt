@@ -271,8 +271,6 @@ class GetSimklSyncData(
                 )
             } catch (e: Exception) {
                 Log.e("GetSimklSyncData", "Error during Simkl sync: ${e.message}", e)
-            } finally {
-                dbHelper.close()
             }
         }
     }

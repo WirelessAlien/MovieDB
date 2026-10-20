@@ -124,7 +124,6 @@ class SeasonDetailsFragment : Fragment() {
 
         val simklDbHelper = SimklDatabaseHelper(requireContext())
         isInSimklWatched = simklDbHelper.isSeasonInWatched(tvShowId, seasonNumber)
-        simklDbHelper.close()
     }
 
     override fun onCreateView(
@@ -148,9 +147,7 @@ class SeasonDetailsFragment : Fragment() {
                 super.onPageSelected(position)
                 currentTabNumber = position
                 seasonNumber = if (currentTabNumber == 0) 0 else currentTabNumber
-                SimklDatabaseHelper(requireContext()).use {
-                    isInSimklWatched = it.isSeasonInWatched(tvShowId, seasonNumber)
-                }
+                isInSimklWatched = SimklDatabaseHelper(requireContext()).isSeasonInWatched(tvShowId, seasonNumber)
                 TraktDatabaseHelper(requireContext()).use {
                     isInWatched = it.isSasonInWatched(tvShowId, seasonNumber)
                 }
@@ -344,19 +341,18 @@ class SeasonDetailsFragment : Fragment() {
                                     if (isSuccess) {
                                         CoroutineScope(Dispatchers.IO).launch {
                                             val appCtx = context?.applicationContext ?: return@launch
-                                            SimklDatabaseHelper(appCtx).use { simklDb ->
-                                                if (wasWatched) {
-                                                    simklDb.removeSeasonFromWatched(tvShowId, seasonNumber)
-                                                } else {
-                                                    episodes.forEach { episode ->
-                                                        simklDb.addEpisodeToWatched(
-                                                            0,
-                                                            tvShowId,
-                                                            seasonNumber,
-                                                            episode.episodeNumber,
-                                                            currentDateTime
-                                                        )
-                                                    }
+                                            val simklDb = SimklDatabaseHelper(appCtx)
+                                            if (wasWatched) {
+                                                simklDb.removeSeasonFromWatched(tvShowId, seasonNumber)
+                                            } else {
+                                                episodes.forEach { episode ->
+                                                    simklDb.addEpisodeToWatched(
+                                                        0,
+                                                        tvShowId,
+                                                        seasonNumber,
+                                                        episode.episodeNumber,
+                                                        currentDateTime
+                                                    )
                                                 }
                                             }
                                             withContext(Dispatchers.Main) {

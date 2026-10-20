@@ -424,14 +424,13 @@ class ShowSimklAdapter(
                         response.close()
                         if (isSuccess) {
                             CoroutineScope(Dispatchers.IO).launch {
-                                SimklDatabaseHelper(context).use { db ->
-                                    if (endpoint == ACTION_MARK_SEASON_WATCHED) {
-                                        episodes.forEach { epNum ->
-                                            db.addEpisodeToWatched(simklId, tmdbId, season, epNum, currentDateTime)
-                                        }
-                                    } else {
-                                        db.removeSeasonFromWatched(tmdbId, season)
+                                val db = SimklDatabaseHelper(context)
+                                if (endpoint == ACTION_MARK_SEASON_WATCHED) {
+                                    episodes.forEach { epNum ->
+                                        db.addEpisodeToWatched(simklId, tmdbId, season, epNum, currentDateTime)
                                     }
+                                } else {
+                                    db.removeSeasonFromWatched(tmdbId, season)
                                 }
                             }
                         }
@@ -550,12 +549,11 @@ class ShowSimklAdapter(
                     response.close()
                     if (isSuccess) {
                         CoroutineScope(Dispatchers.IO).launch {
-                            SimklDatabaseHelper(context).use { db ->
-                                if (newWatchedStatus) {
-                                    db.addEpisodeToWatched(simklId, tvShowId, seasonNumber, episodeNumber, currentDateTime)
-                                } else {
-                                    db.removeEpisodeFromWatched(tvShowId, seasonNumber, episodeNumber)
-                                }
+                            val db = SimklDatabaseHelper(context)
+                            if (newWatchedStatus) {
+                                db.addEpisodeToWatched(simklId, tvShowId, seasonNumber, episodeNumber, currentDateTime)
+                            } else {
+                                db.removeEpisodeFromWatched(tvShowId, seasonNumber, episodeNumber)
                             }
                         }
                     }
@@ -629,15 +627,11 @@ class ShowSimklAdapter(
     }
 
     private fun isEpisodeWatched(showTmdbId: Int, seasonNumber: Int, episodeNumber: Int): Boolean {
-        return SimklDatabaseHelper(context).use {
-            it.isEpisodeWatched(showTmdbId, seasonNumber, episodeNumber)
-        }
+        return SimklDatabaseHelper(context).isEpisodeWatched(showTmdbId, seasonNumber, episodeNumber)
     }
 
     private fun getWatchedEpisodesFromDb(showTmdbId: Int, seasonNumber: Int): MutableList<Int> {
-        return SimklDatabaseHelper(context).use {
-            it.getWatchedEpisodesForSeason(showTmdbId, seasonNumber).toMutableList()
-        }
+        return SimklDatabaseHelper(context).getWatchedEpisodesForSeason(showTmdbId, seasonNumber).toMutableList()
     }
 
     private fun getWatchedEpisodesShow(showTmdbId: Int): List<Pair<Int, Int>> {
@@ -657,7 +651,6 @@ class ShowSimklAdapter(
             watchedEpisodes.add(Pair(s, e))
         }
         cursor.close()
-        db.close()
         return watchedEpisodes
     }
 
