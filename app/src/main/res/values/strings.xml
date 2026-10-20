@@ -256,6 +256,10 @@
     <string name="date_added_ascending">Date Added (Ascending)</string>
     <string name="name_descending">Name (Descending)</string>
     <string name="name_ascending">Name (Ascending)</string>
+    <string name="release_date_descending">Release Date (Descending)</string>
+    <string name="release_date_ascending">Release Date (Ascending)</string>
+    <string name="rating_descending">Rating (Descending)</string>
+    <string name="rating_ascending">Rating (Ascending)</string>
     <string name="get_episode_data_auto">Auto fetch episode data</string>
     <string name="get_episode_data_auto_summary">Get updated data (like newly added episodes) of shows automatically</string>
     <string name="no_valid_tmdb_link_found">No valid TMDB or IMDb link found</string>

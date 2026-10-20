@@ -34,10 +34,16 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
@@ -59,9 +65,10 @@ import com.wirelessalien.android.moviedb.databinding.DialogPersonImageBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
@@ -98,6 +105,9 @@ class CastActivity : BaseActivity() {
     private lateinit var castMovieArrayList: ArrayList<JSONObject>
     private lateinit var crewMovieAdapter: ShowBaseAdapter
     private lateinit var crewMovieArrayList: ArrayList<JSONObject>
+    private val rawCastList = ArrayList<JSONObject>()
+    private val rawCrewList = ArrayList<JSONObject>()
+    private var sortJob: Job? = null
     private var mShowGenreList: HashMap<String, String?>? = null
     private var mActorMoviesLoaded = false
     private var mActorImagesLoaded = false
@@ -132,7 +142,6 @@ class CastActivity : BaseActivity() {
         val dbHelper = PeopleDatabaseHelper(context)
 
         mActivity = this
-//        binding.appBarLayout.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(this)
 
         val intent = intent
         try {
@@ -148,33 +157,15 @@ class CastActivity : BaseActivity() {
         castMovieArrayList = ArrayList()
         crewMovieArrayList = ArrayList()
 
+        val isGridView = preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)
+        castMovieAdapter = ShowBaseAdapter(context, castMovieArrayList, mShowGenreList!!, isGridView)
+        crewMovieAdapter = ShowBaseAdapter(context, crewMovieArrayList, mShowGenreList!!, isGridView)
+
         binding.tabLayout.getTabAt(0)?.select()
 
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                when (tab.position) {
-                    0 -> {
-                        binding.crewMovieRecyclerView.visibility = View.GONE
-                        if (castMovieArrayList.isEmpty()) {
-                            binding.castMovieRecyclerView.visibility = View.GONE
-                            binding.emptyView.visibility = View.VISIBLE
-                        } else {
-                            binding.castMovieRecyclerView.visibility = View.VISIBLE
-                            binding.emptyView.visibility = View.GONE
-                        }
-                    }
-
-                    1 -> {
-                        binding.castMovieRecyclerView.visibility = View.GONE
-                        if (crewMovieArrayList.isEmpty()) {
-                            binding.crewMovieRecyclerView.visibility = View.GONE
-                            binding.emptyView.visibility = View.VISIBLE
-                        } else {
-                            binding.crewMovieRecyclerView.visibility = View.VISIBLE
-                            binding.emptyView.visibility = View.GONE
-                        }
-                    }
-                }
+                updateTabVisibility(tab.position)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
@@ -186,33 +177,30 @@ class CastActivity : BaseActivity() {
             }
         })
 
-        if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
-            val mShowGridView = GridLayoutManager(
-                context,
-                preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
-            )
-            binding.castMovieRecyclerView.layoutManager = mShowGridView
+        if (isGridView) {
+            val gridSpanCount = preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
+            binding.castMovieRecyclerView.layoutManager = GridLayoutManager(context, gridSpanCount)
+            binding.crewMovieRecyclerView.layoutManager = GridLayoutManager(context, gridSpanCount)
         } else {
-            val mShowLinearLayoutManager = LinearLayoutManager(
+            binding.castMovieRecyclerView.layoutManager = LinearLayoutManager(
                 context,
                 LinearLayoutManager.VERTICAL, false
             )
-            binding.castMovieRecyclerView.layoutManager = mShowLinearLayoutManager
+            binding.crewMovieRecyclerView.layoutManager = LinearLayoutManager(
+                context,
+                LinearLayoutManager.VERTICAL, false
+            )
         }
 
-        if (preferences.getBoolean(SHOWS_LIST_PREFERENCE, true)) {
-            val mShowGridView = GridLayoutManager(
-                context,
-                preferences.getInt(GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1)
-            )
-            binding.crewMovieRecyclerView.layoutManager = mShowGridView
-        } else {
-            val mShowLinearLayoutManager = LinearLayoutManager(
-                context,
-                LinearLayoutManager.VERTICAL, false
-            )
-            binding.crewMovieRecyclerView.layoutManager = mShowLinearLayoutManager
-        }
+        binding.castMovieRecyclerView.setHasFixedSize(true)
+        binding.castMovieRecyclerView.setItemViewCacheSize(20)
+        binding.castMovieRecyclerView.adapter = castMovieAdapter
+
+        binding.crewMovieRecyclerView.setHasFixedSize(true)
+        binding.crewMovieRecyclerView.setItemViewCacheSize(20)
+        binding.crewMovieRecyclerView.adapter = crewMovieAdapter
+
+        addMenuProvider()
 
         if (dbHelper.personExists(actorId)) {
             binding.favoriteFab.setImageResource(R.drawable.ic_star)
@@ -385,6 +373,7 @@ class CastActivity : BaseActivity() {
         }
 
         binding.actorImage.setOnClickListener {
+            if (!this::imagesObject.isInitialized) return@setOnClickListener
             val dialogBinding = DialogPersonImageBinding.inflate(layoutInflater)
             val viewPager = dialogBinding.viewPager
 
@@ -437,6 +426,194 @@ class CastActivity : BaseActivity() {
         }
     }
 
+    private fun addMenuProvider() {
+        val menuHost: MenuHost = this
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_cast_sort, menu)
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
+                val criteria = preferences.getString(PREF_CREDITS_SORT_CRITERIA, SORT_DEFAULT) ?: SORT_DEFAULT
+                val order = preferences.getString(PREF_CREDITS_SORT_ORDER, ORDER_DESC) ?: ORDER_DESC
+
+                val checkedId = when (criteria) {
+                    SORT_DATE -> if (order == ORDER_ASC) R.id.sort_credits_date_asc else R.id.sort_credits_date_desc
+                    SORT_NAME -> if (order == ORDER_ASC) R.id.sort_credits_name_asc else R.id.sort_credits_name_desc
+                    SORT_RATING -> if (order == ORDER_ASC) R.id.sort_credits_rating_asc else R.id.sort_credits_rating_desc
+                    else -> R.id.sort_credits_default
+                }
+                menu.findItem(checkedId)?.isChecked = true
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.sort_credits_default -> {
+                        menuItem.isChecked = true
+                        saveAndApplySortPreference(SORT_DEFAULT, ORDER_DESC)
+                        true
+                    }
+                    R.id.sort_credits_date_desc -> {
+                        menuItem.isChecked = true
+                        saveAndApplySortPreference(SORT_DATE, ORDER_DESC)
+                        true
+                    }
+                    R.id.sort_credits_date_asc -> {
+                        menuItem.isChecked = true
+                        saveAndApplySortPreference(SORT_DATE, ORDER_ASC)
+                        true
+                    }
+                    R.id.sort_credits_name_asc -> {
+                        menuItem.isChecked = true
+                        saveAndApplySortPreference(SORT_NAME, ORDER_ASC)
+                        true
+                    }
+                    R.id.sort_credits_name_desc -> {
+                        menuItem.isChecked = true
+                        saveAndApplySortPreference(SORT_NAME, ORDER_DESC)
+                        true
+                    }
+                    R.id.sort_credits_rating_desc -> {
+                        menuItem.isChecked = true
+                        saveAndApplySortPreference(SORT_RATING, ORDER_DESC)
+                        true
+                    }
+                    R.id.sort_credits_rating_asc -> {
+                        menuItem.isChecked = true
+                        saveAndApplySortPreference(SORT_RATING, ORDER_ASC)
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, this, Lifecycle.State.RESUMED)
+    }
+
+    private fun saveAndApplySortPreference(criteria: String, order: String) {
+        preferences.edit()
+            .putString(PREF_CREDITS_SORT_CRITERIA, criteria)
+            .putString(PREF_CREDITS_SORT_ORDER, order)
+            .apply()
+        sortAndDisplayCredits()
+    }
+
+    private fun sortAndDisplayCredits() {
+        if (rawCastList.isEmpty() && rawCrewList.isEmpty()) return
+
+        sortJob?.cancel()
+        binding.creditsProgressIndicator.visibility = View.VISIBLE
+
+        val criteria = preferences.getString(PREF_CREDITS_SORT_CRITERIA, SORT_DEFAULT) ?: SORT_DEFAULT
+        val order = preferences.getString(PREF_CREDITS_SORT_ORDER, ORDER_DESC) ?: ORDER_DESC
+        val castSnapshot = ArrayList(rawCastList)
+        val crewSnapshot = ArrayList(rawCrewList)
+
+        sortJob = lifecycleScope.launch {
+            val (sortedCast, sortedCrew) = withContext(Dispatchers.Default) {
+                ensureActive()
+                val comparator = buildCreditsComparator(criteria, order)
+                if (comparator != null) {
+                    castSnapshot.sortWith(comparator)
+                    ensureActive()
+                    crewSnapshot.sortWith(comparator)
+                }
+                Pair(castSnapshot, crewSnapshot)
+            }
+
+            castMovieAdapter.updateData(sortedCast)
+            crewMovieAdapter.updateData(sortedCrew)
+            binding.castMovieRecyclerView.scrollToPosition(0)
+            binding.crewMovieRecyclerView.scrollToPosition(0)
+            updateTabVisibility(binding.tabLayout.selectedTabPosition)
+            binding.creditsProgressIndicator.visibility = View.GONE
+        }
+    }
+
+    private fun buildCreditsComparator(criteria: String, order: String): Comparator<JSONObject>? {
+        val isAsc = order == ORDER_ASC
+        return when (criteria) {
+            SORT_DATE -> Comparator { a, b ->
+                val dateA = a.optString(KEY_SORT_DATE, "")
+                val dateB = b.optString(KEY_SORT_DATE, "")
+                val emptyA = dateA.isEmpty()
+                val emptyB = dateB.isEmpty()
+                // Always push items without release dates to the bottom
+                when {
+                    emptyA && emptyB -> a.optInt(KEY_ORIGINAL_INDEX).compareTo(b.optInt(KEY_ORIGINAL_INDEX))
+                    emptyA -> 1
+                    emptyB -> -1
+                    else -> {
+                        val cmp = if (isAsc) dateA.compareTo(dateB) else dateB.compareTo(dateA)
+                        if (cmp != 0) cmp else a.optString(KEY_SORT_TITLE, "").compareTo(b.optString(KEY_SORT_TITLE, ""))
+                    }
+                }
+            }
+            SORT_NAME -> Comparator { a, b ->
+                val titleA = a.optString(KEY_SORT_TITLE, "")
+                val titleB = b.optString(KEY_SORT_TITLE, "")
+                val emptyA = titleA.isEmpty()
+                val emptyB = titleB.isEmpty()
+                when {
+                    emptyA && emptyB -> a.optInt(KEY_ORIGINAL_INDEX).compareTo(b.optInt(KEY_ORIGINAL_INDEX))
+                    emptyA -> 1
+                    emptyB -> -1
+                    else -> {
+                        val cmp = if (isAsc) titleA.compareTo(titleB) else titleB.compareTo(titleA)
+                        if (cmp != 0) cmp else a.optInt(KEY_ORIGINAL_INDEX).compareTo(b.optInt(KEY_ORIGINAL_INDEX))
+                    }
+                }
+            }
+            SORT_RATING -> Comparator { a, b ->
+                val ratingA = a.optDouble(KEY_SORT_RATING, 0.0)
+                val ratingB = b.optDouble(KEY_SORT_RATING, 0.0)
+                val unratedA = ratingA <= 0.0
+                val unratedB = ratingB <= 0.0
+                // Keep unrated (0.0) items at the bottom for both ascending and descending rating sorts
+                when {
+                    unratedA && unratedB -> a.optInt(KEY_ORIGINAL_INDEX).compareTo(b.optInt(KEY_ORIGINAL_INDEX))
+                    unratedA -> 1
+                    unratedB -> -1
+                    else -> {
+                        val cmp = if (isAsc) ratingA.compareTo(ratingB) else ratingB.compareTo(ratingA)
+                        if (cmp != 0) {
+                            cmp
+                        } else {
+                            val votesA = a.optInt("vote_count", 0)
+                            val votesB = b.optInt("vote_count", 0)
+                            if (isAsc) votesA.compareTo(votesB) else votesB.compareTo(votesA)
+                        }
+                    }
+                }
+            }
+            else -> null
+        }
+    }
+
+    private fun updateTabVisibility(selectedTabPosition: Int) {
+        when (selectedTabPosition) {
+            0 -> {
+                binding.crewMovieRecyclerView.visibility = View.GONE
+                if (castMovieArrayList.isEmpty()) {
+                    binding.castMovieRecyclerView.visibility = View.GONE
+                    binding.emptyView.visibility = View.VISIBLE
+                } else {
+                    binding.castMovieRecyclerView.visibility = View.VISIBLE
+                    binding.emptyView.visibility = View.GONE
+                }
+            }
+            1 -> {
+                binding.castMovieRecyclerView.visibility = View.GONE
+                if (crewMovieArrayList.isEmpty()) {
+                    binding.crewMovieRecyclerView.visibility = View.GONE
+                    binding.emptyView.visibility = View.VISIBLE
+                } else {
+                    binding.crewMovieRecyclerView.visibility = View.VISIBLE
+                    binding.emptyView.visibility = View.GONE
+                }
+            }
+        }
+    }
+
     private fun showTimelineBottomSheet() {
         val bottomSheetDialog = BottomSheetDialog(this)
         val bottomSheetBinding = BottomSheetTimelineBinding.inflate(layoutInflater)
@@ -445,11 +622,11 @@ class CastActivity : BaseActivity() {
         val today = Date()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-        val allCreditsRaw = (castMovieArrayList + crewMovieArrayList)
+        val allCreditsRaw = (rawCastList + rawCrewList)
             .filter {
                 val releaseDateStr =
-                    it.optString("release_date", "") ?: it.optString("first_air_date", "")
-                if (releaseDateStr.isNullOrEmpty()) {
+                    it.optString("release_date", "").ifEmpty { it.optString("first_air_date", "") }
+                if (releaseDateStr.isEmpty()) {
                     false
                 } else {
                     try {
@@ -480,7 +657,7 @@ class CastActivity : BaseActivity() {
             }
             .sortedByDescending {
                 val releaseDateStr =
-                    it.optString("release_date", "") ?: it.optString("first_air_date", "")
+                    it.optString("release_date", "").ifEmpty { it.optString("first_air_date", "") }
                 try {
                     dateFormat.parse(releaseDateStr)?.time ?: 0L
                 } catch (e: Exception) {
@@ -617,84 +794,129 @@ class CastActivity : BaseActivity() {
     }
 
     private fun fetchActorMovies() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val response = try {
-                val url = URL("https://api.themoviedb.org/3/person/$actorId/combined_credits")
-                val client = com.wirelessalien.android.moviedb.NetworkClient.client
-                val request = Request.Builder()
-                    .url(url)
-                    .get()
-                    .addHeader("Content-Type", "application/json;charset=utf-8")
-                    .addHeader("Authorization", "Bearer $apiReaT")
-                    .build()
-                client.newCall(request).execute().use { res ->
-                    res.body.string()
+        lifecycleScope.launch {
+            binding.creditsProgressIndicator.visibility = View.VISIBLE
+
+            val response = withContext(Dispatchers.IO) {
+                try {
+                    val url = URL("https://api.themoviedb.org/3/person/$actorId/combined_credits")
+                    val client = com.wirelessalien.android.moviedb.NetworkClient.client
+                    val request = Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("Content-Type", "application/json;charset=utf-8")
+                        .addHeader("Authorization", "Bearer $apiReaT")
+                        .build()
+                    client.newCall(request).execute().use { res ->
+                        res.body.string()
+                    }
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    null
                 }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                null
             }
 
-            withContext(Dispatchers.Main) {
-                onPostExecute(response)
-            }
+            processCreditsResponse(response)
         }
     }
 
-    private fun onPostExecute(response: String?) {
-        if (!response.isNullOrEmpty()) {
-            try {
+    private suspend fun processCreditsResponse(response: String?) {
+        if (response.isNullOrEmpty()) {
+            binding.creditsProgressIndicator.visibility = View.GONE
+            return
+        }
+
+        val criteria = preferences.getString(PREF_CREDITS_SORT_CRITERIA, SORT_DEFAULT) ?: SORT_DEFAULT
+        val order = preferences.getString(PREF_CREDITS_SORT_ORDER, ORDER_DESC) ?: ORDER_DESC
+
+        try {
+            val parsedData = withContext(Dispatchers.Default) {
                 val reader = JSONObject(response)
+                val parsedCast = ArrayList<JSONObject>()
+                val parsedCrew = ArrayList<JSONObject>()
 
-                val castMovieArray = reader.getJSONArray("cast")
-                if (castMovieArray.length() <= 0) {
-                    if (binding.tabLayout.selectedTabPosition == 0) {
-                        binding.castMovieRecyclerView.visibility = View.GONE
-                        binding.emptyView.visibility = View.VISIBLE
-                    }
-                } else {
-                    castMovieArrayList.clear()
-                    val addedItems = mutableSetOf<Pair<Int, String>>()
+                val castMovieArray = reader.optJSONArray("cast")
+                if (castMovieArray != null) {
+                    val addedCastItems = HashSet<Pair<Int, String>>(castMovieArray.length())
                     for (i in 0 until castMovieArray.length()) {
-                        val actorMovies = castMovieArray.getJSONObject(i)
-                        val id = actorMovies.optInt("id")
-                        val mediaType = actorMovies.optString("media_type")
-                        if (addedItems.add(Pair(id, mediaType))) {
-                            castMovieArrayList.add(actorMovies)
+                        val item = castMovieArray.optJSONObject(i) ?: continue
+                        val id = item.optInt("id")
+                        val mediaType = item.optString("media_type")
+                        if (addedCastItems.add(Pair(id, mediaType))) {
+                            enrichSortMetadata(item, parsedCast.size)
+                            parsedCast.add(item)
                         }
                     }
-
-                    castMovieAdapter = ShowBaseAdapter(context, castMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
-                    binding.castMovieRecyclerView.adapter = castMovieAdapter
                 }
 
-                val crewMovieArray = reader.getJSONArray("crew")
-                if (crewMovieArray.length() <= 0) {
-                    if (binding.tabLayout.selectedTabPosition == 1) {
-                        binding.crewMovieRecyclerView.visibility = View.GONE
-                        binding.emptyView.visibility = View.VISIBLE
-                    }
-                } else {
-                    crewMovieArrayList.clear()
-                    val addedItems = mutableSetOf<Pair<Int, String>>()
+                val crewMovieArray = reader.optJSONArray("crew")
+                if (crewMovieArray != null) {
+                    val addedCrewItems = HashSet<Pair<Int, String>>(crewMovieArray.length())
                     for (i in 0 until crewMovieArray.length()) {
-                        val crewMovies = crewMovieArray.getJSONObject(i)
-                        val id = crewMovies.optInt("id")
-                        val mediaType = crewMovies.optString("media_type")
-                        if (addedItems.add(Pair(id, mediaType))) {
-                            crewMovieArrayList.add(crewMovies)
+                        val item = crewMovieArray.optJSONObject(i) ?: continue
+                        val id = item.optInt("id")
+                        val mediaType = item.optString("media_type")
+                        if (addedCrewItems.add(Pair(id, mediaType))) {
+                            enrichSortMetadata(item, parsedCrew.size)
+                            parsedCrew.add(item)
                         }
                     }
-
-                    crewMovieAdapter = ShowBaseAdapter(context, crewMovieArrayList, mShowGenreList!!, preferences.getBoolean(SHOWS_LIST_PREFERENCE, true))
-                    binding.crewMovieRecyclerView.adapter = crewMovieAdapter
-                    mActorMoviesLoaded = true
                 }
-            } catch (je: JSONException) {
-                je.printStackTrace()
+
+                val sortedCast = ArrayList(parsedCast)
+                val sortedCrew = ArrayList(parsedCrew)
+                val comparator = buildCreditsComparator(criteria, order)
+                if (comparator != null) {
+                    sortedCast.sortWith(comparator)
+                    sortedCrew.sortWith(comparator)
+                }
+
+                CreditsResult(parsedCast, parsedCrew, sortedCast, sortedCrew)
             }
+
+            rawCastList.clear()
+            rawCastList.addAll(parsedData.rawCast)
+            rawCrewList.clear()
+            rawCrewList.addAll(parsedData.rawCrew)
+
+            castMovieAdapter.updateData(parsedData.sortedCast)
+            crewMovieAdapter.updateData(parsedData.sortedCrew)
+            mActorMoviesLoaded = true
+            updateTabVisibility(binding.tabLayout.selectedTabPosition)
+        } catch (je: JSONException) {
+            je.printStackTrace()
+        } finally {
+            binding.creditsProgressIndicator.visibility = View.GONE
         }
     }
+
+    /**
+     * Pre-computes normalized sort keys once on a background thread so subsequent comparisons
+     * do not allocate strings or parse JSON repeatedly inside Comparator.compare().
+     */
+    private fun enrichSortMetadata(item: JSONObject, index: Int) {
+        val rawTitle = if (item.has("title")) item.optString("title", "") else item.optString("name", "")
+        val normalizedTitle = if (rawTitle == "null") "" else rawTitle.trim().lowercase(Locale.ROOT)
+
+        val rawDate = item.optString("release_date", "").let {
+            if (it.isEmpty() || it == "null") item.optString("first_air_date", "") else it
+        }
+        val normalizedDate = if (rawDate == "null") "" else rawDate.trim()
+
+        val rating = item.optDouble("vote_average", 0.0).let { if (it.isNaN()) 0.0 else it }
+
+        item.put(KEY_SORT_TITLE, normalizedTitle)
+        item.put(KEY_SORT_DATE, normalizedDate)
+        item.put(KEY_SORT_RATING, rating)
+        item.put(KEY_ORIGINAL_INDEX, index)
+    }
+
+    private data class CreditsResult(
+        val rawCast: ArrayList<JSONObject>,
+        val rawCrew: ArrayList<JSONObject>,
+        val sortedCast: ArrayList<JSONObject>,
+        val sortedCrew: ArrayList<JSONObject>
+    )
 
     private fun fetchPersonImages() {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -739,5 +961,21 @@ class CastActivity : BaseActivity() {
         const val SHOWS_LIST_PREFERENCE = "key_show_shows_grid"
         const val GRID_SIZE_PREFERENCE = "key_grid_size_number"
         private const val DYNAMIC_COLOR_DETAILS_ACTIVITY = "dynamic_color_details_activity"
+
+        const val PREF_CREDITS_SORT_CRITERIA = "person_credits_sort_criteria"
+        const val PREF_CREDITS_SORT_ORDER = "person_credits_sort_order"
+
+        const val SORT_DEFAULT = "default"
+        const val SORT_DATE = "date"
+        const val SORT_NAME = "name"
+        const val SORT_RATING = "rating"
+
+        const val ORDER_ASC = "asc"
+        const val ORDER_DESC = "desc"
+
+        private const val KEY_SORT_TITLE = "_sort_title"
+        private const val KEY_SORT_DATE = "_sort_date"
+        private const val KEY_SORT_RATING = "_sort_rating"
+        private const val KEY_ORIGINAL_INDEX = "_original_index"
     }
 }

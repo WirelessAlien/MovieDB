@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~     This file is part of "ShowCase" formerly Movie DB. <https://github.com/WirelessAlien/MovieDB>
+  ~     forked from <https://notabug.org/nvb/MovieDB>
+  ~
+  ~     Copyright (C) 2024  WirelessAlien <https://github.com/WirelessAlien>
+  ~
+  ~     ShowCase is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     ShowCase is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_sort_credits"
+        android:icon="@drawable/ic_filter_list"
+        android:title="@string/sort_by"
+        app:showAsAction="ifRoom">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/sort_credits_default"
+                    android:title="@string/default_sort" />
+                <item
+                    android:id="@+id/sort_credits_date_desc"
+                    android:title="@string/release_date_descending" />
+                <item
+                    android:id="@+id/sort_credits_date_asc"
+                    android:title="@string/release_date_ascending" />
+                <item
+                    android:id="@+id/sort_credits_name_asc"
+                    android:title="@string/name_ascending" />
+                <item
+                    android:id="@+id/sort_credits_name_desc"
+                    android:title="@string/name_descending" />
+                <item
+                    android:id="@+id/sort_credits_rating_desc"
+                    android:title="@string/rating_descending" />
+                <item
+                    android:id="@+id/sort_credits_rating_asc"
+                    android:title="@string/rating_ascending" />
+            </group>
+        </menu>
+    </item>
+</menu>
