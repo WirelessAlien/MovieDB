@@ -1062,8 +1062,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
+                    app:iconPadding="5dp"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_thumb_up_border"
+                    android:text="@string/rating1"
                     android:contentDescription="@string/add_rating" />
             </LinearLayout>
 

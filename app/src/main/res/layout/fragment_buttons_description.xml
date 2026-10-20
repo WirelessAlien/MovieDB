@@ -18,282 +18,377 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <!-- TMDB Section -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TMDB Actions"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:layout_marginBottom="8dp"/>
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Add to Watchlist -->
-        <LinearLayout
-            android:id="@+id/tmdb_watchlist_button"
+        <!-- TMDB Section -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
+            android:text="TMDB Actions"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:layout_marginBottom="8dp"/>
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_bookmark_border"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/add_to_watchlist"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-
-        <!-- Rate -->
         <LinearLayout
-            android:id="@+id/tmdb_rate_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
+            android:orientation="vertical">
 
-            <ImageView
-                android:layout_width="wrap_content"
+            <!-- Add to Watchlist -->
+            <LinearLayout
+                android:id="@+id/tmdb_watchlist_button"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_thumb_up_border"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
 
-            <TextView
-                android:layout_width="0dp"
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_bookmark_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/add_to_watchlist"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Rate -->
+            <LinearLayout
+                android:id="@+id/tmdb_rate_button"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/rate"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_thumb_up_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/rate"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Favorite -->
+            <LinearLayout
+                android:id="@+id/tmdb_favorite_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_favorite_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/favourite"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- List -->
+            <LinearLayout
+                android:id="@+id/tmdb_list_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_list_add"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/list_add"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Favorite -->
-        <LinearLayout
-            android:id="@+id/tmdb_favorite_button"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/dividerColor"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Trakt Section -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
+            android:text="Trakt Actions"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:layout_marginBottom="8dp"/>
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_favorite_border"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/favourite"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-
-        <!-- List -->
         <LinearLayout
-            android:id="@+id/tmdb_list_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
+            android:orientation="vertical">
 
-            <ImageView
-                android:layout_width="wrap_content"
+            <!-- Add to Watched -->
+            <LinearLayout
+                android:id="@+id/trakt_watched_button"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_list_add"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
 
-            <TextView
-                android:layout_width="0dp"
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_history"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mark_as_watched"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Watchlist -->
+            <LinearLayout
+                android:id="@+id/trakt_watchlist_button"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/list_add"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_bookmark_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/add_to_watchlist"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Favorite -->
+            <LinearLayout
+                android:id="@+id/trakt_favorite_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_favorite_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/favourite"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Rate -->
+            <LinearLayout
+                android:id="@+id/trakt_rate_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_thumb_up_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/rate"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Collection -->
+            <LinearLayout
+                android:id="@+id/trakt_collection_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_collection_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/add_to_collection"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- List -->
+            <LinearLayout
+                android:id="@+id/trakt_list_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_list_add"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/list_add"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
         </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/dividerColor"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Simkl Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simkl Actions"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Status / Watchlist -->
+            <LinearLayout
+                android:id="@+id/simkl_status_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_bookmark_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/status"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Add to Watched / History -->
+            <LinearLayout
+                android:id="@+id/simkl_watched_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_history"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mark_as_watched"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+
+            <!-- Rate -->
+            <LinearLayout
+                android:id="@+id/simkl_rate_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_thumb_up_border"
+                    android:layout_marginEnd="16dp"
+                    app:tint="?attr/colorControlNormal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/rate"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/display_confirmation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/dont_show_this_dialog_again"
+            android:layout_marginTop="16dp"/>
     </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/dividerColor"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Trakt Section -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Trakt Actions"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:layout_marginBottom="8dp"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <!-- Add to Watched -->
-        <LinearLayout
-            android:id="@+id/trakt_watched_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_history"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/mark_as_watched"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-
-        <!-- Watchlist -->
-        <LinearLayout
-            android:id="@+id/trakt_watchlist_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_bookmark_border"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/add_to_watchlist"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-
-        <!-- Favorite -->
-        <LinearLayout
-            android:id="@+id/trakt_favorite_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_favorite_border"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/favourite"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-
-        <!-- Rate -->
-        <LinearLayout
-            android:id="@+id/trakt_rate_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_thumb_up_border"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/rate"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-
-        <!-- Collection -->
-        <LinearLayout
-            android:id="@+id/trakt_collection_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_collection_border"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/add_to_collection"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-
-        <!-- List -->
-        <LinearLayout
-            android:id="@+id/trakt_list_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_list_add"
-                android:layout_marginEnd="16dp"
-                app:tint="?attr/colorControlNormal" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/list_add"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
-        </LinearLayout>
-    </LinearLayout>
-
-    <com.google.android.material.checkbox.MaterialCheckBox
-        android:id="@+id/display_confirmation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/dont_show_this_dialog_again"
-        android:layout_marginTop="16dp"/>
-</LinearLayout>
+</androidx.core.widget.NestedScrollView>

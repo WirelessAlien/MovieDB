@@ -1001,6 +1001,7 @@
     <string name="simkl_login_required_1">Log In - Simkl</string>
     <string name="sync_with_simkl">Sync with Simkl</string>
     <string name="auto_sync_simkl">Auto sync (Simkl)</string>
+    <string name="auto_simkl_des1"> \u24d8 Recommended for users seeking a simplified sync option without full Simkl integration.</string>
     <string name="minimal_simkl_sync_desc">Streamlined one-way sync that pushes your local Saved items and watch categories to Simkl in batches.</string>
     <string name="get_simkl_data">Auto fetch "Simkl" data</string>
     <string name="get_simkl_data_summary">Get account data from "Simkl" automatically once a week</string>

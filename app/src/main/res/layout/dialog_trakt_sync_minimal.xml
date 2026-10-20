@@ -29,12 +29,39 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleSyncProvider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+            app:selectionRequired="true"
+            app:singleSelection="true"
+            app:checkedButton="@id/btnTraktProvider">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTraktProvider"
+                style="@style/ToggleButtonOutline"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Trakt" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSimklProvider"
+                style="@style/ToggleButtonOutline"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Simkl" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
         <TextView
             android:id="@+id/tvSyncTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sync_with_trakt"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="16dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
 
         <com.google.android.material.button.MaterialButton

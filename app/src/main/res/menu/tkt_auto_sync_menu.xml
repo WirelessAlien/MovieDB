@@ -28,12 +28,6 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_auto_sync_simkl"
-        android:orderInCategory="5"
-        android:title="@string/auto_sync_simkl"
-        app:showAsAction="never" />
-
-    <item
         android:id="@+id/action_fetch_tmdb_data"
         android:orderInCategory="3"
         android:title="@string/get_tmdb_progress_data"
