@@ -44,5 +44,6 @@
         android:layout_height="48dp"
         android:layout_marginStart="10dp"
         android:src="@drawable/ic_simkl_black"
+        android:tint="@null"
         android:background="@android:color/transparent"/>
 </LinearLayout>
