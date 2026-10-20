@@ -34,9 +34,9 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="80dp"
+            android:layout_width="36dp"
             android:layout_height="36dp"
-            android:src="@drawable/ic_simkl"
+            android:src="@drawable/ic_simkl-black"
             android:layout_centerInParent="true"
             android:importantForAccessibility="no" />
 

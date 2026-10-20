@@ -38,4 +38,11 @@
         android:layout_marginStart="10dp"
         android:src="@drawable/ic_trakt_m"
         android:background="@android:color/transparent"/>
+
+    <ImageButton
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="10dp"
+        android:src="@drawable/ic_simkl-black"
+        android:background="@android:color/transparent"/>
 </LinearLayout>
