@@ -1004,7 +1004,7 @@
     <string name="minimal_simkl_sync_desc">Streamlined one-way sync that pushes your local Saved items and watch categories to Simkl in batches.</string>
     <string name="get_simkl_data">Auto fetch "Simkl" data</string>
     <string name="get_simkl_data_summary">Get account data from "Simkl" automatically once a week</string>
-    <string name="hide_the_account_tab_simkl">Hide the 'Account (SIMKL)' tab</string>
+    <string name="hide_the_account_tab_simkl">Hide the \'Account (SIMKL)\' tab</string>
     <string name="mark_as_watched_s">Watched (Simkl)</string>
     <string name="mark_as_un_watched_s">Unwatched (Simkl)</string>
     <string name="completed">Completed</string>
