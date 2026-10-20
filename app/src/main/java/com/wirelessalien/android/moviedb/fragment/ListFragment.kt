@@ -1142,6 +1142,8 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 binding.btnCancelWorker.visibility = if (isWorkRunning) View.VISIBLE else View.GONE
             }
 
+        binding.tvSyncTitle.setText(R.string.sync_with_simkl)
+        binding.tvSyncDesc.setText(R.string.minimal_simkl_sync_desc)
         binding.btnLogin.setText(R.string.simkl_login_required_1)
         if (simklToken.isNullOrEmpty()) {
             binding.btnOk.isEnabled = false

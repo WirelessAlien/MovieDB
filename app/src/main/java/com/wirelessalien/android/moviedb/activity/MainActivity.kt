@@ -140,6 +140,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -269,18 +270,13 @@ class MainActivity : BaseActivity() {
                     selectedFragment = newSavedInstance()
                 }
                 R.id.nav_account -> {
-                    selectedFragment = if (preferences.getString("sync_provider", "local") == "simkl") {
-                        AccountDataFragmentSimkl()
-                    } else {
-                        AccountDataFragment()
-                    }
+                    selectedFragment = AccountDataFragment()
                 }
                 R.id.nav_account_tkt -> {
-                    selectedFragment = if (preferences.getString("sync_provider", "local") == "simkl") {
-                        AccountDataFragmentSimkl()
-                    } else {
-                        AccountDataFragmentTkt()
-                    }
+                    selectedFragment = AccountDataFragmentTkt()
+                }
+                R.id.nav_account_simkl -> {
+                    selectedFragment = AccountDataFragmentSimkl()
                 }
             }
             if (selectedFragment != null) {
@@ -303,16 +299,19 @@ class MainActivity : BaseActivity() {
         menu.findItem(R.id.nav_saved).isVisible =
             !preferences.getBoolean(HIDE_SAVED_PREFERENCE, false)
         menu.findItem(R.id.nav_account).isVisible =
-            !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false)
+            !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, true)
         menu.findItem(R.id.nav_account_tkt).isVisible =
-            !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false)
+            !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, true)
+        menu.findItem(R.id.nav_account_simkl).isVisible =
+            !preferences.getBoolean(HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
 
         val anyItemVisible = menu.findItem(R.id.nav_home).isVisible ||
                 menu.findItem(R.id.nav_movie).isVisible ||
                 menu.findItem(R.id.nav_series).isVisible ||
                 menu.findItem(R.id.nav_saved).isVisible ||
                 menu.findItem(R.id.nav_account).isVisible ||
-                menu.findItem(R.id.nav_account_tkt).isVisible
+                menu.findItem(R.id.nav_account_tkt).isVisible ||
+                menu.findItem(R.id.nav_account_simkl).isVisible
         binding.bottomNavigation.visibility = if (anyItemVisible) View.VISIBLE else View.GONE
 
         if (savedInstanceState == null) {
@@ -333,19 +332,15 @@ class MainActivity : BaseActivity() {
                 }
                 menu.findItem(R.id.nav_account).isVisible -> {
                     initialItemId = R.id.nav_account
-                    if (preferences.getString("sync_provider", "local") == "simkl") {
-                        AccountDataFragmentSimkl()
-                    } else {
-                        AccountDataFragment()
-                    }
+                    AccountDataFragment()
                 }
                 menu.findItem(R.id.nav_account_tkt).isVisible -> {
                     initialItemId = R.id.nav_account_tkt
-                    if (preferences.getString("sync_provider", "local") == "simkl") {
-                        AccountDataFragmentSimkl()
-                    } else {
-                        AccountDataFragmentTkt()
-                    }
+                    AccountDataFragmentTkt()
+                }
+                menu.findItem(R.id.nav_account_simkl).isVisible -> {
+                    initialItemId = R.id.nav_account_simkl
+                    AccountDataFragmentSimkl()
                 }
                 else -> HomeFragment()
             }
@@ -360,7 +355,7 @@ class MainActivity : BaseActivity() {
             if (key == "user_has_active_purchase" || key == "user_is_subscribed") {
                 getCurrentFragment()?.let { updateToolbarTitle(it) }
             }
-            if (key == HIDE_HOME_PREFERENCE || key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE) {
+            if (key == HIDE_HOME_PREFERENCE || key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE || key == HIDE_ACCOUNT_SIMKL_PREFERENCE) {
                 val menu1 = binding.bottomNavigation.menu
                 menu1.findItem(R.id.nav_home).isVisible =
                     !preferences.getBoolean(HIDE_HOME_PREFERENCE, false)
@@ -371,17 +366,20 @@ class MainActivity : BaseActivity() {
                 menu1.findItem(R.id.nav_saved).isVisible =
                     !preferences.getBoolean(HIDE_SAVED_PREFERENCE, false)
                 menu1.findItem(R.id.nav_account).isVisible =
-                    !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, false)
+                    !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, true)
                 menu1.findItem(R.id.nav_account_tkt).isVisible =
-                    !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, false)
+                    !preferences.getBoolean(HIDE_ACCOUNT_TKT_PREFERENCE, true)
+                menu1.findItem(R.id.nav_account_simkl).isVisible =
+                    !preferences.getBoolean(HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
                 
-                val anyItemVisible = menu1.findItem(R.id.nav_home).isVisible ||
+                val anyVisible = menu1.findItem(R.id.nav_home).isVisible ||
                         menu1.findItem(R.id.nav_movie).isVisible ||
                         menu1.findItem(R.id.nav_series).isVisible ||
                         menu1.findItem(R.id.nav_saved).isVisible ||
                         menu1.findItem(R.id.nav_account).isVisible ||
-                        menu1.findItem(R.id.nav_account_tkt).isVisible
-                binding.bottomNavigation.visibility = if (anyItemVisible) View.VISIBLE else View.GONE
+                        menu1.findItem(R.id.nav_account_tkt).isVisible ||
+                        menu1.findItem(R.id.nav_account_simkl).isVisible
+                binding.bottomNavigation.visibility = if (anyVisible) View.VISIBLE else View.GONE
             }
         }
 
@@ -1157,8 +1155,14 @@ class MainActivity : BaseActivity() {
             .add("code_verifier", codeVerifier)
             .build()
 
+        val tokenUrl = "https://api.simkl.com/oauth2/token".toHttpUrl().newBuilder()
+            .addQueryParameter("client_id", resolvedSimklClientId)
+            .addQueryParameter("app-name", "showcase")
+            .addQueryParameter("app-version", BuildConfig.VERSION_NAME)
+            .build()
+
         val request = Request.Builder()
-            .url("https://api.simkl.com/oauth2/token")
+            .url(tokenUrl)
             .addHeader("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
             .addHeader("Content-Type", "application/x-www-form-urlencoded")
             .addHeader("simkl-api-key", resolvedSimklClientId)
@@ -1592,6 +1596,7 @@ class MainActivity : BaseActivity() {
         const val HIDE_SAVED_PREFERENCE = "key_hide_saved_tab"
         const val HIDE_ACCOUNT_PREFERENCE = "key_hide_account_tab"
         const val HIDE_ACCOUNT_TKT_PREFERENCE = "key_hide_account_tkt_tab"
+        const val HIDE_ACCOUNT_SIMKL_PREFERENCE = "key_hide_account_simkl_tab"
         const val MOVIE = "movie"
         const val TV = "tv"
         private const val REQUEST_CODE = 101

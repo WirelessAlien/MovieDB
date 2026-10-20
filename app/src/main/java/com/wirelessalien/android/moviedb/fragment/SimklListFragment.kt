@@ -248,8 +248,8 @@ class SimklListFragment : BaseFragment() {
     }
 
     private fun applySorting() {
-        val criteria = preferences.getString("tkt_sort_criteria", "name")
-        val order = preferences.getString("tkt_sort_order", "asc")
+        val criteria = preferences.getString("simkl_sort_criteria", "name")
+        val order = preferences.getString("simkl_sort_order", "asc")
 
         val comparator = when (criteria) {
             "name" -> compareBy<JSONObject> { it.optString("sort_title", "") }
@@ -275,6 +275,12 @@ class SimklListFragment : BaseFragment() {
     private fun filterData(type: String) {
         val filteredList = ArrayList(fullItemList.filter { it.optString("type") == type })
         adapter.updateShowList(filteredList)
+    }
+
+    override fun onDestroy() {
+        dbHelper.close()
+        tmdbHelper.close()
+        super.onDestroy()
     }
 
     override fun onResume() {

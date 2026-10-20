@@ -37,6 +37,7 @@ import android.view.ViewGroup
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.tabs.TabLayout
 import com.wirelessalien.android.moviedb.R
@@ -44,7 +45,11 @@ import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.databinding.ActivityMainBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentAccountDataTktBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.helper.SimklDatabaseHelper
 import com.wirelessalien.android.moviedb.service.SimklSyncService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AccountDataFragmentSimkl : BaseFragment() {
 
@@ -85,6 +90,22 @@ class AccountDataFragmentSimkl : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Simkl API Rule 7: Trigger incremental sync on user-visible open, throttled to once per 15 min
+        viewLifecycleOwner.lifecycleScope.launch {
+            val token = sharedPreferences.getString("simkl_access_token", null)
+            if (!token.isNullOrEmpty()) {
+                val shouldSync = withContext(Dispatchers.IO) {
+                    SimklDatabaseHelper(requireContext()).use { db ->
+                        val lastChecked = db.getSyncActivities()?.lastCheckedMs ?: 0L
+                        System.currentTimeMillis() - lastChecked >= SYNC_THROTTLE_MS
+                    }
+                }
+                if (shouldSync && isAdded) {
+                    startSimklIncrementalSync()
+                }
+            }
+        }
 
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -140,8 +161,8 @@ class AccountDataFragmentSimkl : BaseFragment() {
 
     private fun saveSortPreference(criteria: String, order: String) {
         with(sharedPreferences.edit()) {
-            putString("tkt_sort_criteria", criteria)
-            putString("tkt_sort_order", order)
+            putString("simkl_sort_criteria", criteria)
+            putString("simkl_sort_order", order)
             apply()
         }
         reloadFragment()
@@ -215,6 +236,13 @@ class AccountDataFragmentSimkl : BaseFragment() {
             requireContext().startService(intent)
         }
 
+        simklReceiver?.let {
+            try {
+                requireContext().unregisterReceiver(it)
+            } catch (_: IllegalArgumentException) {
+            }
+        }
+
         simklReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 try {
@@ -239,6 +267,17 @@ class AccountDataFragmentSimkl : BaseFragment() {
         } catch (e: IllegalStateException) {
             e.printStackTrace()
         }
+    }
+
+    override fun onDestroyView() {
+        simklReceiver?.let {
+            try {
+                requireContext().unregisterReceiver(it)
+            } catch (_: IllegalArgumentException) {
+            }
+        }
+        simklReceiver = null
+        super.onDestroyView()
     }
 
     override fun onResume() {
@@ -267,5 +306,9 @@ class AccountDataFragmentSimkl : BaseFragment() {
                 .replace(R.id.fragment_container, selectedFragment)
                 .commit()
         }
+    }
+
+    companion object {
+        private const val SYNC_THROTTLE_MS = 15 * 60 * 1000L
     }
 }

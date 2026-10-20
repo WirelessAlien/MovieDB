@@ -1111,7 +1111,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         SimklDatabaseHelper(context).use { simklDb ->
             simklStatus = simklDb.getItemStatus(movieId, isMovie)
-            simklRating = simklDb.getItemRating(movieId)
+            simklRating = simklDb.getItemRating(movieId, isMovie)
         }
         updateSimklButtonsUI()
 
@@ -1348,6 +1348,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         binding.btnAddToTraktHistory.visibility = View.GONE
         binding.btnAddToTraktList.visibility = View.GONE
         binding.btnAddTraktRating.visibility = View.GONE
+        binding.simklActionsLayout.visibility = View.GONE
         binding.ratingBtnTmdb.visibility = View.VISIBLE
         binding.favouriteButtonTmdb.visibility = View.VISIBLE
         binding.addToListTmdb.visibility = View.VISIBLE
@@ -1362,6 +1363,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         binding.btnAddToTraktHistory.visibility = View.VISIBLE
         binding.btnAddToTraktList.visibility = View.VISIBLE
         binding.btnAddTraktRating.visibility = View.VISIBLE
+        binding.simklActionsLayout.visibility = View.GONE
         binding.ratingBtnTmdb.visibility = View.GONE
         binding.favouriteButtonTmdb.visibility = View.GONE
         binding.addToListTmdb.visibility = View.GONE
@@ -1576,13 +1578,14 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 if (isSuccess) {
                     lifecycleScope.launch(Dispatchers.IO) {
                         SimklDatabaseHelper(context).use { simklDb ->
-                            simklDb.removeItem(movieId)
+                            simklDb.removeItem(movieId, isMovie)
                         }
                     }
                 }
                 runOnUiThread {
                     if (isSuccess) {
                         simklStatus = null
+                        simklRating = 0
                         updateSimklButtonsUI()
                         Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
                     } else {
@@ -1644,7 +1647,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         lifecycleScope.launch {
             val lastWatchedStr = withContext(Dispatchers.IO) {
-                SimklDatabaseHelper(context).use { it.getLastWatched(movieId) }
+                SimklDatabaseHelper(context).use { it.getLastWatched(movieId, isMovie) }
             }
             dialogViewBinding.progressIndicator.visibility = View.GONE
             if (!lastWatchedStr.isNullOrEmpty()) {
@@ -1728,7 +1731,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         progressIndicator.visibility = View.VISIBLE
         lifecycleScope.launch(Dispatchers.IO) {
-            val currentRating = SimklDatabaseHelper(context).use { it.getItemRating(movieId) }
+            val currentRating = SimklDatabaseHelper(context).use { it.getItemRating(movieId, isMovie) }
             withContext(Dispatchers.Main) {
                 progressIndicator.visibility = View.GONE
                 ratingSlider.value = currentRating.coerceIn(0, 10).toFloat()
@@ -1831,7 +1834,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     if (isSuccess) {
                         lifecycleScope.launch(Dispatchers.IO) {
                             SimklDatabaseHelper(context).use { simklDb ->
-                                simklDb.removeItemRating(movieId)
+                                simklDb.removeItemRating(movieId, isMovie)
                             }
                         }
                     }

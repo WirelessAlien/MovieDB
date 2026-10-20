@@ -34,6 +34,9 @@ class SimklDatabaseHelper(context: Context) :
         val animeAll: String?,
         val moviesAll: String?,
         val ratingsAt: String?,
+        val moviesRemovedAt: String?,
+        val tvShowsRemovedAt: String?,
+        val animeRemovedAt: String?,
         val lastCheckedMs: Long
     )
 
@@ -62,12 +65,18 @@ class SimklDatabaseHelper(context: Context) :
             null
         )
         val result = if (cursor.moveToFirst()) {
+            val moviesRemIdx = cursor.getColumnIndex(COL_MOVIES_REMOVED_AT)
+            val showsRemIdx = cursor.getColumnIndex(COL_TV_SHOWS_REMOVED_AT)
+            val animeRemIdx = cursor.getColumnIndex(COL_ANIME_REMOVED_AT)
             SyncActivities(
                 allAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ALL_AT)),
                 tvShowsAll = cursor.getString(cursor.getColumnIndexOrThrow(COL_TV_SHOWS_ALL)),
                 animeAll = cursor.getString(cursor.getColumnIndexOrThrow(COL_ANIME_ALL)),
                 moviesAll = cursor.getString(cursor.getColumnIndexOrThrow(COL_MOVIES_ALL)),
                 ratingsAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_RATINGS_AT)),
+                moviesRemovedAt = if (moviesRemIdx >= 0) cursor.getString(moviesRemIdx) else null,
+                tvShowsRemovedAt = if (showsRemIdx >= 0) cursor.getString(showsRemIdx) else null,
+                animeRemovedAt = if (animeRemIdx >= 0) cursor.getString(animeRemIdx) else null,
                 lastCheckedMs = cursor.getLong(cursor.getColumnIndexOrThrow(COL_LAST_CHECKED_MS))
             )
         } else {
@@ -83,6 +92,9 @@ class SimklDatabaseHelper(context: Context) :
         animeAll: String?,
         moviesAll: String?,
         ratingsAt: String?,
+        moviesRemovedAt: String? = null,
+        tvShowsRemovedAt: String? = null,
+        animeRemovedAt: String? = null,
         lastCheckedMs: Long = System.currentTimeMillis()
     ) {
         val db = writableDatabase
@@ -93,9 +105,20 @@ class SimklDatabaseHelper(context: Context) :
             put(COL_ANIME_ALL, animeAll)
             put(COL_MOVIES_ALL, moviesAll)
             put(COL_RATINGS_AT, ratingsAt)
+            put(COL_MOVIES_REMOVED_AT, moviesRemovedAt)
+            put(COL_TV_SHOWS_REMOVED_AT, tvShowsRemovedAt)
+            put(COL_ANIME_REMOVED_AT, animeRemovedAt)
             put(COL_LAST_CHECKED_MS, lastCheckedMs)
         }
         db.insertWithOnConflict(TABLE_SYNC_ACTIVITIES, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    private fun typeSelectionCondition(isMovie: Boolean): String {
+        return if (isMovie) {
+            "$COL_TYPE = 'movie'"
+        } else {
+            "($COL_TYPE = 'show' OR $COL_TYPE = 'anime')"
+        }
     }
 
     fun upsertItem(values: ContentValues) {
@@ -166,13 +189,48 @@ class SimklDatabaseHelper(context: Context) :
         }
     }
 
+    fun reconcileTypeSimklIds(itemType: String, remoteSimklIds: Set<Int>) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val toDelete = mutableListOf<Pair<Long, Int>>()
+            db.query(
+                TABLE_ITEMS,
+                arrayOf(COL_ID, COL_SIMKL_ID, COL_TMDB),
+                "$COL_TYPE = ?",
+                arrayOf(itemType),
+                null, null, null
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val rowId = cursor.getLong(cursor.getColumnIndexOrThrow(COL_ID))
+                    val simklId = cursor.getInt(cursor.getColumnIndexOrThrow(COL_SIMKL_ID))
+                    val tmdbId = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TMDB))
+                    if (simklId > 0 && simklId !in remoteSimklIds) {
+                        toDelete.add(rowId to tmdbId)
+                    }
+                }
+            }
+            toDelete.forEach { (rowId, tmdbId) ->
+                db.delete(TABLE_ITEMS, "$COL_ID = ?", arrayOf(rowId.toString()))
+                if (itemType != "movie" && tmdbId > 0) {
+                    db.delete(TABLE_SEASON_EPISODE_WATCHED, "$COL_SHOW_TMDB_ID = ?", arrayOf(tmdbId.toString()))
+                }
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun clearWatchedEpisodesForShow(showTmdbId: Int) {
+        if (showTmdbId <= 0) return
+        val db = writableDatabase
+        db.delete(TABLE_SEASON_EPISODE_WATCHED, "$COL_SHOW_TMDB_ID = ?", arrayOf(showTmdbId.toString()))
+    }
+
     fun getItemStatus(tmdbId: Int, isMovie: Boolean): String? {
         val db = readableDatabase
-        val typeCondition = if (isMovie) {
-            "$COL_TYPE = 'movie'"
-        } else {
-            "($COL_TYPE = 'show' OR $COL_TYPE = 'anime')"
-        }
+        val typeCondition = typeSelectionCondition(isMovie)
         val cursor = db.query(
             TABLE_ITEMS,
             arrayOf(COL_STATUS),
@@ -207,27 +265,32 @@ class SimklDatabaseHelper(context: Context) :
         return status
     }
 
-    fun isItemInWatchlist(tmdbId: Int): Boolean {
-        val status = getItemStatus(tmdbId)
+    fun isItemInWatchlist(tmdbId: Int, isMovie: Boolean? = null): Boolean {
+        val status = if (isMovie != null) getItemStatus(tmdbId, isMovie) else getItemStatus(tmdbId)
         return status == "plantowatch"
     }
 
-    fun isItemWatched(tmdbId: Int): Boolean {
-        val status = getItemStatus(tmdbId)
+    fun isItemWatched(tmdbId: Int, isMovie: Boolean? = null): Boolean {
+        val status = if (isMovie != null) getItemStatus(tmdbId, isMovie) else getItemStatus(tmdbId)
         return status == "completed"
     }
 
-    fun isItemInSimkl(tmdbId: Int): Boolean {
-        val status = getItemStatus(tmdbId)
+    fun isItemInSimkl(tmdbId: Int, isMovie: Boolean? = null): Boolean {
+        val status = if (isMovie != null) getItemStatus(tmdbId, isMovie) else getItemStatus(tmdbId)
         return !status.isNullOrEmpty()
     }
 
-    fun getItemRating(tmdbId: Int): Int {
+    fun getItemRating(tmdbId: Int, isMovie: Boolean? = null): Int {
         val db = readableDatabase
+        val selection = if (isMovie != null) {
+            "$COL_TMDB = ? AND ${typeSelectionCondition(isMovie)}"
+        } else {
+            "$COL_TMDB = ?"
+        }
         val cursor = db.query(
             TABLE_ITEMS,
             arrayOf(COL_USER_RATING),
-            "$COL_TMDB = ?",
+            selection,
             arrayOf(tmdbId.toString()),
             null, null, null
         )
@@ -240,12 +303,17 @@ class SimklDatabaseHelper(context: Context) :
         return rating
     }
 
-    fun getLastWatched(tmdbId: Int): String? {
+    fun getLastWatched(tmdbId: Int, isMovie: Boolean? = null): String? {
         val db = readableDatabase
+        val selection = if (isMovie != null) {
+            "$COL_TMDB = ? AND ${typeSelectionCondition(isMovie)}"
+        } else {
+            "$COL_TMDB = ?"
+        }
         val cursor = db.query(
             TABLE_ITEMS,
             arrayOf(COL_LAST_WATCHED_AT),
-            "$COL_TMDB = ?",
+            selection,
             arrayOf(tmdbId.toString()),
             null, null, null
         )
@@ -280,10 +348,17 @@ class SimklDatabaseHelper(context: Context) :
         upsertItem(values)
     }
 
-    fun removeItem(tmdbId: Int) {
+    fun removeItem(tmdbId: Int, isMovie: Boolean? = null) {
         val db = writableDatabase
-        db.delete(TABLE_ITEMS, "$COL_TMDB = ?", arrayOf(tmdbId.toString()))
-        db.delete(TABLE_SEASON_EPISODE_WATCHED, "$COL_SHOW_TMDB_ID = ?", arrayOf(tmdbId.toString()))
+        val selection = if (isMovie != null) {
+            "$COL_TMDB = ? AND ${typeSelectionCondition(isMovie)}"
+        } else {
+            "$COL_TMDB = ?"
+        }
+        db.delete(TABLE_ITEMS, selection, arrayOf(tmdbId.toString()))
+        if (isMovie != true) {
+            db.delete(TABLE_SEASON_EPISODE_WATCHED, "$COL_SHOW_TMDB_ID = ?", arrayOf(tmdbId.toString()))
+        }
     }
 
     fun upsertItemRating(
@@ -306,13 +381,18 @@ class SimklDatabaseHelper(context: Context) :
         upsertItem(values)
     }
 
-    fun removeItemRating(tmdbId: Int) {
+    fun removeItemRating(tmdbId: Int, isMovie: Boolean? = null) {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(COL_USER_RATING, 0)
             putNull(COL_RATED_AT)
         }
-        db.update(TABLE_ITEMS, values, "$COL_TMDB = ?", arrayOf(tmdbId.toString()))
+        val selection = if (isMovie != null) {
+            "$COL_TMDB = ? AND ${typeSelectionCondition(isMovie)}"
+        } else {
+            "$COL_TMDB = ?"
+        }
+        db.update(TABLE_ITEMS, values, selection, arrayOf(tmdbId.toString()))
     }
 
     fun insertSeasonEpisodeWatchedData(values: ContentValues) {
@@ -361,7 +441,12 @@ class SimklDatabaseHelper(context: Context) :
             val updateValues = ContentValues().apply {
                 put(COL_LAST_WATCHED_AT, watchedAt)
             }
-            db.update(TABLE_ITEMS, updateValues, "$COL_TMDB = ?", arrayOf(showTmdbId.toString()))
+            db.update(
+                TABLE_ITEMS,
+                updateValues,
+                "$COL_TMDB = ? AND ($COL_TYPE = 'show' OR $COL_TYPE = 'anime')",
+                arrayOf(showTmdbId.toString())
+            )
         }
     }
 
@@ -444,7 +529,7 @@ class SimklDatabaseHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "simkl.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
 
         const val TABLE_SYNC_ACTIVITIES = "sync_activities"
         const val COL_ID = "id"
@@ -453,6 +538,9 @@ class SimklDatabaseHelper(context: Context) :
         const val COL_ANIME_ALL = "anime_all"
         const val COL_MOVIES_ALL = "movies_all"
         const val COL_RATINGS_AT = "ratings_at"
+        const val COL_MOVIES_REMOVED_AT = "movies_removed_at"
+        const val COL_TV_SHOWS_REMOVED_AT = "tv_shows_removed_at"
+        const val COL_ANIME_REMOVED_AT = "anime_removed_at"
         const val COL_LAST_CHECKED_MS = "last_checked_ms"
 
         const val TABLE_ITEMS = "simkl_items"
@@ -488,6 +576,9 @@ class SimklDatabaseHelper(context: Context) :
                 $COL_ANIME_ALL TEXT,
                 $COL_MOVIES_ALL TEXT,
                 $COL_RATINGS_AT TEXT,
+                $COL_MOVIES_REMOVED_AT TEXT,
+                $COL_TV_SHOWS_REMOVED_AT TEXT,
+                $COL_ANIME_REMOVED_AT TEXT,
                 $COL_LAST_CHECKED_MS INTEGER
             )
         """.trimIndent()

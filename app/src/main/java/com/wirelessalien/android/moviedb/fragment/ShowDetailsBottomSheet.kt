@@ -298,9 +298,9 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun loadSimklData(tmdbId: Int) {
-        val isSimklWatched = simklDatabaseHelper.isItemWatched(tmdbId)
-        val isInSimklList = simklDatabaseHelper.isItemInSimkl(tmdbId)
-        val simklRating = simklDatabaseHelper.getItemRating(tmdbId)
+        val isSimklWatched = simklDatabaseHelper.isItemWatched(tmdbId, isMovie)
+        val isInSimklList = simklDatabaseHelper.isItemInSimkl(tmdbId, isMovie)
+        val simklRating = simklDatabaseHelper.getItemRating(tmdbId, isMovie)
 
         if (isSimklWatched) {
             binding.bottomSheetSimklWatchedIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_done_2))

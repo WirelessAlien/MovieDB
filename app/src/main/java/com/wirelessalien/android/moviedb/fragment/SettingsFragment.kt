@@ -62,6 +62,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.NotificationReceiver
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.activity.SettingsActivity
 import com.wirelessalien.android.moviedb.adapter.SectionsPagerAdapter
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
@@ -275,18 +276,24 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         val hideAccountTab = findPreference<CheckBoxPreference>("key_hide_account_tab")
         val hideAccountTktTab = findPreference<CheckBoxPreference>("key_hide_account_tkt_tab")
+        val hideAccountSimklTab = findPreference<CheckBoxPreference>("key_hide_account_simkl_tab")
 
         val preferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
             val newState = newValue as Boolean
 
             when (preference.key) {
                 "key_hide_account_tab" -> {
-                    if (!newState && !hideAccountTktTab?.isChecked!!) {
+                    if (!newState && (hideAccountTktTab?.isChecked == false || hideAccountSimklTab?.isChecked == false)) {
                         return@OnPreferenceChangeListener false
                     }
                 }
                 "key_hide_account_tkt_tab" -> {
-                    if (!newState && !hideAccountTab?.isChecked!!) {
+                    if (!newState && (hideAccountTab?.isChecked == false || hideAccountSimklTab?.isChecked == false)) {
+                        return@OnPreferenceChangeListener false
+                    }
+                }
+                "key_hide_account_simkl_tab" -> {
+                    if (!newState && (hideAccountTab?.isChecked == false || hideAccountTktTab?.isChecked == false)) {
                         return@OnPreferenceChangeListener false
                     }
                 }
@@ -296,6 +303,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
 
         hideAccountTab?.onPreferenceChangeListener = preferenceChangeListener
         hideAccountTktTab?.onPreferenceChangeListener = preferenceChangeListener
+        hideAccountSimklTab?.onPreferenceChangeListener = preferenceChangeListener
 
         val syncProvider = findPreference<Preference>("sync_provider")
 
@@ -814,8 +822,47 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 else -> "local"
             }
 
-            preferences.edit { putString("sync_provider", selectedProvider) }
-            preferences.edit { putBoolean("sync_provider_dialog_shown", true) }
+            val forceLocal = dialogBinding.forceLocalSync.isChecked
+            preferences.edit {
+                when (selectedProvider) {
+                    "local" -> {
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false)
+                    }
+                    "trakt" -> {
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, false)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, !forceLocal)
+                    }
+                    "simkl" -> {
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, false)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, !forceLocal)
+                    }
+                    "tmdb" -> {
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, false)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, !forceLocal)
+                    }
+                }
+                putString("sync_provider", selectedProvider)
+                putBoolean("sync_provider_dialog_shown", true)
+            }
+
+            findPreference<CheckBoxPreference>("key_hide_account_tab")?.isChecked =
+                preferences.getBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true)
+            findPreference<CheckBoxPreference>("key_hide_account_tkt_tab")?.isChecked =
+                preferences.getBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true)
+            findPreference<CheckBoxPreference>("key_hide_account_simkl_tab")?.isChecked =
+                preferences.getBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
+            findPreference<CheckBoxPreference>("key_hide_saved_tab")?.isChecked =
+                preferences.getBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false)
+
             dialog.dismiss()
         }
 
@@ -898,7 +945,14 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         if (key == "user_has_active_purchase" || key == "billing_error_timestamp") {
             checkSubscriptionIssue()
         }
-        if (key == SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE || key == SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE || key == SectionsPagerAdapter.HIDE_SAVED_PREFERENCE || key == SectionsPagerAdapter.HIDE_SERIES_PREFERENCE) {
+        if (key == SectionsPagerAdapter.HIDE_HOME_PREFERENCE ||
+            key == SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE ||
+            key == SectionsPagerAdapter.HIDE_SERIES_PREFERENCE ||
+            key == SectionsPagerAdapter.HIDE_SAVED_PREFERENCE ||
+            key == SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE ||
+            key == SectionsPagerAdapter.HIDE_ACCOUNT_TKT_PREFERENCE ||
+            key == SectionsPagerAdapter.HIDE_ACCOUNT_SIMKL_PREFERENCE
+        ) {
             (requireActivity() as SettingsActivity).mTabsPreferenceChanged = true
         }
         if (key == ThemeHelper.AMOLED_THEME_PREFERENCE) {

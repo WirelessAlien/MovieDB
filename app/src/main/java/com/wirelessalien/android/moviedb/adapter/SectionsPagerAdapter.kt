@@ -26,6 +26,8 @@ object SectionsPagerAdapter {
     const val HIDE_SERIES_PREFERENCE = "key_hide_series_tab"
     const val HIDE_SAVED_PREFERENCE = "key_hide_saved_tab"
     const val HIDE_ACCOUNT_PREFERENCE = "key_hide_account_tab"
+    const val HIDE_ACCOUNT_TKT_PREFERENCE = "key_hide_account_tkt_tab"
+    const val HIDE_ACCOUNT_SIMKL_PREFERENCE = "key_hide_account_simkl_tab"
     const val MOVIE = "movie"
     const val TV = "tv"
 }

@@ -55,6 +55,7 @@ import com.wirelessalien.android.moviedb.trakt.TraktSync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
@@ -326,8 +327,9 @@ class SeasonDetailsFragment : Fragment() {
                                 }))
                             }
 
+                            val wasWatched = isInSimklWatched
                             val simklSync = SimklSync(simklAccessToken!!, requireContext())
-                            val endPoint = if (isInSimklWatched) "sync/history/remove" else "sync/history"
+                            val endPoint = if (wasWatched) "sync/history/remove" else "sync/history"
                             simklSync.post(endPoint, showsObject, object : Callback {
                                 override fun onFailure(call: Call, e: IOException) {
                                     activity?.runOnUiThread {
@@ -341,8 +343,9 @@ class SeasonDetailsFragment : Fragment() {
                                     response.close()
                                     if (isSuccess) {
                                         CoroutineScope(Dispatchers.IO).launch {
-                                            SimklDatabaseHelper(requireContext()).use { simklDb ->
-                                                if (isInSimklWatched) {
+                                            val appCtx = context?.applicationContext ?: return@launch
+                                            SimklDatabaseHelper(appCtx).use { simklDb ->
+                                                if (wasWatched) {
                                                     simklDb.removeSeasonFromWatched(tvShowId, seasonNumber)
                                                 } else {
                                                     episodes.forEach { episode ->
@@ -356,18 +359,19 @@ class SeasonDetailsFragment : Fragment() {
                                                     }
                                                 }
                                             }
+                                            withContext(Dispatchers.Main) {
+                                                if (!isAdded) return@withContext
+                                                isInSimklWatched = !wasWatched
+                                                adapter.refreshSimklWatchedState()
+                                                Toast.makeText(
+                                                    context,
+                                                    if (wasWatched) R.string.episodes_removed else R.string.episodes_added,
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
                                         }
-                                    }
-                                    activity?.runOnUiThread {
-                                        if (isSuccess) {
-                                            isInSimklWatched = !isInSimklWatched
-                                            adapter.refreshSimklWatchedState()
-                                            Toast.makeText(
-                                                context,
-                                                if (isInSimklWatched) R.string.episodes_removed else R.string.episodes_added,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        } else {
+                                    } else {
+                                        activity?.runOnUiThread {
                                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                                         }
                                     }

@@ -61,12 +61,19 @@ class SimklAutoSyncManager(val context: Context) {
 
         val simklSync = SimklSync(simklAccessToken, context)
 
-        // Batch array writes (up to 50 items per POST) in SimklAutoSyncManager
+        // Batch array writes (up to 50 items per POST) without double-POSTing watched items
         unSyncedItems.chunked(MAX_BATCH_SIZE).forEach { batch ->
-            val addToListJson = createAddToListPayload(batch)
-            val listSuccess = sendToSimkl(simklSync, "sync/add-to-list", addToListJson)
+            val (watchedBatch, listOnlyBatch) = batch.partition {
+                it.category == MovieDatabaseHelper.CATEGORY_WATCHED
+            }
 
-            val watchedBatch = batch.filter { it.category == MovieDatabaseHelper.CATEGORY_WATCHED }
+            val listSuccess = if (listOnlyBatch.isNotEmpty()) {
+                val addToListJson = createAddToListPayload(listOnlyBatch)
+                sendToSimkl(simklSync, "sync/add-to-list", addToListJson)
+            } else {
+                true
+            }
+
             val historySuccess = if (watchedBatch.isNotEmpty()) {
                 val historyJson = createHistoryPayload(watchedBatch)
                 sendToSimkl(simklSync, "sync/history", historyJson)
@@ -74,8 +81,13 @@ class SimklAutoSyncManager(val context: Context) {
                 true
             }
 
-            if (listSuccess && historySuccess) {
-                batch.forEach { item ->
+            if (listSuccess) {
+                listOnlyBatch.forEach { item ->
+                    simklSyncDbHelper.addSyncedItem(item.id, item.isMovie, item.simklStatus)
+                }
+            }
+            if (historySuccess) {
+                watchedBatch.forEach { item ->
                     simklSyncDbHelper.addSyncedItem(item.id, item.isMovie, item.simklStatus)
                 }
             }

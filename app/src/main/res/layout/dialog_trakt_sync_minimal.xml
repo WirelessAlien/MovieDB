@@ -30,6 +30,7 @@
         android:padding="16dp">
 
         <TextView
+            android:id="@+id/tvSyncTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sync_with_trakt"
@@ -45,11 +46,13 @@
             android:visibility="gone"
             style="@style/Widget.Material3.Button.TonalButton" />
         <TextView
+            android:id="@+id/tvSyncSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/auto_tkt_des1" />
         <TextView
+            android:id="@+id/tvSyncDesc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"

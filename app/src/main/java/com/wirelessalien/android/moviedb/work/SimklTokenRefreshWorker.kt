@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.work
 
 import android.content.Context
+import android.util.Log
 import androidx.preference.PreferenceManager
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -37,6 +38,7 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import org.json.JSONObject
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class SimklTokenRefreshWorker(
@@ -45,11 +47,30 @@ class SimklTokenRefreshWorker(
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val refreshToken = preferences.getString("simkl_refresh_token", null)
-        val clientId = ConfigHelper.getConfigValue(applicationContext, "simkl_client_id")
+        when (refreshTokenSync(applicationContext)) {
+            RefreshOutcome.SUCCESS -> Result.success()
+            RefreshOutcome.TRANSIENT_ERROR -> Result.retry()
+            RefreshOutcome.PERMANENT_FAILURE -> Result.failure()
+        }
+    }
 
-        if (!refreshToken.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
+    enum class RefreshOutcome {
+        SUCCESS,
+        TRANSIENT_ERROR,
+        PERMANENT_FAILURE
+    }
+
+    companion object {
+        fun refreshTokenSync(context: Context): RefreshOutcome {
+            val appContext = context.applicationContext
+            val preferences = PreferenceManager.getDefaultSharedPreferences(appContext)
+            val refreshToken = preferences.getString("simkl_refresh_token", null)
+            val clientId = ConfigHelper.getConfigValue(appContext, "simkl_client_id")
+
+            if (refreshToken.isNullOrEmpty() || clientId.isNullOrEmpty()) {
+                return RefreshOutcome.PERMANENT_FAILURE
+            }
+
             val requestBody = FormBody.Builder()
                 .add("grant_type", "refresh_token")
                 .add("refresh_token", refreshToken)
@@ -66,41 +87,62 @@ class SimklTokenRefreshWorker(
                 .url(url)
                 .post(requestBody)
                 .addHeader("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("simkl-api-key", clientId)
                 .build()
 
-            val client = com.wirelessalien.android.moviedb.NetworkClient.client
-            val response = client.newCall(request).execute()
+            return try {
+                val client = com.wirelessalien.android.moviedb.NetworkClient.client
+                client.newCall(request).execute().use { response ->
+                    when {
+                        response.isSuccessful -> {
+                            val responseBody = response.body?.string()
+                            val jsonObject = responseBody?.let { JSONObject(it) }
 
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
-                val jsonObject = responseBody?.let { JSONObject(it) }
+                            val newAccessToken = jsonObject?.optString("access_token", "") ?: ""
+                            val newRefreshToken = jsonObject?.optString("refresh_token", refreshToken) ?: refreshToken
+                            val expiresIn = jsonObject?.optLong("expires_in", 604800L) ?: 604800L
+                            val createdAt = jsonObject?.optLong("created_at", System.currentTimeMillis() / 1000)
+                                ?: (System.currentTimeMillis() / 1000)
 
-                val newAccessToken = jsonObject?.optString("access_token", "") ?: ""
-                val newRefreshToken = jsonObject?.optString("refresh_token", refreshToken) ?: refreshToken
-                val expiresIn = jsonObject?.optLong("expires_in", 604800L) ?: 604800L
-                val createdAt = jsonObject?.optLong("created_at", System.currentTimeMillis() / 1000) ?: (System.currentTimeMillis() / 1000)
-
-                if (newAccessToken.isNotEmpty()) {
-                    preferences.edit().apply {
-                        putString("simkl_access_token", newAccessToken)
-                        putString("simkl_refresh_token", newRefreshToken)
-                        putLong("simkl_token_expires_in", expiresIn)
-                        putLong("simkl_token_created_at", createdAt)
-                        apply()
+                            if (newAccessToken.isNotEmpty()) {
+                                preferences.edit().apply {
+                                    putString("simkl_access_token", newAccessToken)
+                                    putString("simkl_refresh_token", newRefreshToken)
+                                    putLong("simkl_token_expires_in", expiresIn)
+                                    putLong("simkl_token_created_at", createdAt)
+                                    apply()
+                                }
+                                scheduleRefresh(appContext, expiresIn)
+                                RefreshOutcome.SUCCESS
+                            } else {
+                                RefreshOutcome.PERMANENT_FAILURE
+                            }
+                        }
+                        response.code in setOf(429, 500, 502, 503) -> {
+                            Log.w("SimklTokenRefreshWorker", "Transient HTTP ${response.code} refreshing Simkl token")
+                            RefreshOutcome.TRANSIENT_ERROR
+                        }
+                        response.code in setOf(400, 401) -> {
+                            Log.e("SimklTokenRefreshWorker", "Simkl refresh token rejected (HTTP ${response.code})")
+                            preferences.edit()
+                                .remove("simkl_access_token")
+                                .remove("simkl_refresh_token")
+                                .apply()
+                            RefreshOutcome.PERMANENT_FAILURE
+                        }
+                        else -> RefreshOutcome.PERMANENT_FAILURE
                     }
-
-                    scheduleRefresh(applicationContext, expiresIn)
-                    return@withContext Result.success()
                 }
+            } catch (e: IOException) {
+                Log.w("SimklTokenRefreshWorker", "Network error refreshing Simkl token: ${e.message}")
+                RefreshOutcome.TRANSIENT_ERROR
+            } catch (e: Exception) {
+                Log.e("SimklTokenRefreshWorker", "Unexpected error refreshing Simkl token: ${e.message}", e)
+                RefreshOutcome.PERMANENT_FAILURE
             }
-            return@withContext Result.failure()
-        } else {
-            return@withContext Result.failure()
         }
-    }
 
-    companion object {
         fun scheduleRefresh(context: Context, expiresIn: Long) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)

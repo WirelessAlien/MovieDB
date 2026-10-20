@@ -59,110 +59,214 @@ class GetSimklSyncData(
                 val remoteShowsAll = tvShowsObj?.optString("all", "")?.takeIf { it.isNotEmpty() }
                 val remoteAnimeAll = animeObj?.optString("all", "")?.takeIf { it.isNotEmpty() }
                 val remoteMoviesAll = moviesObj?.optString("all", "")?.takeIf { it.isNotEmpty() }
+
+                val remoteMoviesRatedAt = moviesObj?.optString("rated_at", "")?.takeIf { it.isNotEmpty() }
+                val remoteShowsRatedAt = tvShowsObj?.optString("rated_at", "")?.takeIf { it.isNotEmpty() }
+                val remoteAnimeRatedAt = animeObj?.optString("rated_at", "")?.takeIf { it.isNotEmpty() }
                 val remoteRatingsAt = listOfNotNull(
-                    tvShowsObj?.optString("rated_at", "")?.takeIf { it.isNotEmpty() },
-                    animeObj?.optString("rated_at", "")?.takeIf { it.isNotEmpty() },
-                    moviesObj?.optString("rated_at", "")?.takeIf { it.isNotEmpty() },
+                    remoteShowsRatedAt,
+                    remoteAnimeRatedAt,
+                    remoteMoviesRatedAt,
                     settingsObj?.optString("all", "")?.takeIf { it.isNotEmpty() }
                 ).maxOrNull() ?: remoteAll
+
+                val remoteMoviesRemovedAt = moviesObj?.optString("removed_from_list", "")?.takeIf { it.isNotEmpty() }
+                val remoteShowsRemovedAt = tvShowsObj?.optString("removed_from_list", "")?.takeIf { it.isNotEmpty() }
+                val remoteAnimeRemovedAt = animeObj?.optString("removed_from_list", "")?.takeIf { it.isNotEmpty() }
 
                 // Step 2: Read stored timestamps from SimklDatabaseHelper.TABLE_SYNC_ACTIVITIES
                 val savedActivities = dbHelper.getSyncActivities()
                 val savedAll = savedActivities?.allAt
+                val savedMoviesAll = savedActivities?.moviesAll
+                val savedShowsAll = savedActivities?.tvShowsAll
+                val savedAnimeAll = savedActivities?.animeAll
+                val savedRatingsAt = savedActivities?.ratingsAt
+                val savedMoviesRemovedAt = savedActivities?.moviesRemovedAt
+                val savedShowsRemovedAt = savedActivities?.tvShowsRemovedAt
+                val savedAnimeRemovedAt = savedActivities?.animeRemovedAt
+
+                var nextMoviesAll = savedMoviesAll
+                var nextShowsAll = savedShowsAll
+                var nextAnimeAll = savedAnimeAll
+                var nextRatingsAt = savedRatingsAt
+                var nextMoviesRemovedAt = savedMoviesRemovedAt
+                var nextShowsRemovedAt = savedShowsRemovedAt
+                var nextAnimeRemovedAt = savedAnimeRemovedAt
+                var allSucceeded = true
 
                 // Step 3: Initial Sync (savedAll == null || forceFullSync)
                 // Execute sequentially (never in parallel) using SimklSync's 10 req/sec RateLimiter
                 if (savedAll == null || forceFullSync) {
                     Log.d("GetSimklSyncData", "Running Initial Full Sync sequentially...")
 
-                    fetchEndpointBody(simklSync, "sync/all-items/movies")?.let { body ->
-                        parseAndSaveAllItems(dbHelper, body, defaultType = "movie")
+                    if (remoteMoviesAll != null) {
+                        val body = fetchEndpointBody(simklSync, "sync/all-items/movies?extended=full")
+                        if (body != null) {
+                            parseAndSaveAllItems(dbHelper, body, defaultType = "movie", isFullSync = true)
+                            nextMoviesAll = remoteMoviesAll
+                            nextMoviesRemovedAt = remoteMoviesRemovedAt
+                        } else {
+                            allSucceeded = false
+                        }
+                    } else {
+                        nextMoviesAll = null
+                        nextMoviesRemovedAt = remoteMoviesRemovedAt
                     }
 
-                    fetchEndpointBody(simklSync, "sync/all-items/shows?episode_watched_at=yes")?.let { body ->
-                        parseAndSaveAllItems(dbHelper, body, defaultType = "show")
+                    if (remoteShowsAll != null) {
+                        val body = fetchEndpointBody(simklSync, "sync/all-items/shows?extended=full&episode_watched_at=yes")
+                        if (body != null) {
+                            parseAndSaveAllItems(dbHelper, body, defaultType = "show", isFullSync = true)
+                            nextShowsAll = remoteShowsAll
+                            nextShowsRemovedAt = remoteShowsRemovedAt
+                        } else {
+                            allSucceeded = false
+                        }
+                    } else {
+                        nextShowsAll = null
+                        nextShowsRemovedAt = remoteShowsRemovedAt
                     }
 
-                    fetchEndpointBody(simklSync, "sync/all-items/anime?episode_watched_at=yes")?.let { body ->
-                        parseAndSaveAllItems(dbHelper, body, defaultType = "anime")
+                    if (remoteAnimeAll != null) {
+                        val body = fetchEndpointBody(simklSync, "sync/all-items/anime?extended=full&episode_watched_at=yes")
+                        if (body != null) {
+                            parseAndSaveAllItems(dbHelper, body, defaultType = "anime", isFullSync = true)
+                            nextAnimeAll = remoteAnimeAll
+                            nextAnimeRemovedAt = remoteAnimeRemovedAt
+                        } else {
+                            allSucceeded = false
+                        }
+                    } else {
+                        nextAnimeAll = null
+                        nextAnimeRemovedAt = remoteAnimeRemovedAt
                     }
 
-                    fetchEndpointBody(simklSync, "sync/ratings/movies")?.let { body ->
-                        parseAndSaveRatings(dbHelper, body, defaultType = "movie")
+                    if (allSucceeded) {
+                        nextRatingsAt = remoteRatingsAt
                     }
-
-                    fetchEndpointBody(simklSync, "sync/ratings/shows")?.let { body ->
-                        parseAndSaveRatings(dbHelper, body, defaultType = "show")
-                    }
-
-                    fetchEndpointBody(simklSync, "sync/ratings/anime")?.let { body ->
-                        parseAndSaveRatings(dbHelper, body, defaultType = "anime")
-                    }
-                } else if (savedAll != remoteAll) {
-                    // Step 4: Delta Sync (savedAll != null && savedAll != remoteAll)
+                } else if (savedAll != remoteAll ||
+                    savedMoviesRemovedAt != remoteMoviesRemovedAt ||
+                    savedShowsRemovedAt != remoteShowsRemovedAt ||
+                    savedAnimeRemovedAt != remoteAnimeRemovedAt
+                ) {
+                    // Step 4: Delta Sync (savedAll != null && changes detected)
                     Log.d("GetSimklSyncData", "Running Incremental Delta Sync...")
-                    val savedMoviesAll = savedActivities.moviesAll
-                    val savedShowsAll = savedActivities.tvShowsAll
-                    val savedAnimeAll = savedActivities.animeAll
 
                     if (remoteMoviesAll != null && remoteMoviesAll != savedMoviesAll) {
-                        val dateParam = if (!savedMoviesAll.isNullOrEmpty()) "?date_from=$savedMoviesAll" else ""
-                        fetchEndpointBody(simklSync, "sync/all-items/movies$dateParam")?.let { body ->
-                            parseAndSaveAllItems(dbHelper, body, defaultType = "movie")
+                        val query = if (!savedMoviesAll.isNullOrEmpty()) {
+                            "sync/all-items/movies?extended=full&date_from=$savedMoviesAll"
+                        } else {
+                            "sync/all-items/movies?extended=full"
                         }
+                        val body = fetchEndpointBody(simklSync, query)
+                        if (body != null) {
+                            parseAndSaveAllItems(
+                                dbHelper,
+                                body,
+                                defaultType = "movie",
+                                isFullSync = savedMoviesAll.isNullOrEmpty()
+                            )
+                            nextMoviesAll = remoteMoviesAll
+                        } else {
+                            allSucceeded = false
+                        }
+                    } else if (remoteMoviesRatedAt != null && remoteMoviesRatedAt != savedRatingsAt) {
+                        val dateParam = if (!savedRatingsAt.isNullOrEmpty()) "?date_from=$savedRatingsAt" else ""
                         fetchEndpointBody(simklSync, "sync/ratings/movies$dateParam")?.let { body ->
                             parseAndSaveRatings(dbHelper, body, defaultType = "movie")
                         }
                     }
 
                     if (remoteShowsAll != null && remoteShowsAll != savedShowsAll) {
-                        val allItemsQuery = if (!savedShowsAll.isNullOrEmpty()) {
-                            "sync/all-items/shows?date_from=$savedShowsAll&episode_watched_at=yes"
+                        val query = if (!savedShowsAll.isNullOrEmpty()) {
+                            "sync/all-items/shows?extended=full&episode_watched_at=yes&date_from=$savedShowsAll"
                         } else {
-                            "sync/all-items/shows?episode_watched_at=yes"
+                            "sync/all-items/shows?extended=full&episode_watched_at=yes"
                         }
-                        val ratingsQuery = if (!savedShowsAll.isNullOrEmpty()) {
-                            "sync/ratings/shows?date_from=$savedShowsAll"
+                        val body = fetchEndpointBody(simklSync, query)
+                        if (body != null) {
+                            parseAndSaveAllItems(
+                                dbHelper,
+                                body,
+                                defaultType = "show",
+                                isFullSync = savedShowsAll.isNullOrEmpty()
+                            )
+                            nextShowsAll = remoteShowsAll
                         } else {
-                            "sync/ratings/shows"
+                            allSucceeded = false
                         }
-                        fetchEndpointBody(simklSync, allItemsQuery)?.let { body ->
-                            parseAndSaveAllItems(dbHelper, body, defaultType = "show")
-                        }
-                        fetchEndpointBody(simklSync, ratingsQuery)?.let { body ->
+                    } else if (remoteShowsRatedAt != null && remoteShowsRatedAt != savedRatingsAt) {
+                        val dateParam = if (!savedRatingsAt.isNullOrEmpty()) "?date_from=$savedRatingsAt" else ""
+                        fetchEndpointBody(simklSync, "sync/ratings/shows$dateParam")?.let { body ->
                             parseAndSaveRatings(dbHelper, body, defaultType = "show")
                         }
                     }
 
                     if (remoteAnimeAll != null && remoteAnimeAll != savedAnimeAll) {
-                        val allItemsQuery = if (!savedAnimeAll.isNullOrEmpty()) {
-                            "sync/all-items/anime?date_from=$savedAnimeAll&episode_watched_at=yes"
+                        val query = if (!savedAnimeAll.isNullOrEmpty()) {
+                            "sync/all-items/anime?extended=full&episode_watched_at=yes&date_from=$savedAnimeAll"
                         } else {
-                            "sync/all-items/anime?episode_watched_at=yes"
+                            "sync/all-items/anime?extended=full&episode_watched_at=yes"
                         }
-                        val ratingsQuery = if (!savedAnimeAll.isNullOrEmpty()) {
-                            "sync/ratings/anime?date_from=$savedAnimeAll"
+                        val body = fetchEndpointBody(simklSync, query)
+                        if (body != null) {
+                            parseAndSaveAllItems(
+                                dbHelper,
+                                body,
+                                defaultType = "anime",
+                                isFullSync = savedAnimeAll.isNullOrEmpty()
+                            )
+                            nextAnimeAll = remoteAnimeAll
                         } else {
-                            "sync/ratings/anime"
+                            allSucceeded = false
                         }
-                        fetchEndpointBody(simklSync, allItemsQuery)?.let { body ->
-                            parseAndSaveAllItems(dbHelper, body, defaultType = "anime")
-                        }
-                        fetchEndpointBody(simklSync, ratingsQuery)?.let { body ->
+                    } else if (remoteAnimeRatedAt != null && remoteAnimeRatedAt != savedRatingsAt) {
+                        val dateParam = if (!savedRatingsAt.isNullOrEmpty()) "?date_from=$savedRatingsAt" else ""
+                        fetchEndpointBody(simklSync, "sync/ratings/anime$dateParam")?.let { body ->
                             parseAndSaveRatings(dbHelper, body, defaultType = "anime")
                         }
+                    }
+
+                    // Reconcile deletions if removed_from_list changed
+                    if (remoteMoviesRemovedAt != null && remoteMoviesRemovedAt != savedMoviesRemovedAt) {
+                        if (reconcileDeletionsForType(simklSync, dbHelper, "movies", "movie")) {
+                            nextMoviesRemovedAt = remoteMoviesRemovedAt
+                        } else {
+                            allSucceeded = false
+                        }
+                    }
+                    if (remoteShowsRemovedAt != null && remoteShowsRemovedAt != savedShowsRemovedAt) {
+                        if (reconcileDeletionsForType(simklSync, dbHelper, "shows", "show")) {
+                            nextShowsRemovedAt = remoteShowsRemovedAt
+                        } else {
+                            allSucceeded = false
+                        }
+                    }
+                    if (remoteAnimeRemovedAt != null && remoteAnimeRemovedAt != savedAnimeRemovedAt) {
+                        if (reconcileDeletionsForType(simklSync, dbHelper, "anime", "anime")) {
+                            nextAnimeRemovedAt = remoteAnimeRemovedAt
+                        } else {
+                            allSucceeded = false
+                        }
+                    }
+
+                    if (allSucceeded) {
+                        nextRatingsAt = remoteRatingsAt
                     }
                 } else {
                     Log.d("GetSimklSyncData", "No changes detected in /sync/activities.")
                 }
 
-                // Step 5: Save updated timestamps into TABLE_SYNC_ACTIVITIES
+                // Step 5: Save updated timestamps into TABLE_SYNC_ACTIVITIES only for successful fetches
                 dbHelper.saveSyncActivities(
-                    allAt = remoteAll,
-                    tvShowsAll = remoteShowsAll,
-                    animeAll = remoteAnimeAll,
-                    moviesAll = remoteMoviesAll,
-                    ratingsAt = remoteRatingsAt,
+                    allAt = if (allSucceeded) remoteAll else savedAll,
+                    tvShowsAll = nextShowsAll,
+                    animeAll = nextAnimeAll,
+                    moviesAll = nextMoviesAll,
+                    ratingsAt = nextRatingsAt,
+                    moviesRemovedAt = nextMoviesRemovedAt,
+                    tvShowsRemovedAt = nextShowsRemovedAt,
+                    animeRemovedAt = nextAnimeRemovedAt,
                     lastCheckedMs = System.currentTimeMillis()
                 )
             } catch (e: Exception) {
@@ -173,6 +277,46 @@ class GetSimklSyncData(
         }
     }
 
+    private suspend fun reconcileDeletionsForType(
+        simklSync: SimklSync,
+        dbHelper: SimklDatabaseHelper,
+        endpointType: String,
+        dbType: String
+    ): Boolean {
+        val body = fetchEndpointBody(simklSync, "sync/all-items/$endpointType?extended=ids_only") ?: return false
+        val trimmed = body.trim()
+        val remoteIds = mutableSetOf<Int>()
+
+        fun collectIdsFromArray(arr: JSONArray?) {
+            if (arr == null) return
+            for (i in 0 until arr.length()) {
+                val itemObj = arr.optJSONObject(i) ?: continue
+                val mediaObj = itemObj.optJSONObject("movie")
+                    ?: itemObj.optJSONObject("show")
+                    ?: itemObj.optJSONObject("anime")
+                    ?: itemObj
+                val idsObj = mediaObj.optJSONObject("ids") ?: itemObj.optJSONObject("ids")
+                val simklId = idsObj?.optInt("simkl", idsObj.optInt("simkl_id", 0))
+                    ?: itemObj.optInt("simkl", 0)
+                if (simklId > 0) {
+                    remoteIds.add(simklId)
+                }
+            }
+        }
+
+        if (trimmed.startsWith("{")) {
+            val root = JSONObject(trimmed)
+            collectIdsFromArray(root.optJSONArray("movies"))
+            collectIdsFromArray(root.optJSONArray("shows"))
+            collectIdsFromArray(root.optJSONArray("anime"))
+        } else if (trimmed.startsWith("[")) {
+            collectIdsFromArray(JSONArray(trimmed))
+        }
+
+        dbHelper.reconcileTypeSimklIds(dbType, remoteIds)
+        return true
+    }
+
     private suspend fun fetchEndpointBody(simklSync: SimklSync, endpoint: String): String? {
         return try {
             simklSync.executeGetSync(endpoint).use { response ->
@@ -181,7 +325,7 @@ class GetSimklSyncData(
                     null
                 } else {
                     val body = response.body?.string()
-                    if (body.isNullOrEmpty() || body == "null") null else body
+                    if (body == null || body == "null") null else body
                 }
             }
         } catch (e: Exception) {
@@ -193,32 +337,61 @@ class GetSimklSyncData(
     private fun parseAndSaveAllItems(
         dbHelper: SimklDatabaseHelper,
         responseBody: String,
-        defaultType: String
+        defaultType: String,
+        isFullSync: Boolean = false
     ) {
         val trimmed = responseBody.trim()
-        if (trimmed.isEmpty() || trimmed == "null") return
+        if (trimmed.isEmpty() || trimmed == "null") {
+            if (isFullSync) {
+                dbHelper.reconcileTypeSimklIds(defaultType, emptySet())
+            }
+            return
+        }
 
-        if (trimmed.startsWith("{")) {
-            val root = JSONObject(trimmed)
-            root.optJSONArray("movies")?.let { parseItemsArray(dbHelper, it, "movie") }
-            root.optJSONArray("shows")?.let { parseItemsArray(dbHelper, it, "show") }
-            root.optJSONArray("anime")?.let { parseItemsArray(dbHelper, it, "anime") }
-        } else if (trimmed.startsWith("[")) {
-            parseItemsArray(dbHelper, JSONArray(trimmed), defaultType)
+        val db = dbHelper.writableDatabase
+        db.beginTransaction()
+        try {
+            if (trimmed.startsWith("{")) {
+                val root = JSONObject(trimmed)
+                root.optJSONArray("movies")?.let {
+                    val ids = parseItemsArray(dbHelper, it, "movie", isFullSync)
+                    if (isFullSync) dbHelper.reconcileTypeSimklIds("movie", ids)
+                }
+                root.optJSONArray("shows")?.let {
+                    val ids = parseItemsArray(dbHelper, it, "show", isFullSync)
+                    if (isFullSync) dbHelper.reconcileTypeSimklIds("show", ids)
+                }
+                root.optJSONArray("anime")?.let {
+                    val ids = parseItemsArray(dbHelper, it, "anime", isFullSync)
+                    if (isFullSync) dbHelper.reconcileTypeSimklIds("anime", ids)
+                }
+            } else if (trimmed.startsWith("[")) {
+                val ids = parseItemsArray(dbHelper, JSONArray(trimmed), defaultType, isFullSync)
+                if (isFullSync) {
+                    dbHelper.reconcileTypeSimklIds(defaultType, ids)
+                }
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
     private fun parseItemsArray(
         dbHelper: SimklDatabaseHelper,
         itemsArray: JSONArray,
-        itemType: String
-    ) {
+        itemType: String,
+        isFullSync: Boolean
+    ): Set<Int> {
+        val seenSimklIds = mutableSetOf<Int>()
         for (i in 0 until itemsArray.length()) {
             val itemObj = itemsArray.optJSONObject(i) ?: continue
             val status = itemObj.optString("status", "")
             val lastWatchedAt = itemObj.optString("last_watched_at", "").takeIf { it.isNotEmpty() && it != "null" }
             val addedAt = itemObj.optString("added_to_watchlist_at", "").takeIf { it.isNotEmpty() && it != "null" }
             val userRating = itemObj.optInt("user_rating", 0)
+            val userRatedAt = itemObj.optString("user_rated_at", itemObj.optString("rated_at", ""))
+                .takeIf { it.isNotEmpty() && it != "null" }
             val watchedEpisodesCount = itemObj.optInt("watched_episodes_count", 0)
             val totalEpisodesCount = itemObj.optInt("total_episodes_count", 0)
 
@@ -234,6 +407,9 @@ class GetSimklSyncData(
             val idsObj = mediaObj.optJSONObject("ids") ?: JSONObject()
 
             val simklId = idsObj.optInt("simkl", idsObj.optInt("simkl_id", 0))
+            if (simklId > 0) {
+                seenSimklIds.add(simklId)
+            }
             val slug = idsObj.optString("slug", "")
             val tmdbId = idsObj.optString("tmdb", "").toIntOrNull() ?: idsObj.optInt("tmdb", 0)
             val imdbId = idsObj.optString("imdb", "")
@@ -243,6 +419,9 @@ class GetSimklSyncData(
             val seasonEpisodeSummary = StringBuilder()
 
             if ((itemType == "show" || itemType == "anime") && seasonsArray != null) {
+                if (isFullSync && tmdbId > 0) {
+                    dbHelper.clearWatchedEpisodesForShow(tmdbId)
+                }
                 var firstSeason = true
                 for (s in 0 until seasonsArray.length()) {
                     val seasonObj = seasonsArray.optJSONObject(s) ?: continue
@@ -295,6 +474,7 @@ class GetSimklSyncData(
                 if (addedAt != null) put(SimklDatabaseHelper.COL_ADDED_AT, addedAt)
                 if (lastWatchedAt != null) put(SimklDatabaseHelper.COL_LAST_WATCHED_AT, lastWatchedAt)
                 if (userRating > 0) put(SimklDatabaseHelper.COL_USER_RATING, userRating)
+                if (userRatedAt != null) put(SimklDatabaseHelper.COL_RATED_AT, userRatedAt)
                 put(SimklDatabaseHelper.COL_WATCHED_EPISODES_COUNT, watchedEpisodesCount)
                 put(SimklDatabaseHelper.COL_TOTAL_EPISODES_COUNT, totalEpisodesCount)
                 if (seasonEpisodeSummary.isNotEmpty()) {
@@ -303,6 +483,7 @@ class GetSimklSyncData(
             }
             dbHelper.upsertItem(itemValues)
         }
+        return seenSimklIds
     }
 
     private fun parseAndSaveRatings(
@@ -313,13 +494,20 @@ class GetSimklSyncData(
         val trimmed = responseBody.trim()
         if (trimmed.isEmpty() || trimmed == "null") return
 
-        if (trimmed.startsWith("{")) {
-            val root = JSONObject(trimmed)
-            root.optJSONArray("movies")?.let { parseRatingsArray(dbHelper, it, "movie") }
-            root.optJSONArray("shows")?.let { parseRatingsArray(dbHelper, it, "show") }
-            root.optJSONArray("anime")?.let { parseRatingsArray(dbHelper, it, "anime") }
-        } else if (trimmed.startsWith("[")) {
-            parseRatingsArray(dbHelper, JSONArray(trimmed), defaultType)
+        val db = dbHelper.writableDatabase
+        db.beginTransaction()
+        try {
+            if (trimmed.startsWith("{")) {
+                val root = JSONObject(trimmed)
+                root.optJSONArray("movies")?.let { parseRatingsArray(dbHelper, it, "movie") }
+                root.optJSONArray("shows")?.let { parseRatingsArray(dbHelper, it, "show") }
+                root.optJSONArray("anime")?.let { parseRatingsArray(dbHelper, it, "anime") }
+            } else if (trimmed.startsWith("[")) {
+                parseRatingsArray(dbHelper, JSONArray(trimmed), defaultType)
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 

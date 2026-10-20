@@ -90,55 +90,37 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
                 else -> "local"
             }
 
-            if (binding.forceLocalSync.isChecked) {
-                preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
-            } else {
+            val forceLocal = binding.forceLocalSync.isChecked
+            preferences.edit {
                 when (selectedProvider) {
                     "local" -> {
-                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
-                        preferences.edit {
-                            putBoolean(
-                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
-                                true
-                            )
-                        }
-                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false)
                     }
                     "trakt" -> {
-                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
-                        preferences.edit {
-                            putBoolean(
-                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
-                                false
-                            )
-                        }
-                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true) }
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, false)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, !forceLocal)
                     }
                     "simkl" -> {
-                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
-                        preferences.edit {
-                            putBoolean(
-                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
-                                false
-                            )
-                        }
-                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true) }
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, false)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, !forceLocal)
                     }
                     "tmdb" -> {
-                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, false) }
-                        preferences.edit {
-                            putBoolean(
-                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
-                                true
-                            )
-                        }
-                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true) }
+                        putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, false)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
+                        putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, !forceLocal)
                     }
                 }
+                putString("sync_provider", selectedProvider)
+                putBoolean("sync_provider_dialog_shown", true)
             }
-
-            preferences.edit { putString("sync_provider", selectedProvider) }
-            preferences.edit { putBoolean("sync_provider_dialog_shown", true) }
 
             if (BuildConfig.FLAVOR == "foss") {
                 val omdbSetupShown = preferences.getBoolean("omdb_setup_shown", false)

@@ -22,10 +22,12 @@ package com.wirelessalien.android.moviedb.simkl
 
 import android.content.Context
 import android.util.Log
+import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.NetworkClient
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.RateLimiter
+import com.wirelessalien.android.moviedb.work.SimklTokenRefreshWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -42,12 +44,14 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
+import kotlin.random.Random
 
 class SimklSync(private val accessToken: String, private val context: Context) {
 
     private val client = NetworkClient.client
     private val baseUrl = "https://api.simkl.com"
-    private val clientId = ConfigHelper.getConfigValue(context.applicationContext, "simkl_client_id") ?: ""
+    private val appContext = context.applicationContext
+    private val clientId = ConfigHelper.getConfigValue(appContext, "simkl_client_id") ?: ""
 
     fun buildSimklUrl(endpoint: String): HttpUrl {
         val cleanEndpoint = endpoint.removePrefix("/")
@@ -61,13 +65,14 @@ class SimklSync(private val accessToken: String, private val context: Context) {
             .build()
     }
 
-    private fun applyHeaders(builder: Request.Builder): Request.Builder {
+    private fun applyHeaders(builder: Request.Builder, tokenOverride: String? = null): Request.Builder {
+        val effectiveToken = tokenOverride ?: accessToken
         builder
-            .addHeader("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
-            .addHeader("Content-Type", "application/json")
-            .addHeader("simkl-api-key", clientId)
-        if (accessToken.isNotEmpty()) {
-            builder.addHeader("Authorization", "Bearer $accessToken")
+            .header("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
+            .header("Content-Type", "application/json")
+            .header("simkl-api-key", clientId)
+        if (effectiveToken.isNotEmpty()) {
+            builder.header("Authorization", "Bearer $effectiveToken")
         }
         return builder
     }
@@ -123,20 +128,68 @@ class SimklSync(private val accessToken: String, private val context: Context) {
         return executeWithRetryBlocking(request)
     }
 
+    private fun computeRetryDelayMs(response: Response, currentBackoffMs: Long): Long? {
+        return when (response.code) {
+            429 -> {
+                val peeked = try {
+                    response.peekBody(2048).string()
+                } catch (_: Exception) {
+                    ""
+                }
+                val errorCode = try {
+                    if (peeked.isNotEmpty()) JSONObject(peeked).optString("error", "") else ""
+                } catch (_: Exception) {
+                    ""
+                }
+                // Daily quota limits (user_limit_exceeded / app_limit_exceeded) reset at midnight US Eastern; do not retry
+                if (errorCode == "user_limit_exceeded" || errorCode == "app_limit_exceeded") {
+                    null
+                } else {
+                    // Per-second rate_limit clears in ~1 second
+                    1000L + Random.nextLong(0, 250)
+                }
+            }
+            in SERVER_ERROR_CODES -> {
+                currentBackoffMs + Random.nextLong(0, 1000)
+            }
+            else -> null
+        }
+    }
+
     private suspend fun executeWithRetryBlocking(request: Request): Response {
+        var currentRequest = request
         var attempt = 0
         var waitTimeMs = 1000L
+        var refreshedOn401 = false
         var lastException: IOException? = null
 
         while (attempt < MAX_RETRY_ATTEMPTS) {
             try {
-                val call = client.newCall(request)
-                val response = call.execute()
-                if (response.code in TRANSIENT_ERROR_CODES && attempt < MAX_RETRY_ATTEMPTS - 1) {
-                    Log.w("SimklSync", "Transient HTTP ${response.code}, retrying in ${waitTimeMs}ms (attempt ${attempt + 1})")
+                val response = client.newCall(currentRequest).execute()
+
+                if (response.code == 401 && !refreshedOn401 && accessToken.isNotEmpty()) {
+                    refreshedOn401 = true
                     response.close()
-                    delay(waitTimeMs)
-                    waitTimeMs = min(waitTimeMs * 2, MAX_BACKOFF_MS)
+                    if (SimklTokenRefreshWorker.refreshTokenSync(appContext) == SimklTokenRefreshWorker.RefreshOutcome.SUCCESS) {
+                        val newToken = PreferenceManager.getDefaultSharedPreferences(appContext)
+                            .getString("simkl_access_token", null)
+                        if (!newToken.isNullOrEmpty()) {
+                            currentRequest = applyHeaders(currentRequest.newBuilder(), newToken).build()
+                            continue
+                        }
+                    }
+                    return client.newCall(currentRequest).execute()
+                }
+
+                val retryDelay = computeRetryDelayMs(response, waitTimeMs)
+                if (retryDelay != null && attempt < MAX_RETRY_ATTEMPTS - 1) {
+                    Log.w("SimklSync", "Transient HTTP ${response.code}, retrying in ${retryDelay}ms (attempt ${attempt + 1})")
+                    val isServerErr = response.code in SERVER_ERROR_CODES
+                    response.close()
+                    delay(retryDelay)
+                    if (isServerErr) {
+                        waitTimeMs = min(waitTimeMs * 2, MAX_BACKOFF_MS)
+                    }
                     attempt++
                     continue
                 }
@@ -144,8 +197,9 @@ class SimklSync(private val accessToken: String, private val context: Context) {
             } catch (e: IOException) {
                 lastException = e
                 if (attempt < MAX_RETRY_ATTEMPTS - 1) {
-                    Log.w("SimklSync", "Network error: ${e.message}, retrying in ${waitTimeMs}ms (attempt ${attempt + 1})")
-                    delay(waitTimeMs)
+                    val delayWithJitter = waitTimeMs + Random.nextLong(0, 1000)
+                    Log.w("SimklSync", "Network error: ${e.message}, retrying in ${delayWithJitter}ms (attempt ${attempt + 1})")
+                    delay(delayWithJitter)
                     waitTimeMs = min(waitTimeMs * 2, MAX_BACKOFF_MS)
                     attempt++
                 } else {
@@ -160,19 +214,21 @@ class SimklSync(private val accessToken: String, private val context: Context) {
         request: Request,
         callback: Callback,
         attempt: Int = 0,
-        waitTimeMs: Long = 1000L
+        waitTimeMs: Long = 1000L,
+        refreshedOn401: Boolean = false
     ) {
         val call = client.newCall(request)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 if (attempt < MAX_RETRY_ATTEMPTS - 1) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        delay(waitTimeMs)
+                        delay(waitTimeMs + Random.nextLong(0, 1000))
                         executeWithRetryAsync(
                             request,
                             callback,
                             attempt + 1,
-                            min(waitTimeMs * 2, MAX_BACKOFF_MS)
+                            min(waitTimeMs * 2, MAX_BACKOFF_MS),
+                            refreshedOn401
                         )
                     }
                 } else {
@@ -181,15 +237,35 @@ class SimklSync(private val accessToken: String, private val context: Context) {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if (response.code in TRANSIENT_ERROR_CODES && attempt < MAX_RETRY_ATTEMPTS - 1) {
+                if (response.code == 401 && !refreshedOn401 && accessToken.isNotEmpty()) {
                     response.close()
                     CoroutineScope(Dispatchers.IO).launch {
-                        delay(waitTimeMs)
+                        if (SimklTokenRefreshWorker.refreshTokenSync(appContext) == SimklTokenRefreshWorker.RefreshOutcome.SUCCESS) {
+                            val newToken = PreferenceManager.getDefaultSharedPreferences(appContext)
+                                .getString("simkl_access_token", null)
+                            if (!newToken.isNullOrEmpty()) {
+                                val updatedReq = applyHeaders(request.newBuilder(), newToken).build()
+                                executeWithRetryAsync(updatedReq, callback, attempt, waitTimeMs, true)
+                                return@launch
+                            }
+                        }
+                        client.newCall(request).enqueue(callback)
+                    }
+                    return
+                }
+
+                val retryDelay = computeRetryDelayMs(response, waitTimeMs)
+                if (retryDelay != null && attempt < MAX_RETRY_ATTEMPTS - 1) {
+                    val isServerErr = response.code in SERVER_ERROR_CODES
+                    response.close()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        delay(retryDelay)
                         executeWithRetryAsync(
                             request,
                             callback,
                             attempt + 1,
-                            min(waitTimeMs * 2, MAX_BACKOFF_MS)
+                            if (isServerErr) min(waitTimeMs * 2, MAX_BACKOFF_MS) else waitTimeMs,
+                            refreshedOn401
                         )
                     }
                 } else {
@@ -202,7 +278,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
     companion object {
         private const val MAX_RETRY_ATTEMPTS = 5
         private const val MAX_BACKOFF_MS = 60_000L
-        private val TRANSIENT_ERROR_CODES = setOf(429, 500, 502, 503)
+        private val SERVER_ERROR_CODES = setOf(500, 502, 503)
 
         // Simkl Rate Limits: Max 10 GET/sec and 1 POST/sec per client_id and user token
         val getRateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)

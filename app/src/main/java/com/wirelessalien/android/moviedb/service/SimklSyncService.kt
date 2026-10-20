@@ -49,7 +49,7 @@ class SimklSyncService : Service() {
         const val EXTRA_CLIENT_ID = "client_id"
         const val EXTRA_TMDB_API_KEY = "tmdb_api_key"
         const val EXTRA_FORCE_FULL_SYNC = "force_full_sync"
-        const val ACTION_SERVICE_COMPLETED = "SERVICE_COMPLETED"
+        const val ACTION_SERVICE_COMPLETED = "com.wirelessalien.android.moviedb.SIMKL_SERVICE_COMPLETED"
     }
 
     override fun onCreate() {
@@ -111,7 +111,9 @@ class SimklSyncService : Service() {
             }
 
             updateNotification(getString(R.string.sync_completed))
-            val intent = Intent(ACTION_SERVICE_COMPLETED)
+            val intent = Intent(ACTION_SERVICE_COMPLETED).apply {
+                setPackage(packageName)
+            }
             sendBroadcast(intent)
             stopSelf()
         }

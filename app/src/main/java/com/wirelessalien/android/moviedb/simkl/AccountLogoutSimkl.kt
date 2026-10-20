@@ -29,6 +29,9 @@ import androidx.work.WorkManager
 import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.helper.SimklAutoSyncDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.SimklDatabaseHelper
+import com.wirelessalien.android.moviedb.work.SimklAutoSyncWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
@@ -80,9 +83,18 @@ class AccountLogoutSimkl(private val context: Context, private val handler: Hand
                     .remove("simkl_code_verifier")
                     .remove("simkl_oauth_state")
                     .remove("simkl_user_id")
+                    .putBoolean("key_auto_sync_simkl_data", false)
                     .apply()
 
-                WorkManager.getInstance(context).cancelAllWorkByTag("simkl_token_refresh")
+                context.deleteDatabase(SimklDatabaseHelper.DATABASE_NAME)
+                context.deleteDatabase(SimklAutoSyncDatabaseHelper.DATABASE_NAME)
+
+                WorkManager.getInstance(context).apply {
+                    cancelAllWorkByTag("simkl_token_refresh")
+                    cancelUniqueWork("simkl_token_refresh")
+                    cancelUniqueWork("weekly_work_simkl")
+                    cancelUniqueWork(SimklAutoSyncWorker.WORK_NAME)
+                }
 
                 handler.post {
                     Toast.makeText(

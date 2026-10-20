@@ -150,8 +150,8 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
                     val tmdbCursor = tmdbDb.query(
                         TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
                         arrayOf(TmdbDetailsDatabaseHelper.COL_ID),
-                        "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
-                        arrayOf(tmdbId.toString()),
+                        "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ? AND ${TmdbDetailsDatabaseHelper.COL_TYPE} = ?",
+                        arrayOf(tmdbId.toString(), tmdbType),
                         null, null, null
                     )
 
