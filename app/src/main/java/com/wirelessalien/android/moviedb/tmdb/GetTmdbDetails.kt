@@ -25,11 +25,11 @@ import android.content.Context
 import android.util.Log
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.RateLimiter
+import com.wirelessalien.android.moviedb.helper.SimklDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
@@ -85,7 +85,7 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
 
                     if (type == "person") {
                         processedItems++
-                        val progress = (processedItems * 100) / totalItems
+                        val progress = if (totalItems > 0) (processedItems * 100) / totalItems else 100
                         updateProgress(
                             context.getString(R.string.fetching_item_of, processedItems, totalItems), progress)
                         continue
@@ -113,7 +113,7 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
                     tmdbCursor.close()
 
                     processedItems++
-                    val progress = (processedItems * 100) / totalItems
+                    val progress = if (totalItems > 0) (processedItems * 100) / totalItems else 100
                     updateProgress(
                         context.getString(R.string.fetching_item_of, processedItems, totalItems), progress)
                 }
@@ -124,11 +124,68 @@ class GetTmdbDetails(private val context: Context, private val tmdbApiKey: Strin
         }
     }
 
+    suspend fun fetchAndSaveSimklTmdbDetails(updateProgress: (String, Int) -> Unit) {
+        withContext(Dispatchers.IO) {
+            val simklDbHelper = SimklDatabaseHelper(context)
+            val simklDb = simklDbHelper.readableDatabase
+            val tmdbDbHelper = TmdbDetailsDatabaseHelper(context)
+            val tmdbDb = tmdbDbHelper.readableDatabase
+
+            val cursor = simklDb.query(
+                SimklDatabaseHelper.TABLE_ITEMS,
+                arrayOf(SimklDatabaseHelper.COL_TMDB, SimklDatabaseHelper.COL_TYPE),
+                "${SimklDatabaseHelper.COL_TMDB} IS NOT NULL AND ${SimklDatabaseHelper.COL_TMDB} > 0",
+                null, null, null, null
+            )
+
+            val totalItems = cursor.count
+            var processedItems = 0
+
+            while (cursor.moveToNext()) {
+                val tmdbId = cursor.getInt(cursor.getColumnIndexOrThrow(SimklDatabaseHelper.COL_TMDB))
+                val rawType = cursor.getString(cursor.getColumnIndexOrThrow(SimklDatabaseHelper.COL_TYPE)) ?: "show"
+                val tmdbType = if (rawType == "movie") "movie" else "show"
+
+                if (tmdbId > 0) {
+                    val tmdbCursor = tmdbDb.query(
+                        TmdbDetailsDatabaseHelper.TABLE_TMDB_DETAILS,
+                        arrayOf(TmdbDetailsDatabaseHelper.COL_ID),
+                        "${TmdbDetailsDatabaseHelper.COL_TMDB_ID} = ?",
+                        arrayOf(tmdbId.toString()),
+                        null, null, null
+                    )
+
+                    if (!tmdbCursor.moveToFirst()) {
+                        try {
+                            rateLimiter.acquire()
+                            val tmdbDetails = fetchTmdbDetails(tmdbId, tmdbType)
+                            saveTmdbDetailsToDb(tmdbDetails)
+                        } catch (e: Exception) {
+                            Log.e("GetTmdbDetails", "Failed to fetch/save Simkl TMDB details for ID $tmdbId ($tmdbType): ${e.message}")
+                        }
+                    }
+                    tmdbCursor.close()
+                }
+
+                processedItems++
+                val progress = if (totalItems > 0) (processedItems * 100) / totalItems else 100
+                updateProgress(
+                    context.getString(R.string.fetching_item_of, processedItems, totalItems),
+                    progress
+                )
+            }
+
+            cursor.close()
+            simklDb.close()
+            tmdbDb.close()
+        }
+    }
+
     private suspend fun fetchTmdbDetails(tmdbId: Int, type: String): JSONObject {
         return withContext(Dispatchers.IO) {
             val url = when (type) {
                 "movie" -> "https://api.themoviedb.org/3/movie/$tmdbId?api_key=$tmdbApiKey"
-                "show", "season", "episode" -> "https://api.themoviedb.org/3/tv/$tmdbId?api_key=$tmdbApiKey"
+                "show", "anime", "season", "episode" -> "https://api.themoviedb.org/3/tv/$tmdbId?api_key=$tmdbApiKey"
                 else -> throw IllegalArgumentException("Unknown type: $type")
             }
 

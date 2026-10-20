@@ -66,7 +66,9 @@ import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.SimklDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.simkl.SimklSync
 import com.wirelessalien.android.moviedb.tmdb.account.AddEpisodeRating
 import com.wirelessalien.android.moviedb.tmdb.account.DeleteEpisodeRating
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountStateTvSeason
@@ -104,6 +106,8 @@ class EpisodeAdapter(
     private var watchedEpisodes: Map<Int, Boolean> = HashMap()
     private var mediaObject: JSONObject? = null
     private val tktaccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("trakt_access_token", null)
+    private val simklAccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("simkl_access_token", null)
+    private var simklWatchedEpisodes: MutableSet<Int> = HashSet()
     private lateinit var clientId: String
     //    private var isInCollection: Boolean = false
     private var isInWatchList: Boolean = false
@@ -133,12 +137,15 @@ class EpisodeAdapter(
             withContext(Dispatchers.IO) {
                 TraktDatabaseHelper(context).use { db ->
                     episodes.forEach { episode ->
-//                        isInCollection = db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber)
                         isInWatchList = db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
                         isInRating = db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
                     }
                 }
+                SimklDatabaseHelper(context).use { simklDb ->
+                    simklWatchedEpisodes = simklDb.getWatchedEpisodesForSeason(tvShowId, seasonNumber).toMutableSet()
+                }
             }
+            notifyDataSetChanged()
         }
     }
 
@@ -160,6 +167,17 @@ class EpisodeAdapter(
         }
     }
 
+    fun refreshSimklWatchedState() {
+        CoroutineScope(Dispatchers.Main).launch {
+            withContext(Dispatchers.IO) {
+                SimklDatabaseHelper(context).use { simklDb ->
+                    simklWatchedEpisodes = simklDb.getWatchedEpisodesForSeason(tvShowId, seasonNumber).toMutableSet()
+                }
+            }
+            notifyDataSetChanged()
+        }
+    }
+
     fun updateEpisodes(newEpisodes: List<Episode>) {
         val diffCallback = EpisodeDiffCallback(this.episodes, newEpisodes)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
@@ -173,8 +191,8 @@ class EpisodeAdapter(
         when (defaultSharedPreferences.getString("sync_provider", "local")) {
 
             "tmdb" -> {
-                                                binding.btnAddRatingToTmdb.visibility = View.VISIBLE
-//                binding.btnAddToTraktCollection.visibility = View.GONE
+                binding.btnAddRatingToTmdb.visibility = View.VISIBLE
+                binding.btnAddToSimklHistory.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -197,8 +215,8 @@ class EpisodeAdapter(
 
             }
             "trakt" -> {
-                                                binding.btnAddRatingToTmdb.visibility = View.GONE
-//                binding.btnAddToTraktCollection.visibility = View.VISIBLE
+                binding.btnAddRatingToTmdb.visibility = View.GONE
+                binding.btnAddToSimklHistory.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.VISIBLE
                 binding.btnAddToTraktList.visibility = View.VISIBLE
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
@@ -221,11 +239,35 @@ class EpisodeAdapter(
                     binding.rvCardV.visibility = View.GONE
                 }
             }
+            "simkl" -> {
+                binding.btnAddToSimklHistory.visibility = View.VISIBLE
+                binding.btnAddRatingToTmdb.visibility = View.GONE
+                binding.btnAddToTraktHistory.visibility = View.GONE
+                binding.btnAddToTraktList.visibility = View.GONE
+                binding.btnAddToTraktWatchlist.visibility = View.GONE
+                binding.btnAddTraktRating.visibility = View.GONE
+                binding.rating.visibility = View.GONE
+                if (defaultSharedPreferences.getBoolean("force_local_sync", false)) {
+                    binding.btnWatchedToLocalDb.visibility = View.VISIBLE
+                    binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                    binding.episodeDbRating.visibility = View.VISIBLE
+                    binding.watchedDate.visibility = View.VISIBLE
+                    binding.episodeDbReviewTitle.visibility = View.VISIBLE
+                    binding.rvCardV.visibility = View.VISIBLE
+                } else {
+                    binding.btnWatchedToLocalDb.visibility = View.GONE
+                    binding.btnAddDetailsToLocalDb.visibility = View.GONE
+                    binding.episodeDbRating.visibility = View.GONE
+                    binding.watchedDate.visibility = View.GONE
+                    binding.episodeDbReviewTitle.visibility = View.GONE
+                    binding.rvCardV.visibility = View.GONE
+                }
+            }
             else -> {
-                                                binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
+                binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
                 binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                 binding.btnAddRatingToTmdb.visibility = View.GONE
-                //                binding.btnAddToTraktCollection.visibility = View.GONE
+                binding.btnAddToSimklHistory.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -648,6 +690,110 @@ class EpisodeAdapter(
 
         holder.binding.btnAddToTraktHistory.setOnClickListener {
             showWatchOptionsDialog(episode, holder)
+        }
+
+        val simklToken = defaultSharedPreferences.getString("simkl_access_token", null)
+        holder.binding.btnAddToSimklHistory.isEnabled = !simklToken.isNullOrEmpty()
+        val isSimklEpWatched = simklWatchedEpisodes.contains(episode.episodeNumber)
+        holder.binding.btnAddToSimklHistory.icon = AppCompatResources.getDrawable(
+            context,
+            if (isSimklEpWatched) R.drawable.ic_done_2 else R.drawable.ic_history
+        )
+        holder.binding.btnAddToSimklHistory.text = context.getText(R.string.history)
+
+        holder.binding.btnAddToSimklHistory.setOnClickListener {
+            val currentlyWatched = simklWatchedEpisodes.contains(episode.episodeNumber)
+            val currentDateTime = SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.ENGLISH
+            ).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date())
+
+            val endpoint = if (currentlyWatched) "sync/history/remove" else "sync/history"
+            val epObj = JSONObject().apply {
+                put("number", episode.episodeNumber)
+                if (!currentlyWatched) {
+                    put("watched_at", currentDateTime)
+                }
+            }
+            val seasonObj = JSONObject().apply {
+                put("number", seasonNumber)
+                put("episodes", JSONArray().put(epObj))
+            }
+            val idsObj = JSONObject().apply {
+                put("tmdb", tvShowId)
+                val imdbId = tmdbObject.optJSONObject("external_ids")?.optString("imdb_id", "") ?: ""
+                if (imdbId.isNotEmpty() && imdbId != "null") {
+                    put("imdb", imdbId)
+                }
+            }
+            val showObj = JSONObject().apply {
+                if (!currentlyWatched && showTitle.isNotEmpty()) {
+                    put("title", showTitle)
+                }
+                put("ids", idsObj)
+                put("seasons", JSONArray().put(seasonObj))
+            }
+            val payload = JSONObject().apply {
+                put("shows", JSONArray().put(showObj))
+            }
+
+            holder.binding.lProgressBar.visibility = View.VISIBLE
+            val simklSync = SimklSync(simklToken ?: "", context)
+            simklSync.post(endpoint, payload, object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Handler(Looper.getMainLooper()).post {
+                        holder.binding.lProgressBar.visibility = View.GONE
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.failed_to_sync, endpoint),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val isSuccess = response.isSuccessful
+                    val msg = response.message
+                    response.close()
+                    if (isSuccess) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            SimklDatabaseHelper(context).use { simklDb ->
+                                if (currentlyWatched) {
+                                    simklDb.removeEpisodeFromWatched(tvShowId, seasonNumber, episode.episodeNumber)
+                                } else {
+                                    simklDb.addEpisodeToWatched(0, tvShowId, seasonNumber, episode.episodeNumber, currentDateTime)
+                                }
+                            }
+                            if (!currentlyWatched) {
+                                addItemtoTmdb()
+                            }
+                        }
+                    }
+                    Handler(Looper.getMainLooper()).post {
+                        holder.binding.lProgressBar.visibility = View.GONE
+                        if (isSuccess) {
+                            if (currentlyWatched) {
+                                simklWatchedEpisodes.remove(episode.episodeNumber)
+                                holder.binding.btnAddToSimklHistory.icon = AppCompatResources.getDrawable(
+                                    context,
+                                    R.drawable.ic_history
+                                )
+                            } else {
+                                simklWatchedEpisodes.add(episode.episodeNumber)
+                                holder.binding.btnAddToSimklHistory.icon = AppCompatResources.getDrawable(
+                                    context,
+                                    R.drawable.ic_done_2
+                                )
+                            }
+                            Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            })
         }
 
         holder.binding.btnAddTraktRating.setOnClickListener {

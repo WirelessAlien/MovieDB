@@ -331,6 +331,11 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                         true
                     }
 
+                    R.id.action_auto_sync_simkl -> {
+                        showSimklSyncDialog()
+                        true
+                    }
+
                     R.id.action_fetch_tmdb_data -> {
                         showTmdbDetailsExplanationDialog()
                         true
@@ -1118,6 +1123,64 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     private fun setupTraktAutoSync() {
         TktAutoSyncWorker.setupPeriodicSync(requireContext())
+    }
+
+    private fun showSimklSyncDialog() {
+        val binding = DialogTraktSyncMinimalBinding.inflate(LayoutInflater.from(requireContext()))
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(binding.root)
+            .create()
+
+        val simklToken = preferences.getString("simkl_access_token", null)
+        val workManager = WorkManager.getInstance(requireContext())
+        workManager.getWorkInfosForUniqueWorkLiveData(SimklAutoSyncWorker.WORK_NAME)
+            .observe(viewLifecycleOwner) { workInfoList ->
+                val workInfo = workInfoList?.firstOrNull()
+                val isWorkRunning = workInfo?.state == WorkInfo.State.RUNNING
+                binding.btnCancelWorker.visibility = if (isWorkRunning) View.VISIBLE else View.GONE
+            }
+
+        binding.btnLogin.setText(R.string.simkl_login_required_1)
+        if (simklToken.isNullOrEmpty()) {
+            binding.btnOk.isEnabled = false
+            binding.btnLogin.visibility = View.VISIBLE
+        } else {
+            binding.btnOk.isEnabled = true
+            binding.btnLogin.visibility = View.GONE
+        }
+
+        binding.btnLogin.setOnClickListener {
+            LoginFragmentSimkl().show(childFragmentManager, "LoginFragmentSimkl")
+            dialog.dismiss()
+        }
+
+        binding.btnCancelWorker.setOnClickListener {
+            workManager.cancelUniqueWork(SimklAutoSyncWorker.WORK_NAME)
+            binding.btnCancelWorker.visibility = View.GONE
+        }
+
+        binding.btnOk.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.visibility = View.VISIBLE
+                binding.btnOk.isEnabled = false
+                binding.btnCancelWorker.isEnabled = false
+
+                val syncManager = SimklAutoSyncManager(requireContext())
+                syncManager.syncMediaToSimkl()
+
+                binding.progressBar.visibility = View.GONE
+                binding.btnOk.isEnabled = true
+                binding.btnCancelWorker.isEnabled = true
+                SimklAutoSyncWorker.setupPeriodicSync(requireContext())
+                dialog.dismiss()
+            }
+        }
+
+        binding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun showWatchSummaryDialog() {

@@ -173,6 +173,55 @@
         </RelativeLayout>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/bottom_sheet_simkl_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:tooltipText="@string/these_actions_cannot_be_modified_tooltip">
+
+        <ImageView
+            android:id="@+id/bottom_sheet_simkl_watched_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_history"
+            android:layout_weight="1"
+            app:tint="?attr/colorControlNormal" />
+
+        <ImageView
+            android:id="@+id/bottom_sheet_simkl_watchlist_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_bookmark_border"
+            app:tint="?attr/colorControlNormal" />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/bottom_sheet_simkl_rating_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_thumb_up_border"
+                android:layout_centerInParent="true"
+                app:tint="?attr/colorControlNormal" />
+
+            <TextView
+                android:id="@+id/bottomSheetSimklRatingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@id/bottom_sheet_simkl_rating_icon"/>
+        </RelativeLayout>
+    </LinearLayout>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/bottom_sheet_details_button"
         style="?attr/materialButtonOutlinedStyle"

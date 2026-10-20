@@ -92,12 +92,14 @@ import com.wirelessalien.android.moviedb.databinding.DialogProgressIndicatorBind
 import com.wirelessalien.android.moviedb.databinding.DialogRefreshOptionsBinding
 import com.wirelessalien.android.moviedb.fragment.AboutBottomSheet
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragment
+import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentSimkl
 import com.wirelessalien.android.moviedb.fragment.AccountDataFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.BaseFragment
 import com.wirelessalien.android.moviedb.fragment.HomeFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newSavedInstance
 import com.wirelessalien.android.moviedb.fragment.LoginFragment
+import com.wirelessalien.android.moviedb.fragment.LoginFragmentSimkl
 import com.wirelessalien.android.moviedb.fragment.LoginFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
@@ -116,7 +118,10 @@ import java.util.concurrent.TimeUnit
 import com.wirelessalien.android.moviedb.fragment.BillingBottomSheetFragment
 import com.wirelessalien.android.moviedb.pagingSource.MultiSearchPagingSource
 import com.wirelessalien.android.moviedb.pagingSource.SearchPagingSource
+import com.wirelessalien.android.moviedb.service.SimklSyncService
 import com.wirelessalien.android.moviedb.service.TraktSyncService
+import com.wirelessalien.android.moviedb.simkl.GetAccountDetailsSimkl
+import com.wirelessalien.android.moviedb.work.SimklTokenRefreshWorker
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
 import com.wirelessalien.android.moviedb.tmdb.account.FetchList
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccessToken
@@ -152,6 +157,7 @@ class MainActivity : BaseActivity() {
     private lateinit var tmdbApiKey: String
     private var clientId: String? = null
     private var clientSecret: String? = null
+    private var simklClientId: String? = null
     private lateinit var context: Context
     private lateinit var binding: ActivityMainBinding
     private lateinit var prefListener: OnSharedPreferenceChangeListener
@@ -245,6 +251,7 @@ class MainActivity : BaseActivity() {
         tmdbApiKey = ConfigHelper.getConfigValue(this, "api_key")?: ""
         clientId = ConfigHelper.getConfigValue(this, "client_id")
         clientSecret = ConfigHelper.getConfigValue(this, "client_secret")
+        simklClientId = ConfigHelper.getConfigValue(this, "simkl_client_id")
         binding.bottomNavigation.setOnItemSelectedListener { item: MenuItem ->
             val itemId = item.itemId
             var selectedFragment: Fragment? = null
@@ -262,10 +269,18 @@ class MainActivity : BaseActivity() {
                     selectedFragment = newSavedInstance()
                 }
                 R.id.nav_account -> {
-                    selectedFragment = AccountDataFragment()
+                    selectedFragment = if (preferences.getString("sync_provider", "local") == "simkl") {
+                        AccountDataFragmentSimkl()
+                    } else {
+                        AccountDataFragment()
+                    }
                 }
                 R.id.nav_account_tkt -> {
-                    selectedFragment = AccountDataFragmentTkt()
+                    selectedFragment = if (preferences.getString("sync_provider", "local") == "simkl") {
+                        AccountDataFragmentSimkl()
+                    } else {
+                        AccountDataFragmentTkt()
+                    }
                 }
             }
             if (selectedFragment != null) {
@@ -318,11 +333,19 @@ class MainActivity : BaseActivity() {
                 }
                 menu.findItem(R.id.nav_account).isVisible -> {
                     initialItemId = R.id.nav_account
-                    AccountDataFragment()
+                    if (preferences.getString("sync_provider", "local") == "simkl") {
+                        AccountDataFragmentSimkl()
+                    } else {
+                        AccountDataFragment()
+                    }
                 }
                 menu.findItem(R.id.nav_account_tkt).isVisible -> {
                     initialItemId = R.id.nav_account_tkt
-                    AccountDataFragmentTkt()
+                    if (preferences.getString("sync_provider", "local") == "simkl") {
+                        AccountDataFragmentSimkl()
+                    } else {
+                        AccountDataFragmentTkt()
+                    }
                 }
                 else -> HomeFragment()
             }
@@ -380,12 +403,19 @@ class MainActivity : BaseActivity() {
                 }
 
                 if (id == R.id.action_login) {
-                    if (preferences.getString("sync_provider", "local") == "trakt") {
-                        val loginFragmentTkt = LoginFragmentTkt()
-                        loginFragmentTkt.show(supportFragmentManager, "login")
-                    } else {
-                        val loginFragment = LoginFragment()
-                        loginFragment.show(supportFragmentManager, "login")
+                    when (preferences.getString("sync_provider", "local")) {
+                        "trakt" -> {
+                            val loginFragmentTkt = LoginFragmentTkt()
+                            loginFragmentTkt.show(supportFragmentManager, "login")
+                        }
+                        "simkl" -> {
+                            val loginFragmentSimkl = LoginFragmentSimkl()
+                            loginFragmentSimkl.show(supportFragmentManager, "login")
+                        }
+                        else -> {
+                            val loginFragment = LoginFragment()
+                            loginFragment.show(supportFragmentManager, "login")
+                        }
                     }
                     return true
                 }
@@ -686,6 +716,7 @@ class MainActivity : BaseActivity() {
             is ListFragment -> getString(R.string.title_saved)
             is AccountDataFragment -> getString(R.string.title_account)
             is AccountDataFragmentTkt -> getString(R.string.title_account)
+            is AccountDataFragmentSimkl -> getString(R.string.title_account)
             else -> getString(R.string.app_name)
         }
         binding.toolbar.title = title
@@ -704,7 +735,7 @@ class MainActivity : BaseActivity() {
                 keywordSearch(query)
             } else {
                 val currentFragment = getCurrentFragment()
-                if (currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt) {
+                if (currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt || currentFragment is AccountDataFragmentSimkl) {
                     if (isShowMovieChecked) {
                         multiSearch(query)
                     } else if (isMovieChecked) {
@@ -1014,6 +1045,21 @@ class MainActivity : BaseActivity() {
                 } else {
                     Log.e("MainActivity", "Authorization code not found in the redirect URI")
                 }
+            } else if (uri.toString().startsWith("simkl.wirelessalien.showcase://callback")) {
+                val returnedState = uri.getQueryParameter("state")
+                val savedState = preferences.getString("simkl_oauth_state", null)
+                val iss = uri.getQueryParameter("iss")
+                val code = uri.getQueryParameter("code")
+                val savedVerifier = preferences.getString("simkl_code_verifier", null)
+
+                if (returnedState != null && returnedState == savedState &&
+                    (iss == null || iss == "https://simkl.com") &&
+                    !code.isNullOrEmpty() && !savedVerifier.isNullOrEmpty()
+                ) {
+                    exchangeSimklCodeForAccessToken(code, savedVerifier)
+                } else {
+                    Log.e("MainActivity", "Simkl OAuth callback state/iss/code validation failed")
+                }
             }
         }
     }
@@ -1099,6 +1145,90 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private fun exchangeSimklCodeForAccessToken(code: String, codeVerifier: String) {
+        val redirectUri = "simkl.wirelessalien.showcase://callback"
+        val resolvedSimklClientId = simklClientId ?: ConfigHelper.getConfigValue(this, "simkl_client_id") ?: ""
+
+        val requestBody = FormBody.Builder()
+            .add("grant_type", "authorization_code")
+            .add("client_id", resolvedSimklClientId)
+            .add("code", code)
+            .add("redirect_uri", redirectUri)
+            .add("code_verifier", codeVerifier)
+            .build()
+
+        val request = Request.Builder()
+            .url("https://api.simkl.com/oauth2/token")
+            .addHeader("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
+            .addHeader("Content-Type", "application/x-www-form-urlencoded")
+            .addHeader("simkl-api-key", resolvedSimklClientId)
+            .post(requestBody)
+            .build()
+
+        val client = com.wirelessalien.android.moviedb.NetworkClient.client
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("MainActivity", "Simkl token exchange failed: ${e.message}", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val responseBody = response.peekBody(Long.MAX_VALUE).string()
+                    val jsonObject = JSONObject(responseBody)
+                    val accessToken = jsonObject.getString("access_token")
+                    val refreshToken = jsonObject.optString("refresh_token", "")
+                    val expiresIn = jsonObject.optLong("expires_in", 604800L)
+                    val createdAt = jsonObject.optLong("created_at", System.currentTimeMillis() / 1000)
+
+                    preferences.edit().apply {
+                        putString("simkl_access_token", accessToken)
+                        if (refreshToken.isNotEmpty()) {
+                            putString("simkl_refresh_token", refreshToken)
+                        }
+                        putLong("simkl_token_expires_in", expiresIn)
+                        putLong("simkl_token_created_at", createdAt)
+                        remove("simkl_code_verifier")
+                        remove("simkl_oauth_state")
+                        apply()
+                    }
+
+                    SimklTokenRefreshWorker.scheduleRefresh(this@MainActivity, expiresIn)
+
+                    lifecycleScope.launch {
+                        GetAccountDetailsSimkl(
+                            this@MainActivity,
+                            resolvedSimklClientId,
+                            object : GetAccountDetailsSimkl.AccountDataCallback {
+                                override fun onAccountDataReceived(
+                                    userId: Int,
+                                    name: String?,
+                                    avatarUrl: String?
+                                ) {}
+                            }
+                        ).fetchAccountDetails()
+                    }
+
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, getString(R.string.login_successful), Toast.LENGTH_SHORT).show()
+                        val syncIntent = Intent(this@MainActivity, SimklSyncService::class.java).apply {
+                            action = SimklSyncService.ACTION_START_SERVICE
+                            putExtra(SimklSyncService.EXTRA_ACCESS_TOKEN, accessToken)
+                            putExtra(SimklSyncService.EXTRA_CLIENT_ID, resolvedSimklClientId)
+                            putExtra(SimklSyncService.EXTRA_TMDB_API_KEY, tmdbApiKey)
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startForegroundService(syncIntent)
+                        } else {
+                            startService(syncIntent)
+                        }
+                    }
+                } else {
+                    Log.e("MainActivity", "Simkl token error: ${response.code} ${response.message}")
+                }
+            }
+        })
+    }
+
     private fun checkTokenExpiration() {
         val createdAt = preferences.getLong("token_created_at", 0)
         val expiresIn = preferences.getLong("token_expires_in", 0)
@@ -1111,6 +1241,18 @@ class MainActivity : BaseActivity() {
             // Refresh token if it's expired or will expire in next hour
             if (currentTime >= expirationTime - 3600) {
                 refreshAccessToken(refreshToken)
+            }
+        }
+
+        val simklCreatedAt = preferences.getLong("simkl_token_created_at", 0)
+        val simklExpiresIn = preferences.getLong("simkl_token_expires_in", 0)
+        val simklRefreshToken = preferences.getString("simkl_refresh_token", null)
+
+        if (simklCreatedAt > 0 && simklExpiresIn > 0 && !simklRefreshToken.isNullOrEmpty()) {
+            val currentTime = System.currentTimeMillis() / 1000
+            val expirationTime = simklCreatedAt + simklExpiresIn
+            if (currentTime >= expirationTime - 3600) {
+                SimklTokenRefreshWorker.scheduleRefresh(this, 60L)
             }
         }
     }

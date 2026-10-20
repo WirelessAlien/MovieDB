@@ -117,11 +117,14 @@ import com.wirelessalien.android.moviedb.fragment.ListBottomSheetFragmentTkt
 import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.databaseUpdate
 import com.wirelessalien.android.moviedb.fragment.ListTmdbBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.ReviewFragment
+import com.wirelessalien.android.moviedb.fragment.SimklEpisodeBottomSheetFragment
 import com.wirelessalien.android.moviedb.fragment.TraktEpisodeBottomSheetFragment
 import com.wirelessalien.android.moviedb.helper.ConfigHelper.getConfigValue
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.SimklDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
+import com.wirelessalien.android.moviedb.simkl.SimklSync
 import com.wirelessalien.android.moviedb.tmdb.account.AddRating
 import com.wirelessalien.android.moviedb.tmdb.account.AddToFavourites
 import com.wirelessalien.android.moviedb.tmdb.account.AddToWatchlist
@@ -160,6 +163,10 @@ import kotlin.math.round
 class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreatedListener, LastEpisodeFragment.OnUpcomingEpisodeClickListener {
     private var apiKey: String? = null
     private var tktaccessToken: String? = null
+    private var simklAccessToken: String? = null
+    private var simklClientId: String? = null
+    private var simklStatus: String? = null
+    private var simklRating: Int = 0
     private var apiReadAccessToken: String? = null
     private var tktApiKey: String? = null
     private lateinit var castAdapter: CastBaseAdapter
@@ -254,6 +261,8 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         apiReadAccessToken = getConfigValue(applicationContext, "api_read_access_token")
         tktApiKey = getConfigValue(applicationContext, "client_id")
         tktaccessToken = preferences.getString("trakt_access_token", null)
+        simklClientId = getConfigValue(applicationContext, "simkl_client_id")
+        simklAccessToken = preferences.getString("simkl_access_token", null)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         binding.appBarLayout.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
@@ -339,6 +348,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddTraktRating.visibility = View.GONE
+                binding.simklActionsLayout.visibility = View.GONE
                 binding.ratingBtnTmdb.visibility = View.VISIBLE
                 binding.favouriteButtonTmdb.visibility = View.VISIBLE
                 binding.addToListTmdb.visibility = View.VISIBLE
@@ -352,10 +362,25 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.btnAddToTraktHistory.visibility = View.VISIBLE
                 binding.btnAddToTraktList.visibility = View.VISIBLE
                 binding.btnAddTraktRating.visibility = View.VISIBLE
+                binding.simklActionsLayout.visibility = View.GONE
                 binding.ratingBtnTmdb.visibility = View.GONE
                 binding.favouriteButtonTmdb.visibility = View.GONE
                 binding.addToListTmdb.visibility = View.GONE
                 binding.watchListButtonTmdb.visibility = View.GONE
+                if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
+            }
+            "simkl" -> {
+                binding.btnAddToTraktWatchlist.visibility = View.GONE
+                binding.btnAddToTraktFavorite.visibility = View.GONE
+                binding.btnAddToTraktCollection.visibility = View.GONE
+                binding.btnAddToTraktHistory.visibility = View.GONE
+                binding.btnAddToTraktList.visibility = View.GONE
+                binding.btnAddTraktRating.visibility = View.GONE
+                binding.ratingBtnTmdb.visibility = View.GONE
+                binding.favouriteButtonTmdb.visibility = View.GONE
+                binding.addToListTmdb.visibility = View.GONE
+                binding.watchListButtonTmdb.visibility = View.GONE
+                binding.simklActionsLayout.visibility = View.VISIBLE
                 if (preferences.getBoolean("force_local_sync", false)) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
             }
             else -> {
@@ -365,6 +390,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddTraktRating.visibility = View.GONE
+                binding.simklActionsLayout.visibility = View.GONE
                 binding.ratingBtnTmdb.visibility = View.GONE
                 binding.favouriteButtonTmdb.visibility = View.GONE
                 binding.addToListTmdb.visibility = View.GONE
@@ -406,6 +432,11 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.btnAddToTraktList.isEnabled = true
             binding.btnAddTraktRating.isEnabled = true
         }
+
+        val hasSimklToken = !simklAccessToken.isNullOrEmpty()
+        binding.btnSimklStatus.isEnabled = hasSimklToken
+        binding.btnSimklHistory.isEnabled = hasSimklToken
+        binding.btnSimklRating.isEnabled = hasSimklToken
 
         // Get the movieObject from the intent that contains the necessary
         // data to display the right movie and related RecyclerViews.
@@ -1078,6 +1109,24 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
         }
 
+        SimklDatabaseHelper(context).use { simklDb ->
+            simklStatus = simklDb.getItemStatus(movieId, isMovie)
+            simklRating = simklDb.getItemRating(movieId)
+        }
+        updateSimklButtonsUI()
+
+        binding.btnSimklStatus.setOnClickListener {
+            showSimklStatusDialog()
+        }
+
+        binding.btnSimklHistory.setOnClickListener {
+            showSimklHistoryDialog()
+        }
+
+        binding.btnSimklRating.setOnClickListener {
+            showSimklRatingDialog()
+        }
+
         if (showNextEpisodePref && !isMovie) {
             lifecycleScope.launch {
                 updateEpisodeFragments()
@@ -1327,11 +1376,482 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         binding.btnAddToTraktHistory.visibility = View.GONE
         binding.btnAddToTraktList.visibility = View.GONE
         binding.btnAddTraktRating.visibility = View.GONE
+        binding.simklActionsLayout.visibility = View.GONE
         binding.ratingBtnTmdb.visibility = View.GONE
         binding.favouriteButtonTmdb.visibility = View.GONE
         binding.addToListTmdb.visibility = View.GONE
         binding.watchListButtonTmdb.visibility = View.GONE
         if (!added) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
+    }
+
+    private fun simklBtnsVisible() {
+        binding.btnAddToTraktWatchlist.visibility = View.GONE
+        binding.btnAddToTraktFavorite.visibility = View.GONE
+        binding.btnAddToTraktCollection.visibility = View.GONE
+        binding.btnAddToTraktHistory.visibility = View.GONE
+        binding.btnAddToTraktList.visibility = View.GONE
+        binding.btnAddTraktRating.visibility = View.GONE
+        binding.ratingBtnTmdb.visibility = View.GONE
+        binding.favouriteButtonTmdb.visibility = View.GONE
+        binding.addToListTmdb.visibility = View.GONE
+        binding.watchListButtonTmdb.visibility = View.GONE
+        binding.simklActionsLayout.visibility = View.VISIBLE
+        if (preferences.getBoolean("force_local_sync", false) && !added) binding.fabSave.visibility = View.VISIBLE else binding.fabSave.visibility = View.GONE
+    }
+
+    private fun formatSimklStatusLabel(status: String?): String {
+        return when (status) {
+            "watching" -> getString(R.string.watching)
+            "plantowatch" -> getString(R.string.plan_to_watch)
+            "completed" -> getString(R.string.completed)
+            "hold" -> getString(R.string.on_hold)
+            "dropped" -> getString(R.string.dropped)
+            else -> getString(R.string.status)
+        }
+    }
+
+    private fun updateSimklButtonsUI() {
+        binding.btnSimklStatus.text = formatSimklStatusLabel(simklStatus)
+        binding.btnSimklStatus.icon = ContextCompat.getDrawable(
+            context,
+            if (!simklStatus.isNullOrEmpty()) R.drawable.ic_bookmark else R.drawable.ic_bookmark_border
+        )
+
+        val isSimklCompleted = simklStatus == "completed"
+        binding.btnSimklHistory.icon = ContextCompat.getDrawable(
+            context,
+            if (isSimklCompleted) R.drawable.ic_done_2 else R.drawable.ic_history
+        )
+        binding.btnSimklHistory.text = getString(R.string.history)
+
+        if (simklRating > 0) {
+            binding.btnSimklRating.icon = ContextCompat.getDrawable(context, R.drawable.ic_thumb_up)
+            binding.btnSimklRating.text = simklRating.toString()
+        } else {
+            binding.btnSimklRating.icon = ContextCompat.getDrawable(context, R.drawable.ic_thumb_up_border)
+            binding.btnSimklRating.text = ""
+        }
+    }
+
+    private fun buildSimklMediaItemJson(
+        toStatus: String? = null,
+        watchedAt: String? = null,
+        rating: Int? = null,
+        ratedAt: String? = null,
+        idsOnly: Boolean = false
+    ): JSONObject {
+        val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
+        else movieDataObject.optString("name", movieTitle ?: "")
+        val dateStr = if (isMovie) movieDataObject.optString("release_date", "")
+        else movieDataObject.optString("first_air_date", "")
+        val year = dateStr.take(4).toIntOrNull() ?: movieYear?.toIntOrNull() ?: 0
+
+        val idsObj = JSONObject().apply {
+            put("tmdb", movieId)
+            val resolvedImdb = currentImdbId ?: imdbId
+            if (!resolvedImdb.isNullOrEmpty() && resolvedImdb != "null") {
+                put("imdb", resolvedImdb)
+            }
+        }
+
+        val mediaItem = JSONObject().apply {
+            if (!idsOnly) {
+                if (toStatus != null) put("to", toStatus)
+                if (watchedAt != null) put("watched_at", watchedAt)
+                if (rating != null) put("rating", rating)
+                if (ratedAt != null) put("rated_at", ratedAt)
+                if (title.isNotEmpty()) put("title", title)
+                if (year > 0) put("year", year)
+            }
+            put("ids", idsObj)
+        }
+
+        return JSONObject().apply {
+            if (isMovie) {
+                put("movies", JSONArray().put(mediaItem))
+            } else {
+                put("shows", JSONArray().put(mediaItem))
+            }
+        }
+    }
+
+    private fun showSimklStatusDialog() {
+        // Simkl movies only accept plantowatch, completed, and dropped (movies skip watching and hold)
+        val statusOptions: List<Pair<String, String>> = if (isMovie) {
+            mutableListOf(
+                getString(R.string.plan_to_watch) to "plantowatch",
+                getString(R.string.completed) to "completed",
+                getString(R.string.dropped) to "dropped"
+            )
+        } else {
+            mutableListOf(
+                getString(R.string.watching) to "watching",
+                getString(R.string.plan_to_watch) to "plantowatch",
+                getString(R.string.completed) to "completed",
+                getString(R.string.on_hold) to "hold",
+                getString(R.string.dropped) to "dropped"
+            )
+        }.apply {
+            if (!simklStatus.isNullOrEmpty()) {
+                add(getString(R.string.remove_from_simkl) to "remove")
+            }
+        }
+
+        val labels = statusOptions.map { it.first }.toTypedArray()
+        val currentIdx = statusOptions.indexOfFirst { it.second == simklStatus }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.status))
+            .setSingleChoiceItems(labels, currentIdx) { dialog, which ->
+                val chosen = statusOptions[which].second
+                if (chosen == "remove") {
+                    removeSimklItemFromHistoryAndWatchlist()
+                } else {
+                    syncSimklStatus(chosen)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun syncSimklStatus(status: String) {
+        val token = simklAccessToken ?: return
+        val nowIso = android.icu.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).apply {
+            timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+        }.format(Date())
+
+        val payload = buildSimklMediaItemJson(toStatus = status)
+        val simklSync = SimklSync(token, context)
+        simklSync.post("sync/add-to-list", payload, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, "sync/add-to-list"), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val isSuccess = response.isSuccessful
+                val msg = response.message
+                response.close()
+                if (isSuccess) {
+                    val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
+                    else movieDataObject.optString("name", movieTitle ?: "")
+                    val type = if (isMovie) "movie" else "show"
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        SimklDatabaseHelper(context).use { simklDb ->
+                            simklDb.updateItemStatus(movieId, type, title, status, nowIso)
+                        }
+                        addItemtoTmdb()
+                    }
+                }
+                runOnUiThread {
+                    if (isSuccess) {
+                        simklStatus = status
+                        updateSimklButtonsUI()
+                        Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@DetailActivity, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun removeSimklItemFromHistoryAndWatchlist() {
+        val token = simklAccessToken ?: return
+        val payload = buildSimklMediaItemJson(idsOnly = true)
+        val simklSync = SimklSync(token, context)
+        simklSync.post("sync/history/remove", payload, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, "sync/history/remove"), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val isSuccess = response.isSuccessful
+                val msg = response.message
+                response.close()
+                if (isSuccess) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        SimklDatabaseHelper(context).use { simklDb ->
+                            simklDb.removeItem(movieId)
+                        }
+                    }
+                }
+                runOnUiThread {
+                    if (isSuccess) {
+                        simklStatus = null
+                        updateSimklButtonsUI()
+                        Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@DetailActivity, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun syncSimklHistoryWatched(watchedAt: String) {
+        val token = simklAccessToken ?: return
+        val payload = buildSimklMediaItemJson(watchedAt = watchedAt)
+        val simklSync = SimklSync(token, context)
+        simklSync.post("sync/history", payload, object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, "sync/history"), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val isSuccess = response.isSuccessful
+                val msg = response.message
+                response.close()
+                if (isSuccess) {
+                    val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
+                    else movieDataObject.optString("name", movieTitle ?: "")
+                    val type = if (isMovie) "movie" else "show"
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        SimklDatabaseHelper(context).use { simklDb ->
+                            simklDb.updateItemStatus(movieId, type, title, "completed", watchedAt)
+                        }
+                        addItemtoTmdb()
+                    }
+                }
+                runOnUiThread {
+                    if (isSuccess) {
+                        simklStatus = "completed"
+                        updateSimklButtonsUI()
+                        Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@DetailActivity, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun showSimklHistoryDialog() {
+        val dialog = BottomSheetDialog(this)
+        val dialogViewBinding = HistoryDialogTraktBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogViewBinding.root)
+        dialog.show()
+
+        dialogViewBinding.tvTitle.text = showTitle
+        dialogViewBinding.btnWatchingNow.visibility = View.GONE
+        dialogViewBinding.progressIndicator.visibility = View.VISIBLE
+
+        lifecycleScope.launch {
+            val lastWatchedStr = withContext(Dispatchers.IO) {
+                SimklDatabaseHelper(context).use { it.getLastWatched(movieId) }
+            }
+            dialogViewBinding.progressIndicator.visibility = View.GONE
+            if (!lastWatchedStr.isNullOrEmpty()) {
+                dialogViewBinding.historyCard.visibility = View.VISIBLE
+                dialogViewBinding.timePlayed.visibility = View.GONE
+                dialogViewBinding.lastWatched.text = getString(R.string.last_watched, lastWatchedStr)
+            } else {
+                dialogViewBinding.historyCard.visibility = View.GONE
+            }
+        }
+
+        dialogViewBinding.removeHistory.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.remove_from_history))
+                .setMessage(getString(R.string.remove_from_history_confirmation))
+                .setPositiveButton(getString(R.string.yes)) { _, _ ->
+                    removeSimklItemFromHistoryAndWatchlist()
+                    dialog.dismiss()
+                }
+                .setNegativeButton(getString(R.string.no), null)
+                .show()
+        }
+
+        dialogViewBinding.btnWatchedNow.setOnClickListener {
+            val currentDateTime = android.icu.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                Locale.ENGLISH
+            ).apply {
+                timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+            }.format(Date())
+            syncSimklHistoryWatched(currentDateTime)
+            dialog.dismiss()
+        }
+
+        dialogViewBinding.btnWatchedAtRelease.setOnClickListener {
+            val releaseDateStr = if (isMovie) movieDataObject.optString("release_date", "")
+            else movieDataObject.optString("first_air_date", "")
+            val watchedAt = if (releaseDateStr.isNotEmpty()) "${releaseDateStr}T00:00:00.000Z" else {
+                android.icu.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH).apply {
+                    timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+                }.format(Date())
+            }
+            syncSimklHistoryWatched(watchedAt)
+            dialog.dismiss()
+        }
+
+        dialogViewBinding.btnSelectDate.setOnClickListener {
+            dialogViewBinding.btnSave.visibility = View.VISIBLE
+            showDatePicker { selectedDate ->
+                dialogViewBinding.etSelectedDate.setText(selectedDate)
+            }
+        }
+
+        dialogViewBinding.btnSave.setOnClickListener {
+            val selectedDate = dialogViewBinding.etSelectedDate.text.toString()
+            if (selectedDate.isNotEmpty()) {
+                syncSimklHistoryWatched(selectedDate)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(this, getString(R.string.please_select_a_date), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showSimklRatingDialog() {
+        val dialog = BottomSheetDialog(this)
+        val dialogViewBinding = RatingDialogTraktBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogViewBinding.root)
+        dialog.show()
+
+        val ratingSlider = dialogViewBinding.ratingSlider
+        val submitButton = dialogViewBinding.btnSubmit
+        val cancelButton = dialogViewBinding.btnCancel
+        val deleteButton = dialogViewBinding.btnDelete
+        val ratedAtField = dialogViewBinding.ratedDate
+        val progressIndicator = dialogViewBinding.progressIndicator
+
+        dialogViewBinding.tvTitle.text = showTitle
+        ratingSlider.stepSize = 1.0f
+        dialogViewBinding.btnChangeStepSize.visibility = View.GONE
+
+        progressIndicator.visibility = View.VISIBLE
+        lifecycleScope.launch(Dispatchers.IO) {
+            val currentRating = SimklDatabaseHelper(context).use { it.getItemRating(movieId) }
+            withContext(Dispatchers.Main) {
+                progressIndicator.visibility = View.GONE
+                ratingSlider.value = currentRating.coerceIn(0, 10).toFloat()
+            }
+        }
+
+        val currentDateTime = android.icu.text.SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            Locale.ENGLISH
+        ).apply {
+            timeZone = android.icu.util.TimeZone.getTimeZone("UTC")
+        }.format(Date())
+        ratedAtField.setText(currentDateTime)
+
+        dialogViewBinding.btnSelectDate.setOnClickListener {
+            showDatePicker { selectedDate ->
+                ratedAtField.setText(selectedDate)
+            }
+        }
+
+        submitButton.setOnClickListener {
+            val rating = ratingSlider.value.toInt().coerceIn(1, 10)
+            val ratedAt = ratedAtField.text.toString().ifEmpty { currentDateTime }
+            val token = simklAccessToken ?: return@setOnClickListener
+            val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
+            else movieDataObject.optString("name", movieTitle ?: "")
+            val dateStr = if (isMovie) movieDataObject.optString("release_date", "")
+            else movieDataObject.optString("first_air_date", "")
+            val year = dateStr.take(4).toIntOrNull() ?: movieYear?.toIntOrNull() ?: 0
+
+            val mediaItem = JSONObject().apply {
+                put("rating", rating)
+                put("rated_at", ratedAt)
+                if (title.isNotEmpty()) put("title", title)
+                if (year > 0) put("year", year)
+                put("ids", JSONObject().apply { put("tmdb", movieId) })
+            }
+            val payload = JSONObject().apply {
+                if (isMovie) put("movies", JSONArray().put(mediaItem))
+                else put("shows", JSONArray().put(mediaItem))
+            }
+
+            val simklSync = SimklSync(token, context)
+            simklSync.post("sync/ratings", payload, object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    runOnUiThread {
+                        Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, "sync/ratings"), Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val isSuccess = response.isSuccessful
+                    val msg = response.message
+                    response.close()
+                    if (isSuccess) {
+                        val type = if (isMovie) "movie" else "show"
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            SimklDatabaseHelper(context).use { simklDb ->
+                                simklDb.upsertItemRating(movieId, type, title, rating, ratedAt)
+                            }
+                            addItemtoTmdb()
+                        }
+                    }
+                    runOnUiThread {
+                        if (isSuccess) {
+                            simklRating = rating
+                            updateSimklButtonsUI()
+                            Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@DetailActivity, msg, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            })
+            dialog.dismiss()
+        }
+
+        deleteButton.setOnClickListener {
+            val token = simklAccessToken ?: return@setOnClickListener
+            val mediaItem = JSONObject().apply {
+                put("ids", JSONObject().apply { put("tmdb", movieId) })
+            }
+            val payload = JSONObject().apply {
+                if (isMovie) put("movies", JSONArray().put(mediaItem))
+                else put("shows", JSONArray().put(mediaItem))
+            }
+
+            val simklSync = SimklSync(token, context)
+            simklSync.post("sync/ratings/remove", payload, object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    runOnUiThread {
+                        Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, "sync/ratings/remove"), Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val isSuccess = response.isSuccessful
+                    val msg = response.message
+                    response.close()
+                    if (isSuccess) {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            SimklDatabaseHelper(context).use { simklDb ->
+                                simklDb.removeItemRating(movieId)
+                            }
+                        }
+                    }
+                    runOnUiThread {
+                        if (isSuccess) {
+                            simklRating = 0
+                            updateSimklButtonsUI()
+                            Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@DetailActivity, msg, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            })
+            dialog.dismiss()
+        }
+
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
     }
 
     private fun launchUrl(context: Context, url: String) {
@@ -5160,6 +5680,16 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     Toast.makeText(context, getString(R.string.could_not_get_trakt_id_for_this_show), Toast.LENGTH_SHORT).show()
                 }
             }
+        } else if (syncProvider == "simkl") {
+            val bottomSheet = SimklEpisodeBottomSheetFragment.newInstance(
+                showId,
+                seasonNumber,
+                episodeNumber,
+                movieTitle ?: "",
+                isMovie,
+                movieDataObject
+            )
+            bottomSheet.show(supportFragmentManager, SimklEpisodeBottomSheetFragment.TAG)
         } else if (syncProvider == "local" || preferences.getBoolean("force_local_sync", false)) {
             val bottomSheetDialog = BottomSheetDialog(this)
             val bottomSheetBinding = com.wirelessalien.android.moviedb.databinding.BottomSheetSeasonEpisodeBinding.inflate(layoutInflater)

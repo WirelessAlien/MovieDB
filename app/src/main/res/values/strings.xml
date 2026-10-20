@@ -404,12 +404,14 @@
         <item>local</item>
         <item>tmdb</item>
         <item>trakt</item>
+        <item>simkl</item>
     </string-array>
 
     <string-array name="sync_providers_display">
         <item>Local</item>
         <item>TMDB</item>
         <item>Trakt</item>
+        <item>Simkl</item>
     </string-array>
 
     <plurals name="years">
@@ -988,4 +990,23 @@
     <string name="wrapped_peak_day_label">Weekly Habit</string>
     <string name="wrapped_binge_label">Record Breaker</string>
     <string name="wrapped_insight_format">You spent an estimated %1$d hours (%2$.1f days) immersed in cinema &amp; binge sessions.</string>
+
+    <!-- Simkl Sync -->
+    <string name="sync_simkl_summary">Watch statuses, Watch history, and Ratings are synced with Simkl.</string>
+    <string name="fetching_simkl_data">Fetching Simkl data…</string>
+    <string name="text_simkl_credits">This product uses the Simkl API but is not endorsed or certified by Simkl.</string>
+    <string name="view_on_simkl">View on Simkl</string>
+    <string name="simkl_status">Status</string>
+    <string name="simkl_login_required">Login to Simkl to enable auto-fetch</string>
+    <string name="simkl_login_required_1">Log In - Simkl</string>
+    <string name="sync_with_simkl">Sync with Simkl</string>
+    <string name="auto_sync_simkl">Auto sync (Simkl)</string>
+    <string name="minimal_simkl_sync_desc">Streamlined one-way sync that pushes your local Saved items and watch categories to Simkl in batches.</string>
+    <string name="get_simkl_data">Auto fetch "Simkl" data</string>
+    <string name="get_simkl_data_summary">Get account data from "Simkl" automatically once a week</string>
+    <string name="hide_the_account_tab_simkl">Hide the 'Account (SIMKL)' tab</string>
+    <string name="mark_as_watched_s">Watched (Simkl)</string>
+    <string name="mark_as_un_watched_s">Unwatched (Simkl)</string>
+    <string name="completed">Completed</string>
+    <string name="remove_from_simkl">Remove from Simkl</string>
 </resources>

@@ -94,6 +94,17 @@
                     android:host="callback"
                     android:scheme="trakt.wirelessalien.showcase" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="callback"
+                    android:scheme="simkl.wirelessalien.showcase" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -233,6 +244,12 @@
 
         <service
             android:name=".service.TraktSyncService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".service.SimklSyncService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />

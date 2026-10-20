@@ -38,6 +38,7 @@ import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.activity.DetailActivity
 import com.wirelessalien.android.moviedb.databinding.BottomSheetShowDetailsBinding
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
+import com.wirelessalien.android.moviedb.helper.SimklDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TmdbDetailsDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import com.wirelessalien.android.moviedb.tmdb.account.GetAccountState
@@ -55,9 +56,9 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
     private lateinit var preferences: SharedPreferences
     private lateinit var movieDatabaseHelper: MovieDatabaseHelper
     private lateinit var traktDatabaseHelper: TraktDatabaseHelper
+    private lateinit var simklDatabaseHelper: SimklDatabaseHelper
     private lateinit var tmdbDetailsDatabaseHelper: TmdbDetailsDatabaseHelper
     private var isSaved: Boolean = false
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +72,7 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
         preferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         movieDatabaseHelper = MovieDatabaseHelper(requireContext())
         traktDatabaseHelper = TraktDatabaseHelper(requireContext())
+        simklDatabaseHelper = SimklDatabaseHelper(requireContext())
         tmdbDetailsDatabaseHelper = TmdbDetailsDatabaseHelper(requireContext())
     }
 
@@ -103,6 +105,10 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
         binding.bottomSheetTraktActions.setOnClickListener {
             Toast.makeText(requireContext(), getString(R.string.these_actions_cannot_be_modified_tooltip), Toast.LENGTH_SHORT).show()
         }
+
+        binding.bottomSheetSimklActions.setOnClickListener {
+            Toast.makeText(requireContext(), getString(R.string.these_actions_cannot_be_modified_tooltip), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun removeFromDbLocal() {
@@ -115,7 +121,6 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
                     .setTitle(getString(R.string.confirm_deletion))
                     .setMessage(getString(R.string.confirm_delete_message))
                     .setPositiveButton(getString(R.string.delete)) { _, _ ->
-                        // Perform deletion
                         database.delete(
                             MovieDatabaseHelper.TABLE_MOVIES,
                             MovieDatabaseHelper.COLUMN_MOVIES_ID + "=" + movieId, null
@@ -168,7 +173,6 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
                 binding.bottomSheetSavedIcon.visibility = View.VISIBLE
                 binding.bottomSheetSavedIcon.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_star)
                 binding.bottomSheetSavedIcon.text = getString(R.string.title_saved)
-
             } else {
                 binding.bottomSheetSavedIcon.visibility = View.GONE
             }
@@ -196,17 +200,25 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
             "tmdb" -> {
                 binding.bottomSheetTmdbActions.visibility = View.VISIBLE
                 binding.bottomSheetTraktActions.visibility = View.GONE
+                binding.bottomSheetSimklActions.visibility = View.GONE
                 loadTmdbData(showId)
             }
             "trakt" -> {
                 binding.bottomSheetTraktActions.visibility = View.VISIBLE
                 binding.bottomSheetTmdbActions.visibility = View.GONE
-                loadTraktData(tmdbId) // tmdbId is used to lookup trakt info
+                binding.bottomSheetSimklActions.visibility = View.GONE
+                loadTraktData(tmdbId)
+            }
+            "simkl" -> {
+                binding.bottomSheetSimklActions.visibility = View.VISIBLE
+                binding.bottomSheetTmdbActions.visibility = View.GONE
+                binding.bottomSheetTraktActions.visibility = View.GONE
+                loadSimklData(tmdbId)
             }
             else -> { // local or other
                 binding.bottomSheetTmdbActions.visibility = View.GONE
                 binding.bottomSheetTraktActions.visibility = View.GONE
-                // "Saved" status is already handled in populateBasicShowData
+                binding.bottomSheetSimklActions.visibility = View.GONE
             }
         }
     }
@@ -217,7 +229,6 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
         val accountId = preferences.getString("account_id", null)
 
         if (sessionId == null || accountId == null) {
-            // Not logged into TMDB, show default states
             binding.bottomSheetTmdbWatchlistIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_bookmark_border))
             binding.bottomSheetTmdbFavoriteIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_favorite_border))
             binding.bottomSheetTmdbRatingIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_thumb_up_border))
@@ -255,11 +266,10 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun loadTraktData(tmdbId: Int) {
-        // Trakt data is primarily stored locally after sync
         val isInTraktWatchlist = traktDatabaseHelper.isMovieInWatchlist(tmdbId)
         val isInTraktCollection = traktDatabaseHelper.isMovieInCollection(tmdbId)
         val isTraktWatched = traktDatabaseHelper.isMovieInWatched(tmdbId)
-        val traktRating = traktDatabaseHelper.getMovieRating(tmdbId) // Returns 0 if not rated
+        val traktRating = traktDatabaseHelper.getMovieRating(tmdbId)
 
         if (isTraktWatched) {
             binding.bottomSheetTraktWatchedIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_done_2))
@@ -287,9 +297,35 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    private fun loadSimklData(tmdbId: Int) {
+        val isSimklWatched = simklDatabaseHelper.isItemWatched(tmdbId)
+        val isInSimklList = simklDatabaseHelper.isItemInSimkl(tmdbId)
+        val simklRating = simklDatabaseHelper.getItemRating(tmdbId)
+
+        if (isSimklWatched) {
+            binding.bottomSheetSimklWatchedIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_done_2))
+        } else {
+            binding.bottomSheetSimklWatchedIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_history))
+        }
+
+        if (isInSimklList) {
+            binding.bottomSheetSimklWatchlistIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_bookmark))
+        } else {
+            binding.bottomSheetSimklWatchlistIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_bookmark_border))
+        }
+
+        if (simklRating > 0) {
+            binding.bottomSheetSimklRatingIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_thumb_up))
+            binding.bottomSheetSimklRatingText.text = getString(R.string.number, simklRating)
+        } else {
+            binding.bottomSheetSimklRatingIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_thumb_up_border))
+        }
+    }
+
     override fun onDestroyView() {
         movieDatabaseHelper.close()
         traktDatabaseHelper.close()
+        simklDatabaseHelper.close()
         super.onDestroyView()
     }
 
@@ -308,4 +344,3 @@ class ShowDetailsBottomSheet : BottomSheetDialogFragment() {
         }
     }
 }
-

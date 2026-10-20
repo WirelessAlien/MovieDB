@@ -76,6 +76,7 @@ import com.wirelessalien.android.moviedb.data.PurchaseStatus
 import com.wirelessalien.android.moviedb.fragment.BillingBottomSheetFragment
 
 import com.wirelessalien.android.moviedb.work.WeeklyWorkerTkt
+import com.wirelessalien.android.moviedb.work.WeeklyWorkerSimkl
 import android.text.InputType
 import android.util.Patterns
 import com.wirelessalien.android.moviedb.NetworkClient
@@ -469,6 +470,58 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             }
         }
 
+        findPreference<SwitchPreferenceCompat>("key_auto_sync_simkl_data")?.let { preference ->
+            val simklToken = preferences.getString("simkl_access_token", null)
+            preference.isEnabled = !simklToken.isNullOrEmpty()
+
+            if (!preference.isEnabled) {
+                preference.summary = getString(R.string.simkl_login_required)
+                preference.isChecked = false
+                WorkManager.getInstance(requireContext()).cancelUniqueWork("weekly_work_simkl")
+            }
+
+            preference.setOnPreferenceChangeListener { _, newValue ->
+                if (newValue as Boolean) {
+                    val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val network = connectivityManager.activeNetwork
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+                    if (networkCapabilities != null && networkCapabilities.hasCapability(
+                            NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                        val constraints = Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+
+                        val weeklyWorkRequest = PeriodicWorkRequest.Builder(WeeklyWorkerSimkl::class.java, 7, TimeUnit.DAYS)
+                            .setConstraints(constraints)
+                            .build()
+
+                        WorkManager.getInstance(requireContext()).enqueueUniquePeriodicWork(
+                            "weekly_work_simkl",
+                            ExistingPeriodicWorkPolicy.UPDATE,
+                            weeklyWorkRequest
+                        )
+                    } else {
+                        Toast.makeText(requireContext(), getString(R.string.no_internet_connection), Toast.LENGTH_SHORT).show()
+                        preference.isChecked = false
+                        return@setOnPreferenceChangeListener false
+                    }
+                } else {
+                    WorkManager.getInstance(requireContext()).cancelUniqueWork("weekly_work_simkl")
+                }
+                true
+            }
+        }
+
+        findPreference<Preference>("simkl_attribution_key")?.setOnPreferenceClickListener {
+            val url = "https://simkl.com"
+            try {
+                CustomTabsIntent.Builder().build().launchUrl(requireContext(), url.toUri())
+            } catch (_: Exception) {
+                startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+            }
+            true
+        }
+
         findPreference<SwitchPreferenceCompat>("key_auto_update_episode_data")?.let { preference ->
             preference.setOnPreferenceChangeListener { _, newValue ->
                 if (newValue as Boolean) {
@@ -736,6 +789,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         when (syncProvider) {
             "local" -> dialogBinding.radioLocal.isChecked = true
             "trakt" -> dialogBinding.radioTrakt.isChecked = true
+            "simkl" -> dialogBinding.radioSimkl.isChecked = true
             "tmdb" -> dialogBinding.radioTmdb.isChecked = true
         }
 
@@ -755,6 +809,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             val selectedProvider = when {
                 dialogBinding.radioLocal.isChecked -> "local"
                 dialogBinding.radioTrakt.isChecked -> "trakt"
+                dialogBinding.radioSimkl.isChecked -> "simkl"
                 dialogBinding.radioTmdb.isChecked -> "tmdb"
                 else -> "local"
             }

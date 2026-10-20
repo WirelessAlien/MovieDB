@@ -29,9 +29,9 @@ import android.view.ViewGroup
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.wirelessalien.android.moviedb.BuildConfig
 import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.databinding.DialogSyncProviderBinding
-import com.wirelessalien.android.moviedb.BuildConfig
 
 class SyncProviderBottomSheet : BottomSheetDialogFragment() {
 
@@ -62,6 +62,7 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
         when (syncProvider) {
             "local" -> binding.radioLocal.isChecked = true
             "trakt" -> binding.radioTrakt.isChecked = true
+            "simkl" -> binding.radioSimkl.isChecked = true
             "tmdb" -> binding.radioTmdb.isChecked = true
         }
 
@@ -75,7 +76,6 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
 
         binding.forceLocalSync.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit { putBoolean("force_local_sync", isChecked) }
-            // Apply HIDE_SAVED_PREFERENCE based on forceLocalSync state
             if (isChecked) {
                 preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
             }
@@ -85,14 +85,14 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
             val selectedProvider = when {
                 binding.radioLocal.isChecked -> "local"
                 binding.radioTrakt.isChecked -> "trakt"
+                binding.radioSimkl.isChecked -> "simkl"
                 binding.radioTmdb.isChecked -> "tmdb"
                 else -> "local"
             }
 
-            // Apply preferences based on forceLocalSync *before* applying provider-specific settings
-            if (forceLocalSync) {
+            if (binding.forceLocalSync.isChecked) {
                 preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
-            } else { // Only apply based on selected provider if forceLocalSync is NOT checked.
+            } else {
                 when (selectedProvider) {
                     "local" -> {
                         preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
@@ -105,6 +105,16 @@ class SyncProviderBottomSheet : BottomSheetDialogFragment() {
                         preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false) }
                     }
                     "trakt" -> {
+                        preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
+                        preferences.edit {
+                            putBoolean(
+                                MainActivity.HIDE_ACCOUNT_TKT_PREFERENCE,
+                                false
+                            )
+                        }
+                        preferences.edit { putBoolean(MainActivity.HIDE_SAVED_PREFERENCE, true) }
+                    }
+                    "simkl" -> {
                         preferences.edit { putBoolean(MainActivity.HIDE_ACCOUNT_PREFERENCE, true) }
                         preferences.edit {
                             putBoolean(

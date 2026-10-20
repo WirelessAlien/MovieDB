@@ -34,6 +34,11 @@
                 android:id="@+id/action_watched_tkt"
                 android:title="@string/mark_as_watched_t"
                 app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_watched_simkl"
+                android:title="@string/mark_as_watched_s"
+                app:showAsAction="never" />
         </menu>
     </item>
 </menu>

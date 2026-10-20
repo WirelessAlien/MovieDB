@@ -110,7 +110,7 @@ class LoginFragmentTkt : BottomSheetDialogFragment() {
 
         binding.changeProvider.setOnClickListener {
             dismiss()
-            val bottomSheetFragment = LoginFragment()
+            val bottomSheetFragment = LoginFragmentSimkl()
             bottomSheetFragment.show(parentFragmentManager, bottomSheetFragment.tag)
         }
 

@@ -148,9 +148,9 @@ class AccountDataFragmentTkt : BaseFragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.account_swap -> {
-                        val accountDataFragment = AccountDataFragment()
+                        val accountDataFragmentSimkl = AccountDataFragmentSimkl()
                         requireActivity().supportFragmentManager.beginTransaction()
-                            .replace(R.id.container, accountDataFragment).commit()
+                            .replace(R.id.container, accountDataFragmentSimkl).commit()
                         true
                     }
 
