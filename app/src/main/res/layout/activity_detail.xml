@@ -1056,7 +1056,6 @@
                     android:id="@+id/btnSimklRating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/btnViewOnSimkl"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_thumb_up_border"
                     android:contentDescription="@string/add_rating" />
