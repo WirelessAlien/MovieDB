@@ -329,12 +329,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                     }
 
                     R.id.action_auto_sync -> {
-                        showTraktSyncDialog()
-                        true
-                    }
-
-                    R.id.action_auto_sync_simkl -> {
-                        showSimklSyncDialog()
+                        showAutoSyncDialog()
                         true
                     }
 
@@ -1064,38 +1059,90 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
         }
     }
 
-    private fun showTraktSyncDialog() {
+    private fun showAutoSyncDialog() {
         val binding = DialogTraktSyncMinimalBinding.inflate(LayoutInflater.from(requireContext()))
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(binding.root)
             .create()
 
-        // Check if worker is running
         val workManager = WorkManager.getInstance(requireContext())
+        var isTraktRunning = false
+        var isSimklRunning = false
+        var selectedProvider = if (preferences.getString("sync_provider", "local") == "simkl") "simkl" else "trakt"
+
+        fun updateDialogForProvider(provider: String) {
+            selectedProvider = provider
+            val traktToken = preferences.getString("trakt_access_token", null)
+            val simklToken = preferences.getString("simkl_access_token", null)
+
+            if (provider == "simkl") {
+                binding.tvSyncTitle.setText(R.string.sync_with_simkl)
+                binding.tvSyncSubtitle.setText(R.string.auto_simkl_des1)
+                binding.tvSyncDesc.setText(R.string.minimal_simkl_sync_desc)
+                binding.btnLogin.setText(R.string.simkl_login_required_1)
+                val hasToken = !simklToken.isNullOrEmpty()
+                binding.btnOk.isEnabled = hasToken
+                binding.btnLogin.visibility = if (hasToken) View.GONE else View.VISIBLE
+                binding.btnCancelWorker.visibility = if (isSimklRunning) View.VISIBLE else View.GONE
+            } else {
+                binding.tvSyncTitle.setText(R.string.sync_with_trakt)
+                binding.tvSyncSubtitle.setText(R.string.auto_tkt_des1)
+                binding.tvSyncDesc.setText(R.string.minimal_tkt_sync_desc)
+                binding.btnLogin.setText(R.string.trakt_login_required_1)
+                val hasToken = !traktToken.isNullOrEmpty()
+                binding.btnOk.isEnabled = hasToken
+                binding.btnLogin.visibility = if (hasToken) View.GONE else View.VISIBLE
+                binding.btnCancelWorker.visibility = if (isTraktRunning) View.VISIBLE else View.GONE
+            }
+        }
+
         workManager.getWorkInfosForUniqueWorkLiveData(TktAutoSyncWorker.WORK_NAME)
             .observe(viewLifecycleOwner) { workInfoList ->
                 val workInfo = workInfoList?.firstOrNull()
-                val isWorkRunning = workInfo?.state == WorkInfo.State.RUNNING
-
-                binding.btnCancelWorker.visibility = if (isWorkRunning) View.VISIBLE else View.GONE
+                isTraktRunning = workInfo?.state == WorkInfo.State.RUNNING || workInfo?.state == WorkInfo.State.ENQUEUED
+                if (selectedProvider == "trakt") {
+                    binding.btnCancelWorker.visibility = if (isTraktRunning) View.VISIBLE else View.GONE
+                }
             }
 
+        workManager.getWorkInfosForUniqueWorkLiveData(SimklAutoSyncWorker.WORK_NAME)
+            .observe(viewLifecycleOwner) { workInfoList ->
+                val workInfo = workInfoList?.firstOrNull()
+                isSimklRunning = workInfo?.state == WorkInfo.State.RUNNING || workInfo?.state == WorkInfo.State.ENQUEUED
+                if (selectedProvider == "simkl") {
+                    binding.btnCancelWorker.visibility = if (isSimklRunning) View.VISIBLE else View.GONE
+                }
+            }
 
-        if (accessToken == null) {
-            binding.btnOk.isEnabled = false
-            binding.btnLogin.visibility = View.VISIBLE
-        } else {
-            binding.btnOk.isEnabled = true
-            binding.btnLogin.visibility = View.GONE
+        binding.toggleSyncProvider.check(
+            if (selectedProvider == "simkl") R.id.btnSimklProvider else R.id.btnTraktProvider
+        )
+        updateDialogForProvider(selectedProvider)
+
+        binding.toggleSyncProvider.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                when (checkedId) {
+                    R.id.btnTraktProvider -> updateDialogForProvider("trakt")
+                    R.id.btnSimklProvider -> updateDialogForProvider("simkl")
+                }
+            }
         }
 
         binding.btnLogin.setOnClickListener {
-            LoginFragmentTkt().show(childFragmentManager, "LoginFragmentTkt")
+            if (selectedProvider == "simkl") {
+                LoginFragmentSimkl().show(childFragmentManager, "LoginFragmentSimkl")
+            } else {
+                LoginFragmentTkt().show(childFragmentManager, "LoginFragmentTkt")
+            }
             dialog.dismiss()
         }
 
         binding.btnCancelWorker.setOnClickListener {
-            workManager.cancelUniqueWork(TktAutoSyncWorker.WORK_NAME)
+            if (selectedProvider == "simkl") {
+                workManager.cancelUniqueWork(SimklAutoSyncWorker.WORK_NAME)
+            } else {
+                workManager.cancelUniqueWork(TktAutoSyncWorker.WORK_NAME)
+            }
             binding.btnCancelWorker.visibility = View.GONE
         }
 
@@ -1104,14 +1151,24 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.btnOk.isEnabled = false
                 binding.btnCancelWorker.isEnabled = false
+                binding.btnTraktProvider.isEnabled = false
+                binding.btnSimklProvider.isEnabled = false
 
-                val syncManager = TraktAutoSyncManager(requireContext())
-                syncManager.syncMediaToTrakt()
+                if (selectedProvider == "simkl") {
+                    val syncManager = SimklAutoSyncManager(requireContext())
+                    syncManager.syncMediaToSimkl()
+                    SimklAutoSyncWorker.setupPeriodicSync(requireContext())
+                } else {
+                    val syncManager = TraktAutoSyncManager(requireContext())
+                    syncManager.syncMediaToTrakt()
+                    setupTraktAutoSync()
+                }
 
                 binding.progressBar.visibility = View.GONE
                 binding.btnOk.isEnabled = true
                 binding.btnCancelWorker.isEnabled = true
-                setupTraktAutoSync()
+                binding.btnTraktProvider.isEnabled = true
+                binding.btnSimklProvider.isEnabled = true
                 dialog.dismiss()
             }
         }
@@ -1125,66 +1182,6 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
 
     private fun setupTraktAutoSync() {
         TktAutoSyncWorker.setupPeriodicSync(requireContext())
-    }
-
-    private fun showSimklSyncDialog() {
-        val binding = DialogTraktSyncMinimalBinding.inflate(LayoutInflater.from(requireContext()))
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(binding.root)
-            .create()
-
-        val simklToken = preferences.getString("simkl_access_token", null)
-        val workManager = WorkManager.getInstance(requireContext())
-        workManager.getWorkInfosForUniqueWorkLiveData(SimklAutoSyncWorker.WORK_NAME)
-            .observe(viewLifecycleOwner) { workInfoList ->
-                val workInfo = workInfoList?.firstOrNull()
-                val isWorkRunning = workInfo?.state == WorkInfo.State.RUNNING
-                binding.btnCancelWorker.visibility = if (isWorkRunning) View.VISIBLE else View.GONE
-            }
-
-        binding.tvSyncTitle.setText(R.string.sync_with_simkl)
-        binding.tvSyncDesc.setText(R.string.minimal_simkl_sync_desc)
-        binding.btnLogin.setText(R.string.simkl_login_required_1)
-        if (simklToken.isNullOrEmpty()) {
-            binding.btnOk.isEnabled = false
-            binding.btnLogin.visibility = View.VISIBLE
-        } else {
-            binding.btnOk.isEnabled = true
-            binding.btnLogin.visibility = View.GONE
-        }
-
-        binding.btnLogin.setOnClickListener {
-            LoginFragmentSimkl().show(childFragmentManager, "LoginFragmentSimkl")
-            dialog.dismiss()
-        }
-
-        binding.btnCancelWorker.setOnClickListener {
-            workManager.cancelUniqueWork(SimklAutoSyncWorker.WORK_NAME)
-            binding.btnCancelWorker.visibility = View.GONE
-        }
-
-        binding.btnOk.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                binding.progressBar.visibility = View.VISIBLE
-                binding.btnOk.isEnabled = false
-                binding.btnCancelWorker.isEnabled = false
-
-                val syncManager = SimklAutoSyncManager(requireContext())
-                syncManager.syncMediaToSimkl()
-
-                binding.progressBar.visibility = View.GONE
-                binding.btnOk.isEnabled = true
-                binding.btnCancelWorker.isEnabled = true
-                SimklAutoSyncWorker.setupPeriodicSync(requireContext())
-                dialog.dismiss()
-            }
-        }
-
-        binding.btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
     }
 
     private fun showWatchSummaryDialog() {

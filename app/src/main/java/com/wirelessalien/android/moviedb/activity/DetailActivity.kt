@@ -1430,7 +1430,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
             binding.btnSimklRating.text = simklRating.toString()
         } else {
             binding.btnSimklRating.icon = ContextCompat.getDrawable(context, R.drawable.ic_thumb_up_border)
-            binding.btnSimklRating.text = ""
+            binding.btnSimklRating.text = getString(R.string.rating1)
         }
     }
 
@@ -1637,6 +1637,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         dialog.setContentView(dialogViewBinding.root)
         dialog.show()
 
+        val iconSizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36f, resources.displayMetrics).toInt()
+        dialogViewBinding.providerIcon.layoutParams = dialogViewBinding.providerIcon.layoutParams.apply {
+            width = iconSizePx
+            height = iconSizePx
+        }
+        dialogViewBinding.providerIcon.setImageResource(R.drawable.ic_simkl_black)
         dialogViewBinding.tvTitle.text = showTitle
         dialogViewBinding.btnWatchingNow.visibility = View.GONE
         dialogViewBinding.progressIndicator.visibility = View.VISIBLE
@@ -1713,6 +1719,13 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         val dialogViewBinding = RatingDialogTraktBinding.inflate(layoutInflater)
         dialog.setContentView(dialogViewBinding.root)
         dialog.show()
+
+        val iconSizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36f, resources.displayMetrics).toInt()
+        dialogViewBinding.providerIcon.layoutParams = dialogViewBinding.providerIcon.layoutParams.apply {
+            width = iconSizePx
+            height = iconSizePx
+        }
+        dialogViewBinding.providerIcon.setImageResource(R.drawable.ic_simkl_black)
 
         val ratingSlider = dialogViewBinding.ratingSlider
         val submitButton = dialogViewBinding.btnSubmit
