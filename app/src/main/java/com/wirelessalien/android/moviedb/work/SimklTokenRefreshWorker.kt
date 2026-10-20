@@ -90,33 +90,38 @@ class SimklTokenRefreshWorker(
                         apply()
                     }
 
-                    val constraints = Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build()
-
-                    val refreshDelay = (expiresIn - 3600).coerceAtLeast(60L)
-
-                    val nextRefreshWork = OneTimeWorkRequestBuilder<SimklTokenRefreshWorker>()
-                        .setInitialDelay(refreshDelay, TimeUnit.SECONDS)
-                        .setConstraints(constraints)
-                        .addTag("simkl_token_refresh")
-                        .build()
-
-                    WorkManager.getInstance(applicationContext).apply {
-                        cancelAllWorkByTag("simkl_token_refresh")
-                        enqueueUniqueWork(
-                            "simkl_token_refresh",
-                            ExistingWorkPolicy.REPLACE,
-                            nextRefreshWork
-                        )
-                    }
-
+                    scheduleRefresh(applicationContext, expiresIn)
                     return@withContext Result.success()
                 }
             }
             return@withContext Result.failure()
         } else {
             return@withContext Result.failure()
+        }
+    }
+
+    companion object {
+        fun scheduleRefresh(context: Context, expiresIn: Long) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val refreshDelay = (expiresIn - 3600).coerceAtLeast(60L)
+
+            val nextRefreshWork = OneTimeWorkRequestBuilder<SimklTokenRefreshWorker>()
+                .setInitialDelay(refreshDelay, TimeUnit.SECONDS)
+                .setConstraints(constraints)
+                .addTag("simkl_token_refresh")
+                .build()
+
+            WorkManager.getInstance(context.applicationContext).apply {
+                cancelAllWorkByTag("simkl_token_refresh")
+                enqueueUniqueWork(
+                    "simkl_token_refresh",
+                    ExistingWorkPolicy.REPLACE,
+                    nextRefreshWork
+                )
+            }
         }
     }
 }

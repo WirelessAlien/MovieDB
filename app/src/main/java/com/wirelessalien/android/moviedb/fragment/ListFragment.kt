@@ -111,8 +111,10 @@ import com.wirelessalien.android.moviedb.helper.EpisodeReminderDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.listener.AdapterDataChangedListener
 import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetailsSaved
+import com.wirelessalien.android.moviedb.simkl.SimklAutoSyncManager
 import com.wirelessalien.android.moviedb.trakt.TraktAutoSyncManager
 import com.wirelessalien.android.moviedb.work.GetTmdbTvDetailsWorker
+import com.wirelessalien.android.moviedb.work.SimklAutoSyncWorker
 import com.wirelessalien.android.moviedb.work.TktAutoSyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
