@@ -722,33 +722,33 @@ class MainActivity : BaseActivity() {
         val liveSearch = preferences.getBoolean(LIVE_SEARCH_PREFERENCE, false)
 
         val doSearch = { query: String ->
-            val isShowMovieChecked = binding.chipShowMovie.isChecked
-            val isMovieChecked = binding.chipMovie.isChecked
-            val isShowChecked = binding.chipShow.isChecked
-            val isKeywordChecked = binding.chipKeyword.isChecked
+            val currentFragment = getCurrentFragment()
+            if (currentFragment is HomeFragment) {
+                val isShowMovieChecked = binding.chipShowMovie.isChecked
+                val isMovieChecked = binding.chipMovie.isChecked
+                val isShowChecked = binding.chipShow.isChecked
+                val isKeywordChecked = binding.chipKeyword.isChecked
 
-            if (isKeywordChecked) {
-                keywordSearch(query)
-            } else {
-                val currentFragment = getCurrentFragment()
-                if (currentFragment is HomeFragment || currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt || currentFragment is AccountDataFragmentSimkl) {
-                    if (isShowMovieChecked) {
-                        multiSearch(query)
-                    } else if (isMovieChecked) {
-                        showSearch("movie", query)
-                    } else if (isShowChecked) {
-                        showSearch("tv", query)
-                    }
-                } else if (currentFragment is ShowFragment) {
-                    val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
-                    if (listType == "movie") {
-                        showSearch(listType, query)
-                    } else if (listType == "tv") {
-                        showSearch(listType, query)
-                    }
-                } else if (currentFragment is ListFragment) {
-                    databaseSearch(query)
+                if (isKeywordChecked) {
+                    keywordSearch(query)
+                } else if (isShowMovieChecked) {
+                    multiSearch(query)
+                } else if (isMovieChecked) {
+                    showSearch("movie", query)
+                } else if (isShowChecked) {
+                    showSearch("tv", query)
                 }
+            } else if (currentFragment is ShowFragment) {
+                val listType = currentFragment.arguments?.getString(ShowFragment.ARG_LIST_TYPE)
+                if (listType == "movie") {
+                    showSearch(listType, query)
+                } else if (listType == "tv") {
+                    showSearch(listType, query)
+                }
+            } else if (currentFragment is ListFragment) {
+                databaseSearch(query)
+            } else if (currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt || currentFragment is AccountDataFragmentSimkl) {
+                multiSearch(query)
             }
         }
         
@@ -827,10 +827,10 @@ class MainActivity : BaseActivity() {
     }
 
     private fun updateSearchViewChips(fragment: Fragment) {
-        if (fragment is ListFragment) {
-            binding.searchChipScroll.visibility = View.GONE
-        } else {
+        if (fragment is HomeFragment) {
             binding.searchChipScroll.visibility = View.VISIBLE
+        } else {
+            binding.searchChipScroll.visibility = View.GONE
         }
     }
 
