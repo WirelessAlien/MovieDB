@@ -244,7 +244,7 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
                     
                     withContext(Dispatchers.Main) {
                         binding.progressIndicator.visibility = View.GONE
-                        fetchEpisodeDataAfterImport()
+                        fetchEpisodeDataAfterImport(isFullAppData = isZip)
                     }
                 } else {
                     withContext(Dispatchers.Main) {
@@ -433,16 +433,16 @@ class ImportActivity : AppCompatActivity(), AdapterDataChangedListener {
         }
     }
 
-    override fun onAdapterDataChangedListener() {
-        fetchEpisodeDataAfterImport()
+    override fun onAdapterDataChangedListener(isFullAppData: Boolean) {
+        fetchEpisodeDataAfterImport(isFullAppData)
     }
 
-    private fun fetchEpisodeDataAfterImport() {
+    private fun fetchEpisodeDataAfterImport(isFullAppData: Boolean = false) {
         val tmdbApiKey = ConfigHelper.getConfigValue(this, "api_key")
         val binding = DialogProgressIndicatorBinding.inflate(layoutInflater)
 
         val tmdbDialog = MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.fetching_episode_data))
+            .setTitle(if (isFullAppData) getString(R.string.fetching_show_data_title) else getString(R.string.fetching_episode_data))
             .setView(binding.root)
             .setCancelable(false)
             .setPositiveButton(getString(R.string.ok)) { dialog, _ ->

@@ -157,7 +157,6 @@ class MainActivity : BaseActivity() {
     private lateinit var apiReadAccessToken: String
     private lateinit var tmdbApiKey: String
     private var clientId: String? = null
-    private var clientSecret: String? = null
     private var simklClientId: String? = null
     private lateinit var context: Context
     private lateinit var binding: ActivityMainBinding
@@ -251,7 +250,6 @@ class MainActivity : BaseActivity() {
         apiReadAccessToken = ConfigHelper.getConfigValue(this, "api_read_access_token")?: ""
         tmdbApiKey = ConfigHelper.getConfigValue(this, "api_key")?: ""
         clientId = ConfigHelper.getConfigValue(this, "client_id")
-        clientSecret = ConfigHelper.getConfigValue(this, "client_secret")
         simklClientId = ConfigHelper.getConfigValue(this, "simkl_client_id")
         binding.bottomNavigation.setOnItemSelectedListener { item: MenuItem ->
             val itemId = item.itemId
@@ -1037,11 +1035,17 @@ class MainActivity : BaseActivity() {
                     }
                 }
             } else if (uri.toString().startsWith("trakt.wirelessalien.showcase://callback")) {
+                val returnedState = uri.getQueryParameter("state")
+                val savedState = preferences.getString("trakt_oauth_state", null)
                 val code = uri.getQueryParameter("code")
-                if (code != null) {
-                    exchangeCodeForAccessToken(code)
+                val savedVerifier = preferences.getString("trakt_code_verifier", null)
+
+                if (returnedState != null && returnedState == savedState &&
+                    !code.isNullOrEmpty() && !savedVerifier.isNullOrEmpty()
+                ) {
+                    exchangeCodeForAccessToken(code, savedVerifier)
                 } else {
-                    Log.e("MainActivity", "Authorization code not found in the redirect URI")
+                    Log.e("MainActivity", "Trakt OAuth callback state/code validation failed")
                 }
             } else if (uri.toString().startsWith("simkl.wirelessalien.showcase://callback")) {
                 val returnedState = uri.getQueryParameter("state")
@@ -1062,14 +1066,14 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun exchangeCodeForAccessToken(code: String) {
+    private fun exchangeCodeForAccessToken(code: String, codeVerifier: String) {
         val redirectUri = "trakt.wirelessalien.showcase://callback"
         val grantType = "authorization_code"
 
         val requestBody = FormBody.Builder()
             .add("code", code)
             .add("client_id", clientId ?: "")
-            .add("client_secret", clientSecret ?: "")
+            .add("code_verifier", codeVerifier)
             .add("redirect_uri", redirectUri)
             .add("grant_type", grantType)
             .build()
@@ -1102,6 +1106,8 @@ class MainActivity : BaseActivity() {
                         putString("trakt_refresh_token", tokenResponse.refreshToken)
                         putLong("token_expires_in", tokenResponse.expiresIn)
                         putLong("token_created_at", tokenResponse.createdAt)
+                        remove("trakt_code_verifier")
+                        remove("trakt_oauth_state")
                         apply()
                     }
 
@@ -1267,7 +1273,6 @@ class MainActivity : BaseActivity() {
                 val requestBody = FormBody.Builder()
                     .add("refresh_token", refreshToken)
                     .add("client_id", clientId ?: "")
-                    .add("client_secret", clientSecret ?: "")
                     .add("redirect_uri", "trakt.wirelessalien.showcase://callback")
                     .add("grant_type", "refresh_token")
                     .build()

@@ -697,7 +697,7 @@ class MovieDatabaseHelper (context: Context?) : SQLiteOpenHelper(context, databa
                             AppDataZipHelper.importAppDataFromZip(context, zipFile.inputStream())
                             withContext(Dispatchers.Main) {
                                 progressDialog.dismiss()
-                                listener.onAdapterDataChangedListener()
+                                listener.onAdapterDataChangedListener(isFullAppData = true)
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()

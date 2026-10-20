@@ -26,6 +26,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,6 +43,8 @@ import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.trakt.AccountLogoutTkt
 import com.wirelessalien.android.moviedb.trakt.GetAccountDetailsTkt
 import kotlinx.coroutines.launch
+import java.security.MessageDigest
+import java.security.SecureRandom
 
 class LoginFragmentTkt : BottomSheetDialogFragment() {
     private lateinit var preferences: SharedPreferences
@@ -142,10 +145,36 @@ class LoginFragmentTkt : BottomSheetDialogFragment() {
 
     private fun redirectToTraktAuthorization() {
         dismiss()
+        val codeVerifier = generateRandomUrlSafeString(64)
+        val codeChallenge = computeCodeChallengeS256(codeVerifier)
+        val state = generateRandomUrlSafeString(32)
+
+        preferences.edit()
+            .putString("trakt_code_verifier", codeVerifier)
+            .putString("trakt_oauth_state", state)
+            .apply()
+
         val redirectUri = "trakt.wirelessalien.showcase://callback"
-        val authUrl = "https://trakt.tv/oauth/authorize?response_type=code&client_id=$clientId&redirect_uri=$redirectUri"
+        val authUrl = "https://trakt.tv/oauth/authorize?response_type=code&client_id=$clientId&redirect_uri=$redirectUri&state=$state&code_challenge=$codeChallenge&code_challenge_method=S256"
 
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
         startActivity(intent)
+    }
+
+    private fun generateRandomUrlSafeString(length: Int): String {
+        val allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+        val secureRandom = SecureRandom()
+        val sb = StringBuilder(length)
+        for (i in 0 until length) {
+            sb.append(allowedChars[secureRandom.nextInt(allowedChars.length)])
+        }
+        return sb.toString()
+    }
+
+    private fun computeCodeChallengeS256(codeVerifier: String): String {
+        val bytes = codeVerifier.toByteArray(Charsets.US_ASCII)
+        val messageDigest = MessageDigest.getInstance("SHA-256")
+        val digest = messageDigest.digest(bytes)
+        return Base64.encodeToString(digest, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
     }
 }

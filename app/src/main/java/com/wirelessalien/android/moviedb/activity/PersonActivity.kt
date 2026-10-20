@@ -280,7 +280,7 @@ class PersonActivity : BaseActivity() , AdapterDataChangedListener {
         }, this, Lifecycle.State.RESUMED)
     }
 
-    override fun onAdapterDataChangedListener() {
+    override fun onAdapterDataChangedListener(isFullAppData: Boolean) {
         // Do nothing
     }
 

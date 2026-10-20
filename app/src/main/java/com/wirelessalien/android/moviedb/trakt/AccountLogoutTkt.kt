@@ -46,12 +46,10 @@ class AccountLogoutTkt(private val context: Context, private val handler: Handle
                 val jSON = "application/json; charset=utf-8".toMediaTypeOrNull()
                 val accessToken = preferences.getString("trakt_access_token", null)
                 val clientId = ConfigHelper.getConfigValue(context, "client_id")
-                val clientSecret = ConfigHelper.getConfigValue(context, "client_secret")
-                if (accessToken != null && clientId != null && clientSecret != null) {
+                if (accessToken != null && clientId != null) {
                     val json = JSONObject()
                     json.put("token", accessToken)
                     json.put("client_id", clientId)
-                    json.put("client_secret", clientSecret)
                     val body = json.toString().toRequestBody(jSON)
                     val request = Request.Builder()
                         .url("https://api.trakt.tv/oauth/revoke")

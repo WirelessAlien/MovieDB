@@ -159,7 +159,7 @@ class ListFragment : BaseFragment(), AdapterDataChangedListener {
     private lateinit var chipInfos: MutableList<ChipInfo>
     private val gson = Gson()
 
-    override fun onAdapterDataChangedListener() {
+    override fun onAdapterDataChangedListener(isFullAppData: Boolean) {
         updateShowViewAdapter()
     }
 

@@ -20,5 +20,5 @@
 package com.wirelessalien.android.moviedb.listener
 
 interface AdapterDataChangedListener {
-    fun onAdapterDataChangedListener()
+    fun onAdapterDataChangedListener(isFullAppData: Boolean = false)
 }

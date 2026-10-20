@@ -48,14 +48,12 @@ class TktTokenRefreshWorker(
         val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         val refreshToken = preferences.getString("trakt_refresh_token", null)
         val clientId = ConfigHelper.getConfigValue(applicationContext, "client_id")
-        val clientSecret = ConfigHelper.getConfigValue(applicationContext, "client_secret")
         val redirectUri = "trakt.wirelessalien.showcase://callback"
 
-        if (refreshToken != null && clientId != null && clientSecret != null) {
+        if (refreshToken != null && clientId != null) {
             val requestBody = FormBody.Builder()
                 .add("refresh_token", refreshToken)
                 .add("client_id", clientId)
-                .add("client_secret", clientSecret)
                 .add("redirect_uri", redirectUri)
                 .add("grant_type", "refresh_token")
                 .build()
