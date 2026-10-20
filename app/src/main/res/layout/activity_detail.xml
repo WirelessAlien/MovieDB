@@ -1023,10 +1023,11 @@
                     android:contentDescription="@string/add_rating" />
             </RelativeLayout>
 
-            <RelativeLayout
+            <LinearLayout
                 android:id="@+id/simklActionsLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
                 android:layout_below="@id/linearLayout2"
@@ -1034,9 +1035,10 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSimklStatus"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
                     app:iconPadding="5dp"
                     app:icon="@drawable/ic_bookmark_border"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
@@ -1044,9 +1046,11 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSimklHistory"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/btnSimklRating"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
                     app:iconPadding="5dp"
                     app:icon="@drawable/ic_history"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
@@ -1054,12 +1058,14 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSimklRating"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_thumb_up_border"
                     android:contentDescription="@string/add_rating" />
-            </RelativeLayout>
+            </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/collection_layout"
@@ -1108,7 +1114,7 @@
                 android:layout_below="@id/collection_layout"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/overview"
                 android:textSize="18sp"
                 android:textStyle="bold" />

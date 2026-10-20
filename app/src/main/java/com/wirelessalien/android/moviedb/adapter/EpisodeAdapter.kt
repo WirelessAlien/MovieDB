@@ -192,7 +192,7 @@ class EpisodeAdapter(
 
             "tmdb" -> {
                 binding.btnAddRatingToTmdb.visibility = View.VISIBLE
-                binding.btnAddToSimklHistory.visibility = View.GONE
+                binding.btnSimklWatched.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -216,7 +216,7 @@ class EpisodeAdapter(
             }
             "trakt" -> {
                 binding.btnAddRatingToTmdb.visibility = View.GONE
-                binding.btnAddToSimklHistory.visibility = View.GONE
+                binding.btnSimklWatched.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.VISIBLE
                 binding.btnAddToTraktList.visibility = View.VISIBLE
                 binding.btnAddToTraktWatchlist.visibility = View.VISIBLE
@@ -240,7 +240,7 @@ class EpisodeAdapter(
                 }
             }
             "simkl" -> {
-                binding.btnAddToSimklHistory.visibility = View.VISIBLE
+                binding.btnSimklWatched.visibility = View.VISIBLE
                 binding.btnAddRatingToTmdb.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
@@ -267,7 +267,7 @@ class EpisodeAdapter(
                 binding.btnAddDetailsToLocalDb.visibility = View.VISIBLE
                 binding.btnWatchedToLocalDb.visibility = View.VISIBLE
                 binding.btnAddRatingToTmdb.visibility = View.GONE
-                binding.btnAddToSimklHistory.visibility = View.GONE
+                binding.btnSimklWatched.visibility = View.GONE
                 binding.btnAddToTraktHistory.visibility = View.GONE
                 binding.btnAddToTraktList.visibility = View.GONE
                 binding.btnAddToTraktWatchlist.visibility = View.GONE
@@ -693,15 +693,15 @@ class EpisodeAdapter(
         }
 
         val simklToken = defaultSharedPreferences.getString("simkl_access_token", null)
-        holder.binding.btnAddToSimklHistory.isEnabled = !simklToken.isNullOrEmpty()
+        holder.binding.btnSimklWatched.isEnabled = !simklToken.isNullOrEmpty()
         val isSimklEpWatched = simklWatchedEpisodes.contains(episode.episodeNumber)
-        holder.binding.btnAddToSimklHistory.icon = AppCompatResources.getDrawable(
+        holder.binding.btnSimklWatched.icon = AppCompatResources.getDrawable(
             context,
-            if (isSimklEpWatched) R.drawable.ic_done_2 else R.drawable.ic_history
+            if (isSimklEpWatched) R.drawable.ic_done_2 else R.drawable.ic_visibility
         )
-        holder.binding.btnAddToSimklHistory.text = context.getText(R.string.history)
+        holder.binding.btnSimklWatched.text = context.getText(R.string.watched)
 
-        holder.binding.btnAddToSimklHistory.setOnClickListener {
+        holder.binding.btnSimklWatched.setOnClickListener {
             val currentlyWatched = simklWatchedEpisodes.contains(episode.episodeNumber)
             val currentDateTime = SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
@@ -776,13 +776,13 @@ class EpisodeAdapter(
                         if (isSuccess) {
                             if (currentlyWatched) {
                                 simklWatchedEpisodes.remove(episode.episodeNumber)
-                                holder.binding.btnAddToSimklHistory.icon = AppCompatResources.getDrawable(
+                                holder.binding.btnSimklWatched.icon = AppCompatResources.getDrawable(
                                     context,
-                                    R.drawable.ic_history
+                                    R.drawable.ic_visibility
                                 )
                             } else {
                                 simklWatchedEpisodes.add(episode.episodeNumber)
-                                holder.binding.btnAddToSimklHistory.icon = AppCompatResources.getDrawable(
+                                holder.binding.btnSimklWatched.icon = AppCompatResources.getDrawable(
                                     context,
                                     R.drawable.ic_done_2
                                 )

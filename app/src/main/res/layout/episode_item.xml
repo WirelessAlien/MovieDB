@@ -253,14 +253,14 @@
                 android:visibility="gone"/>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddToSimklHistory"
+                android:id="@+id/btnSimklWatched"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:text="@string/history"
+                android:text="@string/watched"
                 app:iconPadding="5dp"
                 style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
-                app:icon="@drawable/ic_history"
+                app:icon="@drawable/ic_visibility"
                 android:visibility="gone" />
 
             <RelativeLayout
