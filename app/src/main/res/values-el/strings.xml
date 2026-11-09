@@ -526,7 +526,7 @@
     <string name="add_to_watchlist">Προσθήκη στη Λίστα Παρακολούθησης</string>
     <string name="select_time">Επιλογή Ώρας</string>
     <string name="public_list">Δημόσια</string>
-    <string name="last_watched">Τελευταίο που παρακολουθήθηκε: %1$s</string>
+    <string name="last_watched">Τελευταία προβολή: %1$s</string>
     <string name="collected">Στη συλλογή</string>
     <string name="episode_title_format">%1$s (Κ:%2$d Ε: %3$d %4$s]</string>
     <string name="fetching_data">Λήψη δεδομένων…</string>
@@ -623,7 +623,7 @@
     <string name="season_episode_p">Κ:%1$d Ε:%2$d %3$s</string>
     <string name="next_episode_upcoming_label">Προσεχώς</string>
     <string name="notifications">Ειδοποιήσεις</string>
-    <string name="in_history">Παρακολουθήθηκε</string>
+    <string name="in_history">Έχει προβληθεί</string>
     <string name="start_date2">Ημερομηνία έναρξης:</string>
     <string name="edit_tag">Edit Tag</string>
     <string name="click_again_to_delete">Κάντε κλικ ξανά για να επιβεβαιώσει τη διαγραφή</string>
