@@ -31,10 +31,10 @@
     <!-- DetailActivity (quotes are to enforce the spaces) -->
     <string name="movie_added">Film ajouté</string>
     <string name="series_added">Série ajoutée</string>
-    <string name="show_added_error">Erreur lors de l\'ajout à la base de donnée</string>
+    <string name="show_added_error">Impossible d\'ajouter la série à la base de données</string>
     <string name="episodes_seen">%1$d / %2$d</string>
     <string name="start_date">%1$s</string>
-    <string name="start_date_unknown">Non définie</string>
+    <string name="start_date_unknown">Non défini</string>
     <string name="finish_date">%1$s</string>
     <string name="finish_date_unknown">Non définie</string>
     <string name="times_watched">%1$d</string>
@@ -248,7 +248,7 @@
     <string name="no_browser_available">Aucune application ne peut traiter cette requête. Veuillez installer un navigateur web.</string>
     <string name="rate_movie">Évaluation</string>
     <string name="edit">Modifier</string>
-    <string name="done">Fait</string>
+    <string name="done">Terminé</string>
     <string name="episode_rating_tmdb_not_set">Note (TMDB) : Non définie</string>
     <string name="episode_rating_db_not_set">Note (DB) : Non définie</string>
     <string name="watched_on">Vu sur :</string>
@@ -265,7 +265,7 @@
     <string name="default_media_type">Type de média par défaut</string>
     <string name="show_shows_as_default_in_the_account_tab">Afficher « Séries » par défaut dans l’onglet « Compte ».</string>
     <string name="remember_only_the_year">Je ne me souviens plus de la date exacte</string>
-    <string name="remember_the_full_date">N\'oubliez pas la date complète</string>
+    <string name="remember_the_full_date">Je me souviens de la date exacte</string>
     <string name="month">Mois</string>
     <string name="year">Année</string>
     <string name="keywords">Mots clés</string>
@@ -307,7 +307,7 @@
     <string name="episode_title">S:%1$d E:%2$d %3$s</string>
     <string name="season_number">S : %1$d</string>
     <string name="episode_number">E : %1$d</string>
-    <string name="review">Revoir</string>
+    <string name="review">Avis</string>
     <string name="rating1">Note</string>
     <string name="specials">Offres spéciales</string>
     <string name="no_specials_available">Aucune offre spéciale disponible</string>
@@ -367,7 +367,7 @@
     <string name="error_loading_data">Erreur</string>
     <string name="season_p">Saison %1$d</string>
     <string name="media_details_not_found">Informations médias introuvables</string>
-    <string name="disable_month">Mois de la désactivation</string>
+    <string name="disable_month">Désactiver le mois</string>
     <string name="select_a_time">Sélectionnez une heure</string>
     <string name="failed_to_sync">Échec de la synchronisation de %1$s</string>
     <string name="success">Succès</string>
@@ -661,8 +661,8 @@
     <string name="authorize_google_drive">Autoriser Google Drive</string>
     <string name="restore_database_from_google_drive">Restaurer la base de données depuis Google Drive</string>
     <string name="backup_settings">Paramètres de sauvegarde</string>
-    <string name="certification">Certification</string>
-    <string name="runtime">Durée d\'exécution</string>
+    <string name="certification">Classification</string>
+    <string name="runtime">Durée</string>
     <string name="popularity">Popularité</string>
     <string name="edit_tag">Modifier la balise</string>
     <string name="click_again_to_delete">Cliquez à nouveau pour confirmer la suppression</string>
@@ -670,13 +670,13 @@
     <string name="my_rating_unknown">Non défini</string>
     <string name="tags">Mots-clés</string>
     <string name="tags_label">" Mots-clés : "</string>
-    <string name="add_tag">Ajouter un tag</string>
-    <string name="add_new_tag">Ajouter un nouveau tag</string>
+    <string name="add_tag">Ajouter un mot-clé</string>
+    <string name="add_new_tag">Ajouter un nouveau mot-clé</string>
     <string name="hide_fetched_ratings">Masquer les notes récupérées</string>
     <string name="hide_fetched_ratings_summary">Masquer les notes et les avis récupérés sur les médias. Appuyez pour les afficher.</string>
     <string name="tap_to_reveal">Révéler</string>
-    <string name="tag_format">Balises : %s</string>
-    <string name="finish_date_3">Date d\'achèvement</string>
+    <string name="tag_format">Mots-clés : %s</string>
+    <string name="finish_date_3">Date de fin</string>
     <string name="episode_seen">Épisode visionné</string>
     <string name="my_rating">Ma note</string>
     <string name="time_watched">Durée de visionnage</string>
