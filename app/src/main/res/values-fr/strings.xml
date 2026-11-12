@@ -676,7 +676,7 @@
     <string name="hide_fetched_ratings_summary">Masquer les notes et les avis récupérés sur les médias. Appuyez pour les afficher.</string>
     <string name="tap_to_reveal">Révéler</string>
     <string name="tag_format">Mots-clés : %s</string>
-    <string name="finish_date_3">Date de fin</string>
+    <string name="finish_date_3">Date d\'achèvement</string>
     <string name="episode_seen">Épisode visionné</string>
     <string name="my_rating">Ma note</string>
     <string name="time_watched">Durée de visionnage</string>
