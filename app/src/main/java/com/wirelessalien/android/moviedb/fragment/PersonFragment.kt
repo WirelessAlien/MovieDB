@@ -31,11 +31,12 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.wirelessalien.android.moviedb.R
+import com.wirelessalien.android.moviedb.activity.MainActivity
 import com.wirelessalien.android.moviedb.activity.PersonActivity
 import com.wirelessalien.android.moviedb.adapter.PersonDatabaseAdapter
 import com.wirelessalien.android.moviedb.adapter.PersonPagingAdapter
-import com.wirelessalien.android.moviedb.databinding.ActivityPersonBinding
 import com.wirelessalien.android.moviedb.databinding.FragmentPersonBinding
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.helper.PeopleDatabaseHelper
@@ -54,7 +55,6 @@ class PersonFragment : BaseFragment() {
     private var apiKeyTmdb: String? = null
     private lateinit var binding: FragmentPersonBinding
     private lateinit var sPreferences: SharedPreferences
-    private lateinit var activityBinding: ActivityPersonBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,19 +67,8 @@ class PersonFragment : BaseFragment() {
     ): View {
         binding = FragmentPersonBinding.inflate(inflater, container, false)
         val fragmentView = binding.root
-        activityBinding = (activity as PersonActivity).getBinding()
         sPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        activityBinding.fab.isEnabled = true
-        activityBinding.fab.setImageResource(R.drawable.ic_star)
-        activityBinding.fab.setOnClickListener {
-            isShowingDatabasePeople = if (!isShowingDatabasePeople) {
-                showPeopleFromDatabase()
-                true
-            } else {
-                createPersonList()
-                false
-            }
-        }
+        setupFab()
 
         mPersonAdapter = PersonPagingAdapter()
         mPersonDatabaseAdapter = PersonDatabaseAdapter(ArrayList())
@@ -121,15 +110,38 @@ class PersonFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        activityBinding.fab.setImageResource(R.drawable.ic_star)
-        activityBinding.fab.isEnabled = true
-        activityBinding.fab.setOnClickListener {
-            isShowingDatabasePeople = if (!isShowingDatabasePeople) {
-                showPeopleFromDatabase()
-                true
-            } else {
-                createPersonList()
-                false
+        setupFab()
+    }
+
+    private fun setupFab() {
+        val fab: FloatingActionButton? = when (val act = activity) {
+            is PersonActivity -> {
+                act.getBinding().fab.apply {
+                    visibility = View.VISIBLE
+                }
+            }
+            is MainActivity -> {
+                act.getBinding().apply {
+                    fab.visibility = View.VISIBLE
+                    fab2.visibility = View.GONE
+                    toggleButtonGroup.root.visibility = View.GONE
+                    upnextChip.visibility = View.GONE
+                }.fab
+            }
+            else -> null
+        }
+
+        fab?.apply {
+            isEnabled = true
+            setImageResource(R.drawable.ic_star)
+            setOnClickListener {
+                isShowingDatabasePeople = if (!isShowingDatabasePeople) {
+                    showPeopleFromDatabase()
+                    true
+                } else {
+                    createPersonList()
+                    false
+                }
             }
         }
     }

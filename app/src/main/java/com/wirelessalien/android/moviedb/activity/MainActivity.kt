@@ -753,6 +753,7 @@ class MainActivity : BaseActivity() {
                 if (listType == SectionsPagerAdapter.MOVIE) getString(R.string.title_movies) else getString(R.string.title_series)
             }
             is ListFragment -> getString(R.string.title_saved)
+            is PersonFragment -> getString(R.string.title_people)
             is AccountDataFragment -> getString(R.string.title_account)
             is AccountDataFragmentTkt -> getString(R.string.title_account)
             is AccountDataFragmentSimkl -> getString(R.string.title_account)
