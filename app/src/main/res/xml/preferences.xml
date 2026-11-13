@@ -313,6 +313,12 @@
 
         <CheckBoxPreference
             android:defaultValue="true"
+            android:key="key_hide_people_tab"
+            android:title="@string/title_hide_people_tab"
+            app:iconSpaceReserved="false"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
             android:key="key_hide_account_tab"
             android:title="@string/hide_the_account_tab"
             app:iconSpaceReserved="false"/>

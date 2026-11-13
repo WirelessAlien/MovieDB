@@ -274,12 +274,36 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             }
         }
 
+        val hideHomeTab = findPreference<CheckBoxPreference>("key_hide_home_tab")
+        val hideMoviesTab = findPreference<CheckBoxPreference>("key_hide_movies_tab")
+        val hideSeriesTab = findPreference<CheckBoxPreference>("key_hide_series_tab")
+        val hideSavedTab = findPreference<CheckBoxPreference>("key_hide_saved_tab")
+        val hidePeopleTab = findPreference<CheckBoxPreference>("key_hide_people_tab")
         val hideAccountTab = findPreference<CheckBoxPreference>("key_hide_account_tab")
         val hideAccountTktTab = findPreference<CheckBoxPreference>("key_hide_account_tkt_tab")
         val hideAccountSimklTab = findPreference<CheckBoxPreference>("key_hide_account_simkl_tab")
 
+        val allTabPreferences = listOf(
+            hideHomeTab, hideMoviesTab, hideSeriesTab, hideSavedTab,
+            hidePeopleTab, hideAccountTab, hideAccountTktTab, hideAccountSimklTab
+        )
+
         val preferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
             val newState = newValue as Boolean
+
+            // If we are unchecking a box (i.e. showing a tab), make sure we don't exceed 5 visible tabs
+            if (!newState) {
+                var visibleCount = 0
+                for (tabPref in allTabPreferences) {
+                    if (tabPref != null && tabPref.key != preference.key && !tabPref.isChecked) {
+                        visibleCount++
+                    }
+                }
+                if (visibleCount >= 5) {
+                    Toast.makeText(requireContext(), getString(R.string.max_tabs_displayed), Toast.LENGTH_SHORT).show()
+                    return@OnPreferenceChangeListener false
+                }
+            }
 
             when (preference.key) {
                 "key_hide_account_tab" -> {
@@ -301,9 +325,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             true
         }
 
-        hideAccountTab?.onPreferenceChangeListener = preferenceChangeListener
-        hideAccountTktTab?.onPreferenceChangeListener = preferenceChangeListener
-        hideAccountSimklTab?.onPreferenceChangeListener = preferenceChangeListener
+        allTabPreferences.forEach { it?.onPreferenceChangeListener = preferenceChangeListener }
 
         val syncProvider = findPreference<Preference>("sync_provider")
 
@@ -862,6 +884,8 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 preferences.getBoolean(MainActivity.HIDE_ACCOUNT_SIMKL_PREFERENCE, true)
             findPreference<CheckBoxPreference>("key_hide_saved_tab")?.isChecked =
                 preferences.getBoolean(MainActivity.HIDE_SAVED_PREFERENCE, false)
+            findPreference<CheckBoxPreference>("key_hide_people_tab")?.isChecked =
+                preferences.getBoolean(MainActivity.HIDE_PEOPLE_PREFERENCE, true)
 
             dialog.dismiss()
         }
@@ -949,6 +973,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             key == SectionsPagerAdapter.HIDE_MOVIES_PREFERENCE ||
             key == SectionsPagerAdapter.HIDE_SERIES_PREFERENCE ||
             key == SectionsPagerAdapter.HIDE_SAVED_PREFERENCE ||
+            key == MainActivity.HIDE_PEOPLE_PREFERENCE ||
             key == SectionsPagerAdapter.HIDE_ACCOUNT_PREFERENCE ||
             key == SectionsPagerAdapter.HIDE_ACCOUNT_TKT_PREFERENCE ||
             key == SectionsPagerAdapter.HIDE_ACCOUNT_SIMKL_PREFERENCE

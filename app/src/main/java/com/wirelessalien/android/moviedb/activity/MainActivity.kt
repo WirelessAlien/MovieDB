@@ -101,6 +101,7 @@ import com.wirelessalien.android.moviedb.fragment.ListFragment.Companion.newSave
 import com.wirelessalien.android.moviedb.fragment.LoginFragment
 import com.wirelessalien.android.moviedb.fragment.LoginFragmentSimkl
 import com.wirelessalien.android.moviedb.fragment.LoginFragmentTkt
+import com.wirelessalien.android.moviedb.fragment.PersonFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment
 import com.wirelessalien.android.moviedb.fragment.ShowFragment.Companion.newInstance
 import com.wirelessalien.android.moviedb.fragment.SyncProviderBottomSheet
@@ -167,6 +168,9 @@ class MainActivity : BaseActivity() {
     private var keywordSearchJob: Job? = null
     private var keywordLoadStateListener: ((androidx.paging.CombinedLoadStates) -> Unit)? = null
     private lateinit var keywordAdapter: com.wirelessalien.android.moviedb.adapter.KeywordAdapter
+    private var personSearchJob: Job? = null
+    private var personLoadStateListener: ((androidx.paging.CombinedLoadStates) -> Unit)? = null
+    private lateinit var personAdapter: com.wirelessalien.android.moviedb.adapter.PersonPagingAdapter
     private lateinit var mShowLinearLayoutManager: LinearLayoutManager
     private lateinit var mShowGenreList: HashMap<String, String?>
     private lateinit var mDatabaseHelper: MovieDatabaseHelper
@@ -267,6 +271,9 @@ class MainActivity : BaseActivity() {
                 R.id.nav_saved -> {
                     selectedFragment = newSavedInstance()
                 }
+                R.id.nav_people -> {
+                    selectedFragment = PersonFragment()
+                }
                 R.id.nav_account -> {
                     selectedFragment = AccountDataFragment()
                 }
@@ -296,6 +303,8 @@ class MainActivity : BaseActivity() {
             !preferences.getBoolean(HIDE_SERIES_PREFERENCE, false)
         menu.findItem(R.id.nav_saved).isVisible =
             !preferences.getBoolean(HIDE_SAVED_PREFERENCE, false)
+        menu.findItem(R.id.nav_people).isVisible =
+            !preferences.getBoolean(HIDE_PEOPLE_PREFERENCE, true)
         menu.findItem(R.id.nav_account).isVisible =
             !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, true)
         menu.findItem(R.id.nav_account_tkt).isVisible =
@@ -307,6 +316,7 @@ class MainActivity : BaseActivity() {
                 menu.findItem(R.id.nav_movie).isVisible ||
                 menu.findItem(R.id.nav_series).isVisible ||
                 menu.findItem(R.id.nav_saved).isVisible ||
+                menu.findItem(R.id.nav_people).isVisible ||
                 menu.findItem(R.id.nav_account).isVisible ||
                 menu.findItem(R.id.nav_account_tkt).isVisible ||
                 menu.findItem(R.id.nav_account_simkl).isVisible
@@ -327,6 +337,10 @@ class MainActivity : BaseActivity() {
                 menu.findItem(R.id.nav_saved).isVisible -> {
                     initialItemId = R.id.nav_saved
                     newSavedInstance()
+                }
+                menu.findItem(R.id.nav_people).isVisible -> {
+                    initialItemId = R.id.nav_people
+                    PersonFragment()
                 }
                 menu.findItem(R.id.nav_account).isVisible -> {
                     initialItemId = R.id.nav_account
@@ -353,7 +367,7 @@ class MainActivity : BaseActivity() {
             if (key == "user_has_active_purchase" || key == "user_is_subscribed") {
                 getCurrentFragment()?.let { updateToolbarTitle(it) }
             }
-            if (key == HIDE_HOME_PREFERENCE || key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE || key == HIDE_ACCOUNT_SIMKL_PREFERENCE) {
+            if (key == HIDE_HOME_PREFERENCE || key == HIDE_MOVIES_PREFERENCE || key == HIDE_SERIES_PREFERENCE || key == HIDE_SAVED_PREFERENCE || key == HIDE_PEOPLE_PREFERENCE || key == HIDE_ACCOUNT_PREFERENCE || key == HIDE_ACCOUNT_TKT_PREFERENCE || key == HIDE_ACCOUNT_SIMKL_PREFERENCE) {
                 val menu1 = binding.bottomNavigation.menu
                 menu1.findItem(R.id.nav_home).isVisible =
                     !preferences.getBoolean(HIDE_HOME_PREFERENCE, false)
@@ -363,6 +377,8 @@ class MainActivity : BaseActivity() {
                     !preferences.getBoolean(HIDE_SERIES_PREFERENCE, false)
                 menu1.findItem(R.id.nav_saved).isVisible =
                     !preferences.getBoolean(HIDE_SAVED_PREFERENCE, false)
+                menu1.findItem(R.id.nav_people).isVisible =
+                    !preferences.getBoolean(HIDE_PEOPLE_PREFERENCE, true)
                 menu1.findItem(R.id.nav_account).isVisible =
                     !preferences.getBoolean(HIDE_ACCOUNT_PREFERENCE, true)
                 menu1.findItem(R.id.nav_account_tkt).isVisible =
@@ -374,6 +390,7 @@ class MainActivity : BaseActivity() {
                         menu1.findItem(R.id.nav_movie).isVisible ||
                         menu1.findItem(R.id.nav_series).isVisible ||
                         menu1.findItem(R.id.nav_saved).isVisible ||
+                        menu1.findItem(R.id.nav_people).isVisible ||
                         menu1.findItem(R.id.nav_account).isVisible ||
                         menu1.findItem(R.id.nav_account_tkt).isVisible ||
                         menu1.findItem(R.id.nav_account_simkl).isVisible
@@ -462,6 +479,7 @@ class MainActivity : BaseActivity() {
             intent.putExtra("keywordName", keyword.optString("name"))
             startActivity(intent)
         }
+        personAdapter = com.wirelessalien.android.moviedb.adapter.PersonPagingAdapter()
 
         keywordLoadStateListener = { loadState ->
             when (loadState.source.refresh) {
@@ -488,6 +506,31 @@ class MainActivity : BaseActivity() {
             }
         }
         keywordAdapter.addLoadStateListener(keywordLoadStateListener!!)
+
+        personLoadStateListener = { loadState ->
+            when (loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    binding.searchResultsRecyclerView.visibility = View.GONE
+                    binding.shimmerFrameLayout.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.startShimmer()
+                }
+
+                is LoadState.NotLoading -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                }
+
+                is LoadState.Error -> {
+                    binding.searchResultsRecyclerView.visibility = View.VISIBLE
+                    binding.shimmerFrameLayout.visibility = View.GONE
+                    binding.shimmerFrameLayout.stopShimmer()
+                    val errorMessage = (loadState.source.refresh as LoadState.Error).error.message
+                    Toast.makeText(this, getString(R.string.error_loading_data) + ": " + errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        personAdapter.addLoadStateListener(personLoadStateListener!!)
 
         val mShowGridView = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
         binding.searchResultsRecyclerView.layoutManager = mShowGridView
@@ -747,6 +790,8 @@ class MainActivity : BaseActivity() {
                 }
             } else if (currentFragment is ListFragment) {
                 databaseSearch(query)
+            } else if (currentFragment is PersonFragment) {
+                personSearch(query)
             } else if (currentFragment is AccountDataFragment || currentFragment is AccountDataFragmentTkt || currentFragment is AccountDataFragmentSimkl) {
                 multiSearch(query)
             }
@@ -819,6 +864,7 @@ class MainActivity : BaseActivity() {
                 if (listType == "movie") getString(R.string.search_movies) else getString(R.string.search_series)
             }
             is ListFragment -> getString(R.string.search_saved)
+            is PersonFragment -> getString(R.string.search_people)
 //            is AccountDataFragment -> getString(R.string.search_account)
 //            is AccountDataFragmentTkt -> getString(R.string.search_account_tkt)
             else -> getString(R.string.hint_search)
@@ -831,6 +877,24 @@ class MainActivity : BaseActivity() {
             binding.searchChipScroll.visibility = View.VISIBLE
         } else {
             binding.searchChipScroll.visibility = View.GONE
+        }
+    }
+
+    fun personSearch(query: String?) {
+        if (query.isNullOrEmpty()) {
+            return
+        }
+
+        binding.searchResultsRecyclerView.layoutManager = GridLayoutManager(this, preferences.getInt(BaseFragment.GRID_SIZE_PREFERENCE, 3).coerceAtLeast(1))
+        binding.searchResultsRecyclerView.adapter = personAdapter
+
+        personSearchJob?.cancel()
+        personSearchJob = lifecycleScope.launch {
+            Pager(PagingConfig(pageSize = 20)) {
+                com.wirelessalien.android.moviedb.pagingSource.SearchPersonPagingSource(apiReadAccessToken?: "", query, this@MainActivity)
+            }.flow.collectLatest { pagingData ->
+                personAdapter.submitData(pagingData)
+            }
         }
     }
 
@@ -1599,6 +1663,7 @@ class MainActivity : BaseActivity() {
         const val HIDE_MOVIES_PREFERENCE = "key_hide_movies_tab"
         const val HIDE_SERIES_PREFERENCE = "key_hide_series_tab"
         const val HIDE_SAVED_PREFERENCE = "key_hide_saved_tab"
+        const val HIDE_PEOPLE_PREFERENCE = "key_hide_people_tab"
         const val HIDE_ACCOUNT_PREFERENCE = "key_hide_account_tab"
         const val HIDE_ACCOUNT_TKT_PREFERENCE = "key_hide_account_tkt_tab"
         const val HIDE_ACCOUNT_SIMKL_PREFERENCE = "key_hide_account_simkl_tab"

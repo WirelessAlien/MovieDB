@@ -556,6 +556,8 @@
     <string name="title_hide_movies_tab">Hide the \'Movies\' tab</string>
     <string name="title_hide_series_tab">Hide the \'Shows\' tab</string>
     <string name="title_hide_saved_tab">Hide the \'Saved\' tab</string>
+    <string name="title_hide_people_tab">Hide the \'People\' tab</string>
+    <string name="max_tabs_displayed">Maximum 5 tabs can be displayed</string>
     <string name="title_api_language">API language</string>
     <string name="summary_api_language">Set the language of the API data (otherwise defaults to system language).</string>
     <string name="text_tmdb_credits">This product uses the TMDB API but is not endorsed or certified by TMDB</string>
