@@ -22,9 +22,14 @@ package com.wirelessalien.android.moviedb.fragment
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.paging.Pager
@@ -77,6 +82,29 @@ class PersonFragment : BaseFragment() {
         return fragmentView
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val currentActivity = activity
+        if (currentActivity is MainActivity) {
+            requireActivity().addMenuProvider(object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.menu_search, menu)
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        R.id.action_search -> {
+                            currentActivity.getBinding().searchView.show()
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        }
+    }
+
     private fun showPeopleFromDatabase() {
         val databasePeople = peopleFromDatabase
         mPersonDatabaseAdapter = PersonDatabaseAdapter(databasePeople)
@@ -111,6 +139,7 @@ class PersonFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         setupFab()
+        activity?.invalidateOptionsMenu()
     }
 
     private fun setupFab() {
