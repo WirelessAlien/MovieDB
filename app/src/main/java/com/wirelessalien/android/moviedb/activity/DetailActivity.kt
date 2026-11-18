@@ -1544,7 +1544,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 } catch (_: Exception) { false }
 
                 val effectiveSuccess = isSuccess && !notFound
-                val msg = if (notFound) getString(R.string.could_not_find_show) else response.message
+                val msg = if (notFound) getString(R.string.media_details_not_found) else response.message
                 response.close()
                 if (effectiveSuccess) {
                     val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
@@ -1626,7 +1626,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                 } catch (_: Exception) { false }
 
                 val effectiveSuccess = isSuccess && !notFound
-                val msg = if (notFound) getString(R.string.could_not_find_show) else response.message
+                val msg = if (notFound) getString(R.string.media_details_not_found) else response.message
                 response.close()
                 if (effectiveSuccess) {
                     val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
