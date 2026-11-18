@@ -1040,6 +1040,7 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="4dp"
                     app:iconPadding="5dp"
+                    android:maxLines="1"
                     app:icon="@drawable/ic_bookmark_border"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     android:text="@string/status" />
@@ -1051,6 +1052,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp"
+                    android:maxLines="1"
                     app:iconPadding="5dp"
                     app:icon="@drawable/ic_history"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
@@ -1063,6 +1065,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
                     app:iconPadding="5dp"
+                    android:maxLines="1"
                     style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
                     app:icon="@drawable/ic_thumb_up_border"
                     android:text="@string/rating1"
