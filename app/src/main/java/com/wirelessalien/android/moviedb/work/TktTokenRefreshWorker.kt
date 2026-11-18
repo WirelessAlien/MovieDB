@@ -64,52 +64,52 @@ class TktTokenRefreshWorker(
                 .build()
 
             val client = com.wirelessalien.android.moviedb.NetworkClient.client
-            val response = client.newCall(request).execute()
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    val jsonObject = responseBody?.let { JSONObject(it) }
 
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
-                val jsonObject = responseBody?.let { JSONObject(it) }
-
-                val tokenResponse = TktTokenResponse(
-                    accessToken = jsonObject?.getString("access_token") ?: "",
-                    refreshToken = jsonObject?.getString("refresh_token") ?: "",
-                    expiresIn = jsonObject?.getLong("expires_in") ?: 0L,
-                    createdAt = jsonObject?.getLong("created_at") ?: 0L
-                )
-
-                // Save new token data
-                preferences.edit().apply {
-                    putString("trakt_access_token", tokenResponse.accessToken)
-                    putString("trakt_refresh_token", tokenResponse.refreshToken)
-                    putLong("token_expires_in", tokenResponse.expiresIn)
-                    putLong("token_created_at", tokenResponse.createdAt)
-                    apply()
-                }
-
-                // Schedule next refresh
-                val constraints = Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-
-                val refreshDelay = tokenResponse.expiresIn - 3600 // Refresh 1 hour before expiration
-
-                val nextRefreshWork = OneTimeWorkRequestBuilder<TktTokenRefreshWorker>()
-                    .setInitialDelay(refreshDelay, TimeUnit.SECONDS)
-                    .setConstraints(constraints)
-                    .build()
-
-                WorkManager.getInstance(applicationContext).apply {
-                    cancelAllWorkByTag("token_refresh")
-                    enqueueUniqueWork(
-                        "token_refresh",
-                        ExistingWorkPolicy.REPLACE,
-                        nextRefreshWork
+                    val tokenResponse = TktTokenResponse(
+                        accessToken = jsonObject?.optString("access_token") ?: "",
+                        refreshToken = jsonObject?.optString("refresh_token") ?: "",
+                        expiresIn = jsonObject?.optLong("expires_in") ?: 0L,
+                        createdAt = jsonObject?.optLong("created_at") ?: (System.currentTimeMillis() / 1000)
                     )
-                }
 
-                return@withContext Result.success()
-            } else {
-                return@withContext Result.failure()
+                    // Save new token data
+                    preferences.edit().apply {
+                        putString("trakt_access_token", tokenResponse.accessToken)
+                        putString("trakt_refresh_token", tokenResponse.refreshToken)
+                        putLong("token_expires_in", tokenResponse.expiresIn)
+                        putLong("token_created_at", tokenResponse.createdAt)
+                        apply()
+                    }
+
+                    // Schedule next refresh
+                    val constraints = Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+
+                    val refreshDelay = (tokenResponse.expiresIn - 3600).coerceAtLeast(60) // Refresh 1 hour before expiration
+
+                    val nextRefreshWork = OneTimeWorkRequestBuilder<TktTokenRefreshWorker>()
+                        .setInitialDelay(refreshDelay, TimeUnit.SECONDS)
+                        .setConstraints(constraints)
+                        .build()
+
+                    WorkManager.getInstance(applicationContext).apply {
+                        cancelAllWorkByTag("token_refresh")
+                        enqueueUniqueWork(
+                            "token_refresh",
+                            ExistingWorkPolicy.REPLACE,
+                            nextRefreshWork
+                        )
+                    }
+
+                    return@withContext Result.success()
+                } else {
+                    return@withContext Result.failure()
+                }
             }
         } else {
             return@withContext Result.failure()

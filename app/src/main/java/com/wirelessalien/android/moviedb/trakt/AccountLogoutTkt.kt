@@ -28,10 +28,10 @@ import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.R
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
+import com.wirelessalien.android.moviedb.helper.TraktDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -47,9 +47,10 @@ class AccountLogoutTkt(private val context: Context, private val handler: Handle
                 val accessToken = preferences.getString("trakt_access_token", null)
                 val clientId = ConfigHelper.getConfigValue(context, "client_id")
                 if (accessToken != null && clientId != null) {
-                    val json = JSONObject()
-                    json.put("token", accessToken)
-                    json.put("client_id", clientId)
+                    val json = JSONObject().apply {
+                        put("token", accessToken)
+                        put("client_id", clientId)
+                    }
                     val body = json.toString().toRequestBody(jSON)
                     val request = Request.Builder()
                         .url("https://api.trakt.tv/oauth/revoke")
@@ -58,21 +59,48 @@ class AccountLogoutTkt(private val context: Context, private val handler: Handle
                         .addHeader("content-type", "application/json")
                         .addHeader("Authorization", "Bearer $accessToken")
                         .build()
-                    val response = client.newCall(request).execute()
-                    if (response.isSuccessful) {
-                        preferences.edit().remove("trakt_access_token").apply()
-                        preferences.edit().remove("trakt_refresh_token").apply()
-                        handler.post {
-                            Toast.makeText(
-                                context,
-                                R.string.logged_out_successfully,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                    try {
+                        client.newCall(request).execute().use { response ->
+                            Log.d("AccountLogoutTkt", "Revoke response code: ${response.code}")
                         }
+                    } catch (e: Exception) {
+                        Log.e("AccountLogoutTkt", "Error revoking token: ${e.message}")
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("AccountLogoutTkt", "Logout exception: ${e.message}")
+            } finally {
+                preferences.edit()
+                    .remove("trakt_access_token")
+                    .remove("trakt_refresh_token")
+                    .remove("token_expires_in")
+                    .remove("token_created_at")
+                    .remove("trakt_code_verifier")
+                    .remove("trakt_oauth_state")
+                    .remove("tkt_last_movies_collected")
+                    .remove("tkt_last_shows_collected")
+                    .remove("tkt_last_movies_watched")
+                    .remove("tkt_last_shows_watched")
+                    .remove("tkt_last_history_watched")
+                    .remove("tkt_last_ratings")
+                    .remove("tkt_last_watchlist")
+                    .remove("tkt_last_favorites")
+                    .remove("tkt_last_lists")
+                    .apply()
+
+                try {
+                    TraktDatabaseHelper(context).clearAllTraktData()
+                } catch (e: Exception) {
+                    Log.e("AccountLogoutTkt", "Error clearing Trakt database: ${e.message}")
+                }
+
+                handler.post {
+                    Toast.makeText(
+                        context,
+                        R.string.logged_out_successfully,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }

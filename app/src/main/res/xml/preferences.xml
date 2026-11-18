@@ -432,6 +432,11 @@
             app:iconSpaceReserved="false"/>
 
         <Preference
+            android:key="trakt_attribution_key"
+            android:summary="@string/text_tkt_credits"
+            app:iconSpaceReserved="false"/>
+
+        <Preference
             android:key="simkl_attribution_key"
             android:summary="@string/text_simkl_credits"
             app:iconSpaceReserved="false"/>

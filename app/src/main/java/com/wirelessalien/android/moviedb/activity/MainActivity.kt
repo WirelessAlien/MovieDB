@@ -1350,32 +1350,33 @@ class MainActivity : BaseActivity() {
                     .build()
 
                 val client = com.wirelessalien.android.moviedb.NetworkClient.client
-                val response = client.newCall(request).execute()
-                val responseBody = response.body.string()
+                client.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string()
 
-                if (response.isSuccessful) {
-                    val jsonObject = JSONObject(responseBody)
+                    if (response.isSuccessful && !responseBody.isNullOrEmpty()) {
+                        val jsonObject = JSONObject(responseBody)
 
-                    val tokenResponse = TktTokenResponse(
-                        accessToken = jsonObject.getString("access_token"),
-                        refreshToken = jsonObject.getString("refresh_token"),
-                        expiresIn = jsonObject.getLong("expires_in"),
-                        createdAt = System.currentTimeMillis() / 1000
-                    )
+                        val tokenResponse = TktTokenResponse(
+                            accessToken = jsonObject.getString("access_token"),
+                            refreshToken = jsonObject.getString("refresh_token"),
+                            expiresIn = jsonObject.getLong("expires_in"),
+                            createdAt = System.currentTimeMillis() / 1000
+                        )
 
-                    // Save new token data
-                    preferences.edit().apply {
-                        putString("trakt_access_token", tokenResponse.accessToken)
-                        putString("trakt_refresh_token", tokenResponse.refreshToken)
-                        putLong("token_expires_in", tokenResponse.expiresIn)
-                        putLong("token_created_at", tokenResponse.createdAt)
-                        apply()
+                        // Save new token data
+                        preferences.edit().apply {
+                            putString("trakt_access_token", tokenResponse.accessToken)
+                            putString("trakt_refresh_token", tokenResponse.refreshToken)
+                            putLong("token_expires_in", tokenResponse.expiresIn)
+                            putLong("token_created_at", tokenResponse.createdAt)
+                            apply()
+                        }
+
+                        scheduleTokenRefresh(tokenResponse.expiresIn)
+                    } else {
+                        Log.e("TokenRefresh", "Failed to refresh token: ${response.code}")
+                        preferences.edit().remove("trakt_access_token").apply()
                     }
-
-                    scheduleTokenRefresh(tokenResponse.expiresIn)
-                } else {
-                    Log.e("TokenRefresh", "Failed to refresh token: ${response.code}")
-                    preferences.edit {remove("trakt_access_token")}
                 }
             } catch (e: Exception) {
                 Log.e("TokenRefresh", "Error refreshing token", e)

@@ -409,8 +409,8 @@ class ShowTraktAdapter(
                                 }
 
                                 override fun onResponse(call: Call, response: Response) {
-                                    Handler(Looper.getMainLooper()).post {
-                                        if (response.isSuccessful) {
+                                    if (response.isSuccessful) {
+                                        CoroutineScope(Dispatchers.IO).launch {
                                             val dbHelper = TraktDatabaseHelper(context)
                                             val title = showData.optString("show_title")
                                             val traktId = showData.optInt("trakt_id")
@@ -422,39 +422,47 @@ class ShowTraktAdapter(
                                                     dbHelper.addEpisodeToWatched(traktId, tmdbId, season, episodeNumber, currentDateTime)
                                                 }
                                                 dbHelper.addEpisodeToWatchedTable(tmdbId, traktId, "show", title, currentDateTime)
-                                                Toast.makeText(context, R.string.season_marked_watched, Toast.LENGTH_SHORT).show()
                                             } else {
                                                 episodes.forEach { episodeNumber ->
                                                     dbHelper.removeEpisodeFromHistory(tmdbId, season, episodeNumber)
                                                     dbHelper.removeEpisodeFromWatched(tmdbId, season, episodeNumber) }
-                                                Toast.makeText(context, R.string.season_marked_unwatched, Toast.LENGTH_SHORT).show()
                                             }
 
-                                            // Update the UI
-                                            bottomSheetBinding?.seasonActionButton?.let { seasonButton ->
-                                                seasonButton.text = context.getString(
-                                                    if (endpoint == ACTION_MARK_SEASON_WATCHED)
-                                                        R.string.mark_season_unwatched
-                                                    else
-                                                        R.string.mark_season_watched
-                                                )
-                                                seasonButton.icon = AppCompatResources.getDrawable(
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(
                                                     context,
-                                                    if (endpoint == ACTION_MARK_SEASON_WATCHED)
-                                                        R.drawable.ic_close
-                                                    else
-                                                        R.drawable.ic_done_2
-                                                )
-                                            }
+                                                    if (endpoint == ACTION_MARK_SEASON_WATCHED) R.string.season_marked_watched else R.string.season_marked_unwatched,
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
 
-                                            // Refresh the episode list
-                                            currentEpisodeAdapter?.let { adapter ->
-                                                val newWatchedStatus = endpoint == ACTION_MARK_SEASON_WATCHED
-                                                episodes.forEach { episodeNumber ->
-                                                    adapter.updateEpisodeWatched(episodeNumber, newWatchedStatus)
+                                                // Update the UI
+                                                bottomSheetBinding?.seasonActionButton?.let { seasonButton ->
+                                                    seasonButton.text = context.getString(
+                                                        if (endpoint == ACTION_MARK_SEASON_WATCHED)
+                                                            R.string.mark_season_unwatched
+                                                        else
+                                                            R.string.mark_season_watched
+                                                    )
+                                                    seasonButton.icon = AppCompatResources.getDrawable(
+                                                        context,
+                                                        if (endpoint == ACTION_MARK_SEASON_WATCHED)
+                                                            R.drawable.ic_close
+                                                        else
+                                                            R.drawable.ic_done_2
+                                                    )
+                                                }
+
+                                                // Refresh the episode list
+                                                currentEpisodeAdapter?.let { adapter ->
+                                                    val newWatchedStatus = endpoint == ACTION_MARK_SEASON_WATCHED
+                                                    episodes.forEach { episodeNumber ->
+                                                        adapter.updateEpisodeWatched(episodeNumber, newWatchedStatus)
+                                                    }
                                                 }
                                             }
-                                        } else {
+                                        }
+                                    } else {
+                                        Handler(Looper.getMainLooper()).post {
                                             Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
                                         }
                                     }
@@ -818,28 +826,34 @@ class ShowTraktAdapter(
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Handler(Looper.getMainLooper()).post {
-                    val message = if (response.isSuccessful) {
+                if (response.isSuccessful) {
+                    CoroutineScope(Dispatchers.IO).launch {
                         val dbHelper = TraktDatabaseHelper(context)
 
                         if (endpoint == "sync/history") {
                             dbHelper.addEpisodeToWatched(traktId, tmdbId, seasonNumber, episodeNumber, currentTime)
                             dbHelper.addEpisodeToHistory(title, traktId, tmdbId, "episode", seasonNumber, episodeNumber, currentTime)
                             dbHelper.addEpisodeToWatchedTable(tmdbId, traktId, "show", title, currentTime)
-                            binding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
                             dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
                             dbHelper.removeEpisodeFromHistory(tmdbId, seasonNumber, episodeNumber)
-                            binding.addToWatched.icon =
-                                AppCompatResources.getDrawable(context, R.drawable.ic_close)
                         }
 
                         dbHelper.close()
-                        context.getString(R.string.success)
-                    } else {
-                        response.message
+
+                        withContext(Dispatchers.Main) {
+                            if (endpoint == "sync/history") {
+                                binding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
+                            } else if (endpoint == "sync/history/remove") {
+                                binding.addToWatched.icon = AppCompatResources.getDrawable(context, R.drawable.ic_close)
+                            }
+                            Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                } else {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         })

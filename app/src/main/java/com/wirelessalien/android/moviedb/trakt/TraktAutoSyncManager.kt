@@ -30,20 +30,20 @@ import com.wirelessalien.android.moviedb.helper.MovieDatabaseHelper
 import com.wirelessalien.android.moviedb.helper.TraktAutoSyncDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
 
 class TraktAutoSyncManager(val context: Context) {
     private val movieDbHelper = MovieDatabaseHelper(context)
     private val traktSyncDbHelper = TraktAutoSyncDatabaseHelper(context)
     private val tktaccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("trakt_access_token", null)
 
-
     suspend fun syncMediaToTrakt() = withContext(Dispatchers.IO) {
+        if (tktaccessToken.isNullOrEmpty()) {
+            Log.d("TraktAutoSyncManager", "No Trakt access token, skipping sync")
+            return@withContext
+        }
+
         val mediaObjects = getAllMediaObjects()
 
         // Filter only unsynchronized items
@@ -56,10 +56,13 @@ class TraktAutoSyncManager(val context: Context) {
             val syncSuccess = sendToTrakt(traktObject)
 
             if (syncSuccess) {
-                // Mark all items as synced if request was successful
+                // Mark all items as synced only if request was successful
                 unSyncedMedia.forEach { mediaObject ->
                     traktSyncDbHelper.addSyncedItem(mediaObject.id, mediaObject.isMovie, "history")
                 }
+                Log.d("TraktAutoSyncManager", "Successfully synced ${unSyncedMedia.size} items to Trakt")
+            } else {
+                Log.w("TraktAutoSyncManager", "Failed to sync items to Trakt")
             }
         }
     }
@@ -86,7 +89,11 @@ class TraktAutoSyncManager(val context: Context) {
                 while (cursor.moveToNext()) {
                     val releaseDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_RELEASE_DATE))
                     val watchedDate = cursor.getString(cursor.getColumnIndexOrThrow(MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE))
-                    val year = releaseDate.split("-")[0]
+                    val year = if (!releaseDate.isNullOrEmpty() && releaseDate.contains("-")) {
+                        releaseDate.split("-")[0]
+                    } else {
+                        ""
+                    }
                     val watchAt = run {
                         val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                         val defaultDate = "01-01"
@@ -141,7 +148,10 @@ class TraktAutoSyncManager(val context: Context) {
             val mediaJson = JSONObject().apply {
                 put("watched_at", media.watchedAt)
                 put("title", media.title)
-                put("year", media.releaseDate.toInt())
+                val yearInt = media.releaseDate.toIntOrNull()
+                if (yearInt != null && yearInt > 0) {
+                    put("year", yearInt)
+                }
                 put("ids", JSONObject().apply {
                     put("tmdb", media.id)
                 })
@@ -161,25 +171,14 @@ class TraktAutoSyncManager(val context: Context) {
     }
 
     private suspend fun sendToTrakt(jsonObject: JSONObject): Boolean = withContext(Dispatchers.IO) {
+        val token = tktaccessToken ?: return@withContext false
         try {
-            val traktSync = TraktSync(tktaccessToken!!, context)
+            val traktSync = TraktSync(token, context)
             val endpoint = "sync/history"
-            var success = false
-
             Log.d("TraktAutoSyncManager", "Sending to Trakt: $jsonObject")
-            traktSync.post(endpoint, jsonObject, object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    success = false
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    Log.d("TraktAutoSyncManager", "Response: ${response.body?.string()}")
-                    success = response.isSuccessful
-                }
-            })
-
-            success
+            traktSync.postSuspend(endpoint, jsonObject)
         } catch (e: Exception) {
+            Log.e("TraktAutoSyncManager", "sendToTrakt error: ${e.message}")
             false
         }
     }

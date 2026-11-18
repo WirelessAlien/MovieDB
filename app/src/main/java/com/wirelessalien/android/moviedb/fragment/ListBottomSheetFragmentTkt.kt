@@ -149,7 +149,13 @@ class ListBottomSheetFragmentTkt(
     }
 
     private fun traktSync(endpoint: String) {
-        val traktApiService = TraktSync(tktaccessToken!!, requireContext())
+        val token = tktaccessToken
+        val ctx = context
+        if (token.isNullOrEmpty() || ctx == null) {
+            Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val traktApiService = TraktSync(token, ctx)
         val jsonBody = listObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {

@@ -195,10 +195,9 @@ class EpisodeTraktAdapter(
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Handler(Looper.getMainLooper()).post {
-                    val message = if (response.isSuccessful) {
+                if (response.isSuccessful) {
+                    CoroutineScope(Dispatchers.IO).launch {
                         val dbHelper = TraktDatabaseHelper(context)
-                        val db = dbHelper.writableDatabase
                         val traktId = showData.optInt("trakt_id", -1)
                         val tmdbId = showData.optInt("id", -1)
 
@@ -212,22 +211,27 @@ class EpisodeTraktAdapter(
                             }
                             dbHelper.insertSeasonEpisodeWatchedData(values)
                             dbHelper.addEpisodeToHistory(showData.optString("show_title", "NULL"), traktId, showData.optInt("id", -1), "episode", seasonNumber, episodeNumber, currentTime)
-                            watchedEpisodes.add(episodeNumber)
-                            holder.episodeStatusButton.setImageResource(R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
                             dbHelper.removeEpisodeFromWatched(tmdbId, seasonNumber, episodeNumber)
                             dbHelper.removeEpisodeFromHistory(tmdbId, seasonNumber, episodeNumber)
-                            watchedEpisodes.remove(episodeNumber)
-                            holder.episodeStatusButton.setImageResource(R.drawable.ic_close)
                         }
-                        listener.onEpisodeWatchedStatusChanged(showData.optInt("id"), seasonNumber, episodeNumber, isWatched)
 
-                        db.close()
-                        context.getString(R.string.success)
-                    } else {
-                        response.message
+                        withContext(Dispatchers.Main) {
+                            if (endpoint == "sync/history") {
+                                watchedEpisodes.add(episodeNumber)
+                                holder.episodeStatusButton.setImageResource(R.drawable.ic_done_2)
+                            } else if (endpoint == "sync/history/remove") {
+                                watchedEpisodes.remove(episodeNumber)
+                                holder.episodeStatusButton.setImageResource(R.drawable.ic_close)
+                            }
+                            listener.onEpisodeWatchedStatusChanged(showData.optInt("id"), seasonNumber, episodeNumber, isWatched)
+                            Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                } else {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         })

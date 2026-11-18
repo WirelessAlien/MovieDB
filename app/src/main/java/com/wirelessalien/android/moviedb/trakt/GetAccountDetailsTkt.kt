@@ -20,8 +20,9 @@
 
 package com.wirelessalien.android.moviedb.trakt
 
-import android.app.Activity
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
@@ -47,12 +48,17 @@ class GetAccountDetailsTkt(private val context: Context?, private val clientId: 
     }
 
     init {
-        val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
-        accessToken = preferences.getString("trakt_access_token", "")
+        val preferences = context?.let { PreferenceManager.getDefaultSharedPreferences(it) }
+        accessToken = preferences?.getString("trakt_access_token", "") ?: ""
         client = com.wirelessalien.android.moviedb.NetworkClient.client
     }
 
     suspend fun fetchAccountDetails() {
+        if (accessToken.isNullOrEmpty()) {
+            Log.w("GetAccountDetailsTkt", "No access token")
+            return
+        }
+
         withContext(Dispatchers.IO) {
             try {
                 val request = Request.Builder()
@@ -63,27 +69,32 @@ class GetAccountDetailsTkt(private val context: Context?, private val clientId: 
                     .addHeader("trakt-api-version", "2")
                     .addHeader("trakt-api-key", clientId)
                     .build()
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val jsonResponse = JSONObject(response.body!!.string())
-                    val user = jsonResponse.getJSONObject("user")
-                    val username = user.getString("username")
-                    val name = user.getString("name")
-                    val avatarUrl = user.getJSONObject("images").getJSONObject("avatar").getString("full")
-                    val location = user.getString("location")
-                    val joinedAt = user.getString("joined_at")
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        if (!responseBody.isNullOrEmpty()) {
+                            val jsonResponse = JSONObject(responseBody)
+                            val user = jsonResponse.optJSONObject("user")
+                            if (user != null) {
+                                val username = user.optString("username", null)
+                                val name = user.optString("name", null)
+                                val images = user.optJSONObject("images")
+                                val avatar = images?.optJSONObject("avatar")
+                                val avatarUrl = avatar?.optString("full", null)
+                                val location = user.optString("location", null)
+                                val joinedAt = user.optString("joined_at", null)
 
-                    callback?.onAccountDataReceived(username, name, avatarUrl, location, joinedAt)
-                    (context as Activity).runOnUiThread {
-                        // Update UI or SharedPreferences if needed
+                                withContext(Dispatchers.Main) {
+                                    callback?.onAccountDataReceived(username, name, avatarUrl, location, joinedAt)
+                                }
+                            }
+                        }
+                    } else {
+                        Log.e("GetAccountDetailsTkt", "Failed to get account details, code: ${response.code}")
                     }
-                } else {
-                    Log.e("GetAccountDetailsTkt", "Failed to get account details")
                 }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: JSONException) {
-                e.printStackTrace()
+            } catch (e: Exception) {
+                Log.e("GetAccountDetailsTkt", "Error fetching account details: ${e.message}")
             }
         }
     }

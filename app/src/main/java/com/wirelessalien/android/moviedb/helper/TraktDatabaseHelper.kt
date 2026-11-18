@@ -55,6 +55,26 @@ class TraktDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE
         onCreate(db)
     }
 
+    fun clearAllTraktData() {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.delete(TABLE_COLLECTION, null, null)
+            db.delete(TABLE_WATCHED, null, null)
+            db.delete(TABLE_HISTORY, null, null)
+            db.delete(TABLE_RATING, null, null)
+            db.delete(TABLE_WATCHLIST, null, null)
+            db.delete(TABLE_FAVORITE, null, null)
+            db.delete(USER_LISTS, null, null)
+            db.delete(TABLE_SEASON_EPISODE_WATCHED, null, null)
+            db.delete(TABLE_LIST_ITEM, null, null)
+            db.delete(TABLE_CALENDER, null, null)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
     fun insertSeasonEpisodeWatchedData(values: ContentValues) {
         val db = writableDatabase
         val showTraktId = values.getAsInteger(COL_SHOW_TRAKT_ID)

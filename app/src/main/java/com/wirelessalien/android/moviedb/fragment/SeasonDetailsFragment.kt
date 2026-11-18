@@ -246,7 +246,13 @@ class SeasonDetailsFragment : Fragment() {
                                 }))
                             }
 
-                            val traktApiService = TraktSync(tktaccessToken!!, requireContext())
+                            val token = tktaccessToken
+                            val ctx = context
+                            if (token.isNullOrEmpty() || ctx == null) {
+                                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                                return@setOnMenuItemClickListener true
+                            }
+                            val traktApiService = TraktSync(token, ctx)
                             val endPoint = if (isInWatched) "sync/history/remove" else "sync/history"
                             traktApiService.post(endPoint, showsObject, object : Callback {
                                 override fun onFailure(call: Call, e: IOException) {
@@ -256,9 +262,12 @@ class SeasonDetailsFragment : Fragment() {
                                 }
 
                                 override fun onResponse(call: Call, response: Response) {
-                                    activity?.runOnUiThread {
-                                        if (response.isSuccessful) {
-                                            val dbHelper = TraktDatabaseHelper(requireContext())
+                                    val wasSuccessful = response.isSuccessful
+                                    val responseMsg = response.message
+                                    val appContext = context?.applicationContext
+                                    if (wasSuccessful && appContext != null) {
+                                        lifecycleScope.launch(Dispatchers.IO) {
+                                            val dbHelper = TraktDatabaseHelper(appContext)
                                             when (isInWatched) {
                                                 true -> {
                                                     episodes.forEach { episode ->
@@ -266,7 +275,6 @@ class SeasonDetailsFragment : Fragment() {
                                                         dbHelper.removeEpisodeFromWatched(tvShowId, seasonNumber, episode.episodeNumber)
                                                     }
                                                     isInWatched = false
-                                                    Toast.makeText(context, R.string.episodes_added, Toast.LENGTH_SHORT).show()
                                                 }
                                                 false -> {
                                                     episodes.forEach { episode ->
@@ -275,12 +283,16 @@ class SeasonDetailsFragment : Fragment() {
                                                     }
                                                     dbHelper.addEpisodeToWatchedTable(tvShowId, traktId, "show", tvShowName, currentDateTime)
                                                     isInWatched = true
-                                                    Toast.makeText(context, R.string.episodes_removed, Toast.LENGTH_SHORT).show()
                                                 }
                                             }
-                                            adapter.notifyDataSetChanged()
-                                        } else {
-                                            Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                                            withContext(Dispatchers.Main) {
+                                                Toast.makeText(context, if (!isInWatched) R.string.episodes_removed else R.string.episodes_added, Toast.LENGTH_SHORT).show()
+                                                adapter.notifyDataSetChanged()
+                                            }
+                                        }
+                                    } else {
+                                        activity?.runOnUiThread {
+                                            Toast.makeText(context, responseMsg, Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 }

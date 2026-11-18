@@ -761,8 +761,8 @@ class ShowProgressTraktAdapter(
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Handler(Looper.getMainLooper()).post {
-                    val message = if (response.isSuccessful) {
+                if (response.isSuccessful) {
+                    CoroutineScope(Dispatchers.IO).launch {
                         val dbHelper = TraktDatabaseHelper(context)
                         val db = dbHelper.writableDatabase
 
@@ -784,8 +784,6 @@ class ShowProgressTraktAdapter(
                                 episodeNumber,
                                 currentTime
                             )
-                            binding.addToWatched.icon =
-                                AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
                         } else if (endpoint == "sync/history/remove") {
                             db.delete(
                                 TraktDatabaseHelper.TABLE_SEASON_EPISODE_WATCHED,
@@ -796,16 +794,23 @@ class ShowProgressTraktAdapter(
                                     episodeNumber.toString()
                                 )
                             )
-                            binding.addToWatched.icon =
-                                AppCompatResources.getDrawable(context, R.drawable.ic_close)
                         }
 
-                        db.close()
-                        context.getString(R.string.success)
-                    } else {
-                        response.message
+                        withContext(Dispatchers.Main) {
+                            if (endpoint == "sync/history") {
+                                binding.addToWatched.icon =
+                                    AppCompatResources.getDrawable(context, R.drawable.ic_done_2)
+                            } else if (endpoint == "sync/history/remove") {
+                                binding.addToWatched.icon =
+                                    AppCompatResources.getDrawable(context, R.drawable.ic_close)
+                            }
+                            Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show()
+                        }
                     }
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                } else {
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         })

@@ -109,7 +109,8 @@ class EpisodeAdapter(
     private val simklAccessToken = PreferenceManager.getDefaultSharedPreferences(context).getString("simkl_access_token", null)
     private var simklWatchedEpisodes: MutableSet<Int> = HashSet()
     private lateinit var clientId: String
-    //    private var isInCollection: Boolean = false
+    private val episodeWatchlistStatus: MutableMap<Int, Boolean> = HashMap()
+    private val episodeRatingStatus: MutableMap<Int, Boolean> = HashMap()
     private var isInWatchList: Boolean = false
     private var isInRating: Boolean = false
     private val defaultSharedPreferences: SharedPreferences by lazy {
@@ -137,8 +138,10 @@ class EpisodeAdapter(
             withContext(Dispatchers.IO) {
                 TraktDatabaseHelper(context).use { db ->
                     episodes.forEach { episode ->
-                        isInWatchList = db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
-                        isInRating = db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
+                        val inWl = db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber)
+                        val inRate = db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
+                        episodeWatchlistStatus[episode.episodeNumber] = inWl
+                        episodeRatingStatus[episode.episodeNumber] = inRate
                     }
                 }
                 val simklDb = SimklDatabaseHelper(context)
@@ -354,24 +357,16 @@ class EpisodeAdapter(
         CoroutineScope(Dispatchers.Main).launch {
             val newStates = withContext(Dispatchers.IO) {
                 TraktDatabaseHelper(context).use { db ->
-                    Triple(
-                        db.isEpisodeInCollection(tvShowId, seasonNumber, episode.episodeNumber),
+                    Pair(
                         db.isEpisodeInWatchlist(tvShowId, seasonNumber, episode.episodeNumber),
                         db.isEpisodeInRating(tvShowId, seasonNumber, episode.episodeNumber)
                     )
                 }
             }
 
-            // Update states and icons if they changed
-            if (isInWatchList != newStates.second ||
-//                isInCollection != newStates.first ||
-                isInRating != newStates.third) {
-
-//                isInCollection = newStates.first
-                isInWatchList = newStates.second
-                isInRating = newStates.third
-                updateIconStates(holder)
-            }
+            episodeWatchlistStatus[episode.episodeNumber] = newStates.first
+            episodeRatingStatus[episode.episodeNumber] = newStates.second
+            updateIconStates(holder, episode.episodeNumber)
         }
 
         val isWatched = watchedEpisodes[episode.episodeNumber] ?: false
@@ -653,29 +648,36 @@ class EpisodeAdapter(
             ).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }.format(Date())
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeData = withContext(Dispatchers.IO) {
-                    fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                    fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                 }
+                val ids = episodeData?.optJSONObject("ids")
                 val episodeObject = if (episodeData != null) {
                     createTraktEpisodeObject(
                         seasonNumber,
                         episode.episodeNumber,
-                        episodeData.getString("title"),
-                        episodeData.getJSONObject("ids").getInt("tmdb"),
-                        episodeData.getJSONObject("ids").getInt("trakt"),
-                        episodeData.getJSONObject("ids").getInt("tvdb"),
-                        episodeData.getJSONObject("ids").getString("imdb")
+                        episodeData.optString("title", ""),
+                        ids?.optInt("tmdb", -1),
+                        ids?.optInt("trakt", -1),
+                        ids?.optInt("tvdb", -1),
+                        ids?.optString("imdb", null)
                     )
                 } else {
                     null
                 }
                 mediaObject = episodeObject
                 withContext(Dispatchers.IO) {
-                    if (isInWatchList) {
-                        traktSync("sync/watchlist/remove", episode, 0, holder, null, null, null, null, null, null, null)
+                    val inWatchlist = episodeWatchlistStatus[episode.episodeNumber] ?: false
+                    if (inWatchlist) {
+                        traktSync("sync/watchlist/remove", episode, 0, holder, null, null, null, null, null, null, null, episodeObject)
                     } else {
-                        traktSync("sync/watchlist", episode, 0, holder, currentDateTime, null, null, null, null, null, null)
+                        traktSync("sync/watchlist", episode, 0, holder, currentDateTime, null, null, null, null, null, null, episodeObject)
                     }
                 }
                 holder.binding.lProgressBar.visibility = View.GONE
@@ -798,27 +800,33 @@ class EpisodeAdapter(
         }
 
         holder.binding.btnAddToTraktList.setOnClickListener {
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             holder.binding.lProgressBar.visibility = View.VISIBLE
 
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeData = withContext(Dispatchers.IO) {
-                    fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                    fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                 }
+                val ids = episodeData?.optJSONObject("ids")
                 val episodeObject = if (episodeData != null) {
                     createTraktEpisodeObject(
                         seasonNumber,
                         episode.episodeNumber,
-                        episodeData.getString("title"),
-                        episodeData.getJSONObject("ids").getInt("tmdb"),
-                        episodeData.getJSONObject("ids").getInt("trakt"),
-                        episodeData.getJSONObject("ids").getInt("tvdb"),
-                        episodeData.getJSONObject("ids").getString("imdb")
+                        episodeData.optString("title", ""),
+                        ids?.optInt("tmdb", -1),
+                        ids?.optInt("trakt", -1),
+                        ids?.optInt("tvdb", -1),
+                        ids?.optString("imdb", null)
                     )
                 } else {
                     null
                 }
                 mediaObject = episodeObject
-                val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(tvShowId, context, true, "episode", mediaObject?: JSONObject(), tmdbObject, null)
+                val listBottomSheetFragmentTkt = ListBottomSheetFragmentTkt(tvShowId, context, true, "episode", mediaObject ?: JSONObject(), tmdbObject, null)
                 listBottomSheetFragmentTkt.show((context as FragmentActivity).supportFragmentManager, listBottomSheetFragmentTkt.tag)
                 holder.binding.lProgressBar.visibility = View.GONE
             }
@@ -1041,21 +1049,18 @@ class EpisodeAdapter(
         return regex.findAll(seasonsString).map { it.groupValues[1].toInt() }.toList()
     }
 
-    private fun updateIconStates(holder: EpisodeViewHolder) {
+    private fun updateIconStates(holder: EpisodeViewHolder, episodeNumber: Int) {
+        val inWatchlist = episodeWatchlistStatus[episodeNumber] ?: false
+        val inRating = episodeRatingStatus[episodeNumber] ?: false
         holder.binding.apply {
-//            btnAddToTraktCollection.icon = AppCompatResources.getDrawable(
-//                context,
-//                if (isInCollection) R.drawable.ic_collection else R.drawable.ic_collection_border
-//            )
-
             btnAddToTraktWatchlist.icon = AppCompatResources.getDrawable(
                 context,
-                if (isInWatchList) R.drawable.ic_bookmark else R.drawable.ic_bookmark_border
+                if (inWatchlist) R.drawable.ic_bookmark else R.drawable.ic_bookmark_border
             )
 
             btnAddTraktRating.icon = AppCompatResources.getDrawable(
                 context,
-                if (isInRating) R.drawable.ic_thumb_up else R.drawable.ic_thumb_up_border
+                if (inRating) R.drawable.ic_thumb_up else R.drawable.ic_thumb_up_border
             )
         }
     }
@@ -1110,15 +1115,25 @@ class EpisodeAdapter(
         }
 
         binding.btnSubmit.setOnClickListener {
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.IO).launch {
-                val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                 val episodeObject = if (episodeData != null) {
+                    val ids = episodeData.optJSONObject("ids")
                     val episodeIds = JSONObject().apply {
-                        put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                        put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                        put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                        put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+                        val tr = ids?.optInt("trakt", -1) ?: -1
+                        if (tr > 0) put("trakt", tr)
+                        val tv = ids?.optInt("tvdb", -1) ?: -1
+                        if (tv > 0) put("tvdb", tv)
+                        val im = ids?.optString("imdb", null)
+                        if (!im.isNullOrEmpty()) put("imdb", im)
+                        val tm = ids?.optInt("tmdb", -1) ?: -1
+                        if (tm > 0) put("tmdb", tm)
                     }
 
                     val rating = binding.ratingSlider.value.toInt()
@@ -1141,7 +1156,7 @@ class EpisodeAdapter(
                     if (episodeObject != null) {
                         mediaObject = episodeObject
                         val ratedAtE = binding.ratedDate.text.toString()
-                        traktSync("sync/ratings", episode, binding.ratingSlider.value.toInt(), holder, ratedAtE, null, null, null, null, null, null)
+                        traktSync("sync/ratings", episode, binding.ratingSlider.value.toInt(), holder, ratedAtE, null, null, null, null, null, null, episodeObject)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -1151,18 +1166,24 @@ class EpisodeAdapter(
 
         binding.btnCancel.setOnClickListener { dialog.dismiss() }
         binding.btnDelete.setOnClickListener {
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.IO).launch {
-                val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
+                val ids = episodeData?.optJSONObject("ids")
                 val episodeObject = if (episodeData != null) {
                     createTraktEpisodeObject(
                         seasonNumber,
                         episode.episodeNumber,
-                        episodeData.getString("title"),
-                        episodeData.getJSONObject("ids").getInt("tmdb"),
-                        episodeData.getJSONObject("ids").getInt("trakt"),
-                        episodeData.getJSONObject("ids").getInt("tvdb"),
-                        episodeData.getJSONObject("ids").getString("imdb")
+                        episodeData.optString("title", ""),
+                        ids?.optInt("tmdb", -1),
+                        ids?.optInt("trakt", -1),
+                        ids?.optInt("tvdb", -1),
+                        ids?.optString("imdb", null)
                     )
                 } else {
                     null
@@ -1171,7 +1192,7 @@ class EpisodeAdapter(
                 withContext(Dispatchers.Main) {
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/ratings/remove", episode, 0, holder, null, null, null, null, null, null, null)
+                        traktSync("sync/ratings/remove", episode, 0, holder, null, null, null, null, null, null, null, episodeObject)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -1229,6 +1250,11 @@ class EpisodeAdapter(
         }
 
         binding.removeHistory.setOnClickListener {
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val dialogBuilder = MaterialAlertDialogBuilder(context)
             dialogBuilder.setTitle(context.getString(R.string.remove_from_history))
             dialogBuilder.setMessage(context.getString(R.string.remove_from_history_confirmation))
@@ -1236,13 +1262,18 @@ class EpisodeAdapter(
                 binding.progressIndicator.visibility = View.VISIBLE
                 CoroutineScope(Dispatchers.Main).launch {
                     val episodeObject = withContext(Dispatchers.IO) {
-                        val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                        val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                         if (episodeData != null) {
+                            val ids = episodeData.optJSONObject("ids")
                             val episodeIds = JSONObject().apply {
-                                put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                                put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                                put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                                put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+                                val tr = ids?.optInt("trakt", -1) ?: -1
+                                if (tr > 0) put("trakt", tr)
+                                val tv = ids?.optInt("tvdb", -1) ?: -1
+                                if (tv > 0) put("tvdb", tv)
+                                val im = ids?.optString("imdb", null)
+                                if (!im.isNullOrEmpty()) put("imdb", im)
+                                val tm = ids?.optInt("tmdb", -1) ?: -1
+                                if (tm > 0) put("tmdb", tm)
                             }
 
                             val episodeDetails = JSONObject().apply {
@@ -1259,7 +1290,7 @@ class EpisodeAdapter(
 
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/history/remove", episode, 0, holder, null, null, null, null, null, null, null)
+                        traktSync("sync/history/remove", episode, 0, holder, null, null, null, null, null, null, null, episodeObject)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -1270,25 +1301,35 @@ class EpisodeAdapter(
         }
 
         binding.btnWatchingNow.setOnClickListener {
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeObject = withContext(Dispatchers.IO) {
-                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                     if (episodeData != null) {
+                        val ids = episodeData.optJSONObject("ids")
                         val episodeIds = JSONObject().apply {
-                            put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                            put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+                            val tr = ids?.optInt("trakt", -1) ?: -1
+                            if (tr > 0) put("trakt", tr)
+                            val tv = ids?.optInt("tvdb", -1) ?: -1
+                            if (tv > 0) put("tvdb", tv)
+                            val im = ids?.optString("imdb", null)
+                            if (!im.isNullOrEmpty()) put("imdb", im)
+                            val tm = ids?.optInt("tmdb", -1) ?: -1
+                            if (tm > 0) put("tmdb", tm)
                         }
 
-                        val episodeObject = JSONObject().apply {
-                            put("title", episodeData.getString("title"))
+                        val epObject = JSONObject().apply {
+                            put("title", episodeData.optString("title", ""))
                             put("ids", episodeIds)
                         }
 
                         JSONObject().apply {
-                            put("episode", episodeObject)
+                            put("episode", epObject)
                         }
                     } else {
                         null
@@ -1304,7 +1345,7 @@ class EpisodeAdapter(
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("checkin", episode, 0, holder, currentDateTime, null, null, null, null, null, null)
+                    traktSync("checkin", episode, 0, holder, currentDateTime, null, null, null, null, null, null, episodeObject)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -1312,6 +1353,11 @@ class EpisodeAdapter(
         }
 
         binding.btnWatchedNow.setOnClickListener {
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             binding.progressIndicator.visibility = View.VISIBLE
             val currentDateTime = SimpleDateFormat(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
@@ -1321,13 +1367,18 @@ class EpisodeAdapter(
             }.format(Date())
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeObject = withContext(Dispatchers.IO) {
-                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                     if (episodeData != null) {
+                        val ids = episodeData.optJSONObject("ids")
                         val episodeIds = JSONObject().apply {
-                            put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                            put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+                            val tr = ids?.optInt("trakt", -1) ?: -1
+                            if (tr > 0) put("trakt", tr)
+                            val tv = ids?.optInt("tvdb", -1) ?: -1
+                            if (tv > 0) put("tvdb", tv)
+                            val im = ids?.optString("imdb", null)
+                            if (!im.isNullOrEmpty()) put("imdb", im)
+                            val tm = ids?.optInt("tmdb", -1) ?: -1
+                            if (tm > 0) put("tmdb", tm)
                         }
 
                         val episodeDetails = JSONObject().apply {
@@ -1345,7 +1396,7 @@ class EpisodeAdapter(
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("sync/history", episode, 0, holder, currentDateTime, null, null, null, null, null, null)
+                    traktSync("sync/history", episode, 0, holder, currentDateTime, null, null, null, null, null, null, episodeObject)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -1353,16 +1404,26 @@ class EpisodeAdapter(
         }
 
         binding.btnWatchedAtRelease.setOnClickListener {
+            val token = tktaccessToken
+            if (token.isNullOrEmpty()) {
+                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             binding.progressIndicator.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val episodeObject = withContext(Dispatchers.IO) {
-                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                    val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                     if (episodeData != null) {
+                        val ids = episodeData.optJSONObject("ids")
                         val episodeIds = JSONObject().apply {
-                            put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                            put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                            put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                            put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+                            val tr = ids?.optInt("trakt", -1) ?: -1
+                            if (tr > 0) put("trakt", tr)
+                            val tv = ids?.optInt("tvdb", -1) ?: -1
+                            if (tv > 0) put("tvdb", tv)
+                            val im = ids?.optString("imdb", null)
+                            if (!im.isNullOrEmpty()) put("imdb", im)
+                            val tm = ids?.optInt("tmdb", -1) ?: -1
+                            if (tm > 0) put("tmdb", tm)
                         }
 
                         val episodeDetails = JSONObject().apply {
@@ -1380,7 +1441,7 @@ class EpisodeAdapter(
 
                 if (episodeObject != null) {
                     mediaObject = episodeObject
-                    traktSync("sync/history", episode, 0, holder, "Release", null, null, null, null, null, null)
+                    traktSync("sync/history", episode, 0, holder, "Release", null, null, null, null, null, null, episodeObject)
                 }
                 binding.progressIndicator.visibility = View.GONE
                 dialog.dismiss()
@@ -1397,16 +1458,26 @@ class EpisodeAdapter(
         binding.btnSave.setOnClickListener {
             val selectedDate = binding.etSelectedDate.text.toString()
             if (selectedDate.isNotEmpty()) {
+                val token = tktaccessToken
+                if (token.isNullOrEmpty()) {
+                    Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 binding.progressIndicator.visibility = View.VISIBLE
                 CoroutineScope(Dispatchers.Main).launch {
                     val episodeObject = withContext(Dispatchers.IO) {
-                        val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, tktaccessToken!!)
+                        val episodeData = fetchEpisodeData(traktId, seasonNumber, episode.episodeNumber, token)
                         if (episodeData != null) {
+                            val ids = episodeData.optJSONObject("ids")
                             val episodeIds = JSONObject().apply {
-                                put("trakt", episodeData.getJSONObject("ids").getInt("trakt"))
-                                put("tvdb", episodeData.getJSONObject("ids").getInt("tvdb"))
-                                put("imdb", episodeData.getJSONObject("ids").getString("imdb"))
-                                put("tmdb", episodeData.getJSONObject("ids").getInt("tmdb"))
+                                val tr = ids?.optInt("trakt", -1) ?: -1
+                                if (tr > 0) put("trakt", tr)
+                                val tv = ids?.optInt("tvdb", -1) ?: -1
+                                if (tv > 0) put("tvdb", tv)
+                                val im = ids?.optString("imdb", null)
+                                if (!im.isNullOrEmpty()) put("imdb", im)
+                                val tm = ids?.optInt("tmdb", -1) ?: -1
+                                if (tm > 0) put("tmdb", tm)
                             }
 
                             val episodeDetails = JSONObject().apply {
@@ -1424,7 +1495,7 @@ class EpisodeAdapter(
 
                     if (episodeObject != null) {
                         mediaObject = episodeObject
-                        traktSync("sync/history", episode, 0, holder, selectedDate, null, null, null, null, null, null)
+                        traktSync("sync/history", episode, 0, holder, selectedDate, null, null, null, null, null, null, episodeObject)
                     }
                     binding.progressIndicator.visibility = View.GONE
                     dialog.dismiss()
@@ -1596,20 +1667,22 @@ class EpisodeAdapter(
                 .build()
 
             try {
-                val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()
-                if (!response.isSuccessful || responseBody.isNullOrEmpty()) {
-                    null
-                } else {
-                    val jsonResponse = JSONObject(responseBody)
-                    JSONObject().apply {
-                        put("season", jsonResponse.getInt("season"))
-                        put("number", jsonResponse.getInt("number"))
-                        put("title", jsonResponse.getString("title"))
-                        put("ids", jsonResponse.getJSONObject("ids"))
-                        put("traktid", jsonResponse.getJSONObject("ids").getInt("trakt"))
-                        put("tvdbid", jsonResponse.getJSONObject("ids").getInt("tvdb"))
-                        put("imdbid", jsonResponse.getJSONObject("ids").getString("imdb"))
+                client.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string()
+                    if (!response.isSuccessful || responseBody.isNullOrEmpty()) {
+                        null
+                    } else {
+                        val jsonResponse = JSONObject(responseBody)
+                        val idsObj = jsonResponse.optJSONObject("ids")
+                        JSONObject().apply {
+                            put("season", jsonResponse.optInt("season", seasonNumber))
+                            put("number", jsonResponse.optInt("number", episodeNumber))
+                            put("title", jsonResponse.optString("title", ""))
+                            put("ids", idsObj ?: JSONObject())
+                            put("traktid", idsObj?.optInt("trakt", -1) ?: -1)
+                            put("tvdbid", idsObj?.optInt("tvdb", -1) ?: -1)
+                            put("imdbid", idsObj?.optString("imdb", ""))
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -1619,9 +1692,14 @@ class EpisodeAdapter(
         }
     }
 
-    private fun traktSync(endpoint: String, episode: Episode, rating: Int, holder: EpisodeViewHolder, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
-        val traktApiService = TraktSync(tktaccessToken!!, context)
-        val jsonBody = mediaObject ?: JSONObject()
+    private fun traktSync(endpoint: String, episode: Episode, rating: Int, holder: EpisodeViewHolder, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?, bodyToSync: JSONObject? = null) {
+        val token = tktaccessToken
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val traktApiService = TraktSync(token, context)
+        val jsonBody = bodyToSync ?: mediaObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Handler(Looper.getMainLooper()).post {
@@ -1634,11 +1712,11 @@ class EpisodeAdapter(
                 Handler(Looper.getMainLooper()).post {
                     val message = if (response.isSuccessful) {
                         CoroutineScope(Dispatchers.Main).launch {
+                            updateBoolean(endpoint, episode.episodeNumber)
                             updateTraktButtonsUI(endpoint, holder)
                             withContext(Dispatchers.IO) {
                                 handleDatabaseUpdate(endpoint, episode, rating, collectedAt, mediaType, resolution, hdr, audio, audioChannels, is3D)
                                 addItemtoTmdb()
-                                updateBoolean(endpoint)
                             }
                         }
                         context.getString(R.string.success)
@@ -1651,14 +1729,12 @@ class EpisodeAdapter(
         })
     }
 
-    private fun updateBoolean(endpoint: String) {
+    private fun updateBoolean(endpoint: String, episodeNumber: Int) {
         when (endpoint) {
-            "sync/watchlist" -> isInWatchList = true
-            "sync/watchlist/remove" -> isInWatchList = false
-//            "sync/collection" -> isInCollection = true
-//            "sync/collection/remove" -> isInCollection = false
-            "sync/ratings" -> isInRating = true
-            "sync/ratings/remove" -> isInRating = false
+            "sync/watchlist" -> episodeWatchlistStatus[episodeNumber] = true
+            "sync/watchlist/remove" -> episodeWatchlistStatus[episodeNumber] = false
+            "sync/ratings" -> episodeRatingStatus[episodeNumber] = true
+            "sync/ratings/remove" -> episodeRatingStatus[episodeNumber] = false
         }
     }
 
@@ -1676,8 +1752,20 @@ class EpisodeAdapter(
                     R.drawable.ic_bookmark_border
                 )
             }
-//            "sync/collection" -> {
-//                holder.binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
+            "sync/ratings" -> {
+                holder.binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_thumb_up
+                )
+            }
+            "sync/ratings/remove" -> {
+                holder.binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_thumb_up_border
+                )
+            }
+        }
+    }
 //                    context,
 //                    R.drawable.ic_collection
 //                )
@@ -1790,16 +1878,16 @@ class EpisodeAdapter(
         episodeSeason: Int,
         episodeNumber: Int,
         episodeTitle: String,
-        episodeTmdbId: Int,
-        episodeTraktId: Int,
-        episodeTvdbId: Int,
-        episodeImdbId: String
+        episodeTmdbId: Int? = null,
+        episodeTraktId: Int? = null,
+        episodeTvdbId: Int? = null,
+        episodeImdbId: String? = null
     ): JSONObject {
         val episodeIds = JSONObject().apply {
-            put("trakt", episodeTraktId)
-            put("tvdb", episodeTvdbId)
-            put("imdb", episodeImdbId)
-            put("tmdb", episodeTmdbId)
+            if (episodeTraktId != null && episodeTraktId > 0) put("trakt", episodeTraktId)
+            if (episodeTvdbId != null && episodeTvdbId > 0) put("tvdb", episodeTvdbId)
+            if (!episodeImdbId.isNullOrEmpty()) put("imdb", episodeImdbId)
+            if (episodeTmdbId != null && episodeTmdbId > 0) put("tmdb", episodeTmdbId)
         }
 
         val episodeObject = JSONObject().apply {

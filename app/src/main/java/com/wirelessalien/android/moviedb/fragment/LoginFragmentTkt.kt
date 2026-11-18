@@ -119,7 +119,7 @@ class LoginFragmentTkt : BottomSheetDialogFragment() {
 
         if (preferences.getString("trakt_access_token", null) != null) {
             lifecycleScope.launch {
-                val getAccountDetailsTkt = GetAccountDetailsTkt(requireContext(), clientId!!, object : GetAccountDetailsTkt.AccountDataCallback {
+                val getAccountDetailsTkt = GetAccountDetailsTkt(requireContext(), clientId ?: "", object : GetAccountDetailsTkt.AccountDataCallback {
                     override fun onAccountDataReceived(username: String?, name: String?, avatarUrl: String?, location: String?, joinedAt: String?) {
                         if (isAdded) {
                             requireActivity().runOnUiThread {

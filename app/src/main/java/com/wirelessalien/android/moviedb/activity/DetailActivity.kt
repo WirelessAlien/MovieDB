@@ -2244,7 +2244,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         syncTraktData("sync/ratings", rating, "", ratedAt, null, null, null, null, null, null)
     }
     private fun syncTraktData(endpoint: String, rating: Int, watchedAt: String, collectedAt: String?, mediaType: String?, resolution: String?, hdr: String?, audio: String?, audioChannels: String?, is3D: Boolean?) {
-        val traktApiService = TraktSync(tktaccessToken!!, context)
+        val token = tktaccessToken
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(this@DetailActivity, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val traktApiService = TraktSync(token, context)
         val jsonBody = JSONObject().apply {
             if (isMovie) {
                 put("movies", JSONArray().apply { put(traktMediaObject) })
@@ -2451,7 +2456,12 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
         }
     }
     private fun traktCheckin(endpoint: String, currentTime: String) {
-        val traktApiService = TraktSync(tktaccessToken!!, context)
+        val token = tktaccessToken
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(this@DetailActivity, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val traktApiService = TraktSync(token, context)
         val jsonBody = traktCheckingObject ?: JSONObject()
         traktApiService.post(endpoint, jsonBody, object : Callback {
             override fun onFailure(call: Call, e: IOException) {

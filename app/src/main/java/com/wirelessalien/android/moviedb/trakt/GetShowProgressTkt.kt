@@ -21,6 +21,7 @@
 package com.wirelessalien.android.moviedb.trakt
 
 import android.content.Context
+import android.util.Log
 import androidx.preference.PreferenceManager
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import kotlinx.coroutines.Dispatchers
@@ -44,12 +45,19 @@ class GetShowProgressTkt(
     private val watchedEpisodes: MutableMap<Int, Boolean> = HashMap()
 
     init {
-        val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
-        accessToken = preferences.getString("trakt_access_token", "")
-        clientId = ConfigHelper.getConfigValue(context, "client_id")
+        val preferences = context?.let { PreferenceManager.getDefaultSharedPreferences(it) }
+        accessToken = preferences?.getString("trakt_access_token", "") ?: ""
+        clientId = context?.let { ConfigHelper.getConfigValue(it, "client_id") } ?: ""
     }
 
     suspend fun fetchShowProgress() {
+        if (showId <= 0 || accessToken.isNullOrEmpty()) {
+            withContext(Dispatchers.Main) {
+                listener?.onDataFetched(emptyMap())
+            }
+            return
+        }
+
         withContext(Dispatchers.IO) {
             try {
                 val client = com.wirelessalien.android.moviedb.NetworkClient.client
@@ -59,30 +67,42 @@ class GetShowProgressTkt(
                     .addHeader("accept", "application/json")
                     .addHeader("Authorization", "Bearer $accessToken")
                     .addHeader("trakt-api-version", "2")
-                    .addHeader("trakt-api-key", clientId ?:"")
+                    .addHeader("trakt-api-key", clientId ?: "")
                     .build()
-                val response = client.newCall(request).execute()
-                val responseBody = response.body!!.string()
-                val jsonResponse = JSONObject(responseBody)
-                val seasons = jsonResponse.getJSONArray("seasons")
-                for (i in 0 until seasons.length()) {
-                    val season = seasons.getJSONObject(i)
-                    if (season.getInt("number") == seasonNumber) {
-                        val episodes = season.getJSONArray("episodes")
-                        for (j in 0 until episodes.length()) {
-                            val episode = episodes.getJSONObject(j)
-                            val episodeNumber = episode.getInt("number")
-                            val completed = episode.getBoolean("completed")
-                            watchedEpisodes[episodeNumber] = completed
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        if (!responseBody.isNullOrEmpty()) {
+                            val jsonResponse = JSONObject(responseBody)
+                            val seasons = jsonResponse.optJSONArray("seasons")
+                            if (seasons != null) {
+                                for (i in 0 until seasons.length()) {
+                                    val season = seasons.getJSONObject(i)
+                                    if (season.optInt("number") == seasonNumber) {
+                                        val episodes = season.optJSONArray("episodes")
+                                        if (episodes != null) {
+                                            for (j in 0 until episodes.length()) {
+                                                val episode = episodes.getJSONObject(j)
+                                                val episodeNumber = episode.optInt("number")
+                                                val completed = episode.optBoolean("completed", false)
+                                                watchedEpisodes[episodeNumber] = completed
+                                            }
+                                        }
+                                        break
+                                    }
+                                }
+                            }
                         }
-                        break
+                    } else {
+                        Log.w("GetShowProgressTkt", "fetchShowProgress returned code ${response.code}")
                     }
                 }
-                withContext(Dispatchers.Main) {
-                    listener?.onDataFetched(watchedEpisodes)
-                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("GetShowProgressTkt", "Error fetching progress: ${e.message}")
+            }
+
+            withContext(Dispatchers.Main) {
+                listener?.onDataFetched(watchedEpisodes)
             }
         }
     }
