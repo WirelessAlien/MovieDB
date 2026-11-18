@@ -101,21 +101,26 @@ class SimklSyncService : Service() {
         getSimklSyncData = GetSimklSyncData(this, accessToken, clientId)
 
         serviceScope.launch {
-            updateNotification(getString(R.string.fetching_simkl_data))
-            getSimklSyncData?.fetchData(forceFullSync)
+            try {
+                updateNotification(getString(R.string.fetching_simkl_data))
+                getSimklSyncData?.fetchData(forceFullSync)
 
-            updateNotification(getString(R.string.fetching_tmdb_data1))
-            val tmdbDetails = GetTmdbDetails(this@SimklSyncService, tmdbApiKey ?: "")
-            tmdbDetails.fetchAndSaveSimklTmdbDetails { progressData, _ ->
-                updateNotification(progressData)
-            }
+                updateNotification(getString(R.string.fetching_tmdb_data1))
+                val tmdbDetails = GetTmdbDetails(this@SimklSyncService, tmdbApiKey ?: "")
+                tmdbDetails.fetchAndSaveSimklTmdbDetails { progressData, _ ->
+                    updateNotification(progressData)
+                }
 
-            updateNotification(getString(R.string.sync_completed))
-            val intent = Intent(ACTION_SERVICE_COMPLETED).apply {
-                setPackage(packageName)
+                updateNotification(getString(R.string.sync_completed))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                val intent = Intent(ACTION_SERVICE_COMPLETED).apply {
+                    setPackage(packageName)
+                }
+                sendBroadcast(intent)
+                stopSelf()
             }
-            sendBroadcast(intent)
-            stopSelf()
         }
     }
 

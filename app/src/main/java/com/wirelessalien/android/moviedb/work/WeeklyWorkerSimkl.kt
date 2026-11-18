@@ -22,37 +22,43 @@ package com.wirelessalien.android.moviedb.work
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.preference.PreferenceManager
-import androidx.work.Worker
+import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.wirelessalien.android.moviedb.helper.ConfigHelper
 import com.wirelessalien.android.moviedb.service.SimklSyncService
+import com.wirelessalien.android.moviedb.simkl.GetSimklSyncData
+import com.wirelessalien.android.moviedb.tmdb.GetTmdbDetails
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class WeeklyWorkerSimkl(context: Context, workerParams: WorkerParameters) :
-    Worker(context, workerParams) {
+    CoroutineWorker(context, workerParams) {
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         val accessToken = preferences.getString("simkl_access_token", null)
         val clientId = ConfigHelper.getConfigValue(applicationContext, "simkl_client_id")
         val tmdbApi = ConfigHelper.getConfigValue(applicationContext, "api_key")
 
         if (!accessToken.isNullOrEmpty() && !clientId.isNullOrEmpty()) {
-            val intent = Intent(applicationContext, SimklSyncService::class.java).apply {
-                action = SimklSyncService.ACTION_START_SERVICE
-                putExtra(SimklSyncService.EXTRA_ACCESS_TOKEN, accessToken)
-                putExtra(SimklSyncService.EXTRA_CLIENT_ID, clientId)
-                putExtra(SimklSyncService.EXTRA_TMDB_API_KEY, tmdbApi)
-            }
+            try {
+                val syncData = GetSimklSyncData(applicationContext, accessToken, clientId)
+                syncData.fetchData(forceFullSync = false)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                applicationContext.startForegroundService(intent)
-            } else {
-                applicationContext.startService(intent)
+                val tmdbDetails = GetTmdbDetails(applicationContext, tmdbApi ?: "")
+                tmdbDetails.fetchAndSaveSimklTmdbDetails { _, _ -> }
+
+                val intent = Intent(SimklSyncService.ACTION_SERVICE_COMPLETED).apply {
+                    setPackage(applicationContext.packageName)
+                }
+                applicationContext.sendBroadcast(intent)
+                Result.success()
+            } catch (e: Exception) {
+                Result.retry()
             }
+        } else {
+            Result.success()
         }
-
-        return Result.success()
     }
 }

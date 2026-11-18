@@ -65,12 +65,14 @@ class SimklSync(private val accessToken: String, private val context: Context) {
             .build()
     }
 
-    private fun applyHeaders(builder: Request.Builder, tokenOverride: String? = null): Request.Builder {
+    private fun applyHeaders(builder: Request.Builder, tokenOverride: String? = null, hasBody: Boolean = false): Request.Builder {
         val effectiveToken = tokenOverride ?: accessToken
         builder
             .header("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
-            .header("Content-Type", "application/json")
             .header("simkl-api-key", clientId)
+        if (hasBody) {
+            builder.header("Content-Type", "application/json")
+        }
         if (effectiveToken.isNotEmpty()) {
             builder.header("Authorization", "Bearer $effectiveToken")
         }
@@ -84,7 +86,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
         Log.d("SimklSync", "POST Request: $jsonBody")
         Log.d("SimklSync", "POST URL: $url")
 
-        val request = applyHeaders(Request.Builder().url(url))
+        val request = applyHeaders(Request.Builder().url(url), hasBody = true)
             .post(body)
             .build()
 
@@ -98,7 +100,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
         val url = buildSimklUrl(endpoint)
         Log.d("SimklSync", "GET URL: $url")
 
-        val request = applyHeaders(Request.Builder().url(url))
+        val request = applyHeaders(Request.Builder().url(url), hasBody = false)
             .get()
             .build()
 
@@ -110,7 +112,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
 
     suspend fun executeGetSync(endpoint: String): Response {
         val url = buildSimklUrl(endpoint)
-        val request = applyHeaders(Request.Builder().url(url))
+        val request = applyHeaders(Request.Builder().url(url), hasBody = false)
             .get()
             .build()
         getRateLimiter.acquire()
@@ -121,7 +123,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
         val mediaType = "application/json".toMediaTypeOrNull()
         val body = jsonBody.toString().toRequestBody(mediaType)
         val url = buildSimklUrl(endpoint)
-        val request = applyHeaders(Request.Builder().url(url))
+        val request = applyHeaders(Request.Builder().url(url), hasBody = true)
             .post(body)
             .build()
         postRateLimiter.acquire()
@@ -174,7 +176,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
                         val newToken = PreferenceManager.getDefaultSharedPreferences(appContext)
                             .getString("simkl_access_token", null)
                         if (!newToken.isNullOrEmpty()) {
-                            currentRequest = applyHeaders(currentRequest.newBuilder(), newToken).build()
+                            currentRequest = applyHeaders(currentRequest.newBuilder(), newToken, hasBody = currentRequest.body != null).build()
                             continue
                         }
                     }
@@ -244,7 +246,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
                             val newToken = PreferenceManager.getDefaultSharedPreferences(appContext)
                                 .getString("simkl_access_token", null)
                             if (!newToken.isNullOrEmpty()) {
-                                val updatedReq = applyHeaders(request.newBuilder(), newToken).build()
+                                val updatedReq = applyHeaders(request.newBuilder(), newToken, hasBody = request.body != null).build()
                                 executeWithRetryAsync(updatedReq, callback, attempt, waitTimeMs, true)
                                 return@launch
                             }
@@ -278,7 +280,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
     companion object {
         private const val MAX_RETRY_ATTEMPTS = 5
         private const val MAX_BACKOFF_MS = 60_000L
-        private val SERVER_ERROR_CODES = setOf(500, 502, 503)
+        private val SERVER_ERROR_CODES = setOf(500, 502, 503, 504)
 
         // Simkl Rate Limits: Max 10 GET/sec and 1 POST/sec per client_id and user token
         val getRateLimiter = RateLimiter(10, 1, TimeUnit.SECONDS)

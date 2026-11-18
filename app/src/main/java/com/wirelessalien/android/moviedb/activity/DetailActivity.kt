@@ -1533,9 +1533,20 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
             override fun onResponse(call: Call, response: Response) {
                 val isSuccess = response.isSuccessful
-                val msg = response.message
+                val responseStr = try { response.body?.string() } catch (_: Exception) { null }
+                val notFound = try {
+                    if (!responseStr.isNullOrEmpty()) {
+                        val root = JSONObject(responseStr)
+                        val nf = root.optJSONObject("not_found")
+                        val key = if (isMovie) "movies" else "shows"
+                        (nf?.optJSONArray(key)?.length() ?: 0) > 0
+                    } else false
+                } catch (_: Exception) { false }
+
+                val effectiveSuccess = isSuccess && !notFound
+                val msg = if (notFound) getString(R.string.could_not_find_show) else response.message
                 response.close()
-                if (isSuccess) {
+                if (effectiveSuccess) {
                     val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
                     else movieDataObject.optString("name", movieTitle ?: "")
                     val type = if (isMovie) "movie" else "show"
@@ -1546,7 +1557,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                 }
                 runOnUiThread {
-                    if (isSuccess) {
+                    if (effectiveSuccess) {
                         simklStatus = status
                         updateSimklButtonsUI()
                         Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
@@ -1560,34 +1571,32 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
     private fun removeSimklItemFromHistoryAndWatchlist() {
         val token = simklAccessToken ?: return
-        val payload = buildSimklMediaItemJson(idsOnly = true)
+        val removeListPayload = buildSimklMediaItemJson(toStatus = "remove")
+        val removeHistoryPayload = buildSimklMediaItemJson(idsOnly = true)
         val simklSync = SimklSync(token, context)
-        simklSync.post("sync/history/remove", payload, object : Callback {
+
+        simklSync.post("sync/add-to-list", removeListPayload, object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, "sync/history/remove"), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DetailActivity, getString(R.string.failed_to_sync, "sync/add-to-list"), Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val isSuccess = response.isSuccessful
-                val msg = response.message
                 response.close()
-                if (isSuccess) {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        val simklDb = SimklDatabaseHelper(context)
-                        simklDb.removeItem(movieId, isMovie)
-                    }
+                simklSync.post("sync/history/remove", removeHistoryPayload, object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {}
+                    override fun onResponse(call: Call, histResponse: Response) { histResponse.close() }
+                })
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val simklDb = SimklDatabaseHelper(context)
+                    simklDb.removeItem(movieId, isMovie)
                 }
                 runOnUiThread {
-                    if (isSuccess) {
-                        simklStatus = null
-                        simklRating = 0
-                        updateSimklButtonsUI()
-                        Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@DetailActivity, msg, Toast.LENGTH_SHORT).show()
-                    }
+                    simklStatus = null
+                    simklRating = 0
+                    updateSimklButtonsUI()
+                    Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()
                 }
             }
         })
@@ -1606,9 +1615,20 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
 
             override fun onResponse(call: Call, response: Response) {
                 val isSuccess = response.isSuccessful
-                val msg = response.message
+                val responseStr = try { response.body?.string() } catch (_: Exception) { null }
+                val notFound = try {
+                    if (!responseStr.isNullOrEmpty()) {
+                        val root = JSONObject(responseStr)
+                        val nf = root.optJSONObject("not_found")
+                        val key = if (isMovie) "movies" else "shows"
+                        (nf?.optJSONArray(key)?.length() ?: 0) > 0
+                    } else false
+                } catch (_: Exception) { false }
+
+                val effectiveSuccess = isSuccess && !notFound
+                val msg = if (notFound) getString(R.string.could_not_find_show) else response.message
                 response.close()
-                if (isSuccess) {
+                if (effectiveSuccess) {
                     val title = if (isMovie) movieDataObject.optString("title", movieTitle ?: "")
                     else movieDataObject.optString("name", movieTitle ?: "")
                     val type = if (isMovie) "movie" else "show"
@@ -1619,7 +1639,7 @@ class DetailActivity : BaseActivity(), ListTmdbBottomSheetFragment.OnListCreated
                     }
                 }
                 runOnUiThread {
-                    if (isSuccess) {
+                    if (effectiveSuccess) {
                         simklStatus = "completed"
                         updateSimklButtonsUI()
                         Toast.makeText(this@DetailActivity, getString(R.string.success), Toast.LENGTH_SHORT).show()

@@ -81,6 +81,9 @@ class GetSimklSyncData(
                 val savedShowsAll = savedActivities?.tvShowsAll
                 val savedAnimeAll = savedActivities?.animeAll
                 val savedRatingsAt = savedActivities?.ratingsAt
+                val savedMoviesRatedAt = savedActivities?.moviesRatedAt ?: savedRatingsAt
+                val savedShowsRatedAt = savedActivities?.tvShowsRatedAt ?: savedRatingsAt
+                val savedAnimeRatedAt = savedActivities?.animeRatedAt ?: savedRatingsAt
                 val savedMoviesRemovedAt = savedActivities?.moviesRemovedAt
                 val savedShowsRemovedAt = savedActivities?.tvShowsRemovedAt
                 val savedAnimeRemovedAt = savedActivities?.animeRemovedAt
@@ -89,6 +92,9 @@ class GetSimklSyncData(
                 var nextShowsAll = savedShowsAll
                 var nextAnimeAll = savedAnimeAll
                 var nextRatingsAt = savedRatingsAt
+                var nextMoviesRatedAt = savedMoviesRatedAt
+                var nextShowsRatedAt = savedShowsRatedAt
+                var nextAnimeRatedAt = savedAnimeRatedAt
                 var nextMoviesRemovedAt = savedMoviesRemovedAt
                 var nextShowsRemovedAt = savedShowsRemovedAt
                 var nextAnimeRemovedAt = savedAnimeRemovedAt
@@ -141,10 +147,27 @@ class GetSimklSyncData(
                         nextAnimeRemovedAt = remoteAnimeRemovedAt
                     }
 
+                    // Also fetch initial ratings to avoid missing items that are only rated without being on a list
+                    fetchEndpointBody(simklSync, "sync/ratings/movies")?.let { body ->
+                        parseAndSaveRatings(dbHelper, body, defaultType = "movie")
+                    }
+                    fetchEndpointBody(simklSync, "sync/ratings/shows")?.let { body ->
+                        parseAndSaveRatings(dbHelper, body, defaultType = "show")
+                    }
+                    fetchEndpointBody(simklSync, "sync/ratings/anime")?.let { body ->
+                        parseAndSaveRatings(dbHelper, body, defaultType = "anime")
+                    }
+
                     if (allSucceeded) {
                         nextRatingsAt = remoteRatingsAt
+                        nextMoviesRatedAt = remoteMoviesRatedAt
+                        nextShowsRatedAt = remoteShowsRatedAt
+                        nextAnimeRatedAt = remoteAnimeRatedAt
                     }
                 } else if (savedAll != remoteAll ||
+                    remoteMoviesRatedAt != savedMoviesRatedAt ||
+                    remoteShowsRatedAt != savedShowsRatedAt ||
+                    remoteAnimeRatedAt != savedAnimeRatedAt ||
                     savedMoviesRemovedAt != remoteMoviesRemovedAt ||
                     savedShowsRemovedAt != remoteShowsRemovedAt ||
                     savedAnimeRemovedAt != remoteAnimeRemovedAt
@@ -170,11 +193,14 @@ class GetSimklSyncData(
                         } else {
                             allSucceeded = false
                         }
-                    } else if (remoteMoviesRatedAt != null && remoteMoviesRatedAt != savedRatingsAt) {
-                        val dateParam = if (!savedRatingsAt.isNullOrEmpty()) "?date_from=$savedRatingsAt" else ""
+                    }
+
+                    if (remoteMoviesRatedAt != null && remoteMoviesRatedAt != savedMoviesRatedAt) {
+                        val dateParam = if (!savedMoviesRatedAt.isNullOrEmpty()) "?date_from=$savedMoviesRatedAt" else ""
                         fetchEndpointBody(simklSync, "sync/ratings/movies$dateParam")?.let { body ->
                             parseAndSaveRatings(dbHelper, body, defaultType = "movie")
                         }
+                        nextMoviesRatedAt = remoteMoviesRatedAt
                     }
 
                     if (remoteShowsAll != null && remoteShowsAll != savedShowsAll) {
@@ -195,11 +221,14 @@ class GetSimklSyncData(
                         } else {
                             allSucceeded = false
                         }
-                    } else if (remoteShowsRatedAt != null && remoteShowsRatedAt != savedRatingsAt) {
-                        val dateParam = if (!savedRatingsAt.isNullOrEmpty()) "?date_from=$savedRatingsAt" else ""
+                    }
+
+                    if (remoteShowsRatedAt != null && remoteShowsRatedAt != savedShowsRatedAt) {
+                        val dateParam = if (!savedShowsRatedAt.isNullOrEmpty()) "?date_from=$savedShowsRatedAt" else ""
                         fetchEndpointBody(simklSync, "sync/ratings/shows$dateParam")?.let { body ->
                             parseAndSaveRatings(dbHelper, body, defaultType = "show")
                         }
+                        nextShowsRatedAt = remoteShowsRatedAt
                     }
 
                     if (remoteAnimeAll != null && remoteAnimeAll != savedAnimeAll) {
@@ -220,11 +249,14 @@ class GetSimklSyncData(
                         } else {
                             allSucceeded = false
                         }
-                    } else if (remoteAnimeRatedAt != null && remoteAnimeRatedAt != savedRatingsAt) {
-                        val dateParam = if (!savedRatingsAt.isNullOrEmpty()) "?date_from=$savedRatingsAt" else ""
+                    }
+
+                    if (remoteAnimeRatedAt != null && remoteAnimeRatedAt != savedAnimeRatedAt) {
+                        val dateParam = if (!savedAnimeRatedAt.isNullOrEmpty()) "?date_from=$savedAnimeRatedAt" else ""
                         fetchEndpointBody(simklSync, "sync/ratings/anime$dateParam")?.let { body ->
                             parseAndSaveRatings(dbHelper, body, defaultType = "anime")
                         }
+                        nextAnimeRatedAt = remoteAnimeRatedAt
                     }
 
                     // Reconcile deletions if removed_from_list changed
@@ -264,6 +296,9 @@ class GetSimklSyncData(
                     animeAll = nextAnimeAll,
                     moviesAll = nextMoviesAll,
                     ratingsAt = nextRatingsAt,
+                    moviesRatedAt = nextMoviesRatedAt,
+                    tvShowsRatedAt = nextShowsRatedAt,
+                    animeRatedAt = nextAnimeRatedAt,
                     moviesRemovedAt = nextMoviesRemovedAt,
                     tvShowsRemovedAt = nextShowsRemovedAt,
                     animeRemovedAt = nextAnimeRemovedAt,

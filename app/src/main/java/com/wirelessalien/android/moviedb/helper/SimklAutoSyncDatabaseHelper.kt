@@ -40,7 +40,7 @@ class SimklAutoSyncDatabaseHelper(context: Context) :
                 $COL_IS_MOVIE INTEGER,
                 $COL_SYNC_DATE TEXT,
                 $COL_SYNC_TYPE TEXT,
-                UNIQUE($COL_MOVIE_ID, $COL_IS_MOVIE, $COL_SYNC_TYPE)
+                UNIQUE($COL_MOVIE_ID, $COL_IS_MOVIE)
             )
             """.trimIndent()
         )
@@ -72,14 +72,19 @@ class SimklAutoSyncDatabaseHelper(context: Context) :
     fun isItemSynced(movieId: Int, isMovie: Boolean, syncType: String): Boolean {
         return readableDatabase.query(
             TABLE_SYNCED_ITEMS,
-            null,
-            "$COL_MOVIE_ID = ? AND $COL_IS_MOVIE = ? AND $COL_SYNC_TYPE = ?",
-            arrayOf(movieId.toString(), if (isMovie) "1" else "0", syncType),
+            arrayOf(COL_SYNC_TYPE),
+            "$COL_MOVIE_ID = ? AND $COL_IS_MOVIE = ?",
+            arrayOf(movieId.toString(), if (isMovie) "1" else "0"),
             null,
             null,
             null
         ).use { cursor ->
-            cursor.count > 0
+            if (cursor.moveToFirst()) {
+                val storedSyncType = cursor.getString(cursor.getColumnIndexOrThrow(COL_SYNC_TYPE))
+                storedSyncType == syncType
+            } else {
+                false
+            }
         }
     }
 
@@ -89,7 +94,7 @@ class SimklAutoSyncDatabaseHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "simkl_auto_sync.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
         const val TABLE_SYNCED_ITEMS = "synced_items"
         const val COL_ID = "_id"
         const val COL_MOVIE_ID = "movie_id"

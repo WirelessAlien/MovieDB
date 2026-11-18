@@ -49,6 +49,7 @@ class AccountLogoutSimkl(private val context: Context, private val handler: Hand
                 val clientId = ConfigHelper.getConfigValue(context, "simkl_client_id") ?: ""
 
                 if (accessToken != null && clientId.isNotEmpty()) {
+                    SimklSync.postRateLimiter.acquire()
                     val url = "https://api.simkl.com/oauth2/revoke".toHttpUrl().newBuilder()
                         .addQueryParameter("client_id", clientId)
                         .addQueryParameter("app-name", "showcase")
@@ -58,6 +59,7 @@ class AccountLogoutSimkl(private val context: Context, private val handler: Hand
                     val formBody = FormBody.Builder()
                         .add("token", accessToken)
                         .add("client_id", clientId)
+                        .add("token_type_hint", "access_token")
                         .build()
 
                     val request = Request.Builder()
@@ -69,7 +71,7 @@ class AccountLogoutSimkl(private val context: Context, private val handler: Hand
                         .build()
 
                     try {
-                        client.newCall(request).execute().close()
+                        client.newCall(request).execute().use { }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

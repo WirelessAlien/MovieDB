@@ -1247,58 +1247,60 @@ class MainActivity : BaseActivity() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    val responseBody = response.peekBody(Long.MAX_VALUE).string()
-                    val jsonObject = JSONObject(responseBody)
-                    val accessToken = jsonObject.getString("access_token")
-                    val refreshToken = jsonObject.optString("refresh_token", "")
-                    val expiresIn = jsonObject.optLong("expires_in", 604800L)
-                    val createdAt = jsonObject.optLong("created_at", System.currentTimeMillis() / 1000)
+                response.use {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: ""
+                        val jsonObject = JSONObject(responseBody)
+                        val accessToken = jsonObject.getString("access_token")
+                        val refreshToken = jsonObject.optString("refresh_token", "")
+                        val expiresIn = jsonObject.optLong("expires_in", 604800L)
+                        val createdAt = jsonObject.optLong("created_at", System.currentTimeMillis() / 1000)
 
-                    preferences.edit().apply {
-                        putString("simkl_access_token", accessToken)
-                        if (refreshToken.isNotEmpty()) {
-                            putString("simkl_refresh_token", refreshToken)
-                        }
-                        putLong("simkl_token_expires_in", expiresIn)
-                        putLong("simkl_token_created_at", createdAt)
-                        remove("simkl_code_verifier")
-                        remove("simkl_oauth_state")
-                        apply()
-                    }
-
-                    SimklTokenRefreshWorker.scheduleRefresh(this@MainActivity, expiresIn)
-
-                    lifecycleScope.launch {
-                        GetAccountDetailsSimkl(
-                            this@MainActivity,
-                            resolvedSimklClientId,
-                            object : GetAccountDetailsSimkl.AccountDataCallback {
-                                override fun onAccountDataReceived(
-                                    userId: Int,
-                                    name: String?,
-                                    avatarUrl: String?
-                                ) {}
+                        preferences.edit().apply {
+                            putString("simkl_access_token", accessToken)
+                            if (refreshToken.isNotEmpty()) {
+                                putString("simkl_refresh_token", refreshToken)
                             }
-                        ).fetchAccountDetails()
-                    }
+                            putLong("simkl_token_expires_in", expiresIn)
+                            putLong("simkl_token_created_at", createdAt)
+                            remove("simkl_code_verifier")
+                            remove("simkl_oauth_state")
+                            apply()
+                        }
 
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, getString(R.string.login_successful), Toast.LENGTH_SHORT).show()
-                        val syncIntent = Intent(this@MainActivity, SimklSyncService::class.java).apply {
-                            action = SimklSyncService.ACTION_START_SERVICE
-                            putExtra(SimklSyncService.EXTRA_ACCESS_TOKEN, accessToken)
-                            putExtra(SimklSyncService.EXTRA_CLIENT_ID, resolvedSimklClientId)
-                            putExtra(SimklSyncService.EXTRA_TMDB_API_KEY, tmdbApiKey)
+                        SimklTokenRefreshWorker.scheduleRefresh(this@MainActivity, expiresIn)
+
+                        lifecycleScope.launch {
+                            GetAccountDetailsSimkl(
+                                this@MainActivity,
+                                resolvedSimklClientId,
+                                object : GetAccountDetailsSimkl.AccountDataCallback {
+                                    override fun onAccountDataReceived(
+                                        userId: Int,
+                                        name: String?,
+                                        avatarUrl: String?
+                                    ) {}
+                                }
+                            ).fetchAccountDetails()
                         }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            startForegroundService(syncIntent)
-                        } else {
-                            startService(syncIntent)
+
+                        runOnUiThread {
+                            Toast.makeText(this@MainActivity, getString(R.string.login_successful), Toast.LENGTH_SHORT).show()
+                            val syncIntent = Intent(this@MainActivity, SimklSyncService::class.java).apply {
+                                action = SimklSyncService.ACTION_START_SERVICE
+                                putExtra(SimklSyncService.EXTRA_ACCESS_TOKEN, accessToken)
+                                putExtra(SimklSyncService.EXTRA_CLIENT_ID, resolvedSimklClientId)
+                                putExtra(SimklSyncService.EXTRA_TMDB_API_KEY, tmdbApiKey)
+                            }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                startForegroundService(syncIntent)
+                            } else {
+                                startService(syncIntent)
+                            }
                         }
+                    } else {
+                        Log.e("MainActivity", "Simkl token error: ${response.code} ${response.message}")
                     }
-                } else {
-                    Log.e("MainActivity", "Simkl token error: ${response.code} ${response.message}")
                 }
             }
         })

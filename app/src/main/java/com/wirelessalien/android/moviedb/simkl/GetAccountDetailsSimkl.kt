@@ -34,7 +34,7 @@ import org.json.JSONObject
 import java.io.IOException
 
 class GetAccountDetailsSimkl(
-    private val context: Context?,
+    private val context: Context,
     private val clientId: String,
     private val callback: AccountDataCallback?
 ) {
@@ -50,7 +50,7 @@ class GetAccountDetailsSimkl(
     }
 
     init {
-        val preferences = PreferenceManager.getDefaultSharedPreferences(context!!)
+        val preferences = PreferenceManager.getDefaultSharedPreferences(context)
         accessToken = preferences.getString("simkl_access_token", "")
         client = com.wirelessalien.android.moviedb.NetworkClient.client
     }
@@ -58,6 +58,7 @@ class GetAccountDetailsSimkl(
     suspend fun fetchAccountDetails() {
         withContext(Dispatchers.IO) {
             try {
+                SimklSync.getRateLimiter.acquire()
                 val url = "https://api.simkl.com/users/settings".toHttpUrl().newBuilder()
                     .addQueryParameter("client_id", clientId)
                     .addQueryParameter("app-name", "showcase")
@@ -67,36 +68,36 @@ class GetAccountDetailsSimkl(
                 val request = Request.Builder()
                     .url(url)
                     .get()
-                    .addHeader("Content-Type", "application/json")
                     .addHeader("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
                     .addHeader("simkl-api-key", clientId)
                     .addHeader("Authorization", "Bearer $accessToken")
                     .build()
 
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val responseBody = response.body?.string() ?: ""
-                    val jsonResponse = JSONObject(responseBody)
-                    val user = jsonResponse.optJSONObject("user")
-                    val account = jsonResponse.optJSONObject("account")
-                    val name = user?.optString("name", "")
-                    val rawAvatar = user?.optString("avatar", "") ?: ""
-                    val avatarUrl = when {
-                        rawAvatar.isEmpty() || rawAvatar == "null" -> null
-                        rawAvatar.startsWith("http") -> rawAvatar
-                        else -> "https://simkl.in/avatars/${rawAvatar}_m.jpg"
-                    }
-                    val userId = account?.optInt("id", -1) ?: -1
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: ""
+                        val jsonResponse = JSONObject(responseBody)
+                        val user = jsonResponse.optJSONObject("user")
+                        val account = jsonResponse.optJSONObject("account")
+                        val name = user?.optString("name", "")
+                        val rawAvatar = user?.optString("avatar", "") ?: ""
+                        val avatarUrl = when {
+                            rawAvatar.isEmpty() || rawAvatar == "null" -> null
+                            rawAvatar.startsWith("http") -> rawAvatar
+                            else -> "https://simkl.in/avatars/${rawAvatar}_m.jpg"
+                        }
+                        val userId = account?.optInt("id", -1) ?: -1
 
-                    if (userId != -1 && context != null) {
-                        PreferenceManager.getDefaultSharedPreferences(context).edit()
-                            .putInt("simkl_user_id", userId)
-                            .apply()
-                    }
+                        if (userId != -1) {
+                            PreferenceManager.getDefaultSharedPreferences(context).edit()
+                                .putInt("simkl_user_id", userId)
+                                .apply()
+                        }
 
-                    callback?.onAccountDataReceived(userId, name, avatarUrl)
-                } else {
-                    Log.e("GetAccountDetailsSimkl", "Failed to get Simkl account details: ${response.code}")
+                        callback?.onAccountDataReceived(userId, name, avatarUrl)
+                    } else {
+                        Log.e("GetAccountDetailsSimkl", "Failed to get Simkl account details: ${response.code}")
+                    }
                 }
             } catch (e: IOException) {
                 e.printStackTrace()

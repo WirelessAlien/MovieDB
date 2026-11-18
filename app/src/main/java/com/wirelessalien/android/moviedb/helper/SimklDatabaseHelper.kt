@@ -34,6 +34,9 @@ class SimklDatabaseHelper(context: Context) :
         val animeAll: String?,
         val moviesAll: String?,
         val ratingsAt: String?,
+        val moviesRatedAt: String? = null,
+        val tvShowsRatedAt: String? = null,
+        val animeRatedAt: String? = null,
         val moviesRemovedAt: String?,
         val tvShowsRemovedAt: String?,
         val animeRemovedAt: String?,
@@ -44,13 +47,31 @@ class SimklDatabaseHelper(context: Context) :
         db.execSQL(CREATE_SYNC_ACTIVITIES_TABLE)
         db.execSQL(CREATE_ITEMS_TABLE)
         db.execSQL(CREATE_SEASON_EPISODE_WATCHED_TABLE)
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_simkl_items_tmdb_type ON $TABLE_ITEMS ($COL_TMDB, $COL_TYPE)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_simkl_items_status ON $TABLE_ITEMS ($COL_STATUS)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_SYNC_ACTIVITIES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_ITEMS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_SEASON_EPISODE_WATCHED")
-        onCreate(db)
+        if (oldVersion < 3) {
+            try {
+                db.execSQL("ALTER TABLE $TABLE_SYNC_ACTIVITIES ADD COLUMN $COL_MOVIES_RATED_AT TEXT")
+            } catch (_: Exception) {}
+            try {
+                db.execSQL("ALTER TABLE $TABLE_SYNC_ACTIVITIES ADD COLUMN $COL_TV_SHOWS_RATED_AT TEXT")
+            } catch (_: Exception) {}
+            try {
+                db.execSQL("ALTER TABLE $TABLE_SYNC_ACTIVITIES ADD COLUMN $COL_ANIME_RATED_AT TEXT")
+            } catch (_: Exception) {}
+            try {
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_simkl_items_tmdb_type ON $TABLE_ITEMS ($COL_TMDB, $COL_TYPE)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_simkl_items_status ON $TABLE_ITEMS ($COL_STATUS)")
+            } catch (_: Exception) {}
+        } else {
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_SYNC_ACTIVITIES")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_ITEMS")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_SEASON_EPISODE_WATCHED")
+            onCreate(db)
+        }
     }
 
     fun getSyncActivities(): SyncActivities? {
@@ -68,12 +89,18 @@ class SimklDatabaseHelper(context: Context) :
             val moviesRemIdx = cursor.getColumnIndex(COL_MOVIES_REMOVED_AT)
             val showsRemIdx = cursor.getColumnIndex(COL_TV_SHOWS_REMOVED_AT)
             val animeRemIdx = cursor.getColumnIndex(COL_ANIME_REMOVED_AT)
+            val movRatedIdx = cursor.getColumnIndex(COL_MOVIES_RATED_AT)
+            val showsRatedIdx = cursor.getColumnIndex(COL_TV_SHOWS_RATED_AT)
+            val animeRatedIdx = cursor.getColumnIndex(COL_ANIME_RATED_AT)
             SyncActivities(
                 allAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_ALL_AT)),
                 tvShowsAll = cursor.getString(cursor.getColumnIndexOrThrow(COL_TV_SHOWS_ALL)),
                 animeAll = cursor.getString(cursor.getColumnIndexOrThrow(COL_ANIME_ALL)),
                 moviesAll = cursor.getString(cursor.getColumnIndexOrThrow(COL_MOVIES_ALL)),
                 ratingsAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_RATINGS_AT)),
+                moviesRatedAt = if (movRatedIdx >= 0) cursor.getString(movRatedIdx) else null,
+                tvShowsRatedAt = if (showsRatedIdx >= 0) cursor.getString(showsRatedIdx) else null,
+                animeRatedAt = if (animeRatedIdx >= 0) cursor.getString(animeRatedIdx) else null,
                 moviesRemovedAt = if (moviesRemIdx >= 0) cursor.getString(moviesRemIdx) else null,
                 tvShowsRemovedAt = if (showsRemIdx >= 0) cursor.getString(showsRemIdx) else null,
                 animeRemovedAt = if (animeRemIdx >= 0) cursor.getString(animeRemIdx) else null,
@@ -92,6 +119,9 @@ class SimklDatabaseHelper(context: Context) :
         animeAll: String?,
         moviesAll: String?,
         ratingsAt: String?,
+        moviesRatedAt: String? = null,
+        tvShowsRatedAt: String? = null,
+        animeRatedAt: String? = null,
         moviesRemovedAt: String? = null,
         tvShowsRemovedAt: String? = null,
         animeRemovedAt: String? = null,
@@ -105,6 +135,9 @@ class SimklDatabaseHelper(context: Context) :
             put(COL_ANIME_ALL, animeAll)
             put(COL_MOVIES_ALL, moviesAll)
             put(COL_RATINGS_AT, ratingsAt)
+            put(COL_MOVIES_RATED_AT, moviesRatedAt)
+            put(COL_TV_SHOWS_RATED_AT, tvShowsRatedAt)
+            put(COL_ANIME_RATED_AT, animeRatedAt)
             put(COL_MOVIES_REMOVED_AT, moviesRemovedAt)
             put(COL_TV_SHOWS_REMOVED_AT, tvShowsRemovedAt)
             put(COL_ANIME_REMOVED_AT, animeRemovedAt)
@@ -529,7 +562,7 @@ class SimklDatabaseHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "simkl.db"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 3
 
         const val TABLE_SYNC_ACTIVITIES = "sync_activities"
         const val COL_ID = "id"
@@ -538,6 +571,9 @@ class SimklDatabaseHelper(context: Context) :
         const val COL_ANIME_ALL = "anime_all"
         const val COL_MOVIES_ALL = "movies_all"
         const val COL_RATINGS_AT = "ratings_at"
+        const val COL_MOVIES_RATED_AT = "movies_rated_at"
+        const val COL_TV_SHOWS_RATED_AT = "tv_shows_rated_at"
+        const val COL_ANIME_RATED_AT = "anime_rated_at"
         const val COL_MOVIES_REMOVED_AT = "movies_removed_at"
         const val COL_TV_SHOWS_REMOVED_AT = "tv_shows_removed_at"
         const val COL_ANIME_REMOVED_AT = "anime_removed_at"
@@ -576,6 +612,9 @@ class SimklDatabaseHelper(context: Context) :
                 $COL_ANIME_ALL TEXT,
                 $COL_MOVIES_ALL TEXT,
                 $COL_RATINGS_AT TEXT,
+                $COL_MOVIES_RATED_AT TEXT,
+                $COL_TV_SHOWS_RATED_AT TEXT,
+                $COL_ANIME_RATED_AT TEXT,
                 $COL_MOVIES_REMOVED_AT TEXT,
                 $COL_TV_SHOWS_REMOVED_AT TEXT,
                 $COL_ANIME_REMOVED_AT TEXT,

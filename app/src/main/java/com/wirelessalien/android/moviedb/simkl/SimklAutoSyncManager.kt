@@ -67,27 +67,27 @@ class SimklAutoSyncManager(val context: Context) {
                 it.category == MovieDatabaseHelper.CATEGORY_WATCHED
             }
 
-            val listSuccess = if (listOnlyBatch.isNotEmpty()) {
+            val (listSuccess, listNotFoundIds) = if (listOnlyBatch.isNotEmpty()) {
                 val addToListJson = createAddToListPayload(listOnlyBatch)
                 sendToSimkl(simklSync, "sync/add-to-list", addToListJson)
             } else {
-                true
+                Pair(true, emptySet())
             }
 
-            val historySuccess = if (watchedBatch.isNotEmpty()) {
+            val (historySuccess, historyNotFoundIds) = if (watchedBatch.isNotEmpty()) {
                 val historyJson = createHistoryPayload(watchedBatch)
                 sendToSimkl(simklSync, "sync/history", historyJson)
             } else {
-                true
+                Pair(true, emptySet())
             }
 
             if (listSuccess) {
-                listOnlyBatch.forEach { item ->
+                listOnlyBatch.filter { it.id !in listNotFoundIds }.forEach { item ->
                     simklSyncDbHelper.addSyncedItem(item.id, item.isMovie, item.simklStatus)
                 }
             }
             if (historySuccess) {
-                watchedBatch.forEach { item ->
+                watchedBatch.filter { it.id !in historyNotFoundIds }.forEach { item ->
                     simklSyncDbHelper.addSyncedItem(item.id, item.isMovie, item.simklStatus)
                 }
             }
@@ -235,16 +235,38 @@ class SimklAutoSyncManager(val context: Context) {
         simklSync: SimklSync,
         endpoint: String,
         jsonObject: JSONObject
-    ): Boolean {
+    ): Pair<Boolean, Set<Int>> {
         return try {
             Log.d("SimklAutoSyncManager", "Sending to Simkl ($endpoint): $jsonObject")
             simklSync.executePostSync(endpoint, jsonObject).use { response ->
                 Log.d("SimklAutoSyncManager", "Response ($endpoint): HTTP ${response.code}")
-                response.isSuccessful
+                if (!response.isSuccessful) return Pair(false, emptySet())
+
+                val responseBody = response.body?.string() ?: ""
+                val notFoundIds = mutableSetOf<Int>()
+                if (responseBody.isNotEmpty()) {
+                    val root = JSONObject(responseBody)
+                    val notFound = root.optJSONObject("not_found")
+                    if (notFound != null) {
+                        fun collectNotFound(arr: JSONArray?) {
+                            if (arr == null) return
+                            for (i in 0 until arr.length()) {
+                                val item = arr.optJSONObject(i) ?: continue
+                                val ids = item.optJSONObject("ids") ?: item
+                                val tmdb = ids.optInt("tmdb", 0)
+                                if (tmdb > 0) notFoundIds.add(tmdb)
+                            }
+                        }
+                        collectNotFound(notFound.optJSONArray("movies"))
+                        collectNotFound(notFound.optJSONArray("shows"))
+                        collectNotFound(notFound.optJSONArray("anime"))
+                    }
+                }
+                Pair(true, notFoundIds)
             }
         } catch (e: Exception) {
             Log.e("SimklAutoSyncManager", "Failed sending batch to Simkl ($endpoint): ${e.message}")
-            false
+            Pair(false, emptySet())
         }
     }
 
