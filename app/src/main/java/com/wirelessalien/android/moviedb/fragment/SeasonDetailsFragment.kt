@@ -221,7 +221,13 @@ class SeasonDetailsFragment : Fragment() {
                 return when (menuItem.itemId) {
                     R.id.action_watched_tkt -> {
                         val adapter = binding.episodeRecyclerView.adapter as EpisodeAdapter?
-                        if (adapter != null && !tktaccessToken.isNullOrEmpty()) {
+                        if (adapter != null) {
+                            val token = tktaccessToken
+                            val ctx = context
+                            if (token.isNullOrEmpty() || ctx == null) {
+                                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
+                                return true
+                            }
                             val episodes = adapter.episodes
                             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
                             sdf.timeZone = TimeZone.getTimeZone("UTC")
@@ -246,12 +252,6 @@ class SeasonDetailsFragment : Fragment() {
                                 }))
                             }
 
-                            val token = tktaccessToken
-                            val ctx = context
-                            if (token.isNullOrEmpty() || ctx == null) {
-                                Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
-                                return true
-                            }
                             val traktApiService = TraktSync(token, ctx)
                             val endPoint = if (isInWatched) "sync/history/remove" else "sync/history"
                             traktApiService.post(endPoint, showsObject, object : Callback {

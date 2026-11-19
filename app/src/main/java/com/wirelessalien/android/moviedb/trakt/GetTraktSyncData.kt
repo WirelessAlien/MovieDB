@@ -87,49 +87,58 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
             val listsUpdatedAt = listsObj?.optString("updated_at")
 
             if (moviesCollectedAt != preferences.getString(PREF_LAST_MOVIES_COLLECTED, null)) {
-                fetchCollectionData()
-                preferences.edit().putString(PREF_LAST_MOVIES_COLLECTED, moviesCollectedAt).apply()
+                if (fetchCollectionData()) {
+                    preferences.edit().putString(PREF_LAST_MOVIES_COLLECTED, moviesCollectedAt).apply()
+                }
             }
 
             if (showsCollectedAt != preferences.getString(PREF_LAST_SHOWS_COLLECTED, null)) {
-                fetchCollectionShowData()
-                preferences.edit().putString(PREF_LAST_SHOWS_COLLECTED, showsCollectedAt).apply()
+                if (fetchCollectionShowData()) {
+                    preferences.edit().putString(PREF_LAST_SHOWS_COLLECTED, showsCollectedAt).apply()
+                }
             }
 
             if (moviesWatchedAt != preferences.getString(PREF_LAST_MOVIES_WATCHED, null)) {
-                fetchWatchedDataMovie()
-                preferences.edit().putString(PREF_LAST_MOVIES_WATCHED, moviesWatchedAt).apply()
+                if (fetchWatchedDataMovie()) {
+                    preferences.edit().putString(PREF_LAST_MOVIES_WATCHED, moviesWatchedAt).apply()
+                }
             }
 
             if (showsWatchedAt != preferences.getString(PREF_LAST_SHOWS_WATCHED, null)) {
-                fetchWatchedDataShow()
-                preferences.edit().putString(PREF_LAST_SHOWS_WATCHED, showsWatchedAt).apply()
+                if (fetchWatchedDataShow()) {
+                    preferences.edit().putString(PREF_LAST_SHOWS_WATCHED, showsWatchedAt).apply()
+                }
             }
 
             if (historyWatchedAt != preferences.getString(PREF_LAST_HISTORY_WATCHED, null)) {
-                fetchHistoryData()
-                preferences.edit().putString(PREF_LAST_HISTORY_WATCHED, historyWatchedAt).apply()
+                if (fetchHistoryData()) {
+                    preferences.edit().putString(PREF_LAST_HISTORY_WATCHED, historyWatchedAt).apply()
+                }
             }
 
             if (ratingsRatedAt != preferences.getString(PREF_LAST_RATINGS, null)) {
-                fetchRatingData()
-                preferences.edit().putString(PREF_LAST_RATINGS, ratingsRatedAt).apply()
+                if (fetchRatingData()) {
+                    preferences.edit().putString(PREF_LAST_RATINGS, ratingsRatedAt).apply()
+                }
             }
 
             if (watchlistAt != preferences.getString(PREF_LAST_WATCHLIST, null)) {
-                fetchWatchlistData()
-                preferences.edit().putString(PREF_LAST_WATCHLIST, watchlistAt).apply()
+                if (fetchWatchlistData()) {
+                    preferences.edit().putString(PREF_LAST_WATCHLIST, watchlistAt).apply()
+                }
             }
 
             if (favoritesAt != preferences.getString(PREF_LAST_FAVORITES, null)) {
-                fetchFavoriteData()
-                preferences.edit().putString(PREF_LAST_FAVORITES, favoritesAt).apply()
+                if (fetchFavoriteData()) {
+                    preferences.edit().putString(PREF_LAST_FAVORITES, favoritesAt).apply()
+                }
             }
 
             if (listsUpdatedAt != preferences.getString(PREF_LAST_LISTS, null)) {
-                fetchUserLists()
-                fetchAllListItems()
-                preferences.edit().putString(PREF_LAST_LISTS, listsUpdatedAt).apply()
+                if (fetchUserLists()) {
+                    fetchAllListItems()
+                    preferences.edit().putString(PREF_LAST_LISTS, listsUpdatedAt).apply()
+                }
             }
         } else {
             // Full fallback / force sync
@@ -163,7 +172,7 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         return result
     }
 
-    fun fetchAllListItems() {
+    fun fetchAllListItems(): Boolean {
         val db = dbHelper.readableDatabase
         val listIds = mutableListOf<String>()
         val cursor = db.query(
@@ -184,15 +193,20 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
             }
         }
 
+        var allSuccess = true
         for (listId in listIds) {
-            getListsItems(listId)
+            val success = getListsItems(listId)
+            if (!success) {
+                allSuccess = false
+            }
         }
+        return allSuccess
     }
 
-    fun fetchFavoriteData() {
+    fun fetchFavoriteData(): Boolean {
         val url = "https://api.trakt.tv/sync/favorites"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -244,10 +258,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchWatchlistData() {
+    fun fetchWatchlistData(): Boolean {
         val url = "https://api.trakt.tv/sync/watchlist"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -335,10 +349,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchRatingData() {
+    fun fetchRatingData(): Boolean {
         val url = "https://api.trakt.tv/sync/ratings"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -425,85 +439,101 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchHistoryData() {
+    fun fetchHistoryData(): Boolean {
+        val allHistoryValues = mutableListOf<ContentValues>()
+        var page = 1
+        var hasMorePages = true
+        var fetchFailed = false
+
+        while (hasMorePages && page <= 5) {
+            val url = "https://api.trakt.tv/sync/history?page=$page&limit=50"
+            val request = createRequest(url)
+            var itemsInPage = 0
+
+            val success = executeRequest(request) { response ->
+                val jsonArray = JSONArray(response)
+                itemsInPage = jsonArray.length()
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    val type = jsonObject.optString("type")
+                    val values = ContentValues().apply {
+                        put(TraktDatabaseHelper.COL_WATCHED_AT, jsonObject.optString("watched_at"))
+                        put(TraktDatabaseHelper.COL_ACTION, jsonObject.optString("action"))
+                        put(TraktDatabaseHelper.COL_TYPE, type)
+                        when (type) {
+                            "movie" -> {
+                                val movie = jsonObject.optJSONObject("movie")
+                                if (movie != null) {
+                                    val ids = movie.optJSONObject("ids")
+                                    put(TraktDatabaseHelper.COL_TITLE, movie.optString("title"))
+                                    put(TraktDatabaseHelper.COL_YEAR, movie.optInt("year"))
+                                    put(TraktDatabaseHelper.COL_TRAKT_ID, ids?.optInt("trakt", -1))
+                                    put(TraktDatabaseHelper.COL_SLUG, ids?.optString("slug"))
+                                    put(TraktDatabaseHelper.COL_IMDB, ids?.optString("imdb"))
+                                    put(TraktDatabaseHelper.COL_TMDB, ids?.optInt("tmdb", -1))
+                                }
+                            }
+                            "episode" -> {
+                                val episode = jsonObject.optJSONObject("episode")
+                                val show = jsonObject.optJSONObject("show")
+                                val epIds = episode?.optJSONObject("ids")
+                                val showIds = show?.optJSONObject("ids")
+                                put(TraktDatabaseHelper.COL_SEASON, episode?.optInt("season"))
+                                put(TraktDatabaseHelper.COL_NUMBER, episode?.optInt("number"))
+                                put(TraktDatabaseHelper.COL_TITLE, episode?.optString("title"))
+                                put(TraktDatabaseHelper.COL_TRAKT_ID, epIds?.optInt("trakt", -1))
+                                put(TraktDatabaseHelper.COL_TVDB, epIds?.optInt("tvdb", -1))
+                                put(TraktDatabaseHelper.COL_IMDB, epIds?.optString("imdb"))
+                                put(TraktDatabaseHelper.COL_TMDB, epIds?.optInt("tmdb", -1))
+                                put(TraktDatabaseHelper.COL_SHOW_TITLE, show?.optString("title"))
+                                put(TraktDatabaseHelper.COL_SHOW_YEAR, show?.optInt("year"))
+                                put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, showIds?.optInt("trakt", -1))
+                                put(TraktDatabaseHelper.COL_SHOW_SLUG, showIds?.optString("slug"))
+                                put(TraktDatabaseHelper.COL_SHOW_TVDB, showIds?.optInt("tvdb", -1))
+                                put(TraktDatabaseHelper.COL_SHOW_IMDB, showIds?.optString("imdb"))
+                                put(TraktDatabaseHelper.COL_SHOW_TMDB, showIds?.optInt("tmdb", -1))
+                            }
+                        }
+                    }
+                    allHistoryValues.add(values)
+                }
+            }
+
+            if (!success) {
+                fetchFailed = true
+                break
+            }
+
+            if (itemsInPage < 50) {
+                hasMorePages = false
+            } else {
+                page++
+            }
+        }
+
+        if (fetchFailed && allHistoryValues.isEmpty()) {
+            Log.e(TAG, "fetchHistoryData failed to fetch any history pages, skipping database update")
+            return false
+        }
+
         val db = dbHelper.writableDatabase
         db.beginTransaction()
         try {
             db.delete(TraktDatabaseHelper.TABLE_HISTORY, null, null)
-
-            // Fetch up to 5 pages of history (250 items) to prevent wiping user history
-            var page = 1
-            var hasMorePages = true
-            while (hasMorePages && page <= 5) {
-                val url = "https://api.trakt.tv/sync/history?page=$page&limit=50"
-                val request = createRequest(url)
-                var itemsInPage = 0
-
-                executeRequest(request) { response ->
-                    val jsonArray = JSONArray(response)
-                    itemsInPage = jsonArray.length()
-                    for (i in 0 until jsonArray.length()) {
-                        val jsonObject = jsonArray.getJSONObject(i)
-                        val type = jsonObject.optString("type")
-                        val values = ContentValues().apply {
-                            put(TraktDatabaseHelper.COL_WATCHED_AT, jsonObject.optString("watched_at"))
-                            put(TraktDatabaseHelper.COL_ACTION, jsonObject.optString("action"))
-                            put(TraktDatabaseHelper.COL_TYPE, type)
-                            when (type) {
-                                "movie" -> {
-                                    val movie = jsonObject.optJSONObject("movie")
-                                    if (movie != null) {
-                                        val ids = movie.optJSONObject("ids")
-                                        put(TraktDatabaseHelper.COL_TITLE, movie.optString("title"))
-                                        put(TraktDatabaseHelper.COL_YEAR, movie.optInt("year"))
-                                        put(TraktDatabaseHelper.COL_TRAKT_ID, ids?.optInt("trakt", -1))
-                                        put(TraktDatabaseHelper.COL_SLUG, ids?.optString("slug"))
-                                        put(TraktDatabaseHelper.COL_IMDB, ids?.optString("imdb"))
-                                        put(TraktDatabaseHelper.COL_TMDB, ids?.optInt("tmdb", -1))
-                                    }
-                                }
-                                "episode" -> {
-                                    val episode = jsonObject.optJSONObject("episode")
-                                    val show = jsonObject.optJSONObject("show")
-                                    val epIds = episode?.optJSONObject("ids")
-                                    val showIds = show?.optJSONObject("ids")
-                                    put(TraktDatabaseHelper.COL_SEASON, episode?.optInt("season"))
-                                    put(TraktDatabaseHelper.COL_NUMBER, episode?.optInt("number"))
-                                    put(TraktDatabaseHelper.COL_TITLE, episode?.optString("title"))
-                                    put(TraktDatabaseHelper.COL_TRAKT_ID, epIds?.optInt("trakt", -1))
-                                    put(TraktDatabaseHelper.COL_TVDB, epIds?.optInt("tvdb", -1))
-                                    put(TraktDatabaseHelper.COL_IMDB, epIds?.optString("imdb"))
-                                    put(TraktDatabaseHelper.COL_TMDB, epIds?.optInt("tmdb", -1))
-                                    put(TraktDatabaseHelper.COL_SHOW_TITLE, show?.optString("title"))
-                                    put(TraktDatabaseHelper.COL_SHOW_YEAR, show?.optInt("year"))
-                                    put(TraktDatabaseHelper.COL_SHOW_TRAKT_ID, showIds?.optInt("trakt", -1))
-                                    put(TraktDatabaseHelper.COL_SHOW_SLUG, showIds?.optString("slug"))
-                                    put(TraktDatabaseHelper.COL_SHOW_TVDB, showIds?.optInt("tvdb", -1))
-                                    put(TraktDatabaseHelper.COL_SHOW_IMDB, showIds?.optString("imdb"))
-                                    put(TraktDatabaseHelper.COL_SHOW_TMDB, showIds?.optInt("tmdb", -1))
-                                }
-                            }
-                        }
-                        db.insert(TraktDatabaseHelper.TABLE_HISTORY, null, values)
-                    }
-                }
-
-                if (itemsInPage < 50) {
-                    hasMorePages = false
-                } else {
-                    page++
-                }
+            for (values in allHistoryValues) {
+                db.insert(TraktDatabaseHelper.TABLE_HISTORY, null, values)
             }
             db.setTransactionSuccessful()
+            return !fetchFailed
         } finally {
             db.endTransaction()
         }
     }
 
-    fun fetchWatchedDataMovie() {
+    fun fetchWatchedDataMovie(): Boolean {
         val url = "https://api.trakt.tv/sync/watched/movies"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -540,10 +570,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchWatchedDataShow() {
+    fun fetchWatchedDataShow(): Boolean {
         val url = "https://api.trakt.tv/sync/watched/shows"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -613,10 +643,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchCollectionData() {
+    fun fetchCollectionData(): Boolean {
         val url = "https://api.trakt.tv/sync/collection/movies?extended=metadata"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -664,10 +694,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchCollectionShowData() {
+    fun fetchCollectionShowData(): Boolean {
         val url = "https://api.trakt.tv/sync/collection/shows?extended=metadata"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -736,10 +766,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchUserLists() {
+    fun fetchUserLists(): Boolean {
         val url = "https://api.trakt.tv/users/me/lists"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -775,10 +805,10 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    private fun getListsItems(listId: String) {
+    private fun getListsItems(listId: String): Boolean {
         val url = "https://api.trakt.tv/users/me/lists/$listId/items/"
         val request = createRequest(url)
-        executeRequest(request) { response ->
+        return executeRequest(request) { response ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -881,13 +911,13 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
         }
     }
 
-    fun fetchCalendarData() {
+    fun fetchCalendarData(): Boolean {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         val today = sdf.format(Date())
 
         val showsUrl = "https://api.trakt.tv/calendars/my/shows/$today/30"
         val showsRequest = createRequest(showsUrl)
-        executeRequest(showsRequest) { showResponse ->
+        val showsSuccess = executeRequest(showsRequest) { showResponse ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -930,7 +960,7 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
 
         val moviesUrl = "https://api.trakt.tv/calendars/my/movies/$today/30"
         val moviesRequest = createRequest(moviesUrl)
-        executeRequest(moviesRequest) { movieResponse ->
+        val moviesSuccess = executeRequest(moviesRequest) { movieResponse ->
             val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
@@ -960,6 +990,8 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
                 db.endTransaction()
             }
         }
+
+        return showsSuccess && moviesSuccess
     }
 
     fun fetchCurrentlyWatching(onResponse: (String) -> Unit) {
@@ -984,7 +1016,7 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
     private fun executeRequest(
         request: Request,
         onSuccess: (String) -> Unit,
-    ) {
+    ): Boolean {
         try {
             client.newCall(request).execute().use { response ->
                 if (response.code == 429) {
@@ -996,17 +1028,22 @@ class GetTraktSyncData(private val context: Context, private val accessToken: St
                     val responseBody = response.body?.string()
                     if (!responseBody.isNullOrEmpty()) {
                         onSuccess(responseBody)
+                        return true
                     } else {
                         Log.d(TAG, "Empty response body for ${request.url}")
+                        return false
                     }
                 } else {
                     Log.e(TAG, "Request failed with code: ${response.code} for ${request.url}")
+                    return false
                 }
             }
         } catch (e: IOException) {
             Log.e(TAG, "Network error: ${e.message}")
+            return false
         } catch (e: Exception) {
             Log.e(TAG, "Error executing request: ${e.message}")
+            return false
         }
     }
 }

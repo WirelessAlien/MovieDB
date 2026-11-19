@@ -111,8 +111,6 @@ class EpisodeAdapter(
     private lateinit var clientId: String
     private val episodeWatchlistStatus: MutableMap<Int, Boolean> = HashMap()
     private val episodeRatingStatus: MutableMap<Int, Boolean> = HashMap()
-    private var isInWatchList: Boolean = false
-    private var isInRating: Boolean = false
     private val defaultSharedPreferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(context)
     }
@@ -366,7 +364,9 @@ class EpisodeAdapter(
 
             episodeWatchlistStatus[episode.episodeNumber] = newStates.first
             episodeRatingStatus[episode.episodeNumber] = newStates.second
-            updateIconStates(holder, episode.episodeNumber)
+            if (holder.bindingAdapterPosition == position) {
+                updateIconStates(holder, episode.episodeNumber)
+            }
         }
 
         val isWatched = watchedEpisodes[episode.episodeNumber] ?: false

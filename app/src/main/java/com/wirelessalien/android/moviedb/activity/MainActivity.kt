@@ -1375,12 +1375,13 @@ class MainActivity : BaseActivity() {
                         scheduleTokenRefresh(tokenResponse.expiresIn)
                     } else {
                         Log.e("TokenRefresh", "Failed to refresh token: ${response.code}")
-                        preferences.edit().remove("trakt_access_token").apply()
+                        if (response.code == 400 || response.code == 401) {
+                            preferences.edit().remove("trakt_access_token").apply()
+                        }
                     }
                 }
             } catch (e: Exception) {
                 Log.e("TokenRefresh", "Error refreshing token", e)
-                preferences.edit {remove("trakt_access_token")}
             }
         }
     }
