@@ -250,7 +250,7 @@ class SeasonDetailsFragment : Fragment() {
                             val ctx = context
                             if (token.isNullOrEmpty() || ctx == null) {
                                 Toast.makeText(context, R.string.login_to_trakt, Toast.LENGTH_SHORT).show()
-                                return@setOnMenuItemClickListener true
+                                return true
                             }
                             val traktApiService = TraktSync(token, ctx)
                             val endPoint = if (isInWatched) "sync/history/remove" else "sync/history"

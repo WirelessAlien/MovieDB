@@ -351,7 +351,7 @@ class EpisodeAdapter(
             holder.binding.btnAddTraktRating.isEnabled = true
         }
 
-        updateIconStates(holder)
+        updateIconStates(holder, episode.episodeNumber)
 
         // Load current states from database
         CoroutineScope(Dispatchers.Main).launch {
@@ -1752,30 +1752,6 @@ class EpisodeAdapter(
                     R.drawable.ic_bookmark_border
                 )
             }
-            "sync/ratings" -> {
-                holder.binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
-                    context,
-                    R.drawable.ic_thumb_up
-                )
-            }
-            "sync/ratings/remove" -> {
-                holder.binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
-                    context,
-                    R.drawable.ic_thumb_up_border
-                )
-            }
-        }
-    }
-//                    context,
-//                    R.drawable.ic_collection
-//                )
-//            }
-//            "sync/collection/remove" -> {
-//                holder.binding.btnAddToTraktCollection.icon = ContextCompat.getDrawable(
-//                    context,
-//                    R.drawable.ic_collection_border
-//                )
-//            }
             "sync/ratings" -> {
                 holder.binding.btnAddTraktRating.icon = ContextCompat.getDrawable(
                     context,

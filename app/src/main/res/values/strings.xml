@@ -139,6 +139,7 @@
     <string name="upcoming_text">Upcoming on %1$s, Season %2$s, Episode %3$s</string>
     <string name="sync_provider_caution">\u26a0 If multiple provider is enabled, it may not be easier to differentiate between the input methods of all provider, so use with caution.</string>
     <string name="trakt_login_required_1">Log In - Trakt</string>
+    <string name="login_to_trakt">Please log in to Trakt</string>
     <string name="omdb_api_key1">OMDB API Key</string>
     <string name="omdb_api_desc_1">To display ratings from IMDb, Rotten Tomatoes, and Metacritic, you need to enter your OMDB API key. This API key is used to fetch external ratings data.</string>
     <string name="omdb_api_desc2">OMDB API has a free tier for personal use. To get your free API key, follow these steps:</string>
