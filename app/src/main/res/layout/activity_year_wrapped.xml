@@ -79,6 +79,31 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageButton
+        android:id="@+id/btnReplay"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_replay"
+        android:contentDescription="@string/wrapped_replay"
+        android:visibility="gone"
+        app:tint="?attr/colorOnBackground"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnPausePlay" />
+
+    <ImageButton
+        android:id="@+id/btnPausePlay"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_pause"
+        android:contentDescription="@string/wrapped_pause"
+        app:tint="?attr/colorOnBackground"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/closeButton" />
+
+    <ImageButton
         android:id="@+id/closeButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
@@ -102,23 +127,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnShare"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            android:text="Share"
+            android:text="@string/wrapped_share"
             app:icon="@drawable/ic_share" />
             
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="Save"
+            android:text="@string/wrapped_save"
             app:icon="@drawable/ic_save" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

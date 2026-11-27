@@ -61,6 +61,6 @@
     <item
         android:id="@+id/action_wrapped"
         android:orderInCategory="10"
-        android:title="Year Wrapped"
+        android:title="@string/wrapped_menu_title"
         app:showAsAction="never" />
 </menu>

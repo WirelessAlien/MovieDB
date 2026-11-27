@@ -102,7 +102,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Titles Watched"
+                            android:text="@string/wrapped_total_titles_watched"
                             android:textAllCaps="true"
                             android:textStyle="bold"
                             android:textSize="14sp"
@@ -147,7 +147,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Movies"
+                                android:text="@string/wrapped_movies_label"
                                 android:textSize="12sp"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
@@ -183,7 +183,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="TV Shows"
+                                android:text="@string/wrapped_shows_label"
                                 android:textSize="12sp"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
@@ -219,7 +219,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Episodes"
+                                android:text="@string/wrapped_episodes_label"
                                 android:textSize="12sp"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
@@ -323,6 +323,15 @@
                 <include layout="@layout/item_genre_row" android:id="@+id/genre3Row" />
                 <include layout="@layout/item_genre_row" android:id="@+id/genre4Row" />
                 <include layout="@layout/item_genre_row" android:id="@+id/genre5Row" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/wrapped_genre_share_note"
+                    android:textSize="11sp"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
                 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
@@ -378,7 +387,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="AVERAGE RATING"
+                                android:text="@string/wrapped_average_rating_label"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurfaceVariant" />
@@ -403,10 +412,20 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="4dp"
                                     android:layout_marginBottom="6dp"
-                                    android:text="/ 10.0"
+                                    android:text="@string/wrapped_rating_scale"
                                     android:textSize="16sp"
                                     android:textColor="?attr/colorOnSurfaceVariant" />
                             </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvNoRatingsHint"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:text="@string/wrapped_no_ratings_yet"
+                                android:textSize="12sp"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:visibility="gone" />
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -420,6 +439,7 @@
                     android:gravity="center_vertical">
                     
                     <TextView
+                        android:id="@+id/tvTopRatedHeader"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -447,10 +467,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:text="More" />
+                        android:text="@string/wrapped_more" />
                 </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cvGuiltyPleasure"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
@@ -509,50 +530,69 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
                         android:padding="16dp">
-                      
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/ivFirstPoster"
+                            android:layout_width="56dp"
+                            android:layout_height="84dp"
+                            android:layout_marginEnd="16dp"
+                            android:scaleType="centerCrop"
+                            android:background="?attr/colorSurfaceContainerHigh"
+                            android:visibility="gone"
+                            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                            android:contentDescription="@null" />
+
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-                         
-                            <TextView
-                                android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="THE OPENER"
-                                android:textSize="12sp"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/wrapped_the_opener"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="?attr/colorPrimary" />
+
+                                <TextView
+                                    android:id="@+id/tvFirstDate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="12sp"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    tools:text="Jan 2, 2026" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvFirstTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:textSize="20sp"
                                 android:textStyle="bold"
-                                android:textColor="?attr/colorPrimary" />
-                         
+                                android:textColor="?attr/colorOnSurface"
+                                tools:text="FROM" />
+
                             <TextView
-                                android:id="@+id/tvFirstDate"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textSize="12sp"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                tools:text="Jan 2, 2026" />
+                                android:layout_marginTop="4dp"
+                                android:textSize="14sp"
+                                android:text="@string/wrapped_first_watch_desc"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
-                      
-                        <TextView
-                            android:id="@+id/tvFirstTitle"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnSurface"
-                            tools:text="FROM" />
-                     
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:textSize="14sp"
-                            android:text="@string/wrapped_first_watch_desc"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -568,50 +608,69 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
                         android:padding="16dp">
-                     
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/ivLastPoster"
+                            android:layout_width="56dp"
+                            android:layout_height="84dp"
+                            android:layout_marginEnd="16dp"
+                            android:scaleType="centerCrop"
+                            android:background="?attr/colorSurfaceContainerHigh"
+                            android:visibility="gone"
+                            app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium"
+                            android:contentDescription="@null" />
+
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-                         
-                            <TextView
-                                android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="THE CLOSER"
-                                android:textSize="12sp"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/wrapped_the_closer"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:textColor="?attr/colorTertiary" />
+
+                                <TextView
+                                    android:id="@+id/tvLastDate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="12sp"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    tools:text="Dec 28, 2026" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvLastTitle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:textSize="20sp"
                                 android:textStyle="bold"
-                                android:textColor="?attr/colorTertiary" />
-                        
+                                android:textColor="?attr/colorOnSurface"
+                                tools:text="The Gentlemen" />
+
                             <TextView
-                                android:id="@+id/tvLastDate"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textSize="12sp"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                tools:text="Dec 28, 2026" />
+                                android:layout_marginTop="4dp"
+                                android:textSize="14sp"
+                                android:text="@string/wrapped_last_watch_desc"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
                         </LinearLayout>
-                     
-                        <TextView
-                            android:id="@+id/tvLastTitle"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnSurface"
-                            tools:text="The Gentlemen" />
-                      
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:textSize="14sp"
-                            android:text="@string/wrapped_last_watch_desc"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
@@ -667,6 +726,15 @@
                             android:textSize="14sp"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             tools:text="Your peak month with 69 titles streamed" />
+
+                        <LinearLayout
+                            android:id="@+id/llMonthlyChart"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal"
+                            android:gravity="bottom"
+                            android:weightSum="12" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -713,6 +781,15 @@
                             android:textSize="14sp"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             tools:text="Your undisputed go-to evening" />
+
+                        <LinearLayout
+                            android:id="@+id/llWeeklyChart"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal"
+                            android:gravity="bottom"
+                            android:weightSum="7" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -825,23 +902,44 @@
                                 android:background="@drawable/rounded_bg_primary_alpha" />
                         </LinearLayout>
 
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:id="@+id/ivProfileImage"
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            android:src="@drawable/ic_profile_photo"
-                            app:civ_border_width="2dp"
-                            app:civ_border_color="?attr/colorPrimary" />
+                        <FrameLayout
+                            android:id="@+id/flProfileImageContainer"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp">
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:id="@+id/ivProfileImage"
+                                android:layout_width="68dp"
+                                android:layout_height="68dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_profile_photo"
+                                app:civ_border_width="2dp"
+                                app:civ_border_color="?attr/colorPrimary" />
+
+                            <ImageView
+                                android:id="@+id/ivProfileEditBadge"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_gravity="bottom|end"
+                                android:background="@drawable/rounded_bg_primary_alpha"
+                                android:padding="4dp"
+                                android:src="@drawable/ic_edit"
+                                app:tint="?attr/colorPrimary"
+                                android:contentDescription="@string/wrapped_edit_photo" />
+                        </FrameLayout>
 
                         <EditText
                             android:id="@+id/etDisplayName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="Your Name"
+                            android:hint="@string/wrapped_your_name_hint"
                             android:textSize="20sp"
                             android:textStyle="bold"
                             android:background="@null"
+                            android:drawableEnd="@drawable/ic_edit"
+                            android:drawablePadding="6dp"
+                            app:drawableTint="?attr/colorOnSurfaceVariant"
                             android:textColor="?attr/colorOnSurface"
                             android:inputType="textPersonName"
                             android:textAlignment="center" />
@@ -906,7 +1004,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:textSize="10sp"
-                                    android:text="TITLES"
+                                    android:text="@string/wrapped_summary_titles_label"
                                     android:textColor="?attr/colorOnSurfaceVariant" />
                             </LinearLayout>
                          
@@ -935,7 +1033,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:textSize="10sp"
-                                    android:text="TOP GENRE"
+                                    android:text="@string/wrapped_summary_top_genre_label"
                                     android:textColor="?attr/colorOnSurfaceVariant" />
                             </LinearLayout>
                            
@@ -962,7 +1060,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:textSize="10sp"
-                                    android:text="AVG RATING"
+                                    android:text="@string/wrapped_summary_avg_rating_label"
                                     android:textColor="?attr/colorOnSurfaceVariant" />
                             </LinearLayout>
                         </LinearLayout>

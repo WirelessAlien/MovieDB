@@ -18,6 +18,7 @@
   ~     along with "ShowCase".  If not, see <https://www.gnu.org/licenses/>.
   -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -34,6 +35,17 @@
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="?attr/colorPrimary" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivPoster"
+        android:layout_width="36dp"
+        android:layout_height="52dp"
+        android:layout_marginEnd="12dp"
+        android:scaleType="centerCrop"
+        android:background="?attr/colorSurfaceContainerHigh"
+        android:visibility="gone"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Small"
+        android:contentDescription="@null" />
         
     <TextView
         android:id="@+id/tvTitle"
@@ -58,8 +70,7 @@
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:src="@drawable/ic_star"
-            app:tint="?attr/colorTertiary"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+            app:tint="?attr/colorTertiary" />
             
         <TextView
             android:id="@+id/tvRating"

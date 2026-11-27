@@ -998,6 +998,33 @@
     <string name="wrapped_peak_day_label">Weekly Habit</string>
     <string name="wrapped_binge_label">Record Breaker</string>
     <string name="wrapped_insight_format">You spent an estimated %1$d hours (%2$.1f days) immersed in cinema &amp; binge sessions.</string>
+    <string name="wrapped_menu_title">Year Wrapped</string>
+    <string name="wrapped_total_titles_watched">Total Titles Watched</string>
+    <string name="wrapped_movies_label">Movies</string>
+    <string name="wrapped_shows_label">TV Shows</string>
+    <string name="wrapped_episodes_label">Episodes</string>
+    <string name="wrapped_genre_share_note">Percentage of watched titles featuring each genre</string>
+    <string name="wrapped_genre_dynamic_single">%1$s led the way, appearing in %2$d%% of everything you watched.</string>
+    <string name="wrapped_genre_dynamic_multi">%1$s and %2$s defined your year, led by %1$s at %3$d%%.</string>
+    <string name="wrapped_average_rating_label">AVERAGE RATING</string>
+    <string name="wrapped_rating_scale">/ 10.0</string>
+    <string name="wrapped_more">More</string>
+    <string name="wrapped_no_ratings_yet">Rate movies or episodes to unlock your Hall of Fame and Guilty Pleasure.</string>
+    <string name="wrapped_the_opener">THE OPENER</string>
+    <string name="wrapped_the_closer">THE CLOSER</string>
+    <string name="wrapped_your_name_hint">Your Name</string>
+    <string name="wrapped_summary_titles_label">TITLES</string>
+    <string name="wrapped_summary_top_genre_label">TOP GENRE</string>
+    <string name="wrapped_summary_avg_rating_label">AVG RATING</string>
+    <string name="wrapped_share">Share</string>
+    <string name="wrapped_save">Save</string>
+    <string name="wrapped_saving">Saving…</string>
+    <string name="wrapped_sharing">Preparing…</string>
+    <string name="wrapped_view">View</string>
+    <string name="wrapped_pause">Pause</string>
+    <string name="wrapped_play">Play</string>
+    <string name="wrapped_replay">Replay</string>
+    <string name="wrapped_edit_photo">Change profile photo</string>
 
     <!-- Simkl Sync -->
     <string name="sync_simkl_summary">Watch statuses, Watch history, and Ratings are synced with Simkl.</string>

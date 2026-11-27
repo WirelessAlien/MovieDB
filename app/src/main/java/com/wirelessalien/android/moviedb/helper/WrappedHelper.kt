@@ -27,6 +27,12 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
+data class WrappedRatedItem(
+    val title: String,
+    val rating: Float,
+    val posterPath: String
+)
+
 data class WrappedData(
     val year: Int,
     val totalMovies: Int,
@@ -35,16 +41,23 @@ data class WrappedData(
     val totalTitles: Int,
     val topGenres: List<Pair<String, Int>>,
     val averageRating: Float,
-    val topRatedTitleIds: List<Pair<String, Float>>, // Title and Rating
-    val lowestRatedTitle: String,
+    val ratedCount: Int,
+    val topRatedTitleIds: List<WrappedRatedItem>,
+    val lowestRatedTitle: String?,
     val firstTitle: String,
     val firstDate: String,
+    val firstPosterPath: String,
     val lastTitle: String,
     val lastDate: String,
+    val lastPosterPath: String,
     val peakMonth: String,
+    val peakMonthIndex: Int,
     val peakMonthCount: Int,
+    val monthlyCounts: List<Int>,
     val peakDayOfWeek: String,
+    val peakDayOfWeekIndex: Int,
     val peakDayOfWeekPercentage: Int,
+    val dayOfWeekCounts: List<Int>,
     val topBingeDate: String,
     val topBingeCount: Int,
     val personaBadge: String,
@@ -67,7 +80,8 @@ class WrappedHelper(private val context: Context) {
                    ${MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE}, 
                    ${MovieDatabaseHelper.COLUMN_PERSONAL_RATING}, 
                    ${MovieDatabaseHelper.COLUMN_GENRES},
-                   ${MovieDatabaseHelper.COLUMN_MOVIES_ID}
+                   ${MovieDatabaseHelper.COLUMN_MOVIES_ID},
+                   ${MovieDatabaseHelper.COLUMN_ICON}
             FROM ${MovieDatabaseHelper.TABLE_MOVIES}
             WHERE ${MovieDatabaseHelper.COLUMN_MOVIE} = 1 
               AND ${MovieDatabaseHelper.COLUMN_PERSONAL_FINISH_DATE} >= ? 
@@ -80,7 +94,8 @@ class WrappedHelper(private val context: Context) {
                    e.${MovieDatabaseHelper.COLUMN_EPISODE_WATCH_DATE}, 
                    e.${MovieDatabaseHelper.COLUMN_EPISODE_RATING},
                    m.${MovieDatabaseHelper.COLUMN_GENRES},
-                   m.${MovieDatabaseHelper.COLUMN_MOVIES_ID}
+                   m.${MovieDatabaseHelper.COLUMN_MOVIES_ID},
+                   m.${MovieDatabaseHelper.COLUMN_ICON}
             FROM ${MovieDatabaseHelper.TABLE_EPISODES} e
             INNER JOIN ${MovieDatabaseHelper.TABLE_MOVIES} m 
               ON e.${MovieDatabaseHelper.COLUMN_MOVIES_ID} = m.${MovieDatabaseHelper.COLUMN_MOVIES_ID}
@@ -104,17 +119,22 @@ class WrappedHelper(private val context: Context) {
         var totalRating = 0f
         var ratedCount = 0
         var lowestRating = Float.MAX_VALUE
-        var lowestRatedTitle = "None"
+        var lowestRatedTitle: String? = null
 
         val genreCounts = mutableMapOf<String, Int>()
         val monthCounts = mutableMapOf<Int, Int>() // 0-11
         val dayOfWeekCounts = mutableMapOf<Int, Int>() // 1-7
         val dateCounts = mutableMapOf<String, Int>() // YYYY-MM-DD -> Count
 
-        data class WatchEvent(val title: String, val date: String, val dateObj: Date, val isMovie: Boolean)
+        data class WatchEvent(
+            val title: String,
+            val date: String,
+            val dateObj: Date,
+            val isMovie: Boolean,
+            val posterPath: String
+        )
         val watchEvents = mutableListOf<WatchEvent>()
-        val allRatedIds = mutableListOf<Triple<Int, Boolean, Float>>() // Triple of MovieId, isMovie, Rating
-        val allRatedTitles = mutableListOf<Pair<String, Float>>()
+        val allRatedTitles = mutableListOf<WrappedRatedItem>()
 
         // Process Movies
         movieCursor.use { cursor ->
@@ -123,7 +143,7 @@ class WrappedHelper(private val context: Context) {
                 val dateStr = cursor.getString(1) ?: ""
                 val rating = cursor.getFloat(2)
                 val genresStr = cursor.getString(3) ?: ""
-                val movieId = cursor.getInt(4)
+                val posterPath = cursor.getString(5) ?: ""
 
                 if (rating > 0) {
                     totalRating += rating
@@ -132,8 +152,7 @@ class WrappedHelper(private val context: Context) {
                         lowestRating = rating
                         lowestRatedTitle = title
                     }
-                    allRatedIds.add(Triple(movieId, true, rating))
-                    allRatedTitles.add(Pair(title, rating))
+                    allRatedTitles.add(WrappedRatedItem(title, rating, posterPath))
                 }
 
                 genresStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { genre ->
@@ -143,7 +162,7 @@ class WrappedHelper(private val context: Context) {
                 try {
                     val dateObj = standardFormat.parse(dateStr)
                     if (dateObj != null) {
-                        watchEvents.add(WatchEvent(title, dateStr, dateObj, true))
+                        watchEvents.add(WatchEvent(title, dateStr, dateObj, true, posterPath))
                         processDateStats(dateObj, dateStr, monthCounts, dayOfWeekCounts, dateCounts)
                     }
                 } catch (e: Exception) {}
@@ -159,6 +178,7 @@ class WrappedHelper(private val context: Context) {
                 val rating = cursor.getFloat(2)
                 val genresStr = cursor.getString(3) ?: ""
                 val movieId = cursor.getInt(4) // TV Show ID
+                val posterPath = cursor.getString(5) ?: ""
 
                 if (rating > 0) {
                     totalRating += rating
@@ -167,8 +187,7 @@ class WrappedHelper(private val context: Context) {
                         lowestRating = rating
                         lowestRatedTitle = "$title Episode"
                     }
-                    allRatedIds.add(Triple(movieId, false, rating))
-                    allRatedTitles.add(Pair(title, rating))
+                    allRatedTitles.add(WrappedRatedItem(title, rating, posterPath))
                 }
 
                 watchedShowIds.add(movieId)
@@ -183,7 +202,7 @@ class WrappedHelper(private val context: Context) {
                 try {
                     val dateObj = standardFormat.parse(dateStr)
                     if (dateObj != null) {
-                        watchEvents.add(WatchEvent(title, dateStr, dateObj, false))
+                        watchEvents.add(WatchEvent(title, dateStr, dateObj, false, posterPath))
                         processDateStats(dateObj, dateStr, monthCounts, dayOfWeekCounts, dateCounts)
                     }
                 } catch (e: Exception) {}
@@ -197,24 +216,36 @@ class WrappedHelper(private val context: Context) {
 
         val averageRating = if (ratedCount > 0) totalRating / ratedCount else 0f
         
-        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map { Pair<String, Int>(it.key, if (totalMovies + totalShows > 0) Math.round((it.value.toDouble() / (totalMovies + totalShows)) * 100.0).toInt() else 0) }
+        val topGenres = genreCounts.entries.sortedByDescending { it.value }.take(5).map {
+            Pair(
+                it.key,
+                if (totalTitles > 0) Math.round((it.value.toDouble() / totalTitles) * 100.0).toInt().coerceIn(0, 100) else 0
+            )
+        }
         
-        val topRatedIds = allRatedTitles.sortedByDescending { it.second }.distinctBy { it.first }.take(5)
+        val topRatedItems = allRatedTitles.sortedByDescending { it.rating }.distinctBy { it.title }.take(5)
         
-        val firstTitle = watchEvents.firstOrNull()?.title ?: ""
-        val firstDate = watchEvents.firstOrNull()?.dateObj?.let { displayFormat.format(it) } ?: ""
+        val firstEvent = watchEvents.firstOrNull()
+        val firstTitle = firstEvent?.title ?: ""
+        val firstDate = firstEvent?.dateObj?.let { displayFormat.format(it) } ?: ""
+        val firstPosterPath = firstEvent?.posterPath ?: ""
         
-        val lastTitle = watchEvents.lastOrNull()?.title ?: ""
-        val lastDate = watchEvents.lastOrNull()?.dateObj?.let { displayFormat.format(it) } ?: ""
+        val lastEvent = watchEvents.lastOrNull()
+        val lastTitle = lastEvent?.title ?: ""
+        val lastDate = lastEvent?.dateObj?.let { displayFormat.format(it) } ?: ""
+        val lastPosterPath = lastEvent?.posterPath ?: ""
 
         val peakMonthIndex = monthCounts.maxByOrNull { it.value }?.key ?: 0
         val peakMonthCount = monthCounts.maxByOrNull { it.value }?.value ?: 0
         val peakMonthName = getMonthName(peakMonthIndex)
+        val monthlyCountsList = (0..11).map { monthCounts.getOrDefault(it, 0) }
 
-        val peakDayIndex = dayOfWeekCounts.maxByOrNull { it.value }?.key ?: 1
+        val peakDayIndex = dayOfWeekCounts.maxByOrNull { it.value }?.key ?: Calendar.SUNDAY
         val peakDayCount = dayOfWeekCounts.maxByOrNull { it.value }?.value ?: 0
         val peakDayName = getDayOfWeekName(peakDayIndex)
         val peakDayOfWeekPercentage = if (totalMovies + totalEpisodes > 0) ((peakDayCount.toFloat() / (totalMovies + totalEpisodes)) * 100).roundToInt() else 0
+        // Calendar.SUNDAY = 1 .. Calendar.SATURDAY = 7; convert to Mon..Sun or Sun..Sat (1..7)
+        val dayOfWeekList = (Calendar.SUNDAY..Calendar.SATURDAY).map { dayOfWeekCounts.getOrDefault(it, 0) }
 
         val topBingeDateStr = dateCounts.maxByOrNull { it.value }?.key ?: ""
         val topBingeCount = dateCounts.maxByOrNull { it.value }?.value ?: 0
@@ -257,16 +288,23 @@ class WrappedHelper(private val context: Context) {
             totalTitles = totalTitles,
             topGenres = topGenres,
             averageRating = averageRating,
-            topRatedTitleIds = topRatedIds,
+            ratedCount = ratedCount,
+            topRatedTitleIds = topRatedItems,
             lowestRatedTitle = lowestRatedTitle,
             firstTitle = firstTitle,
             firstDate = firstDate,
+            firstPosterPath = firstPosterPath,
             lastTitle = lastTitle,
             lastDate = lastDate,
+            lastPosterPath = lastPosterPath,
             peakMonth = peakMonthName,
+            peakMonthIndex = peakMonthIndex,
             peakMonthCount = peakMonthCount,
+            monthlyCounts = monthlyCountsList,
             peakDayOfWeek = peakDayName,
+            peakDayOfWeekIndex = peakDayIndex - 1,
             peakDayOfWeekPercentage = peakDayOfWeekPercentage,
+            dayOfWeekCounts = dayOfWeekList,
             topBingeDate = topBingeDateDisplay,
             topBingeCount = topBingeCount,
             personaBadge = personaBadge,
