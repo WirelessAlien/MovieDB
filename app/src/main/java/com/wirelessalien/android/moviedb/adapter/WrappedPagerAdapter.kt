@@ -451,10 +451,10 @@ class WrappedPagerAdapter(
             else -> com.google.android.material.R.attr.colorTertiaryContainer
         }
         val accent = resolveThemeColor(context, accentAttr)
-        val topTint = ColorUtils.blendARGB(surface, accent, 0.22f)
+        val midTint = ColorUtils.blendARGB(surface, accent, 0.22f)
         root.background = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(topTint, surface)
+            intArrayOf(surface, midTint, surface)
         )
     }
 
