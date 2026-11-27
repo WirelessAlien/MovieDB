@@ -148,21 +148,30 @@ class GetSimklSyncData(
                     }
 
                     // Also fetch initial ratings to avoid missing items that are only rated without being on a list
-                    fetchEndpointBody(simklSync, "sync/ratings/movies")?.let { body ->
-                        parseAndSaveRatings(dbHelper, body, defaultType = "movie")
+                    val moviesRatingsBody = fetchEndpointBody(simklSync, "sync/ratings/movies")
+                    if (moviesRatingsBody != null) {
+                        parseAndSaveRatings(dbHelper, moviesRatingsBody, defaultType = "movie")
+                        nextMoviesRatedAt = remoteMoviesRatedAt
+                    } else {
+                        allSucceeded = false
                     }
-                    fetchEndpointBody(simklSync, "sync/ratings/shows")?.let { body ->
-                        parseAndSaveRatings(dbHelper, body, defaultType = "show")
+                    val showsRatingsBody = fetchEndpointBody(simklSync, "sync/ratings/shows")
+                    if (showsRatingsBody != null) {
+                        parseAndSaveRatings(dbHelper, showsRatingsBody, defaultType = "show")
+                        nextShowsRatedAt = remoteShowsRatedAt
+                    } else {
+                        allSucceeded = false
                     }
-                    fetchEndpointBody(simklSync, "sync/ratings/anime")?.let { body ->
-                        parseAndSaveRatings(dbHelper, body, defaultType = "anime")
+                    val animeRatingsBody = fetchEndpointBody(simklSync, "sync/ratings/anime")
+                    if (animeRatingsBody != null) {
+                        parseAndSaveRatings(dbHelper, animeRatingsBody, defaultType = "anime")
+                        nextAnimeRatedAt = remoteAnimeRatedAt
+                    } else {
+                        allSucceeded = false
                     }
 
                     if (allSucceeded) {
                         nextRatingsAt = remoteRatingsAt
-                        nextMoviesRatedAt = remoteMoviesRatedAt
-                        nextShowsRatedAt = remoteShowsRatedAt
-                        nextAnimeRatedAt = remoteAnimeRatedAt
                     }
                 } else if (savedAll != remoteAll ||
                     remoteMoviesRatedAt != savedMoviesRatedAt ||
@@ -197,10 +206,13 @@ class GetSimklSyncData(
 
                     if (remoteMoviesRatedAt != null && remoteMoviesRatedAt != savedMoviesRatedAt) {
                         val dateParam = if (!savedMoviesRatedAt.isNullOrEmpty()) "?date_from=$savedMoviesRatedAt" else ""
-                        fetchEndpointBody(simklSync, "sync/ratings/movies$dateParam")?.let { body ->
+                        val body = fetchEndpointBody(simklSync, "sync/ratings/movies$dateParam")
+                        if (body != null) {
                             parseAndSaveRatings(dbHelper, body, defaultType = "movie")
+                            nextMoviesRatedAt = remoteMoviesRatedAt
+                        } else {
+                            allSucceeded = false
                         }
-                        nextMoviesRatedAt = remoteMoviesRatedAt
                     }
 
                     if (remoteShowsAll != null && remoteShowsAll != savedShowsAll) {
@@ -225,10 +237,13 @@ class GetSimklSyncData(
 
                     if (remoteShowsRatedAt != null && remoteShowsRatedAt != savedShowsRatedAt) {
                         val dateParam = if (!savedShowsRatedAt.isNullOrEmpty()) "?date_from=$savedShowsRatedAt" else ""
-                        fetchEndpointBody(simklSync, "sync/ratings/shows$dateParam")?.let { body ->
+                        val body = fetchEndpointBody(simklSync, "sync/ratings/shows$dateParam")
+                        if (body != null) {
                             parseAndSaveRatings(dbHelper, body, defaultType = "show")
+                            nextShowsRatedAt = remoteShowsRatedAt
+                        } else {
+                            allSucceeded = false
                         }
-                        nextShowsRatedAt = remoteShowsRatedAt
                     }
 
                     if (remoteAnimeAll != null && remoteAnimeAll != savedAnimeAll) {
@@ -253,10 +268,13 @@ class GetSimklSyncData(
 
                     if (remoteAnimeRatedAt != null && remoteAnimeRatedAt != savedAnimeRatedAt) {
                         val dateParam = if (!savedAnimeRatedAt.isNullOrEmpty()) "?date_from=$savedAnimeRatedAt" else ""
-                        fetchEndpointBody(simklSync, "sync/ratings/anime$dateParam")?.let { body ->
+                        val body = fetchEndpointBody(simklSync, "sync/ratings/anime$dateParam")
+                        if (body != null) {
                             parseAndSaveRatings(dbHelper, body, defaultType = "anime")
+                            nextAnimeRatedAt = remoteAnimeRatedAt
+                        } else {
+                            allSucceeded = false
                         }
-                        nextAnimeRatedAt = remoteAnimeRatedAt
                     }
 
                     // Reconcile deletions if removed_from_list changed

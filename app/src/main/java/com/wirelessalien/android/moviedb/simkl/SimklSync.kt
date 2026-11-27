@@ -46,8 +46,10 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.min
 import kotlin.random.Random
 
-class SimklSync(private val accessToken: String, private val context: Context) {
+class SimklSync(accessToken: String, private val context: Context) {
 
+    @Volatile
+    private var currentAccessToken: String = accessToken
     private val client = NetworkClient.client
     private val baseUrl = "https://api.simkl.com"
     private val appContext = context.applicationContext
@@ -66,7 +68,7 @@ class SimklSync(private val accessToken: String, private val context: Context) {
     }
 
     private fun applyHeaders(builder: Request.Builder, tokenOverride: String? = null, hasBody: Boolean = false): Request.Builder {
-        val effectiveToken = tokenOverride ?: accessToken
+        val effectiveToken = tokenOverride ?: currentAccessToken
         builder
             .header("User-Agent", "ShowCase/${BuildConfig.VERSION_NAME}")
             .header("simkl-api-key", clientId)
@@ -169,13 +171,14 @@ class SimklSync(private val accessToken: String, private val context: Context) {
             try {
                 val response = client.newCall(currentRequest).execute()
 
-                if (response.code == 401 && !refreshedOn401 && accessToken.isNotEmpty()) {
+                if (response.code == 401 && !refreshedOn401 && currentAccessToken.isNotEmpty()) {
                     refreshedOn401 = true
                     response.close()
                     if (SimklTokenRefreshWorker.refreshTokenSync(appContext) == SimklTokenRefreshWorker.RefreshOutcome.SUCCESS) {
                         val newToken = PreferenceManager.getDefaultSharedPreferences(appContext)
                             .getString("simkl_access_token", null)
                         if (!newToken.isNullOrEmpty()) {
+                            currentAccessToken = newToken
                             currentRequest = applyHeaders(currentRequest.newBuilder(), newToken, hasBody = currentRequest.body != null).build()
                             continue
                         }
@@ -239,13 +242,14 @@ class SimklSync(private val accessToken: String, private val context: Context) {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if (response.code == 401 && !refreshedOn401 && accessToken.isNotEmpty()) {
+                if (response.code == 401 && !refreshedOn401 && currentAccessToken.isNotEmpty()) {
                     response.close()
                     CoroutineScope(Dispatchers.IO).launch {
                         if (SimklTokenRefreshWorker.refreshTokenSync(appContext) == SimklTokenRefreshWorker.RefreshOutcome.SUCCESS) {
                             val newToken = PreferenceManager.getDefaultSharedPreferences(appContext)
                                 .getString("simkl_access_token", null)
                             if (!newToken.isNullOrEmpty()) {
+                                currentAccessToken = newToken
                                 val updatedReq = applyHeaders(request.newBuilder(), newToken, hasBody = request.body != null).build()
                                 executeWithRetryAsync(updatedReq, callback, attempt, waitTimeMs, true)
                                 return@launch

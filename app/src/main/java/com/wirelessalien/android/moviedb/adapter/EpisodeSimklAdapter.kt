@@ -177,7 +177,7 @@ class EpisodeSimklAdapter(
                                 tvShowId,
                                 seasonNumber,
                                 episodeNumber,
-                                currentlyWatched
+                                endpoint == "sync/history"
                             )
                             Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show()
                         } else {
